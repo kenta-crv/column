@@ -4,42 +4,54 @@ class ColumnsController < ApplicationController
   before_action :set_noindex
 
 def index
-    # 1. ホスト判定：パラメータの有無に関わらず、このドメインが許可する唯一のジャンルを確定させる
-    @allowed_genre = case request.host
-                     when "ri-plus.jp"   then "app"
-                     when "自販機.net"  then "vender"
-                     when "j-work.jp"    then "cargo"
-                     when "okey.work"    then "cleaning"
-                     else nil # column.okey.work 等
-                     end
+  # 1. ホスト判定：パラメータの有無に関わらず、このドメインが許可する唯一のジャンルを確定させる
+  @allowed_genre = case request.host
+                   when "ri-plus.jp"   then "app"
+                   when "自販機.net"  then "vender"
+                   when "j-work.jp"    then "cargo"
+                   when "okey.work"    then "cleaning"
+                   else nil # column.okey.work 等
+                   end
 
-    # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
-    columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+  # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
+  columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
 
-    # 3. 物理的排除の実行
-    if @allowed_genre.present?
-      # ここで強制的にジャンルを固定。これにより genre: "app" は SQLレベルで除外される
-      # SQL: SELECT * FROM columns WHERE status != 'draft' AND genre = 'cargo' ...
-      columns = columns.where(genre: @allowed_genre)
+  # 3. 物理的排除の実行
+  if @allowed_genre.present?
+    # ここで強制的にジャンルを固定
+    columns = columns.where(genre: @allowed_genre)
 
-      # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
-      if params[:genre].present? && params[:genre] != @allowed_genre
-        return render_404
-      end
-    else
-      # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
-      columns = columns.where(genre: params[:genre]) if params[:genre].present?
+    # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
+    if params[:genre].present? && params[:genre] != @allowed_genre
+      return render_404
     end
-
-    # 4. 共通フィルタ
-    columns = columns.where(status: params[:status]) if params[:status].present?
-    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
-    @columns = columns.order(updated_at: :desc)
-    
-    # 子記事カウント
-    column_ids = @columns.pluck(:id)
-    @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
+  else
+    # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
+    columns = columns.where(genre: params[:genre]) if params[:genre].present?
   end
+
+  # 4. 共通フィルタ
+  columns = columns.where(status: params[:status]) if params[:status].present?
+  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+  
+  # セレクトボックスで選択されたジャンルがある場合の絞り込み
+  if params[:selected_genre].present?
+    columns = columns.where(genre: params[:selected_genre])
+  end
+
+  @columns = columns.order(updated_at: :desc)
+
+  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
+  if params[:article_type] == 'pillar'
+    @grouped_columns = @columns.group_by(&:genre)
+    # セレクトボックス用の全ジャンルリスト（重複排除）
+    @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
+  end
+
+  # 子記事カウント
+  column_ids = @columns.pluck(:id)
+  @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
+end
 
   def show
     # 1. 閲覧ドメインの許可ジャンルを再判定

@@ -7,7 +7,7 @@
     .col-sm-4
       = link_to "ドラフト一覧を見る", draft_columns_path, class: "btn btn-secondary", data: { turbo: false }
     
-    / 記事タイプ切り替えボタン：data-turbo="false" でスクロール位置のリセットを防ぐ
+    / 記事タイプ切り替えボタン
     .col-sm-8 style="display: flex; gap: 10px; justify-content: center;"
       = link_to "すべて表示", columns_path(genre: params[:genre]), 
                 class: "btn #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}", 
@@ -29,42 +29,87 @@
       - else
         | 新着記事
 
-    .columns-grid
-      - @columns.presence&.each do |column|
-        .column-card
-          .column-image
-            - if column.file.present?
-              = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
-          .column-content
-            h2.column-title
-              / リダイレクトループ防止のため、codeがあればcodeを、なければIDを使用
-              - link_target = column.code.presence || column.id
-              = link_to column.title, column_path(link_target), data: { turbo: false }
-            .column-description
-              - if column.description.present?
-                = truncate(strip_tags(column.description), length: 120)
-                | （更新日: #{column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")}）
-            
-            - if admin_signed_in?
-              .column-admin-links style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;"
-                span.badge.bg-info = column.genre
+    / --- 親記事の時のみジャンル選択セレクトボックスを表示 ---
+    - if params[:article_type] == 'pillar'
+      .genre-filter style="margin-bottom: 30px; text-align: center; background: #f8f9fa; padding: 20px; border-radius: 8px;"
+        form action=columns_path method="get" style="display: inline-flex; align-items: center; gap: 10px;"
+          = hidden_field_tag :article_type, 'pillar'
+          = hidden_field_tag :genre, params[:genre] if params[:genre].present?
+          label style="font-weight: bold;" ジャンル絞り込み:
+          select name="selected_genre" onchange="this.form.submit()" class="form-select" style="width: auto; display: inline-block;"
+            option value="" 全表示
+            - @all_genres&.each do |g|
+              option value=g selected=(params[:selected_genre] == g) = g.upcase
+          noscript
+            input type="submit" value="適用" class="btn btn-sm btn-secondary"
+
+    - if params[:article_type] == 'pillar' && @grouped_columns.present?
+      / --- 親記事選択時：ジャンルごとに1列で表示 ---
+      - @grouped_columns.each do |genre, columns|
+        .genre-group style="margin-bottom: 40px;"
+          h2.genre-title style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; font-weight: bold;"
+            = genre.upcase
+          
+          .columns-list
+            - columns.each do |column|
+              .column-list-item style="display: flex; gap: 20px; align-items: center; padding: 15px; border-bottom: 1px solid #eee; background: #fff;"
+                .column-image style="width: 150px; flex-shrink: 0;"
+                  - if column.file.present?
+                    = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
                 
-                / 子記事のカウント表示
-                - if column.article_type == "pillar"
-                  span.badge.bg-warning
-                    | Pillar (#{ @child_counts[column.id] || 0 } 子記事)
-                - else
-                  span.badge.bg-primary Child
-                
-                / --- ID表示ボタンを追加 ---
-                span.btn.btn-outline-secondary.btn-sm style="pointer-events: none;"
-                  | ID: #{column.id}
-                
-                = link_to '編集', edit_column_path(column), class: 'btn btn-sm btn-edit', data: { turbo: false }
-                = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn btn-sm btn-delete'
-                
-                - if column.status == "draft"
-                  = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-sm btn-success", data: { turbo: false }
+                .column-info style="flex-grow: 1;"
+                  h3.column-title style="margin: 0 0 8px 0; font-size: 1.25rem;"
+                    - link_target = column.code.presence || column.id
+                    = link_to column.title, column_path(link_target), data: { turbo: false }
+                  
+                  .column-meta style="font-size: 0.9rem; color: #666; display: flex; align-items: center; gap: 15px;"
+                    span.badge.bg-warning style="color: #000;"
+                      | Pillar (#{ @child_counts[column.id] || 0 } 子記事)
+                    span
+                      | 更新日: #{column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")}
+                    - if admin_signed_in?
+                      span.badge.bg-outline-secondary style="color: #999; border: 1px solid #ddd;" ID: #{column.id}
+
+                - if admin_signed_in?
+                  .column-admin-actions style="display: flex; gap: 8px;"
+                    = link_to '編集', edit_column_path(column), class: 'btn btn-sm btn-outline-secondary', data: { turbo: false }
+                    = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn btn-sm btn-outline-danger'
+
+    - else
+      / --- 通常時（すべて・子記事）：従来のグリッド表示 ---
+      .columns-grid
+        - @columns.presence&.each do |column|
+          .column-card
+            .column-image
+              - if column.file.present?
+                = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
+            .column-content
+              h2.column-title
+                - link_target = column.code.presence || column.id
+                = link_to column.title, column_path(link_target), data: { turbo: false }
+              .column-description
+                - if column.description.present?
+                  = truncate(strip_tags(column.description), length: 120)
+                  | （更新日: #{column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")}）
+              
+              - if admin_signed_in?
+                .column-admin-links style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;"
+                  span.badge.bg-info = column.genre
+                  
+                  - if column.article_type == "pillar"
+                    span.badge.bg-warning
+                      | Pillar (#{ @child_counts[column.id] || 0 } 子記事)
+                  - else
+                    span.badge.bg-primary Child
+                  
+                  span.btn.btn-outline-secondary.btn-sm style="pointer-events: none;"
+                    | ID: #{column.id}
+                  
+                  = link_to '編集', edit_column_path(column), class: 'btn btn-sm btn-edit', data: { turbo: false }
+                  = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn btn-sm btn-delete'
+                  
+                  - if column.status == "draft"
+                    = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-sm btn-success", data: { turbo: false }
 
     .pagination-wrapper
       /= paginate @columns if @columns.present?
