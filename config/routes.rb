@@ -1,19 +1,14 @@
 Rails.application.routes.draw do
-  # ================================================================
-  # 1. 共通基盤設定
-  # ================================================================
-
   devise_for :admins, controllers: {
     sessions: 'admins/sessions',
     registrations: 'admins/registrations'
   }
 
   require 'sidekiq/web'
-  authenticate :admin do 
+  authenticate :admin do
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
-  # コラム管理
   post 'columns/generate_from_selected', to: 'columns#generate_from_selected', as: :generate_from_selected_columns_fix
   post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts', as: :bulk_update_drafts_columns_fix
 
@@ -27,29 +22,22 @@ Rails.application.routes.draw do
     end
     member do
       post :generate_from_pillar
+      post :generate_title
       patch :approve
     end
   end
 
-  # ================================================================
-  # 2. ルート構造（ここが重要）
-  # ================================================================
-
-  # トップ
   root to: 'columns#index'
 
-  # ★ columns直叩きを禁止（重要）
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
-  # ★ 正規ルート（制約あり）
-  scope ':genre/columns', constraints: { genre: /cargo|cleaning|logistics|event|housekeeping|babysitter|app|vender/ } do
+  # genreを動的に判定するスコープ
+  scope ':genre/columns', constraints: {
+    genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
+  } do
     get '/',    to: 'columns#index', as: :columns_index
-    get '/:id', to: 'columns#show',  as: :columns_show
+    get '/:id', to: 'columns#show',  as: :columns_show # これがメインの表示用URL
   end
-
-  # ================================================================
-  # 3. 固定ページ
-  # ================================================================
 
   get 'construction', to: 'pages#construction'
   get 'security',     to: 'pages#security'
@@ -59,10 +47,6 @@ Rails.application.routes.draw do
   get 'bpo',          to: 'pages#bpo'
   get 'pest',         to: 'pages#pest'
   get 'ads',          to: 'pages#ads'
-
-  # ================================================================
-  # 4. 共通機能
-  # ================================================================
 
   get 'draft/progress', to: 'draft#progress', as: :draft_progress
   resources :contracts

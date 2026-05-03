@@ -12,30 +12,6 @@ class GptArticleGenerator
   GPT_API_KEY = ENV["GPT_API_KEY"]
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
-  # 英字コードから日本語名を取得するための辞書
-  GENRE_REVERSE_MAP = {
-    "cargo"        => "軽貨物",
-    "cleaning"     => "清掃",
-    "security"     => "警備",
-    "app"          => "営業代行",
-    "vender"       => "自販機",
-    "housekeeping" => "家事代行",
-    "pest"         => "害虫駆除",
-    "construction" => "建設"
-  }.freeze
-
-  CATEGORY_KEYWORDS = {
-    "警備"     => ["警備"],
-    "軽貨物"   => ["軽貨物", "配送"],
-    "清掃"     => ["清掃"],
-    "営業代行" => ["営業代行", "テレアポ"],
-    "家事代行" => ["家事代行", "お手伝いさん", "ハウスキーピング", "家政婦"],
-    "ブログ"   => ["ブログ"],
-    "自販機"   => ["自販機"],
-    "害虫駆除" => ["シロアリ駆除", "トコジラミ駆除","ネズミ駆除"],
-    "建設"     => ["建設", "現場"]
-  }
-
   def self.generate_body(column)
     unless GPT_API_KEY.present?
       Rails.logger.error("OPENAI_API_KEY が設定されていません")
@@ -45,24 +21,20 @@ class GptArticleGenerator
     original_body = column.body
 
     # ==============================
-    # 修正箇所: ジャンル名の正規化（URLエラーの根本治療）
+    # GenreRegistryを用いたジャンル特定ロジック
     # ==============================
-    # 相互変換用マップ
-    en_to_jp = GENRE_REVERSE_MAP
-    jp_to_en = GENRE_REVERSE_MAP.invert
-
     # 1. 英字コード(genre_code)を特定する
-    # 既存が英字ならそのまま、日本語なら変換、空ならキーワードから推測
-    genre_code = if en_to_jp.key?(column.genre)
-                   column.genre
-                 elsif jp_to_en.key?(column.genre)
-                   jp_to_en[column.genre]
+    genre_code = if GenreRegistry::GENRES.key?(column.genre&.to_sym)
+                   column.genre.to_s
+                 elsif (code = GenreRegistry.from_ja(column.genre))
+                   code
                  else
-                   jp_to_en[detect_category(column.keyword)]
+                   # キーワードから推測
+                   detect_genre_code(column.keyword)
                  end
 
-    # 2. プロンプト用の日本語カテゴリ名を特定
-    category = en_to_jp[genre_code] || "その他"
+    # 2. 日本語カテゴリ名の特定
+    category = GenreRegistry.to_ja(genre_code) || "その他"
     
     user_instruction = column.respond_to?(:prompt) ? column.prompt : nil
 
@@ -76,7 +48,7 @@ class GptArticleGenerator
       clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
       clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
       
-      # 重要: ここで genre を英字コードで上書き保存することで、URL生成エラーを解消する
+      # genre を英字コードで保存
       column.update!(
         genre: genre_code,
         code: clean_code,
@@ -108,8 +80,6 @@ class GptArticleGenerator
     # STEP 2: 本文生成（リトライ機能付き）
     # ==============================
     full_article = ""
-
-    # 全体の構成を把握させるためのテキスト（一貫性用）
     overall_structure_text = structure.map.with_index(1) { |s, i| "#{i}. #{s['h2_title']}" }.join("\n")
 
     full_article += generate_section_content_with_retry(
@@ -148,13 +118,11 @@ class GptArticleGenerator
     full_article
   end
 
-  # --- 新設: 本文が空の場合にリトライするロジック ---
   def self.generate_section_content_with_retry(name, prompt, column, heading_level: "##")
     MAX_RETRIES.times do |i|
       response = call_gpt_api(prompt)
       content = response&.dig("choices", 0, "message", "content")
       
-      # 本文が空でなく、かつ見出しのみ（例: 50文字以下）でない場合に採用
       if content.present? && content.strip.length > 50
         return content
       end
@@ -176,65 +144,21 @@ class GptArticleGenerator
     res ? JSON.parse(res.dig("choices", 0, "message", "content")) : nil
   end
 
-  def self.detect_category(keyword)
-    return "その他" if keyword.blank?
+  # ジャンルレジストリのキーワードから該当するジャンルキーを返す
+  def self.detect_genre_code(keyword)
+    return "other" if keyword.blank?
 
-    CATEGORY_KEYWORDS.each do |category, words|
-      return category if words.any? { |w| keyword.include?(w) }
+    GenreRegistry::GENRES.each do |key, data|
+      if data[:keywords].any? { |w| keyword.include?(w) }
+        return key.to_s
+      end
     end
 
-    "その他"
-  end
-
-  def self.service_profile(category)
-    case category
-    when "軽貨物"
-      <<~TEXT
-        サービス名: OK配送
-        強み: 全国対応の軽貨物ネットワーク、企業・個人配送対応、ドライバーの迅速な確保。
-      TEXT
-    when "清掃"
-      <<~TEXT
-        サービス名: J Work
-        強み: オフィス・店舗・常駐清掃に対応。徹底した品質管理と教育されたスタッフによる施工。
-      TEXT
-    when "警備"
-      <<~TEXT
-        サービス名: OK警備
-        強み: 常駐警備、出入管理、巡回警備、防災センター業務。有資格者による確実な監視と防犯体制の構築。
-      TEXT
-    when "建設"
-      <<~TEXT
-        サービス名: OK建設
-        強み: 現場の人手不足解消、熟練工から手元作業員まで幅広くマッチング。
-      TEXT
-    when "自販機"
-      <<~TEXT
-        サービス名: 自動販売機の設置なら『自販機ねっと』
-        強み: メーカー自販機一括見積及び自動販売機が設置できない企業・個人向けに誰でも設置できる自動販売機の提供
-      TEXT
-    when "害虫駆除"
-      <<~TEXT
-        サービス名: シロアリ害虫駆除なら『シロアリ駆除士隊』
-        強み: 自宅のシロアリにお悩みの方に向けて害虫の駆除を行います。
-      TEXT
-    when "営業代行"
-      <<~TEXT
-        サービス名: Okurite
-        強み: AIを活用した低価格かつ大量アプローチを叶えるトータル営業代行サービス
-      TEXT
-    when "家事代行"
-      <<~TEXT
-        サービス名: クラシエール
-        強み: 家事代行、ハウスキーピング、お手伝いさん、家政婦サービスを低価格高品質で全国対応致します。
-      TEXT
-    else
-      "各業界の専門知識に基づいた最適なソリューションを提供。"
-    end
+    "other"
   end
 
   def self.structure_generation_prompt(column, category, user_instruction)
-    service = service_profile(category)
+    service = GenreRegistry.service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
     <<~PROMPT
       あなたはプロの業界特化ライターです。読者の疑問を段階的に解消する論理的な構成をJSONで作成してください。
@@ -256,7 +180,7 @@ class GptArticleGenerator
   end
 
   def self.introduction_prompt(column, category, user_instruction, overall_structure)
-    service = service_profile(category)
+    service = GenreRegistry.service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
       タイトル「#{column.title}」の導入文を書いてください。
@@ -274,7 +198,7 @@ class GptArticleGenerator
 
   def self.section_content_prompt(column, headline, level, category, user_instruction, parent_h2: nil, overall_structure: nil)
     parent = parent_h2 ? "（親テーマ: #{parent_h2}）" : ""
-    service = service_profile(category)
+    service = GenreRegistry.service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
     heading_instr = level == "H3" ? "### #{headline} から書き始めてください。" : "本文のみ書いてください。"
 
@@ -299,7 +223,7 @@ class GptArticleGenerator
   end
 
   def self.simple_conclusion_prompt(column, category, user_instruction, overall_structure)
-    service = service_profile(category)
+    service = GenreRegistry.service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
       記事「#{column.title}」の総括（まとめ）を執筆してください。

@@ -6,34 +6,15 @@ class GptPillarGenerator
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
-  GENRE_MAP = {
-    "軽貨物"   => "cargo",
-    "清掃業"   => "cleaning",
-    "警備業"   => "security",
-    "営業代行" => "app",
-    "自販機"   => "vender",
-    "害虫駆除"   => "pest",
-    "建設"     => "construction"
-  }.freeze
-
-  CATEGORY_KEYWORDS = {
-    "警備業"   => ["警備", "セキュリティー", "施設警備", "交通整理"],
-    "軽貨物"   => ["軽貨物", "配送", "運送", "ドライバー", "宅配"],
-    "清掃業"   => ["清掃", "クリーニング", "ハウスクリーニング", "ビル清掃"],
-    "営業代行" => ["営業代行", "テレアポ", "インサイドセールス", "コールセンター"],
-    "家事代行" => ["家事代行", "お手伝いさん", "ハウスキーピング", "家政婦"],
-    "害虫駆除" => ["シロアリ駆除"],
-    "建設"     => ["建設", "現場", "工務店", "リフォーム", "土木"]
-  }.freeze
-
   # ==========================================================
   # メイン生成ロジック
   # ==========================================================
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
     
+    # GenreRegistryを使用してカテゴリとジャンルコードを特定
     target_category = detect_category(column)
-    genre_code = GENRE_MAP[target_category] || "other"
+    genre_code = GenreRegistry.from_ja(target_category) || "other"
 
     puts "▶ 統合生成開始: #{column.title} (判定: #{target_category})"
 
@@ -95,7 +76,7 @@ class GptPillarGenerator
       h2_title = section["h2_title"]
       body_content += "## #{h2_title}\n\n"
       
-      # セクション本文の生成（リトライ処理は call_text_section 内で実施）
+      # セクション本文の生成
       section_body = call_text_section(h2_content_prompt(column, target_category, section))
       
       # 重複見出しの徹底除去
@@ -124,9 +105,14 @@ class GptPillarGenerator
 
   def self.detect_category(column)
     search_text = "#{column.title} #{column.keyword} #{column.genre} #{column.choice}"
-    CATEGORY_KEYWORDS.each do |category, words|
-      return category if words.any? { |w| search_text.include?(w) }
+    
+    # GenreRegistry内の全キーワードを走査して判定
+    GenreRegistry::GENRES.each do |key, data|
+      if data[:keywords].any? { |w| search_text.include?(w) }
+        return data[:ja]
+      end
     end
+    
     "その他"
   end
 

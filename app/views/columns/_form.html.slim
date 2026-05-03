@@ -8,7 +8,6 @@
         = f.label :title, "タイトル"
         = f.text_field :title, class: "form-control"
 
-      / code(slug)を手動でも編集・確認できるように追加
       .form-group
         = f.label :code, "URL用英字コード（SEO用）"
         = f.text_field :code, class: "form-control", placeholder: "example-article-slug"
@@ -27,34 +26,25 @@
 
       .form-group
         = f.label :genre, "ジャンル"
-          = f.select :genre,[\
-            ["軽貨物", "cargo"],\
-            ["清掃業", "cleaning"],\
-            ["警備業", "security"],\
-            ["営業代行", "app"],\
-            ["害虫駆除", "pest"],\
-            ["自販機", "vender"],\
-            ["家事代行", "housekeeping"],\
-            ["ベビーシッター", "babysitter"]\
-          ],{ include_blank: "選択してください" },class: "form-control"
+        = f.select :genre,
+          GenreRegistry::GENRES.map { |k, v| [v[:ja], k] },
+          { include_blank: "選択してください" },
+          class: "form-control"
 
       .form-group
         = f.label :article_type, "タイプ"
-          = f.select :article_type,[\
-            ["親記事", "pillar"],\
-            ["子記事", "cluster"],\
-          ],{ include_blank: "選択してください" },class: "form-control"
+        = f.select :article_type,
+          [["親記事", "pillar"], ["子記事", "cluster"]],
+          { include_blank: "選択してください" },
+          class: "form-control"
+
       .form-group
         = f.label :parent_id, "parent_id"
         = f.text_field :parent_id, class: "form-control"
 
       .form-group
-       = f.label :prompt, "AI生成指示（任意・最優先）"
-         = f.text_area :prompt, rows: 6, class: "form-control", placeholder: "この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい"
-
-      /.form-group
-        = f.label :keyword, "キーワード（任意）"
-        = f.text_field :keyword, class: "form-control"
+        = f.label :prompt, "AI生成指示（任意・最優先）"
+        = f.text_area :prompt, rows: 6, class: "form-control", placeholder: "この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい"
 
       .form-actions.mt-4
         = f.submit "保存する", class: "btn btn-primary"
