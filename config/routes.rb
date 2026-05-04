@@ -9,8 +9,8 @@ Rails.application.routes.draw do
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
-  post 'columns/generate_from_selected', to: 'columns#generate_from_selected', as: :generate_from_selected_columns_fix
-  post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts', as: :bulk_update_drafts_columns_fix
+  post 'columns/generate_from_selected', to: 'columns#generate_from_selected'
+  post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts'
 
   resources :columns do
     collection do
@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       post :generate_from_selected
       match 'bulk_update_drafts', via: [:post, :patch]
     end
+
     member do
       post :generate_from_pillar
       post :generate_title
@@ -31,14 +32,15 @@ Rails.application.routes.draw do
 
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
-  # genreを動的に判定するスコープ
+  # genreスコープ（メイン表示）
   scope ':genre/columns', constraints: {
     genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
   } do
     get '/',    to: 'columns#index', as: :columns_index
-    get '/:id', to: 'columns#show',  as: :columns_show # これがメインの表示用URL
+    get '/:id', to: 'columns#show',  as: :columns_show
   end
 
+  # static pages
   get 'construction', to: 'pages#construction'
   get 'security',     to: 'pages#security'
   get 'short',        to: 'pages#short'
@@ -48,6 +50,6 @@ Rails.application.routes.draw do
   get 'pest',         to: 'pages#pest'
   get 'ads',          to: 'pages#ads'
 
-  get 'draft/progress', to: 'draft#progress', as: :draft_progress
+  get 'draft/progress', to: 'draft#progress'
   resources :contracts
 end
