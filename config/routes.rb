@@ -9,6 +9,16 @@ Rails.application.routes.draw do
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
+  # --- 1. 最優先：公開用マルチドメイン対応ルート ---
+  # resourcesより先に定義することで、URL生成時にこちらが優先されます
+  scope ':genre/columns', constraints: {
+    genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
+  } do
+    get '/',    to: 'columns#index', as: :columns_index
+    get '/:id', to: 'columns#show',  as: :columns_show
+  end
+
+  # --- 2. 管理機能・共通ルート ---
   post 'columns/generate_from_selected', to: 'columns#generate_from_selected'
   post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts'
 
@@ -30,15 +40,8 @@ Rails.application.routes.draw do
 
   root to: 'columns#index'
 
+  # 標準の /columns パスへのアクセスは制限
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
-
-  # genreスコープ（メイン表示）
-  scope ':genre/columns', constraints: {
-    genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
-  } do
-    get '/',    to: 'columns#index', as: :columns_index
-    get '/:id', to: 'columns#show',  as: :columns_show
-  end
 
   # static pages
   get 'construction', to: 'pages#construction'

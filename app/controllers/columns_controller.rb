@@ -20,12 +20,12 @@ def index
     # 強制的にジャンルを固定
     columns = columns.where(genre: @allowed_genre)
 
-    # URLパラメータで別のジャンルを叩こうとした場合は404
+    # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
     if params[:genre].present? && params[:genre] != @allowed_genre
       return render_404
     end
   else
-    # ハブサイト等の場合のみ、パラメータがあれば絞り込む
+    # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
     columns = columns.where(genre: params[:genre]) if params[:genre].present?
   end
 
@@ -33,15 +33,17 @@ def index
   columns = columns.where(status: params[:status]) if params[:status].present?
   columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
   
+  # セレクトボックスで選択されたジャンルがある場合の絞り込み
   if params[:selected_genre].present?
     columns = columns.where(genre: params[:selected_genre])
   end
 
   @columns = columns.order(updated_at: :desc)
 
-  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化
+  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
   if params[:article_type] == 'pillar'
     @grouped_columns = @columns.group_by(&:genre)
+    # セレクトボックス用の全ジャンルリスト（重複排除）
     @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
   end
 
@@ -51,7 +53,7 @@ def index
 end
 
 def show
-  # 1. 閲覧ドメインの許可ジャンルを判定
+  # 1. 閲覧ドメインの許可ジャンルを再判定
   allowed_for_show = case request.host
                      when "ri-plus.jp"   then "app"
                      when "自販機.net"  then "vender"
@@ -60,22 +62,17 @@ def show
                      else nil
                      end
 
-  # 2. 記事のジャンルがドメイン許可と不一致なら即404
+  # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
   if allowed_for_show.present? && @column.genre != allowed_for_show
     return render_404
   end
 
   # 3. URL正規化（301リダイレクト）
-  # 現在のドメイン設定に基づいた「あるべきパス」を算出
-  expected_path = if allowed_for_show.present?
-                    # 個別ドメイン: /:genre/columns/:id (routesの設定に合わせる)
-                    columns_show_path(genre: @column.genre, id: @column.code)
-                  else
-                    # ハブサイト: /columns/:id
-                    column_path(@column)
-                  end
+  # どのドメインであっても、常に /:genre/columns/:id を正規パスとして扱う
+  # routes.rb で scope を上に持ってきたため、columns_show_path が正しく機能します
+  expected_path = columns_show_path(genre: @column.genre, id: @column.code)
 
-  # 現在のパスと期待されるパスが異なる場合のみ、現在のホストを維持してリダイレクト
+  # 現在のパスが期待されるパスと異なる場合のみリダイレクト（ホストは維持される）
   if request.path != expected_path
     return redirect_to expected_path, status: :moved_permanently
   end
