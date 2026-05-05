@@ -107,9 +107,6 @@
                   
                   = link_to '編集', edit_column_path(column), class: 'btn btn-sm btn-edit', data: { turbo: false }
                   = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn btn-sm btn-delete'
-                  
-                  - if column.status == "draft"
-                    = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-sm btn-success", data: { turbo: false }
 
     .pagination-wrapper
       /= paginate @columns if @columns.present?
