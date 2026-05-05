@@ -93,6 +93,23 @@ def show
   end
 end
 
+
+def bulk_update_drafts
+    if params[:column_ids].present?
+      case params[:bulk_action]
+      when "publish"
+        Column.where(id: params[:column_ids]).update_all(status: "published")
+        flash[:notice] = "#{params[:column_ids].size}件の記事を公開しました。"
+      when "delete"
+        Column.where(id: params[:column_ids]).destroy_all
+        flash[:notice] = "#{params[:column_ids].size}件の記事を削除しました。"
+      end
+    else
+      flash[:alert] = "記事が選択されていません。"
+    end
+    redirect_to draft_columns_path
+  end
+
   # ======================
   # CRUD
   # ======================
@@ -147,6 +164,28 @@ end
       GenerateColumnBodyJob.perform_later(@column.id)
     end
     redirect_to columns_path, notice: "承認しました。"
+  end
+
+    def bulk_update_drafts
+    column_ids = params[:column_ids]
+    return redirect_to draft_columns_path, alert: "対象未選択" if column_ids.blank?
+    case params[:action_type]
+    when "approve_bulk"
+      Column.where(id: column_ids).each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+      redirect_to columns_path, notice: "生成開始"
+    when "delete_bulk"
+      count = Column.where(id: column_ids).destroy_all
+      redirect_to draft_columns_path, notice: "#{count}件削除"
+    end
+  end
+
+  def generate_pillar
+    if params[:title].present?
+      GptPillarGenerator.generate_full_article(params[:title], params[:genre], params[:choice])
+      redirect_to draft_columns_path, notice: "ドラフト作成完了"
+    else
+      redirect_to new_column_path, alert: "タイトル未入力"
+    end
   end
 
   def generate_from_selected
