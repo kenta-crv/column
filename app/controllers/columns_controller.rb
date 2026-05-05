@@ -3,13 +3,13 @@ class ColumnsController < ApplicationController
   before_action :set_breadcrumbs
   before_action :set_noindex
 def index
-  # 1. ホスト判定：パラメータの有無に関わらず、このドメインが許可する唯一のジャンルを確定させる
+  # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
   @allowed_genre = case request.host
                    when "ri-plus.jp"   then "app"
                    when "自販機.net"  then "vender"
                    when "j-work.jp"    then "cargo"
                    when "okey.work"    then "cleaning"
-                   else nil # column.okey.work 等
+                   else nil # column.okey.work 等のハブサイト
                    end
 
   # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
@@ -17,15 +17,15 @@ def index
 
   # 3. 物理的排除の実行
   if @allowed_genre.present?
-    # ここで強制的にジャンルを固定
+    # 強制的にジャンルを固定
     columns = columns.where(genre: @allowed_genre)
 
-    # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
+    # URLパラメータで別のジャンルを叩こうとした場合は404
     if params[:genre].present? && params[:genre] != @allowed_genre
       return render_404
     end
   else
-    # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
+    # ハブサイト等の場合のみ、パラメータがあれば絞り込む
     columns = columns.where(genre: params[:genre]) if params[:genre].present?
   end
 
@@ -33,17 +33,15 @@ def index
   columns = columns.where(status: params[:status]) if params[:status].present?
   columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
   
-  # セレクトボックスで選択されたジャンルがある場合の絞り込み
   if params[:selected_genre].present?
     columns = columns.where(genre: params[:selected_genre])
   end
 
   @columns = columns.order(updated_at: :desc)
 
-  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
+  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化
   if params[:article_type] == 'pillar'
     @grouped_columns = @columns.group_by(&:genre)
-    # セレクトボックス用の全ジャンルリスト（重複排除）
     @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
   end
 
@@ -52,48 +50,51 @@ def index
   @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
 end
 
-  def show
-    # 1. 閲覧ドメインの許可ジャンルを再判定
-    allowed_for_show = case request.host
-                       when "ri-plus.jp"   then "app"
-                       when "自販機.net"  then "vender"
-                       when "j-work.jp"    then "cargo"
-                       when "okey.work"    then "cleaning"
-                       else nil
-                       end
+def show
+  # 1. 閲覧ドメインの許可ジャンルを判定
+  allowed_for_show = case request.host
+                     when "ri-plus.jp"   then "app"
+                     when "自販機.net"  then "vender"
+                     when "j-work.jp"    then "cargo"
+                     when "okey.work"    then "cleaning"
+                     else nil
+                     end
 
-    # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
-    if allowed_for_show.present? && @column.genre != allowed_for_show
-      return render_404
-    end
-
-    # 3. URL正規化（301リダイレクト）
-    if allowed_for_show.present?
-      # 正規ルート (:genre/columns/:id) 以外でのアクセスを正規パスへ飛ばす
-      correct_path = columns_show_path(genre: @column.genre, id: @column.code)
-      return redirect_to correct_path, status: :moved_permanently if request.path != correct_path
-    elsif request.host.include?("column.okey.work")
-      # ハブサイトは通常のパス
-      correct_path = column_path(@column)
-      return redirect_to correct_path, status: :moved_permanently if request.path != correct_path
-    end
-
-    # 4. 表示用データの準備
-    @children = @column.article_type == "pillar" ? @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc) : []
-
-    markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
-    raw_html_body = Kramdown::Document.new(markdown_body).to_html
-    sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
-
-    @headings = []
-    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-      tag, text = Regexp.last_match(1), Regexp.last_match(2)
-      idx = @headings.size
-      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
-      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
-    end
+  # 2. 記事のジャンルがドメイン許可と不一致なら即404
+  if allowed_for_show.present? && @column.genre != allowed_for_show
+    return render_404
   end
 
+  # 3. URL正規化（301リダイレクト）
+  # 現在のドメイン設定に基づいた「あるべきパス」を算出
+  expected_path = if allowed_for_show.present?
+                    # 個別ドメイン: /:genre/columns/:id (routesの設定に合わせる)
+                    columns_show_path(genre: @column.genre, id: @column.code)
+                  else
+                    # ハブサイト: /columns/:id
+                    column_path(@column)
+                  end
+
+  # 現在のパスと期待されるパスが異なる場合のみ、現在のホストを維持してリダイレクト
+  if request.path != expected_path
+    return redirect_to expected_path, status: :moved_permanently
+  end
+
+  # 4. 表示用データの準備
+  @children = @column.article_type == "pillar" ? @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc) : []
+
+  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+  raw_html_body = Kramdown::Document.new(markdown_body).to_html
+  sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
+
+  @headings = []
+  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+    tag, text = Regexp.last_match(1), Regexp.last_match(2)
+    idx = @headings.size
+    @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+  end
+end
 
   # ======================
   # CRUD
