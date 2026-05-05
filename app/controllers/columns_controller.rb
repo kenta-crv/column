@@ -9,6 +9,7 @@ def index
                    when "自販機.net"  then "vender"
                    when "j-work.jp"    then "cargo"
                    when "okey.work"    then "cleaning"
+                   when "kurasera.life"    then "housekeeping"
                    else nil # column.okey.work 等のハブサイト
                    end
 
@@ -95,19 +96,22 @@ end
 
 
 def bulk_update_drafts
-    if params[:column_ids].present?
-      case params[:bulk_action]
-      when "publish"
-        Column.where(id: params[:column_ids]).update_all(status: "published")
-        flash[:notice] = "#{params[:column_ids].size}件の記事を公開しました。"
-      when "delete"
-        Column.where(id: params[:column_ids]).destroy_all
-        flash[:notice] = "#{params[:column_ids].size}件の記事を削除しました。"
+    column_ids = params[:column_ids]
+    return redirect_back(fallback_location: columns_path, alert: "対象が選択されていません。") if column_ids.blank?
+
+    case params[:action_type]
+    when "approve_bulk"
+      # チェックされた子記事（Cluster）に対し、GptArticleGenerator を実行する Job を投入
+      Column.where(id: column_ids).each do |column|
+        # この Job の内部で GptArticleGenerator.generate(column) 等が呼ばれる想定です
+        GenerateColumnBodyJob.perform_later(column.id)
       end
-    else
-      flash[:alert] = "記事が選択されていません。"
+      redirect_back(fallback_location: columns_path, notice: "#{column_ids.size}件の本文生成を開始しました（GptArticleGenerator実行）")
+      
+    when "delete_bulk"
+      count = Column.where(id: column_ids).destroy_all
+      redirect_back(fallback_location: draft_columns_path, notice: "#{count.size}件削除しました。")
     end
-    redirect_to draft_columns_path
   end
 
   # ======================

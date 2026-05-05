@@ -36,6 +36,15 @@ module GenreRegistry
       images: ['app1.jpg','app2.jpg']
     },
 
+    housekeeping: {
+      ja: "家事代行",
+      host: ["kurasera.life"],
+      service_name: "クラセラ",
+      strong_points: "家事代行・お手伝いさん・家政婦・ハウスキーピングの依頼なら『クラセラ』",
+      keywords: ["家事代行", "お手伝いさん", "家政婦", "ハウスキーピング"],
+      images: ['app1.jpg','app2.jpg']
+    },
+
     vender: {
       ja: "自販機",
       host: ["自販機.net"],
