@@ -21,6 +21,12 @@
       == raw(@column_body_with_ids)
 
     - if admin_signed_in? && @column.article_type == "pillar"
+      .admin-generation-panel style="margin: 40px 0; padding: 25px; border: 2px dashed #f0ad4e; background-color: #fcf8e3; border-radius: 8px; text-align: center;"
+        h3 style="color: #8a6d3b; margin-top: 0; font-size: 1.3rem;" 
+          | 管理者メニュー：クラスター記事（子記事）戦略
+        p style="font-size: 0.9rem; color: #666;"
+          | この親記事に基づき、OpenAIで魅力的な子記事タイトル（15〜25件）を自動生成します。
+        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？" }
 
       .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
         h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
