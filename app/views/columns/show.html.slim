@@ -57,7 +57,7 @@
 
     / ===== 関連記事一覧（一般公開用） =====
     - if @column.article_type == "pillar" && @children.any?
-      - public_children = admin_signed_in? ? @children.select{|c| c.status == "published" && c.body.present? } : @children
+      - public_children = admin_signed_in? ? @children.select{|c|  c.body.present? } : @children
       - if public_children.any?
         .related-articles style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"
           h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px;"
