@@ -69,17 +69,23 @@ def show
   end
 
   # 3. URL正規化（301リダイレクト）
-  # どのドメインであっても、常に /:genre/columns/:id を正規パスとして扱う
-  # routes.rb で scope を上に持ってきたため、columns_show_path が正しく機能します
   expected_path = columns_show_path(genre: @column.genre, id: @column.code)
-
-  # 現在のパスが期待されるパスと異なる場合のみリダイレクト（ホストは維持される）
   if request.path != expected_path
     return redirect_to expected_path, status: :moved_permanently
   end
 
   # 4. 表示用データの準備
-  @children = @column.article_type == "pillar" ? @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc) : []
+  if @column.article_type == "pillar"
+    if admin_signed_in?
+      # 管理者は生成用の下書き（本文なし）も含めてすべて表示
+      @children = @column.children.order(updated_at: :desc)
+    else
+      # 一般ユーザーには公開済みで本文があるものだけを表示
+      @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
+    end
+  else
+    @children = []
+  end
 
   markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
   raw_html_body = Kramdown::Document.new(markdown_body).to_html
