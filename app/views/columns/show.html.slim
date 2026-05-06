@@ -20,53 +20,43 @@
     .column-body
       == raw(@column_body_with_ids)
 
-    / ===== 管理者用：子記事生成 & 管理一覧 =====
     - if admin_signed_in? && @column.article_type == "pillar"
-      .admin-generation-panel style="margin: 40px 0; padding: 25px; border: 2px dashed #f0ad4e; background-color: #fcf8e3; border-radius: 8px; text-align: center;"
-        h3 style="color: #8a6d3b; margin-top: 0; font-size: 1.3rem;" 
-          | 管理者メニュー：クラスター記事（子記事）戦略
-        p style="font-size: 0.9rem; color: #666;"
-          | この親記事に基づき、OpenAIで魅力的な子記事タイトル（15〜25件）を自動生成します。
-        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？" }
 
-      - if @children.any?
-        .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
-          h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
+      .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
+        h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
+        
+        / 一括生成用フォーム
+        = form_tag bulk_update_drafts_columns_path, method: :post do
+          = hidden_field_tag :action_type, "approve_bulk"
           
-          / 一括生成用フォーム
-          = form_tag bulk_update_drafts_columns_path, method: :post do
-            = hidden_field_tag :action_type, "approve_bulk"
-            
-            .admin-actions style="margin-bottom: 15px;"
-              = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
-            
-            table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
-              thead
-                tr style="background: #f9f9f9;"
-                  th style="padding: 8px; border-bottom: 2px solid #eee; width: 30px;"
-                    input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
-                  th style="padding: 8px; border-bottom: 2px solid #eee;" タイトル
-              tbody
-                - @children.each do |child|
-                  tr
-                    td style="padding: 8px; border-bottom: 1px solid #eee;"
-                      / ステータスがpublished（公開済み）でないものはすべて選択可能にする
-                      - unless child.status == 'published'
-                        = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
-                    td style="padding: 8px; border-bottom: 1px solid #eee;" = child.title
+          .admin-actions style="margin-bottom: 15px;"
+            = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
+          
+          table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
+            thead
+              tr style="background: #f9f9f9;"
+                th style="padding: 8px; border-bottom: 2px solid #eee; width: 30px;"
+                  input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
+                th style="padding: 8px; border-bottom: 2px solid #eee;" タイトル
+                th style="padding: 8px; border-bottom: 2px solid #eee;" ステータス
+            tbody
+              - @children.each do |child|
+                tr
+                  td style="padding: 8px; border-bottom: 1px solid #eee;"
+                    = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
+                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.title
+                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.status
 
     / ===== 関連記事一覧（一般公開用） =====
-    - if @column.article_type == "pillar" && @children.any?
-      - public_children = admin_signed_in? ? @children.select{|c|  c.body.present? } : @children
-      - if public_children.any?
-        .related-articles style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"
-          h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px;"
-            | 関連記事一覧
-          ul style="list-style: none; padding: 0;"
-            - public_children.each do |child|
-              li style="margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; display: flex; align-items: baseline;"
-                span style="color: #007bff; margin-right: 12px; font-size: 1.2rem;" ●
-                = link_to child.title, columns_show_path(genre: child.genre, id: child.code), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
+    - if @column.article_type == "pillar"
+      .related-articles style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"
+        h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px;"
+          | 関連記事一覧
+        ul style="list-style: none; padding: 0;"
+          - @children.each do |child|
+            li style="margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; display: flex; align-items: baseline;"
+              span style="color: #007bff; margin-right: 12px; font-size: 1.2rem;" ●
+              = link_to child.title, columns_show_path(genre: child.genre, id: child.code), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
       = link_to '一覧へ戻る', columns_path, class: 'btn btn-default'
