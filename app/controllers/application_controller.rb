@@ -49,13 +49,7 @@ end
     devise_parameter_sanitizer.permit(:account_update, keys: added_attrs)
   end
 
-  def check_trial_expiration
-    return unless current_client.present?
-    current_client.check_and_upgrade_expired_trial
-  end
-
   private
-
   def admin_root_path
     admin_dashboard_index_path
   end

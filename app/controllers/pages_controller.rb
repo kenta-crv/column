@@ -7,6 +7,7 @@ class PagesController < ApplicationController
   # 各アクション（中身は空で各viewを自動呼び出し）
   def index; end
   def cargo; end
+  def human; end
   def security; end
   def construction; end
   def cleaning; end

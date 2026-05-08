@@ -52,6 +52,8 @@ Rails.application.routes.draw do
   get 'bpo',          to: 'pages#bpo'
   get 'pest',         to: 'pages#pest'
   get 'ads',          to: 'pages#ads'
+  get 'cargo',          to: 'pages#cargo'
+  get 'human',          to: 'pages#human'
 
   get 'draft/progress', to: 'draft#progress'
   resources :contracts
