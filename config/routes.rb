@@ -44,16 +44,17 @@ Rails.application.routes.draw do
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
   # static pages
-  get 'construction', to: 'pages#construction'
-  get 'security',     to: 'pages#security'
-  get 'short',        to: 'pages#short'
-  get 'vender',       to: 'pages#vender'
-  get 'recruit',      to: 'pages#recruit'
-  get 'bpo',          to: 'pages#bpo'
-  get 'pest',         to: 'pages#pest'
-  get 'ads',          to: 'pages#ads'
-  get 'cargo',          to: 'pages#cargo'
-  get 'human',          to: 'pages#human'
+  #get 'security',     to: 'pages#security'
+  #get 'short',        to: 'pages#short'
+  #get 'vender',       to: 'pages#vender'
+  #get 'recruit',      to: 'pages#recruit'
+  #get 'bpo',          to: 'pages#bpo'
+  #get 'pest',         to: 'pages#pest'
+  #get 'ads',          to: 'pages#ads'
+  get '/pages/cargo',          to: 'pages#cargo'
+  get '/pages/human',          to: 'pages#human'
+  get '/pages/event',          to: 'pages#event'
+  get '/pages/logistic',          to: 'pages#logistic'
 
   get 'draft/progress', to: 'draft#progress'
   resources :contracts
