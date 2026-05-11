@@ -2,121 +2,116 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title]
   before_action :set_breadcrumbs
   before_action :set_noindex
-def index
-  # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
-  @allowed_genre = case request.host
-                   when "ri-plus.jp"   then "app"
-                   when "自販機.net"  then "vender"
-                   when "j-work.jp"    then "cargo"
-                   when "okey.work"    then "cleaning"
-                   when "kurasera.life"    then "housekeeping"
-                   else nil # column.okey.work 等のハブサイト
-                   end
-
-  # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
-  columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
-
-  # 3. 物理的排除の実行
-  if @allowed_genre.present?
-    # 強制的にジャンルを固定
-    columns = columns.where(genre: @allowed_genre)
-
-    # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
-    if params[:genre].present? && params[:genre] != @allowed_genre
-      return render_404
-    end
-  else
-    # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
-    columns = columns.where(genre: params[:genre]) if params[:genre].present?
-  end
-
-  # 4. 共通フィルタ
-  columns = columns.where(status: params[:status]) if params[:status].present?
-  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
   
-  # セレクトボックスで選択されたジャンルがある場合の絞り込み
-  if params[:selected_genre].present?
-    columns = columns.where(genre: params[:selected_genre])
-  end
-
-  @columns = columns.order(updated_at: :desc)
-
-  # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
-  if params[:article_type] == 'pillar'
-    @grouped_columns = @columns.group_by(&:genre)
-    # セレクトボックス用の全ジャンルリスト（重複排除）
-    @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
-  end
-
-  # 子記事カウント
-  column_ids = @columns.pluck(:id)
-  @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
-end
-
-def show
-  # 1. 閲覧ドメインの許可ジャンルを再判定
-  allowed_for_show = case request.host
+  def index
+    # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
+    @allowed_genre = case request.host
                      when "ri-plus.jp"   then "app"
                      when "自販機.net"  then "vender"
                      when "j-work.jp"    then "cargo"
                      when "okey.work"    then "cleaning"
-                     else nil
+                     when "kurasera.life"    then "housekeeping"
+                     else nil # column.okey.work 等のハブサイト
                      end
 
-  # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
-  if allowed_for_show.present? && @column.genre != allowed_for_show
-    return render_404
-  end
+    # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
+    columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
 
-  # 3. URL正規化（301リダイレクト）
-  expected_path = columns_show_path(genre: @column.genre, id: @column.code)
-  if request.path != expected_path
-    return redirect_to expected_path, status: :moved_permanently
-  end
+    # 3. 物理的排除の実行
+    if @allowed_genre.present?
+      # 強制的にジャンルを固定
+      columns = columns.where(genre: @allowed_genre)
 
-  # 4. 表示用データの準備
-  if @column.article_type == "pillar"
-    if admin_signed_in?
-      # 管理者は生成用の下書き（本文なし）も含めてすべて表示
-      @children = @column.children.order(updated_at: :desc)
+      # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
+      if params[:genre].present? && params[:genre] != @allowed_genre
+        return render_404
+      end
     else
-      # 一般ユーザーには公開済みで本文があるものだけを表示
-      @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
+      # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
+      columns = columns.where(genre: params[:genre]) if params[:genre].present?
     end
-  else
-    @children = []
+
+    # 4. 共通フィルタ
+    columns = columns.where(status: params[:status]) if params[:status].present?
+    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+    
+    # セレクトボックスで選択されたジャンルがある場合の絞り込み
+    if params[:selected_genre].present?
+      columns = columns.where(genre: params[:selected_genre])
+    end
+
+    @columns = columns.order(updated_at: :desc)
+
+    # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
+    if params[:article_type] == 'pillar'
+      @grouped_columns = @columns.group_by(&:genre)
+      # セレクトボックス用の全ジャンルリスト（重複排除）
+      @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
+    end
+
+    # 子記事カウント
+    column_ids = @columns.pluck(:id)
+    @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
   end
 
-  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
-  raw_html_body = Kramdown::Document.new(markdown_body).to_html
-  sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
+  def show
+    # 1. 閲覧ドメインの許可ジャンルを再判定
+    allowed_for_show = case request.host
+                       when "ri-plus.jp"   then "app"
+                       when "自販機.net"  then "vender"
+                       when "j-work.jp"    then "cargo"
+                       when "okey.work"    then "cleaning"
+                       when "kurasera.life"    then "housekeeping"
+                       else nil
+                       end
 
-  @headings = []
-  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-    tag, text = Regexp.last_match(1), Regexp.last_match(2)
-    idx = @headings.size
-    @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
-    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+    # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
+    if allowed_for_show.present? && @column.genre != allowed_for_show
+      return render_404
+    end
+
+    # 3. URL正規化（301リダイレクト）
+    expected_path = columns_show_path(genre: @column.genre, id: @column.code)
+    if request.path != expected_path
+      return redirect_to expected_path, status: :moved_permanently
+    end
+
+    # 4. 表示用データの準備
+    if @column.article_type == "pillar"
+      if admin_signed_in?
+        # 管理者は生成用の下書き（本文なし）も含めてすべて表示
+        @children = @column.children.order(updated_at: :desc)
+      else
+        # 一般ユーザーには公開済みで本文があるものだけを表示
+        @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
+      end
+    else
+      @children = []
+    end
+
+    markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+    raw_html_body = Kramdown::Document.new(markdown_body).to_html
+    sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
+
+    @headings = []
+    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+      tag, text = Regexp.last_match(1), Regexp.last_match(2)
+      idx = @headings.size
+      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+    end
   end
-end
 
-
-def bulk_update_drafts
+  def bulk_update_drafts
     column_ids = params[:column_ids]
-    return redirect_back(fallback_location: columns_path, alert: "対象が選択されていません。") if column_ids.blank?
-
+    return redirect_to draft_columns_path, alert: "対象未選択" if column_ids.blank?
     case params[:action_type]
     when "approve_bulk"
-      # チェックされた子記事（Cluster）に対し、GptArticleGenerator を実行する Job を投入
-      Column.where(id: column_ids).each do |column|
-        # この Job の内部で GptArticleGenerator.generate(column) 等が呼ばれる想定です
-        GenerateColumnBodyJob.perform_later(column.id)
-      end
-      redirect_back(fallback_location: columns_path, notice: "#{column_ids.size}件の本文生成を開始しました（GptArticleGenerator実行）")
-      
+      Column.where(id: column_ids).each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+      redirect_to columns_path, notice: "生成開始"
     when "delete_bulk"
       count = Column.where(id: column_ids).destroy_all
-      redirect_back(fallback_location: draft_columns_path, notice: "#{count.size}件削除しました。")
+      redirect_to draft_columns_path, notice: "#{count}件削除"
     end
   end
 
@@ -174,19 +169,6 @@ def bulk_update_drafts
       GenerateColumnBodyJob.perform_later(@column.id)
     end
     redirect_to columns_path, notice: "承認しました。"
-  end
-
-    def bulk_update_drafts
-    column_ids = params[:column_ids]
-    return redirect_to draft_columns_path, alert: "対象未選択" if column_ids.blank?
-    case params[:action_type]
-    when "approve_bulk"
-      Column.where(id: column_ids).each { |c| GenerateColumnBodyJob.perform_later(c.id) }
-      redirect_to columns_path, notice: "生成開始"
-    when "delete_bulk"
-      count = Column.where(id: column_ids).destroy_all
-      redirect_to draft_columns_path, notice: "#{count}件削除"
-    end
   end
 
   def generate_pillar
@@ -248,7 +230,16 @@ def bulk_update_drafts
   end
 
   def set_noindex
-    @noindex = GenreRegistry.allowed_hosts(request.host).blank?
+    # 許可されたドメインリスト
+    allowed_hosts = ["ri-plus.jp", "自販機.net", "j-work.jp", "okey.work", "kurasera.life"]
+    
+    # 現在のホストが許可リストに含まれていれば noindex を false にする
+    # 含まれていなければ（ハブサイト等であれば）GenreRegistryの判定に従う
+    if allowed_hosts.include?(request.host)
+      @noindex = false
+    else
+      @noindex = GenreRegistry.allowed_hosts(request.host).blank?
+    end
   end
 
   def render_404

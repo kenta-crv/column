@@ -1,6 +1,5 @@
-/- set_meta_tags title: ''
-/- set_meta_tags description: ''
-- set_meta_tags noindex: true
+- set_meta_tags title: "#{@column&.genre}のColumn記事一覧"
+- set_meta_tags description: "#{@column&.genre}のColumn記事をご覧いただけます。"
 
 - if admin_signed_in?
   .row.center style="margin-bottom: 20px;"

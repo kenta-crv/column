@@ -20,7 +20,10 @@ class GptTitleGenerator
     service_info = GenreRegistry.service_profile(target_category)
     
     # 重複回避のため、既存の子記事タイトルを取得
-    existing_titles = Column.where(parent_id: pillar_column.id).pluck(:title)
+    # 変更点: 親記事のIDではなく、親記事のジャンル全体の子記事タイトルを参照するように変更
+    existing_titles = Column.where(genre: pillar_column.genre, article_type: 'child')
+                            .where.not(id: pillar_column.id) # 念のため、親記事自身のタイトルは除外
+                            .pluck(:title)
     existing_titles_text = existing_titles.any? ? "既存タイトル: #{existing_titles.join(', ')}" : "既存の子記事はありません。"
 
     prompt = <<~PROMPT

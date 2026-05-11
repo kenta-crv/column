@@ -2,6 +2,7 @@ require "net/http"
 require "json"
 require "openssl"
 
+
 class GptPillarGenerator
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
