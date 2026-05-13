@@ -102,18 +102,24 @@ class ColumnsController < ApplicationController
     end
   end
 
-  def bulk_update_drafts
-    column_ids = params[:column_ids]
-    return redirect_to draft_columns_path, alert: "対象未選択" if column_ids.blank?
-    case params[:action_type]
-    when "approve_bulk"
-      Column.where(id: column_ids).each { |c| GenerateColumnBodyJob.perform_later(c.id) }
-      redirect_to columns_path, notice: "生成開始"
-    when "delete_bulk"
-      count = Column.where(id: column_ids).destroy_all
-      redirect_to draft_columns_path, notice: "#{count}件削除"
+def bulk_update_drafts
+  column_ids = params[:column_ids]
+  return redirect_to(draft_columns_path) if column_ids.blank?
+
+  case params[:action_type]
+  when "approve_bulk"
+    Column.where(id: column_ids).find_each do |c|
+      GenerateColumnBodyJob.perform_later(c.id)
     end
+
+    redirect_to columns_path
+
+  when "delete_bulk"
+    Column.where(id: column_ids).destroy_all
+
+    redirect_to draft_columns_path
   end
+end
 
   # ======================
   # CRUD
@@ -262,7 +268,7 @@ class ColumnsController < ApplicationController
   def column_params
     params.require(:column).permit(
       :title, :file, :choice, :keyword, :description, :genre, :code,
-      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt
+      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre
     )
   end
 end

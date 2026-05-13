@@ -35,6 +35,7 @@
         h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
         
         / 一括生成用フォーム
+        = @column.title
         = form_tag bulk_update_drafts_columns_path, method: :post do
           = hidden_field_tag :action_type, "approve_bulk"
           

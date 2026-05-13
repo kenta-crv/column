@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_04_12_023947) do
+ActiveRecord::Schema.define(version: 2026_05_13_062642) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -66,6 +66,7 @@ ActiveRecord::Schema.define(version: 2026_04_12_023947) do
     t.integer "parent_id"
     t.integer "cluster_limit"
     t.text "prompt"
+    t.string "sub_genre"
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["code"], name: "index_columns_on_code", unique: true
     t.index ["parent_id"], name: "index_columns_on_parent_id"

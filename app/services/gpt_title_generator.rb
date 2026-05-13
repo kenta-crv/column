@@ -20,6 +20,8 @@ class GptTitleGenerator
     service_info = GenreRegistry.service_profile(target_category)
     
     existing_titles = Column.where(parent_id: pillar_column.id).pluck(:title)
+    # 未定義エラー解消のため変数を定義
+    existing_titles_text = existing_titles.present? ? existing_titles.join("\n") : "（なし）"
 
     prompt = <<~PROMPT
       あなたは高度なSEO戦略家です。親記事（ピラーページ）「#{pillar_column.title}」を支える、強力なトピッククラスター（子記事）のタイトル案を15個から25個の間で生成してください。

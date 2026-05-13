@@ -23,22 +23,19 @@ class GptArticleGenerator
     # ==============================
     # GenreRegistryを用いたジャンル特定ロジック
     # ==============================
-    # 1. 英字コード(genre_code)を特定する
     genre_code = if GenreRegistry::GENRES.key?(column.genre&.to_sym)
                    column.genre.to_s
                  elsif (code = GenreRegistry.from_ja(column.genre))
                    code
                  else
-                   # キーワードから推測
                    detect_genre_code(column.keyword)
                  end
 
-    # 2. 日本語カテゴリ名の特定
+    sub_genre = column.respond_to?(:sub_genre) ? column.sub_genre : nil
     category = GenreRegistry.to_ja(genre_code) || "その他"
-    
     user_instruction = column.respond_to?(:prompt) ? column.prompt : nil
 
-    Rails.logger.info("判定カテゴリ: #{category} (コード: #{genre_code})")
+    Rails.logger.info("判定カテゴリ: #{category} (コード: #{genre_code}, サブ: #{sub_genre})")
 
     # ==============================
     # STEP 0: meta情報生成 & DBステータス正常化
@@ -48,7 +45,6 @@ class GptArticleGenerator
       clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
       clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
       
-      # genre を英字コードで保存
       column.update!(
         genre: genre_code,
         code: clean_code,
@@ -60,7 +56,7 @@ class GptArticleGenerator
     # ==============================
     # STEP 1: 構成生成
     # ==============================
-    structure_prompt = structure_generation_prompt(column, category, user_instruction)
+    structure_prompt = structure_generation_prompt(column, genre_code, sub_genre, user_instruction)
     structure_response = call_gpt_api(structure_prompt, response_format: { type: "json_object" })
 
     return original_body if structure_response.nil?
@@ -84,7 +80,7 @@ class GptArticleGenerator
 
     full_article += generate_section_content_with_retry(
       "導入",
-      introduction_prompt(column, category, user_instruction, overall_structure_text),
+      introduction_prompt(column, genre_code, sub_genre, user_instruction, overall_structure_text),
       column,
       heading_level: ""
     ) + "\n\n"
@@ -94,12 +90,12 @@ class GptArticleGenerator
 
       if h2["h3_sub_sections"].present?
         h2["h3_sub_sections"].each do |h3|
-          prompt = section_content_prompt(column, h3, "H3", category, user_instruction, parent_h2: h2["h2_title"], overall_structure: overall_structure_text)
+          prompt = section_content_prompt(column, h3, "H3", genre_code, sub_genre, user_instruction, parent_h2: h2["h2_title"], overall_structure: overall_structure_text)
           full_article += generate_section_content_with_retry(h3, prompt, column, heading_level: "###") + "\n\n"
           sleep(0.5) 
         end
       else
-        prompt = section_content_prompt(column, h2["h2_title"], "H2", category, user_instruction, overall_structure: overall_structure_text)
+        prompt = section_content_prompt(column, h2["h2_title"], "H2", genre_code, sub_genre, user_instruction, overall_structure: overall_structure_text)
         full_article += generate_section_content_with_retry(h2["h2_title"], prompt, column, heading_level: "") + "\n\n"
       end
 
@@ -108,7 +104,7 @@ class GptArticleGenerator
 
     full_article += generate_section_content_with_retry(
       "まとめ",
-      simple_conclusion_prompt(column, category, user_instruction, overall_structure_text),
+      simple_conclusion_prompt(column, genre_code, sub_genre, user_instruction, overall_structure_text),
       column,
       heading_level: ""
     )
@@ -144,86 +140,79 @@ class GptArticleGenerator
     res ? JSON.parse(res.dig("choices", 0, "message", "content")) : nil
   end
 
-  # ジャンルレジストリのキーワードから該当するジャンルキーを返す
   def self.detect_genre_code(keyword)
     return "other" if keyword.blank?
-
     GenreRegistry::GENRES.each do |key, data|
       if data[:keywords].any? { |w| keyword.include?(w) }
         return key.to_s
       end
     end
-
     "other"
   end
 
-  def self.structure_generation_prompt(column, category, user_instruction)
-    service = GenreRegistry.service_profile(category)
+  def self.structure_generation_prompt(column, genre_code, sub_genre, user_instruction)
+    category_ja = GenreRegistry.to_ja(genre_code) || "その他"
     instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      あなたはプロの業界特化ライターです。読者の疑問を段階的に解消する論理的な構成をJSONで作成してください。
-
+      あなたはSEO専門ライターです。読者の検索意図を解決する一般的かつ論理的な構成をJSONで作ってください。
+      
       # 記事情報
       - タイトル: #{column.title}
-      - 業種カテゴリ: #{category}
-      - サービス背景: #{service}
+      - 業種カテゴリ: #{category_ja}
       #{instruction}
 
       # 構成指示（厳守）
-      - 各セクションの内容が絶対に重複しないよう役割を分担してください。
-      - 300文字以上の「本文」を執筆できる深掘り可能な見出しを設定してください。
-      - 本文を書く内容がないような薄い見出しは作成しないでください。
+      1. 読者が知りたい「ノウハウ・一般論」を網羅した見出しを立ててください。
+      2. 「自社の強み」や紹介に特化した見出しは、全体の最後に1つ程度に留めてください。
+      3. 各セクションの内容が絶対に重複しないよう役割を分担してください。
 
       # 出力形式
       { "structure": [ { "h2_title": "...", "h3_sub_sections": ["..."] } ] }
     PROMPT
   end
 
-  def self.introduction_prompt(column, category, user_instruction, overall_structure)
-    service = GenreRegistry.service_profile(category)
+  def self.introduction_prompt(column, genre_code, sub_genre, user_instruction, overall_structure)
     instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      タイトル「#{column.title}」の導入文を書いてください。
+      タイトル「#{column.title}」の導入文を#{TARGET_CHARS_PER_SECTION}文字以上で書いてください。
       
       # 記事全体の構成案
       #{overall_structure}
 
       - 役割：読者の悩みへの共感と、記事を読むメリット。
-      - 注意：具体的な結論（数値等）は後の見出しで詳述するため、ここでは期待感を高める内容に留め、重複を避けてください。
+      - 注意：自社サービスの宣伝、サービス名は「絶対に」出さないでください。専門家の視点でフラットに執筆してください。
       #{instruction}
-      - 文字数：必ず#{TARGET_CHARS_PER_SECTION}文字以上を維持してください。
       - 見出しは含めず本文のみ出力してください。
     PROMPT
   end
 
-  def self.section_content_prompt(column, headline, level, category, user_instruction, parent_h2: nil, overall_structure: nil)
+  def self.section_content_prompt(column, headline, level, genre_code, sub_genre, user_instruction, parent_h2: nil, overall_structure: nil)
     parent = parent_h2 ? "（親テーマ: #{parent_h2}）" : ""
-    service = GenreRegistry.service_profile(category)
+    service_raw = GenreRegistry.service_profile(genre_code, sub_genre)
+    # ラベルを除去して名称のみを抽出
+    service_name = service_raw.split("\n").first.gsub("サービス名: ", "").strip
     instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
     heading_instr = level == "H3" ? "### #{headline} から書き始めてください。" : "本文のみ書いてください。"
 
     <<~PROMPT
-      以下のセクションを執筆してください。見出しだけ出力して本文を省略することは「絶対に禁止」です。
-
-      # 全体の構成案
-      #{overall_structure}
-
-      - 見出し: #{headline} #{parent}
-      - タイトル: #{column.title}
-      - 専門背景: #{service}
-      #{instruction}
-
+      以下のセクションを執筆してください。
+      見出し: #{headline} #{parent}
+      
       # 執筆の絶対ルール
-      1. **本文執筆の義務**: 必ず300文字〜500文字の本文を生成してください。
-      2. **重複の徹底排除**: 他の見出しで書く予定の内容を避け、この見出し独自の専門知識を深掘りしてください。
-      3. **一貫性**: 記事全体の構成に沿った論理的な文章にしてください。
+      1. **専門的な一般論**: 300文字〜500文字で、業界の標準的な知識を詳しく解説してください。
+      2. **自社名の出し方**: 「サービス名：」のような不自然な接頭辞は「厳禁」です。
+      3. **言及の制限**: この見出しが「コスト」「人材」「品質管理」に関する場合のみ、「一般的な業者は〜ですが、#{service_name}では〜」という比較の形で、一箇所だけ自然に織り交ぜてください。
+      4. **上記以外**: 文脈に合わない場合は自社名（#{service_name}）を「一切出さない」でください。全ての見出しに自社名を出すのは「絶対に禁止」です。
+      5. **重複の排除**: 他の見出しで書く予定の内容を避け、この見出し独自の専門知識を深掘りしてください。
       
       #{heading_instr}
+      #{instruction}
     PROMPT
   end
 
-  def self.simple_conclusion_prompt(column, category, user_instruction, overall_structure)
-    service = GenreRegistry.service_profile(category)
+  def self.simple_conclusion_prompt(column, genre_code, sub_genre, user_instruction, overall_structure)
+    service_raw = GenreRegistry.service_profile(genre_code, sub_genre)
+    service_name = service_raw.split("\n").first.gsub("サービス名: ", "").strip
     instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
       記事「#{column.title}」の総括（まとめ）を執筆してください。
@@ -232,8 +221,9 @@ class GptArticleGenerator
       #{overall_structure}
 
       - 必ず「## まとめ」という見出しから開始してください。
-      - 記事全体を振り返り、読者の不安を解消する内容にしてください。
-      - 最後に、専門サービス「#{service.split("\n").first}」へ相談することを具体的なアクションとして促してください。
+      - 記事全体をフラットに振り返り、読者の不安を解消する内容にしてください。
+      - 最後の一節でのみ、専門サービス「#{service_name}」への相談を促してください。
+      - 「サービス名：」という表記は「厳禁」です。
       #{instruction}
       - 文字数：必ず300〜500文字を維持してください。
     PROMPT
@@ -246,7 +236,7 @@ class GptArticleGenerator
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたはプロの業界ライターです。見出しを出力した際は、必ずセットで300文字以上の具体的かつ重複のない本文を執筆します。本文の省略や見出しのみの出力は絶対にしません。" },
+        { role: "system", content: "あなたはプロの業界ライターです。見出しを出力した際は、必ずセットで300文字以上の具体的かつ重複のない本文を執筆します。不自然なラベル（サービス名：等）は一切使いません。" },
         { role: "user", content: prompt }
       ],
       temperature: 0.4
