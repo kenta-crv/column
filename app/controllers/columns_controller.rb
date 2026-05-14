@@ -236,18 +236,35 @@ end
   end
 
 def set_noindex
-  host = request.host
+  host = request.host.to_s.downcase.strip.delete_suffix(".")
 
-  allowed_hosts = ["ri-plus.jp", "自販機.net", "xn--new351c2sh.net", "j-work.jp", "okey.work", "kurasera.life"]
+  hub_hosts = [
+    "column.okey.work"
+  ]
 
-  # ハブドメインだけ明示的にtrue
-  if host == "column.okey.work"
-    @noindex = true
-    return
-  end
+  indexable_hosts = [
+    "ri-plus.jp",
+    "自販機.net",
+    "xn--new351c2sh.net",
+    "j-work.jp",
+    "okey.work",
+    "kurasera.life"
+  ].map { |h|
+    h.to_s.downcase.strip.delete_suffix(".")
+  }
 
-  # 正規運用ドメインはfalse固定
-  @noindex = allowed_hosts.include?(host) ? false : true
+  hub_hosts = hub_hosts.map { |h|
+    h.to_s.downcase.strip.delete_suffix(".")
+  }
+
+  @noindex =
+    if hub_hosts.include?(host)
+      true
+    elsif indexable_hosts.include?(host)
+      false
+    else
+      true
+    end
 end
 
   def render_404
