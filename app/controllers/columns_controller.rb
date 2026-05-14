@@ -234,29 +234,23 @@ end
   def set_column
     @column = Column.find_by!(code: params[:id])
   end
+  
+def set_noindex
+    host = request.host
 
-class ColumnsController < ApplicationController
+    # 許可されたドメインリスト（これらのドメインはインデックスさせる）
+    allowed_hosts = ["ri-plus.jp", "自販機.net", "xn--new351c2sh.net", "j-work.jp", "okey.work", "kurasera.life"]
 
-  SEO_CONFIG = {
-    "column.okey.work" => :hub,
-    "ri-plus.jp"       => :index,
-    "自販機.net"       => :index,
-    "j-work.jp"        => :index,
-    "okey.work"        => :index,
-    "kurasera.life"    => :index
-  }
+    # ハブドメイン（column.okey.work）は明示的に true にして検索除外
+    if host == "column.okey.work"
+      @noindex = true
+      return
+    end
 
-  def set_noindex
-    host = request.host.to_s.downcase.strip.delete_suffix(".")
-
-    @noindex =
-      if SEO_CONFIG[host] == :hub
-        true
-      else
-        false
-      end
+    # 現在のホストが許可リストに含まれていれば false（インデックス許可）、
+    # それ以外（未知のドメイン等）であれば安全のために true
+    @noindex = allowed_hosts.include?(host) ? false : true
   end
-end
 
   def render_404
     render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false

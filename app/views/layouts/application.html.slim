@@ -5,14 +5,13 @@ html lang="ja"
 
     - if @noindex
       meta name="robots" content="noindex, nofollow"
-    - else
-      meta name="robots" content="index, follow"
 
-    / --- canonical（正規URL） ---
+    / --- canonical（各ドメイン用） ---
     - canonical_url = request.url
     link rel="canonical" href=canonical_url
 
   body
+    /= render "layouts/header"
     .hero
       = render "shared/breadcrumbs" if breadcrumbs.any?
 
