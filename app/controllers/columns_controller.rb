@@ -235,10 +235,8 @@ end
     @column = Column.find_by!(code: params[:id])
   end
 
-def set_noindex
-  host = request.host.to_s.downcase.strip.delete_suffix(".")
+class ColumnsController < ApplicationController
 
-  # 正規ドメイン定義（ここだけが真実）
   SEO_CONFIG = {
     "column.okey.work" => :hub,
     "ri-plus.jp"       => :index,
@@ -246,13 +244,18 @@ def set_noindex
     "j-work.jp"        => :index,
     "okey.work"        => :index,
     "kurasera.life"    => :index
-  }.transform_keys { |k|
-    k.to_s.downcase.strip.delete_suffix(".")
   }
 
-  mode = SEO_CONFIG[host] || :noindex
+  def set_noindex
+    host = request.host.to_s.downcase.strip.delete_suffix(".")
 
-  @noindex = (mode == :hub || mode == :noindex)
+    @noindex =
+      if SEO_CONFIG[host] == :hub
+        true
+      else
+        false
+      end
+  end
 end
 
   def render_404
