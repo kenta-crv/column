@@ -234,23 +234,29 @@ end
   def set_column
     @column = Column.find_by!(code: params[:id])
   end
-
+  
 def set_noindex
-    host = request.host
+    # ホスト名を小文字化して取得
+    host = request.host.to_s.downcase
 
-    # 1. 検索エンジンに載せたい正規ドメインのリスト
-    allowed_hosts = ["ri-plus.jp", "自販機.net", "xn--new351c2sh.net", "j-work.jp", "okey.work", "kurasera.life"]
+    # 1. インデックスさせたい正規ドメインのリスト（wwwあり・なし両方）
+    allowed_hosts = [
+      "ri-plus.jp", "www.ri-plus.jp",
+      "自販機.net", "xn--new351c2sh.net",
+      "j-work.jp", "www.j-work.jp",
+      "okey.work", "www.okey.work",
+      "kurasera.life", "www.kurasera.life"
+    ]
 
-    # 2. 【最優先】ハブドメイン (column.okey.work) の場合は強制的に noindex を true にして終了
+    # 2. ハブドメイン (column.okey.work) の場合は最優先で noindex を true にする
     if host == "column.okey.work"
       @noindex = true
       return
     end
 
-    # 3. それ以外のドメイン判定
-    # リストに含まれていれば false (インデックスさせる)
-    # 含まれていなければ（未知のホスト等）安全のため true (インデックスさせない)
-    @noindex = allowed_hosts.include?(host) ? false : true
+    # 3. 判定：正規リストに含まれていれば false（インデックス許可）
+    # それ以外（未知のドメイン等）は安全のため true
+    @noindex = !allowed_hosts.include?(host)
   end
   
   def render_404
