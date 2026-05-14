@@ -238,33 +238,21 @@ end
 def set_noindex
   host = request.host.to_s.downcase.strip.delete_suffix(".")
 
-  hub_hosts = [
-    "column.okey.work"
-  ]
-
-  indexable_hosts = [
-    "ri-plus.jp",
-    "自販機.net",
-    "xn--new351c2sh.net",
-    "j-work.jp",
-    "okey.work",
-    "kurasera.life"
-  ].map { |h|
-    h.to_s.downcase.strip.delete_suffix(".")
+  # 正規ドメイン定義（ここだけが真実）
+  SEO_CONFIG = {
+    "column.okey.work" => :hub,
+    "ri-plus.jp"       => :index,
+    "自販機.net"       => :index,
+    "j-work.jp"        => :index,
+    "okey.work"        => :index,
+    "kurasera.life"    => :index
+  }.transform_keys { |k|
+    k.to_s.downcase.strip.delete_suffix(".")
   }
 
-  hub_hosts = hub_hosts.map { |h|
-    h.to_s.downcase.strip.delete_suffix(".")
-  }
+  mode = SEO_CONFIG[host] || :noindex
 
-  @noindex =
-    if hub_hosts.include?(host)
-      true
-    elsif indexable_hosts.include?(host)
-      false
-    else
-      true
-    end
+  @noindex = (mode == :hub || mode == :noindex)
 end
 
   def render_404
