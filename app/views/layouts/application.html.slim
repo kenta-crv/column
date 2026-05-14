@@ -3,6 +3,9 @@ html lang="ja"
   head
     = render "layouts/head"
 
+    - if @noindex
+      meta name="robots" content="noindex, nofollow"
+
     / --- canonical（各ドメイン用） ---
     - canonical_url = request.url
     link rel="canonical" href=canonical_url
