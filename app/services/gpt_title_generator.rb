@@ -24,7 +24,7 @@ class GptTitleGenerator
     existing_titles_text = existing_titles.present? ? existing_titles.join("\n") : "（なし）"
 
     prompt = <<~PROMPT
-      あなたは高度なSEO戦略家です。親記事（ピラーページ）「#{pillar_column.title}」を支える、親Pillarの枝葉として使用できるトピックタイトル（子タイトル）案を5個から7個の間で生成してください。
+      あなたは高度なSEO戦略家です。親記事（ピラーページ）「#{pillar_column.title}」を支える、親Pillarの枝葉として使用できるトピックタイトル（子タイトル）案を15個から25個の間で生成してください。
 
       # 背景情報
       - 業種カテゴリ: #{pillar_column.title}
