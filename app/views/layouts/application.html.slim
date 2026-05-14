@@ -3,7 +3,7 @@ html lang="ja"
   head
     = render "layouts/head"
 
-    - if @noindex
+    - if request.original_url.start_with?("http://column.okey.work/", "https://column.okey.work/") 
       meta name="robots" content="noindex, nofollow"
 
     / --- canonical（各ドメイン用） ---
