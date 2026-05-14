@@ -234,31 +234,20 @@ end
   def set_column
     @column = Column.find_by!(code: params[:id])
   end
-  
-def set_noindex
-    # ホスト名を小文字化して取得
-    host = request.host.to_s.downcase
 
-    # 1. インデックスさせたい正規ドメインのリスト（wwwあり・なし両方）
-    allowed_hosts = [
-      "ri-plus.jp", "www.ri-plus.jp",
-      "自販機.net", "xn--new351c2sh.net",
-      "j-work.jp", "www.j-work.jp",
-      "okey.work", "www.okey.work",
-      "kurasera.life", "www.kurasera.life"
-    ]
-
-    # 2. ハブドメイン (column.okey.work) の場合は最優先で noindex を true にする
-    if host == "column.okey.work"
-      @noindex = true
-      return
+  def set_noindex
+    # 許可されたドメインリスト
+    allowed_hosts = ["ri-plus.jp", "自販機.net", "j-work.jp", "okey.work", "kurasera.life"]
+    
+    # 現在のホストが許可リストに含まれていれば noindex を false にする
+    # 含まれていなければ（ハブサイト等であれば）GenreRegistryの判定に従う
+    if allowed_hosts.include?(request.host)
+      @noindex = false
+    else
+      @noindex = GenreRegistry.allowed_hosts(request.host).blank?
     end
-
-    # 3. 判定：正規リストに含まれていれば false（インデックス許可）
-    # それ以外（未知のドメイン等）は安全のため true
-    @noindex = !allowed_hosts.include?(host)
   end
-  
+
   def render_404
     render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false
   end
