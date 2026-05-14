@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include MetaTags::ControllerHelper
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
+  before_action :set_robots_meta
 
   before_action :init_breadcrumbs
   helper_method :breadcrumbs
