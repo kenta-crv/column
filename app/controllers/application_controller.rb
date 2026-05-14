@@ -29,13 +29,11 @@ class ApplicationController < ActionController::Base
     @breadcrumbs << { label: label, path: path }
   end
 
-  def set_robots_meta
-  host = request.host
-
-  if host == "column.okey.work"
-    @robots_content = "noindex, nofollow"
+def set_robots_meta
+  if request.host == "column.okey.work"
+    set_meta_tags(robots: "noindex, nofollow")
   else
-    @robots_content = "index, follow"
+    set_meta_tags(robots: "index, follow")
   end
 end
 

@@ -3,8 +3,6 @@ html lang="ja"
   head
     = render "layouts/head"
 
-    meta name="robots" content= @robots_content
-
     / --- canonical（各ドメイン用） ---
     - canonical_url = request.url
     link rel="canonical" href=canonical_url
