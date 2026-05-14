@@ -235,18 +235,20 @@ end
     @column = Column.find_by!(code: params[:id])
   end
 
-  def set_noindex
-    # 許可されたドメインリスト
-    allowed_hosts = ["ri-plus.jp", "自販機.net", "j-work.jp", "okey.work", "kurasera.life"]
-    
-    # 現在のホストが許可リストに含まれていれば noindex を false にする
-    # 含まれていなければ（ハブサイト等であれば）GenreRegistryの判定に従う
-    if allowed_hosts.include?(request.host)
-      @noindex = false
-    else
-      @noindex = GenreRegistry.allowed_hosts(request.host).blank?
-    end
+def set_noindex
+  host = request.host
+
+  allowed_hosts = ["ri-plus.jp", "自販機.net", "xn--new351c2sh.net", "j-work.jp", "okey.work", "kurasera.life"]
+
+  # ハブドメインだけ明示的にtrue
+  if host == "column.okey.work"
+    @noindex = true
+    return
   end
+
+  # 正規運用ドメインはfalse固定
+  @noindex = allowed_hosts.include?(host) ? false : true
+end
 
   def render_404
     render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false
