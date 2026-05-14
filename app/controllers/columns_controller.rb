@@ -1,7 +1,6 @@
 class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title]
   before_action :set_breadcrumbs
-  before_action :set_noindex
   
   def index
     # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
@@ -233,19 +232,6 @@ end
 
   def set_column
     @column = Column.find_by!(code: params[:id])
-  end
-
-  def set_noindex
-    # 許可されたドメインリスト
-    allowed_hosts = ["ri-plus.jp", "自販機.net", "j-work.jp", "okey.work", "kurasera.life"]
-    
-    # 現在のホストが許可リストに含まれていれば noindex を false にする
-    # 含まれていなければ（ハブサイト等であれば）GenreRegistryの判定に従う
-    if allowed_hosts.include?(request.host)
-      @noindex = false
-    else
-      @noindex = GenreRegistry.allowed_hosts(request.host).blank?
-    end
   end
 
   def render_404
