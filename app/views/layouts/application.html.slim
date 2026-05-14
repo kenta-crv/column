@@ -2,10 +2,6 @@ doctype html
 html lang="ja"
   head
     = render "layouts/head"
-
-    - unless request.original_url.start_with?("ri-plus.jp/", "ri-plus.jp/") 
-      meta name="robots" content="noindex, nofollow"
-
     / --- canonical（各ドメイン用） ---
     - canonical_url = request.url
     link rel="canonical" href=canonical_url
