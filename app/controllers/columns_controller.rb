@@ -3,6 +3,9 @@ class ColumnsController < ApplicationController
   before_action :set_breadcrumbs
   
   def index
+  set_meta_tags(
+    robots: request.host == "column.okey.work" ? "noindex, nofollow" : "index, follow"
+  )
     # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
     @allowed_genre = case request.host
                      when "ri-plus.jp"   then "app"
@@ -54,6 +57,9 @@ class ColumnsController < ApplicationController
   end
 
   def show
+      set_meta_tags(
+    robots: request.host == "column.okey.work" ? "noindex, nofollow" : "index, follow"
+  )
     # 1. 閲覧ドメインの許可ジャンルを再判定
     allowed_for_show = case request.host
                        when "ri-plus.jp"   then "app"

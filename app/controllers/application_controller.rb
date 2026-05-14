@@ -2,7 +2,6 @@ class ApplicationController < ActionController::Base
   include MetaTags::ControllerHelper
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
-  before_action :set_robots_meta
 
   before_action :init_breadcrumbs
   helper_method :breadcrumbs
@@ -28,16 +27,6 @@ class ApplicationController < ActionController::Base
   def add_breadcrumb(label, path = nil)
     @breadcrumbs << { label: label, path: path }
   end
-
-  def set_robots_meta
-  host = request.host
-
-  if host == "column.okey.work"
-    @robots_content = "noindex, nofollow"
-  else
-    @robots_content = "index, follow"
-  end
-end
 
   protected
 def after_sign_in_path_for(resource)
