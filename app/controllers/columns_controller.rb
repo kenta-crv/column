@@ -2,7 +2,7 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title]
   before_action :set_breadcrumbs
   
-  def index
+def index
     # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
     @allowed_genre = case request.host
                      when "ri-plus.jp"   then "app"
@@ -51,8 +51,22 @@ class ColumnsController < ApplicationController
     # 子記事カウント
     column_ids = @columns.pluck(:id)
     @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
+
+    # === 追加：ジャンルごとのPillar / Child の総数カウント（公開記事ベース） ===
+    # 現在の検索条件（ドメイン制限やジャンル絞り込みなど）を反映したベースクエリからカウント
+    # ※ただし、article_typeのパラメータ絞り込みを受ける前の全体の総数を出したい場合は、
+    # 以下の2行の `.where(article_type: ...)` の前に、article_type 抜きのクエリを用意する必要があります。
+    # ここでは「現在画面に表示され得る対象（ジャンル絞り込み反映後）」の総数を取得する共通の集計ロジックとして定義しています。
+    base_count_query = @allowed_genre.present? ? Column.where(genre: @allowed_genre) : Column.all
+    base_count_query = base_count_query.where.not(status: "draft").where.not(body: [nil, ""])
+    base_count_query = base_count_query.where(genre: params[:genre]) if params[:genre].present?
+    base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+
+    @genre_pillar_counts = base_count_query.where(article_type: 'pillar').group(:genre).count
+    @genre_child_counts  = base_count_query.where(article_type: 'child').group(:genre).count
   end
 
+  
   def show
     # 1. 閲覧ドメインの許可ジャンルを再判定
     allowed_for_show = case request.host

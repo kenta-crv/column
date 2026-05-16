@@ -365,3 +365,198 @@
 }
 
 
+
+
+
+
+/* --- コラム記事一覧 全体デザイン --- */
+.section-knowhow {
+  padding: 40px 0;
+  background-color: #f9f9fb; // 薄いグレー背景で清潔感を
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #1a1a1a;
+  }
+}
+
+/* ジャンル絞り込みエリア */
+.genre-filter-wrapper {
+  margin-bottom: 40px;
+  text-align: center;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+
+  .filter-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    
+    label {
+      font-weight: 600;
+      color: #444;
+    }
+    
+    .form-select {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 16px;
+      transition: border-color 0.3s;
+      &:focus {
+        border-color: #f6c23e;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+/* ジャンル別サマリー（グリッド時） */
+.genre-summary-container {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eef0f7;
+
+  .summary-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #4e73df;
+    border-left: 4px solid #4e73df;
+    padding-left: 10px;
+  }
+
+  .summary-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .summary-item {
+      background: #f1f3f9;
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      color: #555;
+      strong { color: #222; }
+      .pillar-num { color: #e67e22; font-weight: bold; }
+      .child-num { color: #3498db; font-weight: bold; }
+    }
+  }
+}
+
+/* ジャンルグループ（親記事用） */
+.genre-group {
+  margin-bottom: 60px;
+
+  .genre-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #333;
+
+    .genre-name {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin: 0;
+      color: #1a1a1a;
+    }
+
+    .genre-stats {
+      .badge {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+      }
+    }
+  }
+}
+
+/* 記事リストアイテム（カードスタイル） */
+.pillar-article-item {
+  margin: 0 0 16px 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #eef0f2;
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .thumb-container {
+    .column-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  }
+
+  .info-container {
+    .column-title {
+      margin: 0 0 12px 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.4;
+      a {
+        color: #1a1a1a;
+        text-decoration: none;
+        &:hover { color: #4e73df; }
+      }
+    }
+
+    .column-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 15px;
+      font-size: 0.85rem;
+      color: #777;
+
+      .badge-pillar {
+        background-color: #fff4e0;
+        color: #d35400;
+        border: 1px solid #f39c12;
+        font-weight: 600;
+      }
+      
+      .update-date {
+        display: flex;
+        align-items: center;
+        &::before {
+          content: '🕒';
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+
+  .admin-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+    display: flex;
+    gap: 8px;
+  }
+}
+
+/* 汎用バッジ/ボタン調整 */
+.badge-id {
+  background: #f8f9fa;
+  color: #aaa;
+  border: 1px solid #ddd;
+}
