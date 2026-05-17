@@ -2,7 +2,7 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title]
   before_action :set_breadcrumbs
   
-def index
+  def index
     # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
     @allowed_genre = case request.host
                      when "ri-plus.jp"   then "app"
@@ -48,9 +48,20 @@ def index
       @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
     end
 
-    # 子記事カウント
-    column_ids = @columns.pluck(:id)
-    @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
+    # =========================================================================
+    # 修正箇所：子記事カウント（メモリ逼迫対策）
+    # =========================================================================
+    # 巨大なIDの配列をRuby側にpluckせず、@columnsのクエリ構造（ActiveRecord::Relation）を
+    # そのままサブクエリとして結合させ、SQL側だけでカウント集計を実行します。
+    if @columns.any?
+      @child_counts = Column.where.not(body: [nil, ""])
+                            .where(parent_id: @columns.select(:id))
+                            .group(:parent_id)
+                            .count
+    else
+      @child_counts = {}
+    end
+    # =========================================================================
 
     # === 追加：ジャンルごとのPillar / Child の総数カウント（公開記事ベース） ===
     # 現在の検索条件（ドメイン制限やジャンル絞り込みなど）を反映したベースクエリからカウント
