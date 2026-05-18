@@ -26,6 +26,7 @@
 
       .form-group
         = f.label :genre, "ジャンル（大分類）"
+        / GenreRegistry::GENRES のトップレベルの項目（ja）をそのまま大分類として表示します
         = f.select :genre,
           GenreRegistry::GENRES.map { |k, v| [v[:ja], k] },
           { include_blank: "選択してください" },
@@ -33,10 +34,12 @@
 
       .form-group
         = f.label :sub_genre, "中分類（サブカテゴリ）"
+        / 各ジャンル配下の `sub_categories` 内のデータを抽出し、大分類のキーに紐づくJSONに変換してデータ属性へ渡します
+        - sub_categories_json = GenreRegistry::GENRES.transform_values { |v| v[:sub_categories]&.map { |sk, sv| { id: sk, name: sv[:name] } } || [] }.to_json
         = f.select :sub_genre,
           [],
           { include_blank: "先に大分類を選択してください" },
-          { class: "form-control", id: "sub-genre-select", disabled: true }
+          { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: sub_categories_json } }
 
       .form-group
         = f.label :article_type, "タイプ"
@@ -56,8 +59,6 @@
       .form-actions.mt-4
         = f.submit "保存する", class: "btn btn-primary"
 
-/ JavaScriptによる連動ロジック
-
 javascript:
   (function() {
     const initGenreSelect = () => {
@@ -66,59 +67,52 @@ javascript:
       
       if (!genreSelect || !subGenreSelect) return;
 
-      // 1. 中分類の定義データ
-      const subCategories = {
-        cleaning: [
-          { id: 'daily_standard', name: '日常清掃' },
-          { id: 'office_special', name: 'オフィス清掃' },
-          { id: 'patrol_cleaning', name: '巡回清掃' }
-        ]
-        // 他のジャンルが必要な場合はここに追加
-      };
+      // HTMLのデータ属性からRails側で生成した最新の構造データを取得してパース
+      const subCategories = JSON.parse(subGenreSelect.dataset.masterData || '{}');
 
-      // 2. 更新用関数（第二引数にDBからの初期値を受け取れるようにする）
       const updateSubGenre = (selectedGenre, initialValue = null) => {
         subGenreSelect.innerHTML = '';
         
-        if (selectedGenre && subCategories[selectedGenre]) {
-          // デフォルトの空白肢
+        // 選択された大分類に紐づく中分類（sub_categories）が存在する場合のみ処理
+        if (selectedGenre && subCategories[selectedGenre] && subCategories[selectedGenre].length > 0) {
           const defaultOption = document.createElement('option');
           defaultOption.value = "";
           defaultOption.textContent = "選択してください";
           subGenreSelect.appendChild(defaultOption);
 
-          // リスト生成
           subCategories[selectedGenre].forEach(sub => {
             const option = document.createElement('option');
             option.value = sub.id;
             option.textContent = sub.name;
-            // DBの値と一致すれば選択状態にする
-            if (initialValue && sub.id === initialValue) {
+            
+            if (initialValue && String(sub.id) === String(initialValue)) {
               option.selected = true;
             }
             subGenreSelect.appendChild(option);
           });
           subGenreSelect.disabled = false;
         } else {
+          // 中分類（sub_categories）が元々定義されていないジャンルの場合
           const emptyOption = document.createElement('option');
           emptyOption.value = "";
-          emptyOption.textContent = "先に大分類を選択してください";
+          emptyOption.textContent = "中分類はありません";
           subGenreSelect.appendChild(emptyOption);
           subGenreSelect.disabled = true;
         }
       };
 
-      // 3. イベント設定
+      // イベント設定
       genreSelect.onchange = (e) => updateSubGenre(e.target.value);
       
-      // 4. 【重要】初期表示時の実行（Edit画面対応）
-      // DBに保存されている値を取得（Railsから渡された値を確認）
-      const savedSubGenre = "#{@column.sub_genre}"; 
+      // 初期表示時の実行（Edit画面やバリデーションエラー時の値保持対策）
+      const savedSubGenre = subGenreSelect.dataset.savedValue || ""; 
       if (genreSelect.value) {
         updateSubGenre(genreSelect.value, savedSubGenre);
       }
     };
 
+    // Turbo環境対応
+    document.removeEventListener('turbo:load', initGenreSelect);
     document.addEventListener('turbo:load', initGenreSelect);
     initGenreSelect();
   })();
