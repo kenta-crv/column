@@ -339,10 +339,10 @@ module GenreRegistry
     },
 
 vender: {
-      ja: "自販機・自動販売機メーカー設置",
+      ja: "自販機設置",
       host: ["自販機.net"],
       service_name: "自動販売機の設置なら『自販機ねっと』",
-      strong_points: "メーカー自販機一括見積及び自動販売機設置支援",
+      strong_points: "中小企業や小規模企業・個人オーナー向けに自動販売機の購入・販売サービス、大手企業や商店街・繁華街に向けては自動販売機の一括見積もりサービスを提供しております。",
       keywords: ["自販機", "自動販売機"],
       sub_categories: {
         maker_installation: {
