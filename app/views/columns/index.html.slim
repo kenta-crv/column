@@ -40,11 +40,10 @@
           noscript
             input type="submit" value="適用" class="btn btn-sm btn-secondary"
 
-    / グリッド表示（Pillar以外）の時のサマリー
-    - unless params[:article_type] == 'pillar'
-      - all_active_genres = (@genre_pillar_counts.keys + @genre_child_counts.keys).uniq.compact
-      - if admin_signed_in?
-       - if all_active_genres.present?
+    / 【修正箇所】記事タイプに関わらず、管理者ログイン時にジャンル別記事総数を表示
+    - all_active_genres = (@genre_pillar_counts.keys + @genre_child_counts.keys).uniq.compact
+    - if admin_signed_in?
+      - if all_active_genres.present?
         .genre-summary-container
           .summary-title 【ジャンル別記事総数】
           .summary-grid

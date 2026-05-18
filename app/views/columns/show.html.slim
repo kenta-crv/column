@@ -34,13 +34,15 @@
       .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
         h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
         
-        / 一括生成用フォーム
+        / 一括生成・削除用フォーム
         = @column.title
         = form_tag bulk_update_drafts_columns_path, method: :post do
+          / JavaScriptでアクションタイプを動的に書き換えるための hidden_field
           = hidden_field_tag :action_type, "approve_bulk"
           
-          .admin-actions style="margin-bottom: 15px;"
+          .admin-actions style="margin-bottom: 15px; display: flex; gap: 10px;"
             = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
+            = submit_tag "選択した子記事を一括削除する", class: "btn btn-danger", data: { confirm: "選択された子記事を一括削除しますか？" }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
           
           table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
             thead

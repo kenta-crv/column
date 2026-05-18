@@ -8,9 +8,9 @@ html lang="ja"
     link rel="canonical" href=canonical_url
 
   body
-    /= render "layouts/header"
     .hero
-      = render "shared/breadcrumbs" if breadcrumbs.any?
+      / breadcrumbs メソッドの未定義による500エラーを防止するため安全に判定
+      = render "shared/breadcrumbs" if defined?(breadcrumbs) && breadcrumbs.any?
 
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"
@@ -30,5 +30,3 @@ html lang="ja"
         = message
 
     = yield
-
-    = javascript_include_tag "application", "data-turbolinks-track": "reload"

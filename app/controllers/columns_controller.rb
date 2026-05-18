@@ -2,81 +2,120 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title]
   before_action :set_breadcrumbs
   
-  def index
-    # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
-    @allowed_genre = case request.host
-                     when "ri-plus.jp"   then "app"
-                     when "自販機.net"  then "vender"
-                     when "j-work.jp"    then "cargo"
-                     when "okey.work"    then "cleaning"
-                     when "kurasera.life"    then "housekeeping"
-                     else nil # column.okey.work 等のハブサイト
-                     end
+def index
+  # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
+  @allowed_genre = case request.host
+                   when "ri-plus.jp" then "app"
+                   when "自販機.net" then "vender"
+                   when "j-work.jp" then "cargo"
+                   when "okey.work" then "cleaning"
+                   when "kurasera.life" then "housekeeping"
+                   else nil
+                   end
 
-    # 2. クエリ構築：ベースは「公開済み」かつ「本文あり」
-    columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+  # 2. クエリ構築
+  columns = Column
+              .select(
+                :id,
+                :title,
+                :description,
+                :genre,
+                :article_type,
+                :updated_at,
+                :file,
+                :code,
+                :parent_id,
+                :status
+              )
+              .where.not(status: "draft")
+              .where.not(body: [nil, ""])
 
-    # 3. 物理的排除の実行
-    if @allowed_genre.present?
-      # 強制的にジャンルを固定
-      columns = columns.where(genre: @allowed_genre)
+  # 3. 物理的排除
+  if @allowed_genre.present?
+    columns = columns.where(genre: @allowed_genre)
 
-      # URLパラメータで別のジャンルを叩こうとした場合は、不一致として404を返す
-      if params[:genre].present? && params[:genre] != @allowed_genre
-        return render_404
-      end
-    else
-      # 制限がないハブサイト等の場合のみ、パラメータがあれば絞り込む
-      columns = columns.where(genre: params[:genre]) if params[:genre].present?
+    if params[:genre].present? && params[:genre] != @allowed_genre
+      return render_404
     end
-
-    # 4. 共通フィルタ
-    columns = columns.where(status: params[:status]) if params[:status].present?
-    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
-    
-    # セレクトボックスで選択されたジャンルがある場合の絞り込み
-    if params[:selected_genre].present?
-      columns = columns.where(genre: params[:selected_genre])
-    end
-
-    @columns = columns.order(updated_at: :desc)
-
-    # 親記事(pillar)が選択されている場合、ジャンルごとにグループ化する
-    if params[:article_type] == 'pillar'
-      @grouped_columns = @columns.group_by(&:genre)
-      # セレクトボックス用の全ジャンルリスト（重複排除）
-      @all_genres = Column.where.not(status: "draft").pluck(:genre).uniq.compact
-    end
-
-    # =========================================================================
-    # 修正箇所：子記事カウント（メモリ逼迫対策）
-    # =========================================================================
-    # 巨大なIDの配列をRuby側にpluckせず、@columnsのクエリ構造（ActiveRecord::Relation）を
-    # そのままサブクエリとして結合させ、SQL側だけでカウント集計を実行します。
-    if @columns.any?
-      @child_counts = Column.where.not(body: [nil, ""])
-                            .where(parent_id: @columns.select(:id))
-                            .group(:parent_id)
-                            .count
-    else
-      @child_counts = {}
-    end
-    # =========================================================================
-
-    # === 追加：ジャンルごとのPillar / Child の総数カウント（公開記事ベース） ===
-    # 現在の検索条件（ドメイン制限やジャンル絞り込みなど）を反映したベースクエリからカウント
-    # ※ただし、article_typeのパラメータ絞り込みを受ける前の全体の総数を出したい場合は、
-    # 以下の2行の `.where(article_type: ...)` の前に、article_type 抜きのクエリを用意する必要があります。
-    # ここでは「現在画面に表示され得る対象（ジャンル絞り込み反映後）」の総数を取得する共通の集計ロジックとして定義しています。
-    base_count_query = @allowed_genre.present? ? Column.where(genre: @allowed_genre) : Column.all
-    base_count_query = base_count_query.where.not(status: "draft").where.not(body: [nil, ""])
-    base_count_query = base_count_query.where(genre: params[:genre]) if params[:genre].present?
-    base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
-
-    @genre_pillar_counts = base_count_query.where(article_type: 'pillar').group(:genre).count
-    @genre_child_counts  = base_count_query.where(article_type: 'child').group(:genre).count
+  else
+    columns = columns.where(genre: params[:genre]) if params[:genre].present?
   end
 
+  # 4. 共通フィルタ
+  columns = columns.where(status: params[:status]) if params[:status].present?
+  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+
+  if params[:selected_genre].present?
+    columns = columns.where(genre: params[:selected_genre])
+  end
+
+  # 5. 並び順
+  columns = columns.order(updated_at: :desc)
+
+  # =========================================================================
+  # メモリ逼迫対策
+  # =========================================================================
+  # 一覧ページで全件ロードすると allocations が異常増加するため制限
+  columns = columns.limit(30)
+
+  # Relation のまま保持せず配列化
+  @columns = columns.to_a
+
+  # =========================================================================
+  # Pillar の場合のみジャンルごとにグループ化
+  # =========================================================================
+  if params[:article_type] == "pillar"
+    @grouped_columns = @columns.group_by(&:genre)
+
+    @all_genres = Column
+                    .where.not(status: "draft")
+                    .distinct
+                    .pluck(:genre)
+                    .compact
+  end
+
+  # =========================================================================
+  # 子記事カウント
+  # =========================================================================
+  if @columns.present?
+    @child_counts = Column
+                      .where.not(body: [nil, ""])
+                      .where(parent_id: @columns.map(&:id))
+                      .group(:parent_id)
+                      .count
+  else
+    @child_counts = {}
+  end
+
+  # =========================================================================
+  # ジャンル別カウント
+  # =========================================================================
+  base_count_query =
+    if @allowed_genre.present?
+      Column.where(genre: @allowed_genre)
+    else
+      Column.all
+    end
+
+  base_count_query = base_count_query
+                       .where.not(status: "draft")
+                       .where.not(body: [nil, ""])
+
+  base_count_query = base_count_query.where(genre: params[:genre]) if params[:genre].present?
+  base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+
+  @genre_pillar_counts =
+    base_count_query
+      .where(article_type: "pillar")
+      .group(:genre)
+      .count
+
+  @genre_child_counts =
+    base_count_query
+      .where(article_type: "child")
+      .group(:genre)
+      .count
+end
   
   def show
     # 1. 閲覧ドメインの許可ジャンルを再判定
