@@ -2,7 +2,7 @@ class Column < ApplicationRecord
   mount_uploader :file, ImagesUploader
   belongs_to :parent, class_name: "Column", optional: true
   has_many :children, class_name: "Column", foreign_key: :parent_id
-
+  
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
 

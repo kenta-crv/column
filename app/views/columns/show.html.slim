@@ -5,9 +5,9 @@
   .container
     h1.column-title = @column.title
     
-    .center
-      - if @column.file.present?
-        = image_tag @column.file.to_s, width: "250px", class: 'column-thumb', alt: @column.title
+    - if @column.file.present?
+      .column-image-wrapper
+        = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title
 
     / 目次
     - if @headings.any?
