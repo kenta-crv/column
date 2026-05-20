@@ -81,45 +81,23 @@ class FluxImageGeneratorService
   end
 
   def self.build_prompt(column)
-    genre_key = column.genre.to_sym rescue nil
+    genre_info = GenreRegistry::GENRES[column.genre.to_sym] rescue nil
 
-    genre = GenreRegistry::GENRES[genre_key] || {}
-
-    genre_name = genre[:ja].to_s
-    service_name = genre[:service_name].to_s
-    strong_points = genre[:strong_points].to_s
-
-    sub_category_key =
-      if column.respond_to?(:sub_category)
-        column.sub_category
-      elsif column.respond_to?(:sub_genre)
-        column.sub_genre
-      else
-        nil
-      end
-
-    service_profile =
-      GenreRegistry.service_profile(
-        genre_key,
-        sub_category_key
-      ).to_s
-
-    keywords = Array(genre[:keywords]).join(', ')
+    genre_name = genre_info&.dig(:ja).to_s
+    service_name = genre_info&.dig(:service_name).to_s
+    strong_points = genre_info&.dig(:strong_points).to_s
 
     body_text = column.body.to_s
                       .gsub(/[#*\n\r]/, ' ')
                       .squish
-                      .slice(0, 2000)
+                      .slice(0, 1500)
 
     description = column.description.to_s
 
-    visual_direction = visual_direction_prompt(
-      genre_key,
-      sub_category_key
-    )
+    genre_prompt = genre_specific_prompt(column.genre)
 
     <<~PROMPT.squish
-      Create a realistic and modern Japanese business website hero image.
+      Create a realistic modern Japanese business website hero image.
 
       Article title:
       #{column.title}
@@ -133,95 +111,134 @@ class FluxImageGeneratorService
       Industry:
       #{genre_name}
 
-      Service name:
+      Service:
       #{service_name}
 
-      SEO keywords:
-      #{keywords}
-
-      Service profile:
-      #{service_profile}
-
-      Brand strengths:
+      Service strengths:
       #{strong_points}
 
       Visual direction:
-      #{visual_direction}
+      #{genre_prompt}
 
-      Image requirements:
-      - realistic photography style
+      Requirements:
+      - realistic photo style
       - cinematic lighting
-      - modern Japanese commercial atmosphere
-      - authentic environment
-      - premium business branding
+      - Japanese environment
+      - professional business atmosphere
+      - modern composition
       - highly detailed
-      - natural composition
-      - depth and realism
-      - suitable for corporate blog thumbnail
-      - suitable for landing page hero section
+      - clean design
       - no text
-      - no typography
       - no letters
-      - no logo
       - no watermark
-      - clean framing
+      - suitable for blog thumbnail
+      - suitable for hero section
       - natural colors
-      - professional quality
-      - wide landscape composition
-      - 16:9 aspect ratio
+      - high quality
+      - 16:9 composition
     PROMPT
   end
 
-  def self.visual_direction_prompt(category_key, sub_category_key = nil)
-    category = GenreRegistry::GENRES[category_key.to_sym] rescue nil
+  def self.genre_specific_prompt(genre)
+    case genre.to_s
 
-    return default_visual_prompt if category.blank?
+    when 'vender'
+      <<~TEXT
+        Japanese vending machine business.
+        Tourist area or hotel environment.
+        Modern vending machines.
+        Commercial facility atmosphere.
+        Passive income business concept.
+        Bright clean environment.
+        People walking naturally.
+      TEXT
 
-    sub_category =
-      category[:sub_categories]&.dig(sub_category_key.to_sym) rescue nil
+    when 'routine_cleaning'
+      <<~TEXT
+        Professional Japanese cleaning staff.
+        Modern office or commercial building.
+        Clean atmosphere.
+        Hygiene and cleanliness.
+        Professional uniforms.
+        Bright interior lighting.
+      TEXT
 
-    profile_text =
-      GenreRegistry.service_profile(
-        category_key,
-        sub_category_key
-      ).to_s
+    when 'patrol_cleaning'
+      <<~TEXT
+        Apartment or building maintenance.
+        Japanese property management.
+        Exterior cleaning.
+        Hallway cleaning.
+        Clean apartment environment.
+      TEXT
 
-    base_keywords = Array(category[:keywords]).join(', ')
+    when 'special_cleaning'
+      <<~TEXT
+        Professional floor cleaning.
+        Commercial building maintenance.
+        Polishing machines.
+        Modern facility cleaning.
+      TEXT
 
-    sub_keywords =
-      Array(sub_category&.dig(:keywords)).join(', ')
+    when 'restoration'
+      <<~TEXT
+        Empty apartment restoration.
+        Clean renovated room.
+        Japanese housing interior.
+        Professional restoration work.
+      TEXT
 
-    <<~TEXT.squish
-      Visualize the actual business scene naturally and realistically.
+    when 'cargo'
+      <<~TEXT
+        Japanese delivery driver.
+        Logistics business.
+        Parcel delivery.
+        Urban transportation.
+        Amazon style delivery atmosphere.
+      TEXT
 
-      Industry keywords:
-      #{base_keywords}
+    when 'app'
+      <<~TEXT
+        Modern SaaS dashboard.
+        AI sales automation.
+        Business analytics.
+        Professional office environment.
+        Digital transformation concept.
+        Blue technology atmosphere.
+      TEXT
 
-      Sub category keywords:
-      #{sub_keywords}
+    when 'meetia'
+      <<~TEXT
+        Futuristic AI meeting.
+        AI avatar assistant.
+        Online business negotiation.
+        Modern digital interface.
+        Advanced technology atmosphere.
+        Blue neon lighting.
+      TEXT
 
-      Business profile:
-      #{profile_text}
+    when 'housekeeping'
+      <<~TEXT
+        Japanese housekeeping service.
+        Clean modern home.
+        Organized living environment.
+        Friendly professional staff.
+      TEXT
 
-      Focus on:
-      - realistic Japanese business environments
-      - people naturally working
-      - operational scenes instead of abstract concepts
-      - trustworthy commercial atmosphere
-      - modern clean interiors or urban environments
-      - authentic business workflow
-      - realistic clothing and equipment
-      - premium corporate branding feeling
-      - documentary-style realism
-    TEXT
-  end
+    when 'pest'
+      <<~TEXT
+        Professional pest control.
+        Safe home environment.
+        Inspection service.
+        Clean residential atmosphere.
+      TEXT
 
-  def self.default_visual_prompt
-    <<~TEXT.squish
-      Modern Japanese business environment.
-      Professional commercial atmosphere.
-      Realistic people and workspace.
-      Clean and trustworthy visual composition.
-    TEXT
+    else
+      <<~TEXT
+        Modern Japanese business concept.
+        Professional commercial atmosphere.
+        Clean and realistic environment.
+      TEXT
+    end
   end
 end
