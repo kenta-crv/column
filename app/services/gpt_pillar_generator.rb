@@ -2,7 +2,6 @@ require "net/http"
 require "json"
 require "openssl"
 
-
 class GptPillarGenerator
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
@@ -103,8 +102,7 @@ class GptPillarGenerator
       FluxImageGeneratorService.generate!(column)
     rescue => e
       Rails.logger.error "[FluxImageGeneration] #{e.message}"
-      Rails.logger.error e.backtrace.join("
-      ")
+      Rails.logger.error e.backtrace.join("\n")
     end
 
     puts "✅ 生成完了: #{clean_code}"
@@ -130,6 +128,7 @@ class GptPillarGenerator
     prompt = <<~PROMPT
       以下の条件でSEOメタ情報を「JSON」形式で生成してください。
       【重要】説明文(description)は必ず日本語、スラッグ(code)のみ英語にしてください。
+      また、後に実行されるAI画像生成のコンテキストを汚染しないよう、テキスト・文字・ロゴ・バナー・図解といった視覚文字要素を含まない純粋な「状況・背景の描写」のみに最適化されたメタ説明とキーワードを意識してください。
       
       タイトル: #{column.title}
       業種: #{category}
@@ -169,7 +168,8 @@ class GptPillarGenerator
       
       # クレンジング処理
       content.gsub!(/\A```[a-z]*\n/i, '') # 開始のコードブロック除去
-      content.gsub!(/```\z/m, '')        # 終了のコードブロック除去
+      content.gsub!(/
+```\z/m, '')        # 終了のコードブロック除去
       content.gsub!(/\A\{.*"content":\s*"/m, '') # 万が一JSONが混ざった場合の開始除去
       content.gsub!(/"\s*\}\z/m, '')              # 万が一JSONが混ざった場合の終了除去
       content.strip
@@ -206,7 +206,6 @@ class GptPillarGenerator
     req.body = payload.to_json
 
     begin
-      # read_timeoutを300秒に延長
       res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 300) { |http| http.request(req) }
       
       if res.is_a?(Net::HTTPSuccess)

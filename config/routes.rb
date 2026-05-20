@@ -25,6 +25,8 @@ Rails.application.routes.draw do
   resources :columns do
     collection do
       get :draft
+      get :check_bulk_image_count
+      post :bulk_generate_images
       post :generate_gemini
       post :generate_pillar
       post :generate_from_selected
@@ -33,6 +35,7 @@ Rails.application.routes.draw do
 
     member do
       post :generate_from_pillar
+      patch :remove_image
       post :generate_title
       patch :approve
     end
