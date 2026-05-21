@@ -12,11 +12,11 @@ class GptPillarGenerator
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
     
-    # GenreRegistryを使用してカテゴリとジャンルコードを特定
+    # 既存のジャンルを保持（存在しない場合はレジストリから検索）
+    current_genre = column.genre.presence || GenreRegistry.from_ja(detect_category(column)) || "other"
     target_category = detect_category(column)
-    genre_code = GenreRegistry.from_ja(target_category) || "other"
 
-    puts "▶ 統合生成開始: #{column.title} (判定: #{target_category})"
+    puts "▶ 統合生成開始: #{column.title} (判定: #{target_category}, ジャンル: #{current_genre})"
 
     # 1. meta情報生成 (JSONモード / リトライ付)
     meta_data = nil
@@ -54,13 +54,13 @@ class GptPillarGenerator
     end
     raise "記事構成の生成に失敗しました" if structure_data.nil?
 
-    # DB中間保存
+    # DB中間保存（既存ジャンルを保護）
     column.update!(
       code: clean_code,
       description: meta_data["description"],
       keyword: meta_data["keyword"],
       choice: target_category,
-      genre: genre_code,
+      genre: current_genre,
       status: "creating",
       article_type: "pillar"
     )
@@ -167,11 +167,11 @@ class GptPillarGenerator
       raise "Content is empty" if content.blank?
       
       # クレンジング処理
-      content.gsub!(/\A```[a-z]*\n/i, '') # 開始のコードブロック除去
+      content.gsub!(/\A```[a-z]*\n/i, '')
       content.gsub!(/
-```\z/m, '')        # 終了のコードブロック除去
-      content.gsub!(/\A\{.*"content":\s*"/m, '') # 万が一JSONが混ざった場合の開始除去
-      content.gsub!(/"\s*\}\z/m, '')              # 万が一JSONが混ざった場合の終了除去
+```\z/m, '')
+      content.gsub!(/\A\{.*"content":\s*"/m, '')
+      content.gsub!(/"\s*\}\z/m, '')
       content.strip
     rescue => e
       retries += 1
