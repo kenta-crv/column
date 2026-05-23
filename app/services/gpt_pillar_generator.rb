@@ -3,7 +3,7 @@ require "json"
 require "openssl"
 
 class GptPillarGenerator
-  MODEL_NAME = "gpt-4o-mini"
+  MODEL_NAME = "gpt-4.1-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
   # ==========================================================
@@ -11,50 +11,90 @@ class GptPillarGenerator
   # ==========================================================
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
-    
-    # 既存のジャンルを保持（存在しない場合はレジストリから検索）
-    current_genre = column.genre.presence || GenreRegistry.from_ja(detect_category(column)) || "other"
+
     target_category = detect_category(column)
+    current_genre   = column.genre.presence || GenreRegistry.from_ja(target_category) || "other"
 
-    puts "▶ 統合生成開始: #{column.title} (判定: #{target_category}, ジャンル: #{current_genre})"
+    puts "▶ 統合生成開始: #{column.title} (判定: #{target_category}, genre: #{current_genre})"
 
-    # 1. meta情報生成 (JSONモード / リトライ付)
+    # ----------------------------------------------------------
+    # Genre情報取得
+    # ----------------------------------------------------------
+    genre_data = GenreRegistry::GENRES[current_genre.to_sym] || {}
+    sub_key    = detect_sub_category(column, current_genre)
+    sub_data   = genre_data.dig(:sub_categories, sub_key.to_sym) rescue nil
+
+    # ----------------------------------------------------------
+    # EEATコンテキスト生成
+    # ----------------------------------------------------------
+    eeat_context = build_eeat_context(
+      column,
+      genre_data,
+      sub_data
+    )
+
+    # ----------------------------------------------------------
+    # Meta生成
+    # ----------------------------------------------------------
     meta_data = nil
+
     3.times do |i|
-      res = generate_meta_info(column, target_category)
-      if res
+      res = generate_meta_info(
+        column,
+        target_category,
+        genre_data,
+        sub_data,
+        eeat_context
+      )
+
+      if res.present?
         meta_data = res
         break
       end
-      puts "⚠️ Meta生成失敗 再試行中... (#{i+1}/3)"
+
+      puts "⚠️ Meta生成失敗 再試行中... (#{i + 1}/3)"
       sleep(2)
     end
+
     raise "Meta情報の生成に失敗しました" if meta_data.nil?
-    
-    # スラッグのクレンジング
+
     clean_code = meta_data["code"].to_s.downcase
-                  .gsub(/[^a-z0-9\s\-]/, '')
+                  .gsub(/[^a-z0-9\s\-]/, "")
                   .strip
-                  .gsub(/[\s_]+/, '-')
-                  .gsub(/-+/, '-')
-                  .gsub(/\A-|-\z/, '')
+                  .gsub(/[\s_]+/, "-")
+                  .gsub(/-+/, "-")
+                  .gsub(/\A-|-\z/, "")
 
-    clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
+    clean_code = "article-#{column.id}" if clean_code.blank?
 
-    # 2. 記事構成生成 (JSONモード / リトライ付)
+    # ----------------------------------------------------------
+    # 構成生成
+    # ----------------------------------------------------------
     structure_data = nil
+
     3.times do |i|
-      res = generate_structure(column, target_category)
-      if res && res["structure"].present?
+      res = generate_structure(
+        column,
+        target_category,
+        genre_data,
+        sub_data,
+        eeat_context
+      )
+
+      if res.present? && res["structure"].present?
         structure_data = res
         break
       end
-      puts "⚠️ 構成生成失敗 再試行中... (#{i+1}/3)"
+
+      puts "⚠️ 構成生成失敗 再試行中... (#{i + 1}/3)"
       sleep(2)
     end
+
     raise "記事構成の生成に失敗しました" if structure_data.nil?
 
-    # DB中間保存（既存ジャンルを保護）
+    # ----------------------------------------------------------
+    # 中間保存
+    # ----------------------------------------------------------
     column.update!(
       code: clean_code,
       description: meta_data["description"],
@@ -65,39 +105,83 @@ class GptPillarGenerator
       article_type: "pillar"
     )
 
-    # 3. 本文生成
+    # ----------------------------------------------------------
+    # 本文生成
+    # ----------------------------------------------------------
     body_content = ""
-    
-    # 導入文
-    body_content += call_text_section(introduction_prompt(column, target_category)) + "\n\n"
 
-    # 各見出し
+    # 導入文
+    body_content += call_text_section(
+      introduction_prompt(
+        column,
+        target_category,
+        genre_data,
+        sub_data,
+        eeat_context
+      )
+    )
+
+    body_content += "\n\n"
+
+    # 目次
+    body_content += "## 目次\n\n"
+
+    structure_data["structure"].each do |section|
+      body_content += "- #{section["h2_title"]}\n"
+    end
+
+    body_content += "\n"
+
+    # H2セクション
     structure_data["structure"].each do |section|
       h2_title = section["h2_title"]
+
       body_content += "## #{h2_title}\n\n"
-      
-      # セクション本文の生成
-      section_body = call_text_section(h2_content_prompt(column, target_category, section))
-      
-      # 重複見出しの徹底除去
+
+      section_body = call_text_section(
+        h2_content_prompt(
+          column,
+          target_category,
+          section,
+          genre_data,
+          sub_data,
+          eeat_context
+        )
+      )
+
       section_body.gsub!(/\A\s*#+\s+#{Regexp.escape(h2_title)}\s*\n+/i, "")
       section_body.gsub!(/\A\s*#{Regexp.escape(h2_title)}\s*\n+/i, "")
-      
-      body_content += section_body + "\n\n"
-      sleep(1.5)
+
+      body_content += section_body
+      body_content += "\n\n"
+
+      sleep(1.2)
     end
 
     # まとめ
-    body_content += call_text_section(conclusion_prompt(column, target_category))
-    body_content += "\n\n{::options auto_ids=\"false\" /}"
-
-    # 4. 最終保存
-    column.update!(
-      body: body_content,
-      status: "completed" 
+    body_content += call_text_section(
+      conclusion_prompt(
+        column,
+        target_category,
+        genre_data,
+        sub_data,
+        eeat_context
+      )
     )
 
-    # Image add
+    body_content += "\n\n{::options auto_ids=\"false\" /}"
+
+    # ----------------------------------------------------------
+    # 保存
+    # ----------------------------------------------------------
+    column.update!(
+      body: body_content,
+      status: "completed"
+    )
+
+    # ----------------------------------------------------------
+    # 画像生成
+    # ----------------------------------------------------------
     begin
       FluxImageGeneratorService.generate!(column)
     rescue => e
@@ -106,130 +190,462 @@ class GptPillarGenerator
     end
 
     puts "✅ 生成完了: #{clean_code}"
+
     true
   end
 
   private
 
+  # ==========================================================
+  # カテゴリ判定
+  # ==========================================================
   def self.detect_category(column)
-    search_text = "#{column.title} #{column.keyword} #{column.genre} #{column.choice}"
-    
-    # GenreRegistry内の全キーワードを走査して判定
-    GenreRegistry::GENRES.each do |key, data|
+    search_text = [
+      column.title,
+      column.keyword,
+      column.genre,
+      column.choice
+    ].join(" ")
+
+    GenreRegistry::GENRES.each do |_, data|
+      next unless data[:keywords]
+
       if data[:keywords].any? { |w| search_text.include?(w) }
         return data[:ja]
       end
     end
-    
+
     "その他"
   end
 
-  def self.generate_meta_info(column, category)
+  # ==========================================================
+  # サブカテゴリ判定
+  # ==========================================================
+  def self.detect_sub_category(column, genre_key)
+    genre = GenreRegistry::GENRES[genre_key.to_sym]
+    return nil unless genre
+    return nil unless genre[:sub_categories]
+
+    text = [
+      column.title,
+      column.keyword,
+      column.prompt,
+      column.description
+    ].join(" ")
+
+    genre[:sub_categories].each do |key, sub|
+      next unless sub[:keywords]
+
+      if sub[:keywords].any? { |w| text.include?(w) }
+        return key.to_s
+      end
+    end
+
+    nil
+  end
+
+  # ==========================================================
+  # EEATコンテキスト
+  # ==========================================================
+  def self.build_eeat_context(column, genre_data, sub_data)
+    contexts = []
+
+    contexts << "記事ジャンル: #{genre_data[:ja]}" if genre_data[:ja].present?
+
+    if genre_data[:keywords].present?
+      contexts << "関連キーワード: #{genre_data[:keywords].join('、')}"
+    end
+
+    if sub_data.present?
+      contexts << "対象読者: #{sub_data[:target]}" if sub_data[:target].present?
+      contexts << "業界説明: #{sub_data[:description]}" if sub_data[:description].present?
+      contexts << "業界特徴: #{sub_data[:features].join('、')}" if sub_data[:features].present?
+      contexts << "業界課題: #{sub_data[:industry_weakness]}" if sub_data[:industry_weakness].present?
+    end
+
+    contexts << <<~TEXT
+      以下を重視して執筆すること:
+      - 実務レベルで説明する
+      - 一次情報ベースで語る
+      - 比較サイト風にしない
+      - 誇張表現を使わない
+      - 業界構造を解説する
+      - 現場視点を含める
+      - 初心者向けではなく実務寄りにする
+      - SEO目的だけの記事にしない
+      - 読者が実際に調査している内容を深掘りする
+      - 汎用的な業界記事として成立させる
+    TEXT
+
+    contexts.join("\n")
+  end
+
+  # ==========================================================
+  # SEOメタ生成
+  # ==========================================================
+  def self.generate_meta_info(column, category, genre_data, sub_data, eeat_context)
     prompt = <<~PROMPT
-      以下の条件でSEOメタ情報を「JSON」形式で生成してください。
-      【重要】説明文(description)は必ず日本語、スラッグ(code)のみ英語にしてください。
-      また、後に実行されるAI画像生成のコンテキストを汚染しないよう、テキスト・文字・ロゴ・バナー・図解といった視覚文字要素を含まない純粋な「状況・背景の描写」のみに最適化されたメタ説明とキーワードを意識してください。
-      
-      タイトル: #{column.title}
-      業種: #{category}
-      #{column.prompt.present? ? "追加指示: #{column.prompt}" : ""}
-      出力形式: { "code": "english-slug", "description": "日本語の説明文", "keyword": "キーワード" }
+      以下の記事情報からSEO向けメタ情報をJSON形式で生成してください。
+
+      【記事タイトル】
+      #{column.title}
+
+      【業種】
+      #{category}
+
+      【記事テーマ】
+      #{column.prompt}
+
+      【重要】
+      - サービス宣伝記事にしない
+      - 比較サイトのような記事にしない
+      - 中立的なSEO記事にする
+      - 誇張禁止
+      - 汎用記事として成立させる
+      - 読者課題を主軸にする
+      - 業界調査型の記事にする
+      - descriptionは自然なSEO説明文
+      - codeは英語スラッグ
+      - JSON以外禁止
+
+      【業界情報】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      出力形式:
+      {
+        "code": "english-slug",
+        "description": "日本語説明",
+        "keyword": "SEOキーワード"
+      }
     PROMPT
+
     res = call_gpt_api(prompt, json_mode: true)
-    res ? JSON.parse(res.dig("choices", 0, "message", "content")) : nil
+
+    return nil unless res
+
+    JSON.parse(
+      res.dig("choices", 0, "message", "content")
+    )
   rescue
     nil
   end
 
-  def self.generate_structure(column, category)
-    child_columns = Column.where(parent_id: column.id, article_type: "child")
-    child_titles = child_columns.map(&:title).join("\n- ")
+  # ==========================================================
+  # 構成生成
+  # ==========================================================
+  def self.generate_structure(column, category, genre_data, sub_data, eeat_context)
+    child_columns = Column.where(
+      parent_id: column.id,
+      article_type: "child"
+    )
+
+    child_titles = child_columns.map(&:title)
+
     prompt = <<~PROMPT
-      記事「#{column.title}」の構成（日本語のH2見出し6〜8個）を「JSON」形式で作成してください。
-      業種: #{category}
-      子記事リスト: #{child_titles}
-      #{column.prompt.present? ? "【最優先指示】この記事の中核となる内容: #{column.prompt}" : ""}
-      出力形式: { "structure": [ { "h2_title": "日本語の見出し名" } ] }
+      以下の記事のH2構成をJSON形式で生成してください。
+
+      【記事タイトル】
+      #{column.title}
+
+      【業種】
+      #{category}
+
+      【関連子記事】
+      #{child_titles.join("\n")}
+
+      【記事方針】
+      - 中立的な情報記事
+      - サービス誘導禁止
+      - 比較サイト化禁止
+      - 業界分析型にする
+      - 実務目線で構成
+      - 現場課題を解説
+      - SEOテンプレ禁止
+      - 「おすすめ」「ランキング」禁止
+      - ノウハウ型記事にする
+      - 業界理解が深まる構成にする
+
+      【業界背景】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      【出力条件】
+      - H2を6〜8個
+      - 全て日本語
+      - 見出しのみ
+      - SEOワードを自然に含める
+      - 汎用的な構成にする
+      - JSON以外禁止
+
+      出力形式:
+      {
+        "structure": [
+          { "h2_title": "見出し" }
+        ]
+      }
     PROMPT
+
     res = call_gpt_api(prompt, json_mode: true)
-    res ? JSON.parse(res.dig("choices", 0, "message", "content")) : nil
+
+    return nil unless res
+
+    JSON.parse(
+      res.dig("choices", 0, "message", "content")
+    )
   rescue
     nil
   end
 
+  # ==========================================================
+  # 本文生成
+  # ==========================================================
   def self.call_text_section(prompt)
     max_retries = 3
     retries = 0
+
     begin
       response = call_gpt_api(prompt, json_mode: false)
+
       content = response&.dig("choices", 0, "message", "content")
-      
-      raise "Content is empty" if content.blank?
-      
-      # クレンジング処理
-      content.gsub!(/\A```[a-z]*\n/i, '')
-      content.gsub!(/
-```\z/m, '')
-      content.gsub!(/\A\{.*"content":\s*"/m, '')
-      content.gsub!(/"\s*\}\z/m, '')
+
+      raise "empty content" if content.blank?
+
+      content.gsub!(/\A```[a-z]*\n/i, "")
+      content.gsub!(/```\z/m, "")
+
       content.strip
     rescue => e
       retries += 1
+
       if retries < max_retries
         puts "⚠️ 本文生成失敗 再試行中... (#{retries}/#{max_retries})"
         sleep(2)
         retry
       end
-      "（生成エラー：このセクションの生成に失敗しました。再実行してください）"
+
+      "（生成エラーにより本文生成に失敗しました）"
     end
   end
 
+  # ==========================================================
+  # GPT API
+  # ==========================================================
   def self.call_gpt_api(prompt, json_mode: false)
     uri = URI(GPT_API_URL)
-    req = Net::HTTP::Post.new(uri)
-    req["Content-Type"] = "application/json"
-    req["Authorization"] = "Bearer #{ENV['GPT_API_KEY']}"
 
-    system_content = "あなたはSEO専門ライターです。回答は【必ず日本語】で行ってください。"
-    system_content += " 出力はJSON形式で行ってください。" if json_mode
-    system_content += " JSONは禁止です。そのまま本文として使えるプレーンテキストのみ出力してください。見出しは一切生成しないでください。" unless json_mode
+    req = Net::HTTP::Post.new(uri)
+
+    req["Content-Type"] = "application/json"
+    req["Authorization"] = "Bearer #{ENV["GPT_API_KEY"]}"
+
+    system_content = <<~SYSTEM
+      あなたはSEO記事専門ライターです。
+
+      【最重要ルール】
+      - 日本語のみ
+      - 中立的に解説
+      - サービス販売ページ化禁止
+      - 比較サイト化禁止
+      - 誇張禁止
+      - 業界構造を解説する
+      - 一次情報ベースの文体
+      - 実務レベルで解説
+      - AI臭い文章禁止
+      - PREP法固定禁止
+      - 箇条書き乱用禁止
+      - 体験談風の嘘を作らない
+      - 「この記事では」禁止
+      - 「おすすめです」連発禁止
+      - 業界メディア品質で書く
+      - 専門性と網羅性を重視
+      - Google EEATを意識
+    SYSTEM
+
+    if json_mode
+      system_content += "\n出力はJSONのみ。"
+    else
+      system_content += "\n本文テキストのみ出力。"
+      system_content += "\nJSON禁止。"
+      system_content += "\n見出し出力禁止。"
+    end
 
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: system_content },
-        { role: "user", content: prompt }
+        {
+          role: "system",
+          content: system_content
+        },
+        {
+          role: "user",
+          content: prompt
+        }
       ],
-      temperature: 0.3
+      temperature: 0.45
     }
-    payload[:response_format] = { type: "json_object" } if json_mode
+
+    payload[:response_format] = {
+      type: "json_object"
+    } if json_mode
+
     req.body = payload.to_json
 
     begin
-      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 300) { |http| http.request(req) }
-      
+      res = Net::HTTP.start(
+        uri.hostname,
+        uri.port,
+        use_ssl: true,
+        read_timeout: 300
+      ) do |http|
+        http.request(req)
+      end
+
       if res.is_a?(Net::HTTPSuccess)
         JSON.parse(res.body)
       else
+        puts "❌ OpenAI Error: #{res.code} #{res.body}"
         nil
       end
     rescue => e
+      puts "❌ API Exception: #{e.message}"
       nil
     end
   end
 
-  def self.introduction_prompt(column, category)
-    prompt_base = "記事「#{column.title}」の導入文を日本語で600文字以上執筆してください。JSON形式は厳禁です。"
-    column.prompt.present? ? "#{prompt_base}\nなお、以下の内容を導入文の軸としてください:#{column.prompt}" : prompt_base
+  # ==========================================================
+  # 導入文
+  # ==========================================================
+  def self.introduction_prompt(column, category, genre_data, sub_data, eeat_context)
+    <<~PROMPT
+      「#{column.title}」の記事導入文を作成してください。
+
+      【条件】
+      - 日本語
+      - 700〜1100文字
+      - SEO記事として自然に
+      - 中立的に解説
+      - 業界背景から入る
+      - 読者課題から始める
+      - サービス宣伝禁止
+      - AIテンプレ禁止
+      - 見出し禁止
+      - 汎用記事として成立させる
+      - 専門メディア品質で執筆
+
+      【業界背景】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      【追加指示】
+      #{column.prompt}
+    PROMPT
   end
 
-  def self.h2_content_prompt(column, category, section)
-    prompt_base = "見出し「#{section["h2_title"]}」の本文を日本語で1000文字程度執筆してください。業種「#{category}」に関連させ、JSONは使わずテキストのみ出力してください。【重要】「## #{section["h2_title"]}」のような見出し自体は絶対に本文に含めないでください。本文のみを開始してください。"
-    column.prompt.present? ? "#{prompt_base}\n以下の核となる方針を必ず反映させてください:#{column.prompt}" : prompt_base
+  # ==========================================================
+  # H2本文
+  # ==========================================================
+  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context)
+    <<~PROMPT
+      以下H2見出しの本文を執筆してください。
+
+      【記事タイトル】
+      #{column.title}
+
+      【見出し】
+      #{section["h2_title"]}
+
+      【条件】
+      - 日本語
+      - 1200〜1800文字
+      - 専門性を持たせる
+      - 実務視点で解説
+      - 中立的に解説
+      - 比較サイト化禁止
+      - 宣伝禁止
+      - 「弊社では」禁止
+      - AIテンプレ禁止
+      - PREP法固定禁止
+      - 見出しを本文に含めない
+      - 実際の業界構造を解説
+      - 表面的説明で終わらせない
+      - 業界背景まで掘り下げる
+      - EEATを意識する
+      - 現場理解が伝わる文章にする
+
+      【業界背景】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      【追加指示】
+      #{column.prompt}
+    PROMPT
   end
 
-  def self.conclusion_prompt(column, category)
-    prompt_base = "記事「#{column.title}」のまとめを日本語で執筆してください。必ず「## まとめ」から開始し、JSONは使わないでください。"
-    column.prompt.present? ? "#{prompt_base}\n最後に、以下の内容を総括に含めてください:#{column.prompt}" : prompt_base
+  # ==========================================================
+  # まとめ
+  # ==========================================================
+  def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context)
+    <<~PROMPT
+      「#{column.title}」の記事まとめを執筆してください。
+
+      【条件】
+      - 「## まとめ」から開始
+      - 日本語
+      - 中立的
+      - 宣伝禁止
+      - 誇張禁止
+      - 記事全体を自然に総括
+      - 業界全体の視点で締める
+      - SEO記事として自然に終える
+      - 汎用記事として成立させる
+
+      【業界背景】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      【追加指示】
+      #{column.prompt}
+    PROMPT
+  end
+
+  # ==========================================================
+  # 業界コンテキスト生成
+  # ==========================================================
+  def self.build_industry_context(genre_data, sub_data)
+    texts = []
+
+    if genre_data.present?
+      texts << "業界: #{genre_data[:ja]}" if genre_data[:ja].present?
+
+      if genre_data[:keywords].present?
+        texts << "業界キーワード: #{genre_data[:keywords].join('、')}"
+      end
+    end
+
+    if sub_data.present?
+      texts << "対象: #{sub_data[:target]}" if sub_data[:target].present?
+      texts << "業界説明: #{sub_data[:description]}" if sub_data[:description].present?
+
+      if sub_data[:features].present?
+        texts << "業界特徴: #{sub_data[:features].join('、')}"
+      end
+
+      if sub_data[:industry_weakness].present?
+        texts << "業界課題: #{sub_data[:industry_weakness]}"
+      end
+    end
+
+    texts.join("\n")
   end
 end
