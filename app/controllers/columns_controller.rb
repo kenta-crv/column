@@ -2,7 +2,7 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title, :remove_image]
   before_action :set_breadcrumbs
   
-  # スレッド多重実行を防止するアプリケーション変数
+# スレッド多重実行を防止するアプリケーション変数
   @@bulk_image_generating = false
 
   def index
@@ -58,15 +58,15 @@ class ColumnsController < ApplicationController
     columns = columns.order(updated_at: :desc)
 
     # =========================================================================
-    # メモリ逼迫対策
+    # 50件表示のページネーション適用
     # =========================================================================
-    columns = columns.limit(30)
-
-    # Relation のまま保持せず配列化
-    @columns = columns.to_a
+    @paginated_columns = columns.page(params[:page]).per(30)
+    
+    # 配列としての処理用
+    @columns = @paginated_columns.to_a
 
     # =========================================================================
-    # Pillar の場合のみジャンルごとにグループ化
+    # Pillar の場合のみジャンルごとにグループ化（ページ内の50件を対象）
     # =========================================================================
     if params[:article_type] == "pillar"
       @grouped_columns = @columns.group_by(&:genre)
@@ -92,7 +92,7 @@ class ColumnsController < ApplicationController
     end
 
     # =========================================================================
-    # ジャンル別カウント
+    # ジャンル別カウント（全体の総数配信用）
     # =========================================================================
     base_count_query =
       if @allowed_genre.present?
@@ -120,7 +120,7 @@ class ColumnsController < ApplicationController
         .group(:genre)
         .count
   end
-  
+    
   def show
     # 1. 閲覧ドメインの許可ジャンルを再判定
     allowed_for_show = case request.host
