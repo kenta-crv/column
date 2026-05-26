@@ -19,10 +19,10 @@ module GenreRegistry
         },
         office: {
           name: "オフィス清掃",
-          target: "企業のオフィス・事務所、執務室",
+          target: "企業のオフィス・事務所、執室",
           description: "デスク周りのゴミ回収、会議室、給湯室、役員室などの清掃。機密情報（Pマーク・ISMS取得企業など）への配慮や、PC機器・配線周りの丁寧な取り扱いを徹底します。",
           features: ["機密保持・セキュリティ遵守", "ゴミ分別・回収", "什器への配慮", "深夜・早朝の無人対応可"],
-          keywords: ["オフィス清掃", "事務所掃除", "執務室清掃"],
+          keywords: ["オフィス清掃", "事務所掃除", "執室清掃"],
           price_hint: "要お見積り（頻度・平米数による）",
           area: "全国対応",
           strengths: "オフィス特有のセキュリティルールやマナー教育を修了したスタッフが対応するため、シュレッダーゴミの処理なども安心してお任せいただけます。",
@@ -158,12 +158,12 @@ module GenreRegistry
         }
       }
     },
-
     pest: {
       ja: "シロアリ駆除",
       host: [],
       service_name: "シロアリ害虫駆除なら『シロアリ駆除士隊』",
       keywords: ["シロアリ駆除"],
+      strong_points: "自宅のシロアリにお悩みの方に向けて害虫の駆除を行います。",
       sub_categories: {
         termite_control: {
           name: "シロアリ駆除",
@@ -177,7 +177,9 @@ module GenreRegistry
         }
       }
     },
-
+    # ----------------------------------------------------------------
+    # 5. 特殊清掃（緊急・専門事案）
+    # ----------------------------------------------------------------
     emergency_cleaning: {
       ja: "特殊清掃",
       host: ["okey.work"],
@@ -196,7 +198,6 @@ module GenreRegistry
         }
       }
     },
-
     cargo: {
       ja: "Amazon配送",
       host: ["okey.work"],
@@ -227,7 +228,6 @@ module GenreRegistry
         }
       }
     },
-
     app: {
       ja: "営業代行",
       host: ["ri-plus.jp"],
@@ -279,7 +279,6 @@ module GenreRegistry
         }
       }
     },
-
     meetia: {
       ja: "AI商談",
       host: ["meetia.pro"],
@@ -300,7 +299,6 @@ module GenreRegistry
         }
       }
     },
-
     vender: {
       ja: "自販機設置",
       host: ["自販機.net"],
@@ -324,7 +322,7 @@ module GenreRegistry
           target: "メーカーでの設置ができない小規模及び中規模店舗・施設個人様、飲料水以外を販売したい企業",
           description: "新品の自販機本体を購入し、自社で自由に運営するプラン。仕入れや価格設定、商品ラインナップ決定、清掃、空き缶回収までを自社で行うことで、自動販売機の売上利益を最大化できるビジネスモデルです。",
           features: ["高利益", "自由な販売価格設定（格安販売も可能）", "オリジナル商品の販売可（食品・物販など）", "他社にはない最新モデル取扱", "ラッピング自販機対応", "仕入れサポート"],
-          keywords: ["自販機 購入", "自動販売機　購入", "オリジナル 自動販売機"],
+          keywords: ["自販機 購入", "自動販売機 購入", "オリジナル 自動販売機"],
           price_hint: "本体価格：本体毎に要お見積り（新品80万円〜 ※設置・運搬費別途）",
           area: "全国対応",
           strengths: "飲料だけでなく、社内向けの格安提供（福利厚生）や、地域の特産品・オリジナルグッズ・食品などを販売する特殊な自動販売機の導入・機材選定までトータルで対応可能",
@@ -332,34 +330,39 @@ module GenreRegistry
         }
       }
     },
-
-    ai_article_generation: {
-      ja: "AI記事生成",
-      host: ["drafity.pro"],
-      service_name: "AI記事生成サービス",
-      strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",
-      keywords: ["AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],
-      sub_categories: {
-        seo_generation: {
-          name: "AI記事生成",
-          target: "AI記事生成によってオウンドメディアの流入を増やしたい・コンテンツの資産化を行いたい企業",
-          description: "AIを活用して親記事（基幹コンテンツ）を生成し、そこから最適な子記事（派生コンテンツ）を設計・生成することで、検索流入を最大化するコンテンツSEO支援サービス。",
-          features: [
-            "親記事の自動生成",
-            "子記事設計・生成",
-            "キーワード構造設計",
-            "SEO内部構造最適化",
-            "高品質な記事生成",
-            "コンテンツ資産化支援"
-          ],
-          keywords: ["AI記事生成", "SEO記事", "コンテンツ資産化", "高品質記事"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"
-        }
-      }
-    }
+    # ----------------------------------------------------------------    
+    # 追加: AI記事生成    
+    # ----------------------------------------------------------------    
+    ai_article_generation: {    
+      ja: "AI記事生成",    
+      host: ["drafity.pro"],    
+      service_name: "AI記事生成サービス",    
+      strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",    
+      keywords: ["AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],    
+      sub_categories: {    
+        seo_generation: {    
+          name: "AI記事生成",    
+          target: "AI記事生成によってオウンドメディアの流入を増やしたい・コンテンツの資産化を行いたい企業",    
+          description: "AIを活用して親記事（基幹コンテンツ）を生成し、そこから最適な子記事（派生コンテンツ）を設計・生成することで、検索流入を最大化するコンテンツSEO支援サービス。",    
+          features: [    
+            "親記事の自動生成",    
+            "子記事設計・生成",    
+            "キーワード構造設計",    
+            "SEO内部構造最適化",  
+            "高品質な記事生成",    
+            "コンテンツ資産化支援"    
+          ],    
+          keywords: ["AI記事生成", "SEO記事", "コンテンツ資産化", "高品質記事"],    
+          price_hint: "要お見積り",    
+          area: "全国対応",    
+          strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"    
+        }    
+      }    
+    }    
   }.freeze
+
+
+  # --- ヘルパーメソッド ---
 
   def self.from_ja(ja)
     GENRES.find { |_, v| v[:ja] == ja }&.first&.to_s
@@ -369,6 +372,7 @@ module GenreRegistry
     GENRES[key.to_sym]&.dig(:ja)
   end
 
+  # AI生成用のプロフィール。中分類がある場合はそれを優先する
   def self.service_profile(category_key, sub_key = nil)
     g = GENRES[category_key.to_sym]
     return "専門知識に基づいた最適なソリューションを提供。" unless g
@@ -376,29 +380,31 @@ module GenreRegistry
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
       s = g[:sub_categories][sub_key.to_sym]
       return <<~TEXT
-サービス名: #{g[:service_name]}（#{s[:name]}）
-ターゲット: #{s[:target]}
-内容: #{s[:description]}
-特徴: #{s[:features].join('、')}
-料金: #{s[:price_hint]}
-強み: #{s[:strengths]}
-業界の課題と弊社の立ち位置: #{s[:industry_weakness]}
-TEXT
+        サービス名: #{g[:service_name]}（#{s[:name]}）
+        ターゲット: #{s[:target]}
+        内容: #{s[:description]}
+        特徴: #{s[:features].join('、')}
+        料金: #{s[:price_hint]}
+        強み: #{s[:strengths]}
+        業界の課題と弊社の立ち位置: #{s[:industry_weakness]}
+      TEXT
     end
 
     "サービス名: #{g[:service_name]}\n強み: #{g[:strong_points]}"
   end
 
+  # 元々定義されていたメソッド（Controllerで使用するため必須）
   def self.allowed_hosts(host)
-    GENRES.find { |_, v| v[:host].include?(host) }&.first&.to_s
+    GENRES.find { |_, v| v[:host].include?(host) }&.first
   end
 
+  # 画像取得用
   def self.images(key)
     GENRES[key.to_sym]&.dig(:images) || []
   end
 
+  # キーワード取得用
   def self.keywords(ja)
-    key = from_ja(ja)
-    GENRES[key&.to_sym]&.dig(:keywords) || []
+    GENRES[from_ja(ja)&.to_sym]&.dig(:keywords) || []
   end
 end
