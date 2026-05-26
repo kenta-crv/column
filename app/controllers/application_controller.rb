@@ -11,8 +11,13 @@ def current_client
     return @current_client if defined?(@current_client)
     return OpenStruct.new(expired?: false) if Rails.env.development?
     
-    # 親クラスや包括モジュールに current_client が存在する場合のみ super を呼ぶ
-    defined?(super) ? super : nil
+    # ログインしているのが管理者（admin）の場合のフォールバック
+    if respond_to?(:current_admin) && current_admin.present?
+      return current_admin
+    end
+
+    # 親クラスにメソッドがない場合は安全に nil を返す（superは呼ばない）
+    nil
   end
 
   def check_trial_expiration
@@ -21,7 +26,7 @@ def current_client
       # 必要に応じて期限切れの処理（リダイレクトなど）をここに記述
     end
   end
-  
+
   def breadcrumbs
     @breadcrumbs
   end
