@@ -136,7 +136,7 @@ module GenreRegistry
           price_hint: "間取り（1K・2LDK等）に応じた定額制あり",
           area: "全国対応",
           strengths: "清掃だけでなく内装・修繕まで一括で引き受けられるため、発注の手間を大幅に削減。空室期間を最短化します。"
-        },
+        }
       }
     },
     housekeeping: {
@@ -158,13 +158,12 @@ module GenreRegistry
         }
       }
     },
-    
+
     pest: {
       ja: "シロアリ駆除",
       host: [],
       service_name: "シロアリ害虫駆除なら『シロアリ駆除士隊』",
       keywords: ["シロアリ駆除"],
-      strong_points: "自宅のシロアリにお悩みの方に向けて害虫の駆除を行います。",
       sub_categories: {
         termite_control: {
           name: "シロアリ駆除",
@@ -176,11 +175,9 @@ module GenreRegistry
           area: "全国対応",
           strengths: "再発防止まで含めた施工設計により長期的な安全性を確保します。"
         }
-      },
+      }
     },
-    # ----------------------------------------------------------------
-    # 5. 特殊清掃（緊急・専門事案）
-    # ----------------------------------------------------------------
+
     emergency_cleaning: {
       ja: "特殊清掃",
       host: ["okey.work"],
@@ -199,7 +196,6 @@ module GenreRegistry
         }
       }
     },
-
 
     cargo: {
       ja: "Amazon配送",
@@ -232,7 +228,6 @@ module GenreRegistry
       }
     },
 
-
     app: {
       ja: "営業代行",
       host: ["ri-plus.jp"],
@@ -241,7 +236,6 @@ module GenreRegistry
       keywords: ["営業代行", "テレアポ", "インサイドセールス", "コールセンター", "フォーム営業", "営業KPI", "営業戦略"],
       images: ['app1.jpg', 'app2.jpg'],
       sub_categories: {
-        # 1. 問い合わせフォーム営業
         form_marketing: {
           name: "問い合わせフォーム営業",
           target: "新規リード獲得を自動化・効率化したいBtoB企業",
@@ -253,7 +247,6 @@ module GenreRegistry
           strengths: "AIを活用した大量アプローチと、プロのノウハウによる返信率の高い文章設計で、ローコストながら質の高い商談を量産します。",
           industry_weakness: "一般的なフォーム営業は「スパム扱いされやすい」「返信が来ない」のが課題ですが、ターゲット選定の最適化と文面検証により、質の高いリードを獲得します。"
         },
-        # 2. 営業戦略・プロセス設計
         sales_strategy: {
           name: "営業戦略・プロセス設計",
           target: "営業の属人化を解消し、売れる仕組みを作りたい企業",
@@ -264,7 +257,6 @@ module GenreRegistry
           area: "全国対応",
           strengths: "1,000社を超える実績に基づく「ターゲット選定」と、成約率を最大化するためのフレームワークを用いた確実な戦略設計が強みです。"
         },
-        # 3. 営業KPI・数値管理
         sales_kpi: {
           name: "営業KPI・数値管理",
           target: "データに基づいた営業評価や、パイプラインの可視化を行いたい企業",
@@ -275,7 +267,6 @@ module GenreRegistry
           area: "全国対応",
           strengths: "「機能しないKPI」に陥らないよう、売上に直結する現実的な数値設計と、目標達成のための評価構造をロジカルに構築します。"
         },
-        # 4. 営業アウトソーシング・外注
         sales_outsourcing: {
           name: "営業アウトソーシング・外注",
           target: "自社採用のコストを抑え、即戦力の営業プロ集団を活用したい企業",
@@ -342,38 +333,33 @@ module GenreRegistry
       }
     },
 
-    # ----------------------------------------------------------------    
-    # 追加: AI記事生成    
-    # ----------------------------------------------------------------    
-    ai_article_generation: {    
-      ja: "AI記事生成",    
-      host: ["drafity.pro"],    
-      service_name: "AI記事生成サービス",    
-      strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",    
-      keywords: ["AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],    
-      sub_categories: {    
-        seo_generation: {    
-          name: "AI記事生成",    
-          target: "AI記事生成によってオウンドメディアの流入を増やしたい・コンテンツの資産化を行いたい企業",    
-          description: "AIを活用して親記事（基幹コンテンツ）を生成し、そこから最適な子記事（派生コンテンツ）を設計・生成することで、検索流入を最大化するコンテンツSEO支援サービス。",    
-          features: [    
-            "親記事の自動生成",    
-            "子記事設計・生成",    
-            "キーワード構造設計",    
-            "SEO内部構造最適化",  
-            "高品質な記事生成",    
-            "コンテンツ資産化支援"    
-          ],    
-          keywords: ["AI記事生成", "SEO記事", "コンテンツ資産化", "高品質記事"],    
-          price_hint: "要お見積り",    
-          area: "全国対応",    
-          strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"    
-        }    
-      }    
-    }    
-  }.freeze   
-
-  # --- ヘルパーメソッド ---
+    ai_article_generation: {
+      ja: "AI記事生成",
+      host: ["drafity.pro"],
+      service_name: "AI記事生成サービス",
+      strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",
+      keywords: ["AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],
+      sub_categories: {
+        seo_generation: {
+          name: "AI記事生成",
+          target: "AI記事生成によってオウンドメディアの流入を増やしたい・コンテンツの資産化を行いたい企業",
+          description: "AIを活用して親記事（基幹コンテンツ）を生成し、そこから最適な子記事（派生コンテンツ）を設計・生成することで、検索流入を最大化するコンテンツSEO支援サービス。",
+          features: [
+            "親記事の自動生成",
+            "子記事設計・生成",
+            "キーワード構造設計",
+            "SEO内部構造最適化",
+            "高品質な記事生成",
+            "コンテンツ資産化支援"
+          ],
+          keywords: ["AI記事生成", "SEO記事", "コンテンツ資産化", "高品質記事"],
+          price_hint: "要お見積り",
+          area: "全国対応",
+          strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"
+        }
+      }
+    }
+  }.freeze
 
   def self.from_ja(ja)
     GENRES.find { |_, v| v[:ja] == ja }&.first&.to_s
@@ -383,7 +369,6 @@ module GenreRegistry
     GENRES[key.to_sym]&.dig(:ja)
   end
 
-  # AI生成用のプロフィール。中分類がある場合はそれを優先する
   def self.service_profile(category_key, sub_key = nil)
     g = GENRES[category_key.to_sym]
     return "専門知識に基づいた最適なソリューションを提供。" unless g
@@ -391,31 +376,29 @@ module GenreRegistry
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
       s = g[:sub_categories][sub_key.to_sym]
       return <<~TEXT
-        サービス名: #{g[:service_name]}（#{s[:name]}）
-        ターゲット: #{s[:target]}
-        内容: #{s[:description]}
-        特徴: #{s[:features].join('、')}
-        料金: #{s[:price_hint]}
-        強み: #{s[:strengths]}
-        業界の課題と弊社の立ち位置: #{s[:industry_weakness]}
-      TEXT
+サービス名: #{g[:service_name]}（#{s[:name]}）
+ターゲット: #{s[:target]}
+内容: #{s[:description]}
+特徴: #{s[:features].join('、')}
+料金: #{s[:price_hint]}
+強み: #{s[:strengths]}
+業界の課題と弊社の立ち位置: #{s[:industry_weakness]}
+TEXT
     end
 
     "サービス名: #{g[:service_name]}\n強み: #{g[:strong_points]}"
   end
 
-  # 元々定義されていたメソッド（Controllerで使用するため必須）
   def self.allowed_hosts(host)
-    GENRES.find { |_, v| v[:host].include?(host) }&.first
+    GENRES.find { |_, v| v[:host].include?(host) }&.first&.to_s
   end
 
-  # 画像取得用
   def self.images(key)
     GENRES[key.to_sym]&.dig(:images) || []
   end
 
-  # キーワード取得用
   def self.keywords(ja)
-    GENRES[from_ja(ja)&.to_sym]&.dig(:keywords) || []
+    key = from_ja(ja)
+    GENRES[key&.to_sym]&.dig(:keywords) || []
   end
 end
