@@ -1,0 +1,307 @@
+/ app/views/dashboard/columns/index.html.slim
+
+/ 1. 上部ヘッダーエリア（検索バー・通知・アクション）
+.admin-content-header
+  .header-left
+    h1 生成管理
+    p.header-subtitle 生成した記事の一覧とステータスを管理できます
+  
+  .header-right
+    .search-box-wrapper
+      svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"
+        circle cx="11" cy="11" r="8"
+        line x1="21" y1="21" x2="16.65" y2="16.65"
+      input type="text" placeholder="記事タイトル・キーワードで検索" class="search-input"
+      span.search-shortcut ⌘ K
+    
+    button.btn-icon-badge
+      svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-7"
+        path d="M13.73 21a2 2 0 0 1-3.46 0"
+      span.notification-dot
+      
+    button.btn-icon-action
+      svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        circle cx="12" cy="12" r="10"
+        line x1="2" y1="12" x2="22" y2="12"
+        path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+
+/ 2. エクスポート等のセカンダリアクションバー
+.sub-header-actions
+  = link_to "#", class: "btn btn-export" do
+    svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+      polyline points="17 8 12 3 7 8"
+      line x1="12" y1="3" x2="12" y2="15"
+    span エクスポート
+    svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-down"
+      polyline points="6 9 12 15 18 9"
+
+/ 3. KPIグリッド（ミニチャート・成功率サークル付き）
+.kpi-main-grid
+  .kpi-stat-cards
+    .kpi-card
+      .kpi-header
+        .kpi-title-wrap
+          .kpi-icon.icon-blue
+            svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              polygon points="12 2 2 7 12 12 22 7 12 2"
+          span.label 総生成数
+        .trend.up
+          span ↑ 23.5%
+      .kpi-body
+        .value = @columns.total_count rescue @columns.size
+        .comparison 前月比
+        .kpi-chart
+          svg viewBox="0 0 100 30" class="mini-graph"
+            path d="M0,25 Q15,18 30,22 T60,10 T90,5 T100,2" fill="none" stroke="#3b82f6" stroke-width="2"
+            path d="M0,25 Q15,18 30,22 T60,10 T90,5 T100,2 L100,30 L0,30 Z" fill="url(#grad-blue)" opacity="0.1"
+            defs
+              linearGradient id="grad-blue" x1="0%" y1="0%" x2="0%" y2="100%"
+                stop offset="0%" stop-color="#3b82f6"
+                stop offset="100%" stop-color="#3b82f6" stop-opacity="0"
+
+    .kpi-card
+      .kpi-header
+        .kpi-title-wrap
+          .kpi-icon.icon-green
+            svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
+              polyline points="22 4 12 14.01 9 11.01"
+          span.label 公開済み
+        .trend.up
+          span ↑ 18.7%
+      .kpi-body
+        .value = Column.where(status: "approved").count
+        .comparison 前月比
+        .kpi-chart
+          svg viewBox="0 0 100 30" class="mini-graph"
+            path d="M0,28 Q20,20 40,25 T70,12 T100,4" fill="none" stroke="#10b981" stroke-width="2"
+            path d="M0,28 Q20,20 40,25 T70,12 T100,4 L100,30 L0,30 Z" fill="url(#grad-green)" opacity="0.1"
+            defs
+              linearGradient id="grad-green" x1="0%" y1="0%" x2="0%" y2="100%"
+                stop offset="0%" stop-color="#10b981"
+                stop offset="100%" stop-color="#10b981" stop-opacity="0"
+
+    .kpi-card
+      .kpi-header
+        .kpi-title-wrap
+          .kpi-icon.icon-orange
+            svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              polyline points="14 2 14 8 20 8"
+          span.label 下書き
+        .trend.down
+          span ↓ 5.2%
+      .kpi-body
+        .value = Column.where(status: "draft").count
+        .comparison 前月比
+        .kpi-chart
+          svg viewBox="0 0 100 30" class="mini-graph"
+            path d="M0,5 Q25,12 50,8 T75,22 T100,18" fill="none" stroke="#f59e0b" stroke-width="2"
+            path d="M0,5 Q25,12 50,8 T75,22 T100,18 L100,30 L0,30 Z" fill="url(#grad-orange)" opacity="0.1"
+            defs
+              linearGradient id="grad-orange" x1="0%" y1="0%" x2="0%" y2="100%"
+                stop offset="0%" stop-color="#f59e0b"
+                stop offset="100%" stop-color="#f59e0b" stop-opacity="0"
+
+    .kpi-card
+      .kpi-header
+        .kpi-title-wrap
+          .kpi-icon.icon-purple
+            svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              circle cx="12" cy="12" r="10"
+              polyline points="12 6 12 12 16 14"
+          span.label 予約中
+        .trend.up
+          span ↑ 12.1%
+      .kpi-body
+        .value 105
+        .comparison 前月比
+        .kpi-chart
+          svg viewBox="0 0 100 30" class="mini-graph"
+            path d="M0,22 Q20,25 40,15 T80,18 T100,5" fill="none" stroke="#8b5cf6" stroke-width="2"
+            path d="M0,22 Q20,25 40,15 T80,18 T100,5 L100,30 L0,30 Z" fill="url(#grad-purple)" opacity="0.1"
+            defs
+              linearGradient id="grad-purple" x1="0%" y1="0%" x2="0%" y2="100%"
+                stop offset="0%" stop-color="#8b5cf6"
+                stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"
+
+  / 右側の成功率特化カード
+  .kpi-success-card
+    .success-left
+      .success-title
+        span 成功率
+        svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          polyline points="9 18 15 12 9 6"
+      .success-meta 高高品質で生成
+      .score-box
+        .score-avg AI品質スコア平均
+        .score-value
+          strong 4.6
+          span = "/ 5.0"
+    .success-right
+      .progress-circle-box
+        svg viewBox="0 0 36 36" class="circular-chart"
+          path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+          path class="circle" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        .percentage 92%
+
+/ 4. フィルターコントロール・ツールバー
+.filter-control-bar
+  .tabs-group
+    = link_to dashboard_columns_path, class: "tab-btn #{'active' if params[:scope].blank?}" do
+      span すべて
+      span.count-badge.bg-primary = Column.count
+    
+    = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
+      span 下書き
+      span.count-badge = Column.where(body: [nil, ""]).count
+      
+    = link_to dashboard_columns_path(scope: "pillar"), class: "tab-btn #{'active' if params[:scope] == 'pillar'}" do
+      span 親記事
+      span.count-badge = Column.where(article_type: "pillar").count
+      
+    = link_to dashboard_columns_path(scope: "cluster"), class: "tab-btn #{'active' if params[:scope] == 'cluster'}" do
+      span 子記事
+      span.count-badge = Column.where(article_type: "cluster").count
+      
+    = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
+      span 公開済み
+      span.count-badge = Column.where.not(body: [nil, ""]).count
+      
+    = link_to dashboard_columns_path(scope: "error"), class: "tab-btn #{'active' if params[:scope] == 'error'}" do
+      span エラー
+      span.count-badge = Column.where(status: "error").count
+
+  .dropdowns-group
+    select.filter-select
+      option すべてのカテゴリ
+    select.filter-select
+      option すべてのモデル
+    button.btn-filter-toggle
+      svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+      span 絞り込み
+
+/ 5. 一括画像生成パネル
+.bulk-panel
+  h3 ⚡ 一括画像生成
+  = form_with url: bulk_generate_images_dashboard_columns_path, method: :post, local: true, id: "bulk-image-form" do |f|
+    .grid
+      .field
+        label ジャンル
+        select#bulk-genre-select name="bulk_genre"
+          option value="" 全て
+          - if @all_genres.present?
+            - @all_genres.each do |g|
+              option value=g = g
+      .field
+        label タイプ
+        select#bulk-article-type-select name="bulk_article_type"
+          option value="" 全て
+          option value="pillar" 親
+          option value="child" 子
+      = f.button type: "submit", id: "btn-trigger-bulk-generation" do
+        | 生成開始
+
+/ 6. リッチなデータテーブル一覧
+.table-wrap
+  / 共通管理ルート定義の bulk_update_drafts_columns_path に修正してエラーを解消
+  = form_with url: bulk_update_drafts_columns_path, method: :post, local: true do |bulk_f|
+    .bulk-action-bar style="padding: 10px; display: flex; gap: 10px;"
+      = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit"
+      = bulk_f.button "選択項目を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: "本当に削除しますか？" }
+
+    table.rich-dashboard-table
+      thead
+        tr
+          th width="40"
+            input type="checkbox" class="table-checkbox" id="select-all-columns"
+          th 記事タイトル
+          th ステータス
+          th カテゴリ
+          th AIモデル
+          th 生成日時
+          th 品質スコア
+          th 操作
+      tbody
+        - if @columns.present?
+          - @columns.each do |c|
+            tr
+              td
+                input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
+              td
+                .article-info-cell
+                  - if c.file.present?
+                    img src=c.file class="article-thumb"
+                  - else
+                    .article-thumb-placeholder 📄
+                  .article-detail
+                    / 共通管理ルートの edit_column_path を使用
+                    = link_to edit_column_path(c), class: "article-link" do
+                      span.article-title = c.title
+                    .article-tags
+                      span.tag-item = c.article_type == "pillar" ? "親記事" : "子記事"
+                      - if c.keyword.present?
+                        span.tag-item = c.keyword
+                      - if c.sub_genre.present?
+                        span.tag-item = c.sub_genre
+              td
+                - if c.status == "approved"
+                  span.status-badge.published 公開済み
+                - elsif c.status == "draft"
+                  span.status-badge.draft 下書き
+                - else
+                  span.status-badge.reserved = c.status || "未設定"
+              td
+                span.category-text = c.genre.presence || "全般"
+              td
+                .ai-model-badge.gpt4
+                  span.model-icon 🤖
+                  span GPT-4.5
+              td.date-text = c.updated_at.strftime("%Y/%m/%d %H:%M")
+              td
+                .quality-score-radial.high 4.5
+              td.actions-cell style="display: flex; gap: 5px;"
+                / 共通管理ルートの各個別操作アクションURLヘルパーを適用
+                = link_to approve_column_path(c), method: :patch, class: "btn-row-action", title: "承認する" do
+                  svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    polyline points="20 6 9 17 4 12"
+                - if c.file.present?
+                  = link_to remove_image_column_path(c), method: :patch, class: "btn-row-action action-stop", title: "画像を削除" do
+                    svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      line x1="18" y1="6" x2="6" y2="18"
+                      line x1="6" y1="6" x2="18" y2="18"
+                = link_to column_path(c), method: :delete, data: { confirm: "削除しますか？" }, class: "btn-row-menu", title: "物理削除" do
+                  svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    polyline points="3 6 5 6 21 6"
+                    path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+
+/ 7. 下部フッター・ページネーションエリア
+.table-footer-pagination
+  .pagination-info
+    - if @columns.respond_to?(:current_page)
+      | #{ @columns.offset_value + 1 } - #{ @columns.offset_value + @columns.length } / #{ @columns.total_count }件を表示
+    - else
+      | #{ @columns.size }件を表示
+  
+  .pagination-nav
+    - if @columns.respond_to?(:current_page)
+      = paginate @columns
+    - else
+      button.pager-btn disabled=true ‹
+      button.pager-num.active 1
+      button.pager-nav-btn ›
+    
+  .per-page-selector
+    span 表示件数
+    select
+      option 30件
+      option 50件
+
+/ 右下の固定フローティングネオンボタン（共通管理ルートの新規作成画面へ接続）
+= link_to new_column_path, class: "floating-sparkle-btn" do
+  svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    line x1="12" y1="5" x2="12" y2="19"
+    line x1="5" y1="12" x2="19" y2="12"

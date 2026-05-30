@@ -1,0 +1,894 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ *= require_tree .
+ *= require_self
+ */
+
+
+/* app/assets/stylesheets/admin.css */
+
+/* ==========================================================================
+   1. System Tokens & Variable Override
+   ========================================================================== */
+:root {
+  --bg-sidebar: #0b0e1a;
+  --bg-main: #f5f7fb;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-dark: #0f172a;
+  --text-light: #ffffff;
+  
+  /* メインパープル・ネオン系 */
+  --primary: #4f46e5;
+  --primary-neon: #5c67ff;
+  --btn-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --sidebar-active-bg: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%);
+  --progress-gradient: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  
+  /* 状態ステータスのカラーパレット(画像デザイン完全準拠) */
+  --color-published: #10b981;
+  --bg-published: #e6f4ea;
+  --color-reserved: #8b5cf6;
+  --bg-reserved: #f3e8ff;
+  --color-draft: #f59e0b;
+  --bg-draft: #fef3c7;
+  --color-generating: #3b82f6;
+  --bg-generating: #eff6ff;
+  --color-error: #ef4444;
+  --bg-error: #fde8e8;
+
+  --border-color: #e2e8f0;
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.admin-body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+.admin-shell {
+  display: flex;
+  width: 100%;
+}
+
+/* ==========================================================================
+   2. Layout & Shell Core Settings
+   ========================================================================== */
+.admin-sidebar {
+  width: 260px;
+  background-color: var(--bg-sidebar);
+  color: #7e84a3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 0 24px 0;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+}
+
+.admin-main {
+  flex-grow: 1;
+  padding: 32px 40px;
+  margin-left: 260px;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   3. Content Header & Global Actions
+   ========================================================================== */
+.admin-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.header-left h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+}
+
+.header-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 検索窓（⌘Kショートカット付き） */
+.search-box-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+}
+
+.search-input {
+  width: 280px;
+  padding: 10px 40px 10px 38px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 13px;
+  outline: none;
+  color: var(--text-dark);
+  transition: width 0.2s;
+}
+
+.search-input:focus {
+  width: 320px;
+  border-color: #cbd5e1;
+}
+
+.search-shortcut {
+  position: absolute;
+  right: 14px;
+  font-size: 11px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+/* アイコン型ボタン */
+.btn-icon-badge, .btn-icon-action {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dark);
+  cursor: pointer;
+  position: relative;
+}
+
+.btn-icon-badge:hover, .btn-icon-action:hover {
+  background-color: #f8fafc;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+}
+
+.sub-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.btn-export {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-export .arrow-down {
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* ==========================================================================
+   4. Advanced KPI Section (ミニグラフ & サークルチャート)
+   ========================================================================== */
+.kpi-main-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.kpi-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.kpi-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-blue { background: #eff6ff; color: #3b82f6; }
+.icon-green { background: #e6f4ea; color: #10b981; }
+.icon-orange { background: #fef3c7; color: #f59e0b; }
+.icon-purple { background: #f3e8ff; color: #8b5cf6; }
+
+.kpi-card .label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.trend {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.trend.up { color: #10b981; background: #e6f4ea; }
+.trend.down { color: #ef4444; background: #fde8e8; }
+
+.kpi-body .value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.kpi-body .comparison {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.kpi-chart {
+  margin-top: 12px;
+  height: 25px;
+}
+.mini-graph {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 右側：円形メーター付成功率カード */
+.kpi-success-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.success-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.success-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.score-box {
+  margin-top: 16px;
+}
+
+.score-avg {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.score-value {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.score-value strong {
+  font-size: 22px;
+  color: var(--text-dark);
+  margin-right: 4px;
+}
+
+.progress-circle-box {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.circular-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #f1f5f9;
+  stroke-width: 3.5;
+}
+
+.circle {
+  fill: none;
+  stroke: url(#circle-gradient);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+/* SVGグラデーションを有効化するためのダミー定義用スタイル */
+.progress-circle-box::before {
+  content: "";
+  position: absolute;
+}
+
+.progress-circle-box .percentage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* ==========================================================================
+   5. Filter & Segment Control Bar
+   ========================================================================== */
+.filter-control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tabs-group {
+  display: flex;
+  background-color: #e2e8f0;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 2px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.tab-btn.active {
+  background-color: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.count-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+}
+.count-badge.bg-primary {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.dropdowns-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-select {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 8px 32px 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-dark);
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.btn-filter-toggle {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+/* 一括画像生成パネル */
+.bulk-panel {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+.bulk-panel h3 { font-size: 14px; margin-bottom: 12px; }
+.bulk-panel .grid { display: flex; gap: 12px; align-items: flex-end; }
+.bulk-panel .field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.bulk-panel label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.bulk-panel select { padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+.bulk-panel button { background: var(--btn-gradient); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+/* ==========================================================================
+   6. Rich Layout Table Styles (サムネイル・ステータス)
+   ========================================================================== */
+.table-wrap {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  margin-bottom: 24px;
+
+  .bulk-action-bar {
+    /* インラインスタイルを上書き・補強 */
+    display: flex !important;
+    align-items: center;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+    background-color: #f8fafc; /* 薄いグレーの背景でテーブルヘッダーと差別化 */
+    border: 1px solid #e2e8f0;
+    border-bottom: none; /* テーブルと一体化させるために下線は無し */
+    border-radius: 8px 8px 0 0; /* 上部だけ丸める */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+
+    /* 一括操作用のボタンスタイル定義 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+      &:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      /* 選択項目を承認・本文生成 (プライマリー) */
+      &.btn-primary {
+        color: #ffffff;
+        background-color: #3b82f6; /* 鮮やかなブルー */
+        border-color: #2563eb;
+
+        &:hover {
+          background-color: #2563eb;
+          border-color: #1d4ed8;
+          box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2), 0 2px 4px -1px rgba(59, 130, 246, 0.1);
+        }
+      }
+
+      /* 選択項目を削除 (危険・ベタ塗り仕様に修正) */
+      &.btn-danger {
+        color: #ffffff;
+        background-color: #ef4444; /* 最初からパキッとした赤ベタ（Tailwindのred-500相当） */
+        border-color: #dc2626;
+
+        &:hover {
+          background-color: #dc2626; /* ホバーでさらに深い赤へ（Tailwindのred-600相当） */
+          border-color: #b91c1c;
+          box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
+        }
+      }
+    }
+  }
+
+  /* バーの下に続くテーブルとの接合を調整 */
+  .rich-dashboard-table {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+}
+
+.rich-dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rich-dashboard-table th {
+  background-color: #f8fafc;
+  padding: 14px 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rich-dashboard-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 13.5px;
+}
+
+.table-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+/* 記事コンテンツ複合セル */
+.article-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.article-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #f1f5f9;
+}
+
+.article-thumb-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.article-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.article-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.article-tags {
+  display: flex;
+  gap: 4px;
+}
+
+.tag-item {
+  font-size: 11px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ステータスバッジ各種 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-badge.published { color: var(--color-published); background: var(--bg-published); }
+.status-badge.reserved { color: var(--color-reserved); background: var(--bg-reserved); }
+.status-badge.draft { color: var(--color-draft); background: var(--bg-draft); }
+.status-badge.generating { color: var(--color-generating); background: var(--bg-generating); }
+.status-badge.error { color: var(--color-error); background: var(--bg-error); }
+
+.status-badge-progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-generating);
+}
+
+.category-text {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* AIモデルバッジ */
+.ai-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: var(--text-dark);
+}
+.model-icon { font-size: 12px; }
+
+.date-text {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* 品質スコアラジアル表現 */
+.quality-score-radial {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.quality-score-radial.high { border: 2px solid #10b981; color: #10b981; }
+.quality-score-radial.mid { border: 2px solid #3b82f6; color: #3b82f6; }
+.score-loading { font-size: 12px; color: var(--text-muted); }
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-row-action {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.btn-row-action:hover { color: var(--text-dark); }
+.btn-row-action.action-stop { color: var(--color-error); }
+
+.btn-row-menu {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   7. Footer Pagination & Floating Action Button
+   ========================================================================== */
+.table-footer-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.pagination-info, .per-page-selector {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.per-page-selector select {
+  margin-left: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pager-btn, .pager-num, .pager-nav-btn {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.pager-num.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.pager-ellipsis {
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+/* 右下フローティングネオンボタン */
+.floating-sparkle-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 40px;
+  background: var(--btn-gradient);
+  color: #ffffff;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  cursor: pointer;
+  z-index: 999;
+}
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================================================================
+   9. Pure CSS Separation & Underline Overrides (!important)
+   ========================================================================== */
+
+/* 一括更新アクションバーのレイアウトスタイル（Slimから完全移譲） */
+.bulk-action-bar {
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+/* 記事タイトルやボタンなど、画面内の全リンクにおける下線の完全物理排除 */
+.rich-dashboard-table a,
+.rich-dashboard-table a:hover,
+.rich-dashboard-table a:focus,
+.article-link,
+.article-link:hover,
+.article-link span,
+.tabs-group a,
+.tabs-group a:hover,
+.sub-header-actions a,
+.sub-header-actions a:hover,
+.floating-sparkle-btn,
+.floating-sparkle-btn:hover {
+  text-decoration: none !important;
+}
+
+/* SVG内ミニグラフ（各カラー）の線と塗りつぶし装飾 */
+.graph-line-blue   { fill: none; stroke: #3b82f6; stroke-width: 2; }
+.graph-area-blue   { fill: url(#grad-blue); opacity: 0.1; }
+
+.graph-line-green  { fill: none; stroke: #10b981; stroke-width: 2; }
+.graph-area-green  { fill: url(#grad-green); opacity: 0.1; }
+
+.graph-line-orange { fill: none; stroke: #f59e0b; stroke-width: 2; }
+.graph-area-orange { fill: url(#grad-orange); opacity: 0.1; }
+
+.graph-line-purple { fill: none; stroke: #8b5cf6; stroke-width: 2; }
+.graph-area-purple { fill: url(#grad-purple); opacity: 0.1; }
+
+/* SVG内成功率メーターのサークル装飾 */
+.circle-gauge {
+  fill: none;
+  stroke: url(#circle-gradient);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 92, 100;
+}
+
+/* ブラウザ標準スタイルによる強制下線の最終防御 */
+a:-webkit-any-link {
+  text-decoration: none !important;
+}
+
+

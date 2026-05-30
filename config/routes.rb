@@ -4,13 +4,29 @@ Rails.application.routes.draw do
     registrations: 'admins/registrations'
   }
 
+  # --- 管理画面を /dashboard 配下に完全移行 ---
+  namespace :dashboard do
+    resources :columns do
+      collection do
+        get :drafts
+        post :bulk_generate_images
+        get :check_bulk_image_count
+      end
+
+      member do
+        patch :remove_image
+      end
+    end
+
+    root to: "columns#index"
+  end
+
   require 'sidekiq/web'
   authenticate :admin do
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
-  # resourcesより先に定義することで、URL生成時にこちらが優先されます
   scope ':genre/columns', constraints: {
     genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
   } do
@@ -43,21 +59,12 @@ Rails.application.routes.draw do
 
   root to: 'columns#index'
 
-  # 標準の /columns パスへのアクセスは制限
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
-  # static pages
-  #get 'security',     to: 'pages#security'
-  #get 'short',        to: 'pages#short'
-  #get 'vender',       to: 'pages#vender'
-  #get 'recruit',      to: 'pages#recruit'
-  #get 'bpo',          to: 'pages#bpo'
-  #get 'pest',         to: 'pages#pest'
-  #get 'ads',          to: 'pages#ads'
-  get '/pages/cargo',          to: 'pages#cargo'
-  get '/pages/human',          to: 'pages#human'
-  get '/pages/event',          to: 'pages#event'
-  get '/pages/logistic',          to: 'pages#logistic'
+  get '/pages/cargo',    to: 'pages#cargo'
+  get '/pages/human',    to: 'pages#human'
+  get '/pages/event',    to: 'pages#event'
+  get '/pages/logistic', to: 'pages#logistic'
 
   get 'draft/progress', to: 'draft#progress'
   resources :contracts
