@@ -2,7 +2,7 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title, :remove_image]
   before_action :set_breadcrumbs
   
-# スレッド多重実行を防止するアプリケーション変数
+  # スレッド多重実行を防止するアプリケーション変数
   @@bulk_image_generating = false
 
   def index
@@ -132,15 +132,28 @@ class ColumnsController < ApplicationController
                        else nil
                        end
 
+    # DB内の値が日本語("家事代行")か英語キーかに関わらず、厳密な英語キーに変換
+    current_genre_key = GenreRegistry.from_ja(@column.genre) || @column.genre.to_s
+
     # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
-    if allowed_for_show.present? && @column.genre != allowed_for_show
+    # ※ハブドメイン（allowed_for_show が nil）の時はこのチェックをスキップさせて正常にハブ表示する
+    if allowed_for_show.present? && current_genre_key != allowed_for_show
       return render_404
     end
 
     # 3. URL正規化（301リダイレクト）
-    expected_path = columns_show_path(genre: @column.genre, id: @column.code)
-    if request.path != expected_path
-      return redirect_to expected_path, status: :moved_permanently
+    # 個別公開用ドメインからアクセスされている場合のみ、リダイレクト処理を有効化する
+    if allowed_for_show.present?
+      begin
+        expected_path = columns_show_path(genre: current_genre_key, id: @column.code)
+        if request.path != expected_path
+          return redirect_to expected_path, status: :moved_permanently
+        end
+      rescue ActionController::UrlGenerationError => e
+        # 予期せぬ文字等でURL生成が万が一失敗した場合も、システムをクラッシュさせずにログを残して404へ落とす
+        Rails.logger.error "UrlGenerationError inside show for Column##{@column.id}: #{e.message}"
+        return render_404
+      end
     end
 
     # 4. 表示用データの準備
@@ -366,7 +379,9 @@ class ColumnsController < ApplicationController
   private
 
   def set_column
-    @column = Column.find_by!(code: params[:id])
+    # codeだけでなく、旧URLパラメータ(id形式)での検索もできるようにフォールバック
+    @column = Column.find_by(code: params[:id]) || Column.find_by(id: params[:id])
+    raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}" unless @column
   end
 
   def render_404
