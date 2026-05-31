@@ -5,7 +5,7 @@ class ColumnsController < ApplicationController
   # スレッド多重実行を防止するアプリケーション変数
   @@bulk_image_generating = false
 
-  def index
+def index
     # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
     @allowed_genre = case request.host
                      when "ri-plus.jp" then "app"
@@ -32,8 +32,15 @@ class ColumnsController < ApplicationController
                   :sub_genre,
                   :sub_category
                 )
-                .where.not(status: "draft")
-                .where.not(body: [nil, ""])
+
+    # 検索パラメータ params[:q] がある場合は、下書き(draft)や本文空の記事も含めて検索対象にする
+    if params[:q].present?
+      columns = columns.where("title LIKE ? OR keyword LIKE ? OR description LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%")
+    else
+      # 通常の一覧表示時は、既存通り下書きと本文空の記事を物理排除
+      columns = columns.where.not(status: "draft")
+                       .where.not(body: [nil, ""])
+    end
 
     # 3. 物理的排除
     if @allowed_genre.present?
@@ -58,7 +65,7 @@ class ColumnsController < ApplicationController
     columns = columns.order(updated_at: :desc)
 
     # =========================================================================
-    # 50件表示のページネーション適用
+    # 30件表示のページネーション適用
     # =========================================================================
     @paginated_columns = columns.page(params[:page]).per(30)
     
@@ -66,7 +73,7 @@ class ColumnsController < ApplicationController
     @columns = @paginated_columns.to_a
 
     # =========================================================================
-    # Pillar の場合のみジャンルごとにグループ化（ページ内の50件を対象）
+    # Pillar の場合のみジャンルごとにグループ化（ページ内の30件を対象）
     # =========================================================================
     if params[:article_type] == "pillar"
       @grouped_columns = @columns.group_by(&:genre)
@@ -101,9 +108,13 @@ class ColumnsController < ApplicationController
         Column.all
       end
 
-    base_count_query = base_count_query
-                         .where.not(status: "draft")
-                         .where.not(body: [nil, ""])
+    if params[:q].present?
+      base_count_query = base_count_query.where("title LIKE ? OR keyword LIKE ? OR description LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%")
+    else
+      base_count_query = base_count_query
+                           .where.not(status: "draft")
+                           .where.not(body: [nil, ""])
+    end
 
     base_count_query = base_count_query.where(genre: params[:genre]) if params[:genre].present?
     base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
@@ -120,7 +131,7 @@ class ColumnsController < ApplicationController
         .group(:genre)
         .count
   end
-    
+      
   def show
     # 1. 閲覧ドメインの許可ジャンルを再判定
     allowed_for_show = case request.host

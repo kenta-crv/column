@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     resources :columns do
       collection do
         get :drafts
+        get :export
         post :bulk_generate_images
         get :check_bulk_image_count
       end
