@@ -56,7 +56,7 @@ body.admin-body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 32px 0 24px 0;
+  padding: 15px 0 24px 0;
   flex-shrink: 0;
   position: fixed; /* 左側に常駐固定 */
   top: 0;
@@ -75,7 +75,7 @@ body.admin-body {
   align-items: center;
   gap: 12px;
   padding-left: 6px;
-  margin-bottom: 32px;
+  margin-bottom: 25px;
 }
 
 /* 新規作成ボタン（紫青ネオングラデーション） */

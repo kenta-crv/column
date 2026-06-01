@@ -22,7 +22,7 @@
           line x1="12" y1="3" x2="12" y2="15"
         span エクスポート
   
-  .header-right
+  .header-right style="display: flex; align-items: center; gap: 12px;"
     / 検索結果を別ウィンドウで表示するためのフォーム（/columns 宛て）
     = form_with url: columns_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form" } do |f|
       .search-box-wrapper
@@ -39,11 +39,24 @@
         path d="M13.73 21a2 2 0 0 1-3.46 0"
       span.notification-dot
       
-    button.btn-icon-action
-      svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        circle cx="12" cy="12" r="10"
-        line x1="2" y1="12" x2="22" y2="12"
-        path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+    / 地球マーク（言語切替ドロップダウン）
+    .language-dropdown-wrapper style="position: relative; display: inline-block;"
+      button.btn-icon-action#languageDropdownBtn type="button" style="cursor: pointer;"
+        svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          circle cx="12" cy="12" r="10"
+          line x1="2" y1="12" x2="22" y2="12"
+          path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+      
+      / ドロップダウンメニュー本体
+      .language-menu#languageMenu style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); z-index: 50; min-width: 140px; padding: 4px 0;"
+        a href="?lang=ja" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
+          | 日本語
+        a href="?lang=ko" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
+          | 한국어
+        a href="?lang=en" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
+          | English
+        a href="?lang=de" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
+          | Deutsch
 
 / 2. KPIグリッド（コンパクトに修正・ミニチャート・成功率サークル付き）
 .kpi-main-grid
@@ -146,7 +159,7 @@
         span 成功率
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
-      .success-meta 高品質で生成
+      .success-meta 高高品質で生成
       .score-box
         .score-avg AI品質スコア平均
         .score-value
@@ -229,14 +242,14 @@
 .table-wrap
   = form_with url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbo: false } do |bulk_f|
     .bulk-action-bar
-      = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit"
+      = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
       = bulk_f.button "選択項目を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: "本当に削除しますか？" }
 
     table.rich-dashboard-table
       thead
         tr
           th width="40"
-            input type="checkbox" class="table-checkbox" id="select-all-columns"
+            input type="checkbox" class="table-checkbox" id="select-all-columns" onclick="toggleAllColumns(this)"
           th 記事タイトル
           th ステータス
           th 生成日時
@@ -285,6 +298,7 @@
                   svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     polyline points="3 6 5 6 21 6"
                     path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+
 / 6. 下部フッター・ページネーションエリア
 .table-footer-pagination
   .pagination-info
@@ -324,3 +338,30 @@
   svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
     line x1="12" y1="5" x2="12" y2="19"
     line x1="5" y1="12" x2="19" y2="12"
+
+
+javascript:
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('languageDropdownBtn');
+    const menu = document.getElementById('languageMenu');
+
+    if (btn && menu) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isDisplayed = menu.style.display === 'block';
+        menu.style.display = isDisplayed ? 'none' : 'block';
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && e.target !== btn) {
+          menu.style.display = 'none';
+        }
+      });
+    }
+  });
+
+  function toggleAllColumns(source) {
+    const checkboxes = document.querySelectorAll('.column-select-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+  }
+

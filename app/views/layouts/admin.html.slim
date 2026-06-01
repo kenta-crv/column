@@ -49,11 +49,22 @@ html
                 path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
               | ドラフト一覧
 
-            = link_to dashboard_columns_path(status: "reserved"), class: (params[:status] == "reserved" ? "active" : nil) do
+            / クラスター記事生成 (パスは環境に合わせて `#` から実際のルーティングへ変更してください)
+            = link_to "#" do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                circle cx="12" cy="12" r="10"
-                polyline points="12 6 12 12 16 14"
-              | 予約投稿
+                path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
+                path d="M12 8V2"
+                path d="M5 12H2"
+                path d="M22 12h-3"
+                path d="M16.5 7.5L19 5"
+                path d="M7.5 7.5L5 5"
+              | クラスタータイトル生成
+
+            / クラスター記事一括生成 (パスは環境に合わせて `#` から実際のルーティングへ変更してください)
+            /= link_to columns_path(article_type: "pillar") do
+              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+              | クラスター記事一括生成
 
             = link_to columns_path do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -89,7 +100,6 @@ html
               span.usage-total = "/ 300 記事"
             .usage-progress-bar
               .usage-progress-fill style="width: 54%;"
-            .usage-footer リセットまで 12日
 
       / --- Main Content Area (右側可変領域) ---
       main.admin-main
