@@ -1,5 +1,5 @@
 class Dashboard::ColumnsController < ApplicationController
-  before_action :authenticate_admin!
+before_action :authenticate_admin_or_client!
 
   # レイアウトは既存の "admin" をそのまま流用
   layout "admin"
@@ -57,6 +57,10 @@ def index
 
     # 過去24時間以内に更新されたレコードがある場合、通知ドットをONにする
     @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
+
+    # リアルタイム生成中の記事を取得
+    @generating_columns = filtered_base.where(generation_status: 'generating').limit(10)
+    @generating_count = filtered_base.where(generation_status: 'generating').count
   end
   
   
@@ -155,5 +159,18 @@ def index
     
     # リダイレクト先を dashboard のパスに変更
     redirect_to dashboard_columns_path
+  end
+
+  def authenticate_admin_or_client!
+    # 1. 管理者（Admin）としてログインしている場合はアクセスを許可
+    return if admin_signed_in?
+
+    # 2. クライアント（Client）としてログインしている場合はアクセスを許可
+    return if client_signed_in?
+
+    # 3. どちらもログインしていない場合は、共通のルート（または任意のログイン画面）へリダイレクト
+    # flash で警告を出し、トップページや適切なサインイン画面へ戻します
+    flash[:alert] = "ログインが必要です。"
+    redirect_to root_path # もしくは new_client_session_path など要件に合わせて変更
   end
 end

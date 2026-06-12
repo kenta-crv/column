@@ -1,7 +1,14 @@
 Rails.application.routes.draw do
   devise_for :admins, controllers: {
-    sessions: 'admins/sessions',
-    registrations: 'admins/registrations'
+    sessions: "admins/sessions",
+    registrations: "admins/registrations",
+    passwords: "admins/passwords"
+  }
+  
+  devise_for :clients, controllers: {
+    sessions: "clients/sessions",
+    registrations: "clients/registrations",
+    passwords: "clients/passwords"
   }
 
   # --- 管理画面を /dashboard 配下に完全移行 ---
@@ -20,6 +27,12 @@ Rails.application.routes.draw do
     end
 
     root to: "columns#index"
+
+    resource :subscription, only: [:show, :update] do
+      get :cancel_confirm
+      post :cancel
+    end
+    resources :notifications
   end
 
   require 'sidekiq/web'
@@ -62,11 +75,28 @@ Rails.application.routes.draw do
 
   get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
+  get '/tops',    to: 'tops#index'
+
   get '/pages/cargo',    to: 'pages#cargo'
   get '/pages/human',    to: 'pages#human'
   get '/pages/event',    to: 'pages#event'
+  get '/pages/cleaning',    to: 'pages#cleaning'
   get '/pages/logistic', to: 'pages#logistic'
 
   get 'draft/progress', to: 'draft#progress'
   resources :contracts
+
+  get 'checkout/confirmation', to: 'checkout#confirmation', as: :checkout_confirmation
+  post 'checkout/create', to: 'checkout#create', as: :checkout_create
+  get 'checkout/success', to: 'checkout#success', as: :checkout_success
+  get 'checkout/cancel', to: 'checkout#cancel', as: :checkout_cancel
+
+  post 'stripe/webhook', to: 'stripe_webhooks#create'
+  get 'plans', to: 'plans#index', as: :plans
+  post 'plans/select', to: 'plans#select', as: :select_plan
+
+
+  get '/unsubscribe/:token', to: 'unsubscribes#show', as: :unsubscribe
+  post '/webhooks/stripe', to: 'webhooks#stripe'
+  get '/l/:token', to: 'click_tracking#redirect', as: :click_tracking
 end

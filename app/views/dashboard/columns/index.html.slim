@@ -1,29 +1,23 @@
 .admin-content-header style="display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;"
   .header-left style="display: flex; align-items: center; gap: 12px;"
-    / 抽出オプションを選択して現在の絞り込み条件を裏で送信するエクスポートフォーム
     form action=export_dashboard_columns_path method="get" data-turbo="false" style="display: flex; align-items: center; gap: 8px; margin: 0; padding: 0;"
-      / 現在のダッシュボードの検索・絞り込みパラメータをすべて引き継ぐための隠しフィールド
       - if params[:scope].present?
         input type="hidden" name="scope" value=params[:scope]
       - if params[:genre].present?
         input type="hidden" name="genre" value=params[:genre]
       - if params[:language].present?
         input type="hidden" name="language" value=params[:language]
-        
-      / サイトトーンに合わせ、潰れないように横幅と高さを最適化したセレクトボックス
       select.filter-select name="export_format" style="height: 32px; min-width: 140px; padding: 0 24px 0 10px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 13px; background-color: #fff; box-sizing: border-box; cursor: pointer;"
         option value="text" テキストのみ抽出
         option value="html" HTML構造を維持
-        
       button type="submit" class="btn btn-export" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; height: 36px; padding: 0 12px;"
         svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
           polyline points="17 8 12 3 7 8"
           line x1="12" y1="3" x2="12" y2="15"
         span エクスポート
-  
+
   .header-right style="display: flex; align-items: center; gap: 12px;"
-    / 検索結果を別ウィンドウで表示するためのフォーム（/columns 宛て）
     = form_with url: columns_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form" } do |f|
       .search-box-wrapper
         button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center;"
@@ -32,22 +26,19 @@
             line x1="21" y1="21" x2="16.65" y2="16.65"
         input type="text" name="q" placeholder="記事タイトル・キーワードで検索" class="search-input" value=params[:q]
         span.search-shortcut ⌘ K
-    
+
     button.btn-icon-badge
       svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-7"
         path d="M13.73 21a2 2 0 0 1-3.46 0"
       span.notification-dot
-      
-    / 地球マーク（言語切替ドロップダウン）
+
     .language-dropdown-wrapper style="position: relative; display: inline-block;"
       button.btn-icon-action#languageDropdownBtn type="button" style="cursor: pointer;"
         svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           circle cx="12" cy="12" r="10"
           line x1="2" y1="12" x2="22" y2="12"
           path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-      
-      / ドロップダウンメニュー本体
       .language-menu#languageMenu style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); z-index: 50; min-width: 140px; padding: 4px 0;"
         a href="?lang=ja" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
           | 日本語
@@ -58,7 +49,7 @@
         a href="?lang=de" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
           | Deutsch
 
-/ 2. KPIグリッド（コンパクトに修正・ミニチャート・成功率サークル付き）
+/ 2. KPIグリッド
 .kpi-main-grid
   .kpi-stat-cards
     .kpi-card
@@ -152,19 +143,18 @@
                 stop offset="0%" stop-color="#8b5cf6"
                 stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"
 
-  / 右側の成功率特化カード
   .kpi-success-card
     .success-left
       .success-title
         span 成功率
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
-      .success-meta 高高品質で生成
+      .success-meta 高品質で生成
       .score-box
         .score-avg AI品質スコア平均
         .score-value
-          strong 4.6
-          span = "/ 5.0"
+          strong = begin; (Column.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1) || "—"); end
+          = " / 100"
     .success-right
       .progress-circle-box
         svg viewBox="0 0 36 36" class="circular-chart"
@@ -178,40 +168,31 @@
     = link_to dashboard_columns_path, class: "tab-btn #{'active' if params[:scope].blank?}" do
       span.tab-label すべて
       span.count-badge.bg-primary = Column.count
-    
     = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
       span.tab-label 下書き
       span.count-badge = Column.where(body: [nil, ""]).count
-      
     = link_to dashboard_columns_path(scope: "pillar"), class: "tab-btn #{'active' if params[:scope] == 'pillar'}" do
       span.tab-label 親記事
       span.count-badge = Column.where(article_type: "pillar").count
-      
     = link_to dashboard_columns_path(scope: "cluster"), class: "tab-btn #{'active' if params[:scope] == 'cluster'}" do
       span.tab-label 子記事
       span.count-badge = Column.where(article_type: "cluster").count
-      
     = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
       span.tab-label 公開済み
       span.count-badge = Column.where.not(body: [nil, ""]).count
-      
     = link_to dashboard_columns_path(scope: "error"), class: "tab-btn #{'active' if params[:scope] == 'error'}" do
       span.tab-label エラー
       span.count-badge = Column.where(status: "error").count
 
-  / フォーム形式に変更して現在のダッシュボードページをフィルタリングできるように改修
   = form_with url: dashboard_columns_path, method: :get, local: true, class: "dropdowns-group-form" do |f|
-    / scope パラメータを引き継ぐための隠しフィールド
     - if params[:scope].present?
       = hidden_field_tag :scope, params[:scope]
-      
     .dropdowns-group
       .form-group style="margin-bottom: 0;"
         = f.select :genre,
           GenreRegistry::GENRES.map { |k, v| [v[:ja], k] },
           { include_blank: "すべてのカテゴリ", selected: params[:genre] },
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
-          
       button type="submit" class="btn-filter-toggle btn-primary"
         svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
@@ -238,6 +219,30 @@
       = f.button type: "submit", id: "btn-trigger-bulk-generation" do
         | 生成開始
 
+/ 4.5 リアルタイム生成状況パネル
+.realtime-generation-panel
+  h3 🔄 リアルタイム生成状況
+  .generation-stats
+    .stat-item
+      .stat-label 生成中
+      .stat-value id="generating-count" = @generating_count
+    .stat-item
+      .stat-label 完了済み
+      .stat-value id="completed-count" = Column.where(generation_status: 'completed').count
+  .generation-list id="generation-list"
+    - if @generating_columns.present?
+      - @generating_columns.each do |c|
+        .generation-item id="generation-item-#{c.id}" data-status="#{c.generation_status}"
+          .generation-spinner
+            svg.spinner-icon viewBox="0 0 50 50"
+              circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
+          .generation-info
+            .generation-title = c.title
+            .generation-status = c.generation_status
+    - else
+      .no-generation
+        | 現在生成中の記事はありません
+
 / 5. リッチなデータテーブル一覧
 .table-wrap
   = form_with url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbo: false } do |bulk_f|
@@ -253,12 +258,12 @@
           th 記事タイトル
           th ステータス
           th 生成日時
-          th 品質スコア
+          th AIスコア（100点）
           th 操作
       tbody
         - if @columns.present?
           - @columns.each do |c|
-            tr
+            tr data-column-id=c.id
               td
                 input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
               td
@@ -281,10 +286,17 @@
                   span.status-badge.draft 下書き
                 - else
                   span.status-badge.reserved = c.status || "未設定"
-                
               td.date-text = c.updated_at.strftime("%Y/%m/%d %H:%M")
               td
-                .quality-score-radial.high 4.5
+                - if c.quality_score.present? && c.quality_score > 0
+                  .quality-score-cell
+                    .quality-score-value
+                      = c.quality_score.round(1)
+                      = " / 100"
+                    - if c.evaluation_metrics.present? && c.evaluation_metrics["feedback"].present?
+                      .quality-feedback = c.evaluation_metrics["feedback"]
+                - else
+                  .quality-score-pending 評価待ち
               td.actions-cell style="display: flex; gap: 5px;"
                 = link_to approve_column_path(c), method: :patch, class: "btn btn-primary", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap;", title: "承認して本文生成" do
                   svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
@@ -303,10 +315,9 @@
 .table-footer-pagination
   .pagination-info
     - if @columns.respond_to?(:current_page)
-      | #{ @columns.offset_value + 1 } - #{ @columns.offset_value + @columns.length } / #{ @columns.total_count }件を表示
+      | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
     - else
-      | #{ @columns.size }件を表示
-  
+      | #{@columns.size}件を表示
   .pagination-nav
     - if @columns.respond_to?(:current_page)
       = paginate @columns
@@ -326,42 +337,148 @@
           a rel="next" href="#" Next ›
         span.page.last
           a href="#" Last »
-    
   .per-page-selector
     span 表示件数
     select
       option 30件
       option 50件
 
-/ 右下の固定フローティングネオンボタン
 = link_to new_column_path, class: "floating-sparkle-btn" do
   svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
     line x1="12" y1="5" x2="12" y2="19"
     line x1="5" y1="12" x2="19" y2="12"
 
-
 javascript:
   document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('languageDropdownBtn');
+    const btn  = document.getElementById('languageDropdownBtn');
     const menu = document.getElementById('languageMenu');
 
     if (btn && menu) {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isDisplayed = menu.style.display === 'block';
-        menu.style.display = isDisplayed ? 'none' : 'block';
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
       });
-
       document.addEventListener('click', (e) => {
         if (!menu.contains(e.target) && e.target !== btn) {
           menu.style.display = 'none';
         }
       });
     }
+
+    if (typeof ActionCable !== 'undefined') {
+      const cable = ActionCable.createConsumer('/cable');
+      cable.subscriptions.create('GenerationChannel', {
+        received(data) {
+          console.log('Received ActionCable data:', data);
+          updateGenerationStatus(data);
+        },
+        connected() {
+          console.log('Connected to GenerationChannel');
+        },
+        disconnected() {
+          console.log('Disconnected from GenerationChannel');
+        }
+      });
+    } else {
+      console.error('ActionCable is not defined. Make sure cable.js is loaded.');
+    }
   });
 
   function toggleAllColumns(source) {
-    const checkboxes = document.querySelectorAll('.column-select-checkbox');
-    checkboxes.forEach(cb => cb.checked = source.checked);
+    document.querySelectorAll('.column-select-checkbox')
+      .forEach(cb => cb.checked = source.checked);
   }
 
+  function updateGenerationStatus(data) {
+    const generatingCount = document.getElementById('generating-count');
+    const completedCount  = document.getElementById('completed-count');
+    const generationList  = document.getElementById('generation-list');
+
+    if (data.status === 'generating') {
+      if (generatingCount) {
+        generatingCount.textContent = parseInt(generatingCount.textContent || 0) + 1;
+      }
+      if (generationList && !document.getElementById(`generation-item-${data.column_id}`)) {
+        const noGen = generationList.querySelector('.no-generation');
+        if (noGen) noGen.remove();
+
+        const item = document.createElement('div');
+        item.id             = `generation-item-${data.column_id}`;
+        item.className      = 'generation-item';
+        item.dataset.status = 'generating';
+        item.innerHTML      = `
+          <div class="generation-spinner">
+            <svg class="spinner-icon" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"></circle>
+            </svg>
+          </div>
+          <div class="generation-info">
+            <div class="generation-title">${data.title || ''}</div>
+            <div class="generation-status">生成中...</div>
+          </div>`;
+        generationList.insertBefore(item, generationList.firstChild);
+      }
+
+    } else if (data.status === 'completed') {
+      if (generatingCount) {
+        generatingCount.textContent = Math.max(0, parseInt(generatingCount.textContent || 0) - 1);
+      }
+      if (completedCount) {
+        completedCount.textContent = parseInt(completedCount.textContent || 0) + 1;
+      }
+      const item = document.getElementById(`generation-item-${data.column_id}`);
+      if (item) {
+        item.dataset.status = 'completed';
+        const spinner = item.querySelector('.generation-spinner');
+        if (spinner) {
+          spinner.innerHTML = `
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>`;
+        }
+        const statusEl = item.querySelector('.generation-status');
+        if (statusEl) {
+          statusEl.textContent = '完了';
+          statusEl.style.color = '#10b981';
+        }
+      }
+      if (data.quality_score) {
+        updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
+      }
+
+    } else if (data.status === 'evaluated') {
+      updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
+
+    } else if (data.status === 'failed') {
+      if (generatingCount) {
+        generatingCount.textContent = Math.max(0, parseInt(generatingCount.textContent || 0) - 1);
+      }
+      const item = document.getElementById(`generation-item-${data.column_id}`);
+      if (item) {
+        item.dataset.status = 'failed';
+        const statusEl = item.querySelector('.generation-status');
+        if (statusEl) {
+          statusEl.textContent = 'エラー';
+          statusEl.style.color = '#ef4444';
+        }
+      }
+    }
+  }
+
+  function updateTableRowScore(columnId, score, metrics) {
+    const row = document.querySelector(`tr[data-column-id="${columnId}"]`);
+    if (!row) return;
+
+    const scoreCell = row.querySelector('.quality-score-cell, .quality-score-pending');
+    if (!scoreCell) return;
+
+    const feedback = (metrics && metrics.feedback) ? metrics.feedback : '';
+
+    scoreCell.outerHTML = `
+      <div class="quality-score-cell">
+        <div class="quality-score-value">
+          ${parseFloat(score).toFixed(1)} / 100
+        </div>
+        ${feedback ? `<div class="quality-feedback">${feedback}</div>` : ''}
+      </div>`;
+  }

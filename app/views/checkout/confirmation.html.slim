@@ -1,0 +1,54 @@
+/ data-turbo="false" で遷移時の不具合を物理的に遮断
+.sc-detect.container.py-5 data-turbo="false"
+  .row.justify-content-center
+    .col-md-8.col-lg-6
+      .sc-detect__card
+        .sc-detect__card-header
+          h5
+            i.fas.fa-shield-alt.me-2
+            | お支払い内容の確認
+
+        .sc-detect__card-body.p-4
+
+          / --- トライアル時の注意表示 ---
+          - if @plan_type.to_s.downcase == "trial"
+            .sc-detect__alert.sc-detect__alert--info.mb-4
+              .trial-main
+                i.fas.fa-info-circle.me-2
+                strong.trial-highlight
+                  | 無料トライアル
+                | の期間は費用発生しません。
+              span.trial-note
+                | 新規アカウントは10日間の無料トライアルが利用できます（最大10配信まで）。
+
+          / --- 金額表示エリア ---
+          .sc-detect__table-wrapper.sc-detect__table-wrapper--preview.p-4.mb-4
+            .d-flex.justify-content-between.mb-2
+              span.sc-detect__label 選択プラン
+              span.fw-bold.sc-detect__plan-name
+                = @plan_type.to_s.upcase
+
+            .d-flex.justify-content-between.align-items-center
+              span.sc-detect__label お支払い金額
+
+              - amount = Subscription::PLAN_PRICES[@plan_type.to_s.downcase.to_sym] || 0
+
+              .text-end
+                span.h2.fw-bold.sc-detect__amount-display
+                  = @plan_type.to_s.downcase == "trial" ? "¥0" : "¥#{amount.to_s(:delimited)}"
+
+                span.small.ms-1.sc-detect__tax-label
+                  | (税込)
+
+          hr.sc-detect__divider
+
+          / --- Stripe Checkout ---
+          = form_with url: checkout_create_path, method: :post, local: true do |f|
+            = hidden_field_tag :plan_type, @plan_type
+
+            .sc-detect__form-actions
+              = f.submit "Stripeで決済へ進む",
+                class: "sc-detect__btn sc-detect__btn--warning w-100"
+
+
+

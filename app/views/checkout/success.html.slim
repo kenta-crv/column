@@ -1,0 +1,40 @@
+.sc-detect.container.py-5.mt-md-5
+  .row.justify-content-center
+    .col-md-8.col-lg-6.text-center
+      .sc-detect__card.p-4.p-md-5
+        .mb-4
+          .d-inline-flex.align-items-center.justify-content-center.rounded-circle.sc-detect__success-icon-wrap
+            i.fas.fa-check
+
+        h1.sc-detect__title
+          | 決済が完了しました！
+
+        p.sc-detect__success-text
+          | お手続きありがとうございます。
+          br
+          | プランの適用が完了いたしました。
+
+        .sc-detect__table-wrapper.sc-detect__table-wrapper--success.my-4
+          table.sc-detect__table
+            tbody
+              -# コントローラでStripeから直接取得した確定データを安全に出力
+              tr
+                th.cell-label style="width: 40%;" 選択プラン
+                td.fw-bold.cell-value = @plan_name
+
+              - if @amount.present? && @amount > 0
+                tr
+                  th.cell-label 支払い金額
+                  td.fw-bold.cell-value == "¥#{number_with_delimiter(@amount)}"
+              
+              - if @invoice_id.present?
+                tr
+                  th.cell-label 決済ID
+                  td.small.cell-value-id = @invoice_id
+
+        .mt-5
+          -# 確実に今回のサブスクリプションまたはcurrent_clientからIDを引っ張るようにガード
+          = link_to dashboard_root_path(client_id: current_client.id),
+            class: "sc-detect__btn sc-detect__btn--primary" do
+            | マイページへ進む
+            i.fas.fa-arrow-right.ms-2
