@@ -6,11 +6,11 @@ Rails.application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 # 許可するホスト名の一覧を追加（ポート番号付きも含む）
-  config.hosts << "column.okey.work"
+  config.hosts << "drafity.pro"
   config.hosts << "j-work.jp"
   config.hosts << "ri-plus.jp"
   config.hosts << "自販機.net"
-  config.hosts << "column.okey.work:3000"
+  config.hosts << "drafity.pro:3000"
   config.hosts << "j-work.jp:3000"
   config.hosts << "ri-plus.jp:3000"
   config.hosts << "自販機.net:3000"

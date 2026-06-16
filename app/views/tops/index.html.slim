@@ -66,15 +66,14 @@
           .float-card.fc-time
             .float-icon
               svg viewBox="0 0 16 16" fill="none"
-                circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"
-                path d="M8 5v3.5l2 2" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"
+                path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
             div
               .float-label 生成時間
               .float-value
-                | 平均 
-                span 約
-                | 3
-                span 分
+                | 平均
+                span
+                  | 約3分
           .float-card.fc-score
             .score-circle
               svg viewBox="0 0 44 44"
@@ -90,15 +89,15 @@
           .float-card.fc-words
             .float-icon
               svg viewBox="0 0 16 16" fill="none"
-                rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.5"
-                path d="M5 7h6M5 10h4" stroke="white" stroke-width="1.25" stroke-linecap="round"
+                rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"
+                path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
             div
               .float-label 文字数
               .float-value
                 | 約8,000
-                span 字
-
-          = image_tag "main.png"
+                span
+                  | 字
+          /= image_tag "main.png", class: "pc-img"
 
   /-- TRUST --
   .trust-bar
@@ -119,37 +118,37 @@
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              circle cx="11" cy="11" r="7" stroke="#4A5CF6" stroke-width="1.75"
-              path d="M17 17l3 3" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round"
+              circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.75"
+              path d="M17 17l3 3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
           .fi-title SEOに強い記事構成
           .fi-desc 上位表示を狙える構成をAIが自動で提案
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round"
-              path d="M16 8l4-2-2 4" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-              path d="M12 8v4l2 2" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round"
+              path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+              path d="M16 8l4-2-2 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              path d="M12 8v4l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           .fi-title 高品質な文章を生成
           .fi-desc 自然で読みやすく、読者に伝わる文章を自動作成
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="#4A5CF6" stroke-width="1.5"
-              path d="M2 12h20M12 2c-2.5 3.5-2.5 13.5 0 20M12 2c2.5 3.5 2.5 13.5 0 20" stroke="#4A5CF6" stroke-width="1.5"
+              path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="currentColor" stroke-width="1.5"
+              path d="M2 12h20M12 2c-2.5 3.5-2.5 13.5 0 20M12 2c2.5 3.5 2.5 13.5 0 20" stroke="currentColor" stroke-width="1.5"
           .fi-title 最新情報を自動収集
           .fi-desc 最新の情報をもとに信頼性の高い記事を生成
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="#4A5CF6" stroke-width="1.5"
-              rect x="9" y="3" width="6" height="4" rx="1" stroke="#4A5CF6" stroke-width="1.5"
-              path d="M9 12l2 2 4-4" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="1.5"
+              rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"
+              path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
           .fi-title コピペチェック機能
           .fi-desc オリジナル性を保証し安心して公開可能
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M18 20V10M12 20V4M6 20v-6" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round"
+              path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
           .fi-title 分析・改善までサポート
           .fi-desc SEOスコアや改善提案で成果につながる記事へ
 
@@ -157,190 +156,117 @@
   section.pricing-section#pricing
     .pricing-inner
       .section-header
-        p.overline シンプルでわかりやすい料金プラン
+        span.overline シンプルでわかりやすい料金プラン
         h2.section-title あなたのビジネスに最適なプランを。
         p.section-sub
           | 個人利用からチーム・企業利用まで、目的や規模に合わせて選べる料金プランをご用意しています。
           br
           | すべてのプランに、AIによる高品質な記事作成を体験できます。
-      .toggle-wrap style="margin-bottom:40px"
+      .toggle-wrap
         button.toggle-btn onclick="setToggle(false,this)" 月額払い
         button.toggle-btn.active onclick="setToggle(true,this)"
           | 年額払い
           span.toggle-save 20%お得
       .pricing-grid
-        /-- FREE --
-        .plan-card
-          .plan-name フリー
-          .plan-desc まずはAI記事作成を気軽に試したい方へ
-          .plan-price
-            .plan-price-main
-              span.price-yen ¥
-              span.price-num 0
-              span.price-unit
-                | / 月
-            .plan-price-note クレジットカード登録不要
-          a.plan-cta.outline href="#" 無料で始める →
-          hr.plan-divider
-          ul.plan-features
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 月間3記事まで作成
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | AI記事生成（標準品質）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | テンプレート5種類
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | SEOスコア分析（基本）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | コピー＆チェック機能
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | メールサポート
+        - pricing_plans = { \
+            free: { \
+              name: "フリー", \
+              desc: "まずはAI記事作成を気軽に試したい方へ", \
+              monthly_price: Subscription::PLAN_PRICES[:trial], \
+              yearly_price: Subscription::PLAN_PRICES[:trial], \
+              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:trial], \
+              note: "クレジットカード登録不要", \
+              cta_text: "無料で始める →", \
+              features: [ \
+                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:trial]}記事まで作成", \
+                "AI記事生成（標準品質）", \
+                "テンプレート5種類", \
+                "SEOスコア分析（基本）", \
+                "コピー＆チェック機能", \
+                "メールサポート" \
+              ] \
+            }, \
+            starter: { \
+              name: "スターター", \
+              desc: "個人ブロガーや小規模サイトの運営におすすめ", \
+              monthly_price: Subscription::PLAN_PRICES[:starter], \
+              yearly_price: (Subscription::PLAN_PRICES[:starter] * 0.8).to_i, \
+              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:starter], \
+              note: "年額払いで20%お得", \
+              cta_text: "7日間無料トライアル →", \
+              features: [ \
+                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:starter]}記事まで作成", \
+                "AI記事生成（高品質）", \
+                "テンプレート20種類", \
+                "SEOスコア分析（詳細）", \
+                "コピー＆チェック機能", \
+                "キーワード調査ツール", \
+                "メールサポート" \
+              ] \
+            }, \
+            business: { \
+              name: "ビジネス", \
+              desc: "複数メディアの運営やチーム利用に最適", \
+              monthly_price: Subscription::PLAN_PRICES[:standard], \
+              yearly_price: (Subscription::PLAN_PRICES[:standard] * 0.8).to_i, \
+              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:standard], \
+              note: "年額払いで20%お得", \
+              cta_text: "7日間無料トライアル →", \
+              popular: true, \
+              features: [ \
+                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:standard]}記事まで作成", \
+                "AI記事生成（最高品質）", \
+                "テンプレート無制限", \
+                "SEOスコア分析（詳細）", \
+                "キーワード調査ツール", \
+                "AI自動リライト機能", \
+                "チーム共有（最大5名）", \
+                "優先サポート" \
+              ] \
+            }, \
+            enterprise: { \
+              name: "エンタープライズ", \
+              desc: "大規模運用・カスタマイズが必要な企業様へ", \
+              monthly_price: Subscription::PLAN_PRICES[:enterprise], \
+              yearly_price: (Subscription::PLAN_PRICES[:enterprise] * 0.8).to_i, \
+              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:enterprise], \
+              note: "年額払いで20%お得", \
+              cta_text: "問い合わせる →", \
+              features: [ \
+                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:enterprise]}記事まで作成", \
+                "AI記事生成（最高品質）", \
+                "テンプレート無制限", \
+                "チーム共有 無制限", \
+                "専任カスタマーサクセス", \
+                "カスタム機能開発（応相談）", \
+                "SLA保証・セキュリティ強化" \
+              ] \
+            } \
+          }
 
-        /-- STARTER --
-        .plan-card
-          .plan-name スターター
-          .plan-desc 個人ブロガーや小規模サイトの運営におすすめ
-          .plan-price
-            .plan-price-orig#starter-orig ¥3,000/月
-            .plan-price-main
-              span.price-yen ¥
-              span.price-num#starter-price 2,400
-              span.price-unit
-                | / 月
-            .plan-price-note#starter-note 年額払いで20%お得
-          a.plan-cta.outline href="#" 7日間無料トライアル →
-          hr.plan-divider
-          ul.plan-features
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 月間30記事まで作成
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | AI記事生成（高品質）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | テンプレート20種類
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | SEOスコア分析（詳細）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | コピー＆チェック機能
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | キーワード調査ツール
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | メールサポート
-
-        /-- BUSINESS (POPULAR) --
-        .plan-card.popular
-          .popular-badge 人気 No.1
-          .plan-name.accent ビジネス
-          .plan-desc 複数メディアの運営やチーム利用に最適
-          .plan-price
-            .plan-price-orig#biz-orig ¥9,000/月
-            .plan-price-main
-              span.price-yen ¥
-              span.price-num#biz-price 7,200
-              span.price-unit
-                | / 月
-            .plan-price-note#biz-note 年額払いで20%お得
-          a.plan-cta.filled href="#" 7日間無料トライアル →
-          hr.plan-divider
-          ul.plan-features
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 月間100記事まで作成
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | AI記事生成（最高品質）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | テンプレート無制限
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | SEOスコア分析（詳細）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | キーワード調査ツール
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | AI自動リライト機能
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | チーム共有（最大5名）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 優先サポート
-
-        /-- ENTERPRISE --
-        .plan-card
-          .plan-name エンタープライズ
-          .plan-desc 大規模運用・カスタマイズが必要な企業様へ
-          .plan-contact
-            .plan-contact-label
-              | 要お問い合わせ
-              br
-              | ご要望に応じた最適なプランをご提案します
-            button.plan-contact-cta 問い合わせる →
-          hr.plan-divider
-          ul.plan-features
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 記事作成数 無制限
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | AI記事生成（最高品質）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | テンプレート無制限
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | チーム共有 無制限
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | 専任カスタマーサクセス
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | カスタム機能開発（応相談）
-            li
-              svg viewBox="0 0 16 16" fill="none"
-                path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-              | SLA保証・セキュリティ強化
+        - pricing_plans.each do |plan_key, plan|
+          .plan-card class=(plan[:popular] ? "popular" : "") data-plan-key=plan_key data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
+            - if plan[:popular]
+              .popular-badge 人気 No.1
+            .plan-name class=(plan[:popular] ? "accent" : "") = plan[:name]
+            .plan-desc = plan[:desc]
+            .plan-price
+              - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
+                .plan-price-orig id="#{plan_key}-orig" = "¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月"
+              .plan-price-main
+                span.price-yen ¥
+                span.price-num id="#{plan_key}-price" = plan[:yearly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')
+                span.price-unit
+                  | / 月
+              .plan-price-note id="#{plan_key}-note" = plan[:note]
+            a.plan-cta class=(plan[:popular] ? "filled" : "outline") href="#" = plan[:cta_text]
+            hr.plan-divider
+            ul.plan-features
+              - plan[:features].each do |feature|
+                li
+                  svg viewBox="0 0 16 16" fill="none"
+                    path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                  = feature
 
       /-- shared features --
       .shared-features
@@ -349,27 +275,27 @@
           .shared-item
             .shared-icon
               svg viewBox="0 0 24 24" fill="none"
-                path d="M12 3l7 4v5c0 4.4-3 8.5-7 9.5C8 20.5 5 16.4 5 12V7l7-4z" stroke="#4A5CF6" stroke-width="1.5" stroke-linejoin="round"
+                path d="M12 3l7 4v5c0 4.4-3 8.5-7 9.5C8 20.5 5 16.4 5 12V7l7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
             .shared-item-title セキュリティ対策
             .shared-item-desc データは暗号化され安全に保護されます
           .shared-item
             .shared-icon
               svg viewBox="0 0 24 24" fill="none"
-                circle cx="12" cy="12" r="9" stroke="#4A5CF6" stroke-width="1.5"
-                path d="M9 12l2 2 4-4" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"
+                path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
             .shared-item-title 商用利用OK
             .shared-item-desc 作成した記事は自由に商用利用できます
           .shared-item
             .shared-icon
               svg viewBox="0 0 24 24" fill="none"
-                path d="M8 7H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3M8 7V5a4 4 0 0 1 8 0v2M8 7h8" stroke="#4A5CF6" stroke-width="1.5" stroke-linejoin="round"
+                path d="M8 7H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3M8 7V5a4 4 0 0 1 8 0v2M8 7h8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
             .shared-item-title 自動保存
             .shared-item-desc 編集内容は自動で保存されます
           .shared-item
             .shared-icon
               svg viewBox="0 0 24 24" fill="none"
-                path d="M4 4v16h16" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round"
-                path d="M4 16l4-4 4 4 6-6" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                path d="M4 4v16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                path d="M4 16l4-4 4 4 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
             .shared-item-title アップデート無償提供
             .shared-item-desc 新機能・改善はすべて無償でご利用可能
 
@@ -379,7 +305,7 @@
       .trial-header
         .trial-badge
           svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-            path d="M7 1l1.5 3.5H12l-2.8 2 1.1 3.5L7 8l-3.3 2 1.1-3.5L2 5.5h3.5L7 1z" fill="white"
+            path d="M7 1l1.5 3.5H12l-2.8 2 1.1 3.5L7 8l-3.3 2 1.1-3.5L2 5.5h3.5L7 1z" fill="currentColor"
           | 7日間無料トライアル
         h2.trial-title
           | 今すぐ
@@ -398,18 +324,18 @@
               ul.trial-check-list
                 li
                   svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EEE9FF"
-                    path d="M5 9l3 3 5-5" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
+                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                   | クレジットカードの登録は不要です
                 li
                   svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EEE9FF"
-                    path d="M5 9l3 3 5-5" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
+                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                   | すべての有料機能を7日間ご利用いただけます
                 li
                   svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EEE9FF"
-                    path d="M5 9l3 3 5-5" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
+                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                   | トライアル期間中の解約もワンクリックで簡単
             div
               button.trial-btn 無料で始める →
@@ -422,7 +348,7 @@
                 .mock-logo-text Drafify
               .mock-field-label キーワードを入力してください
               .mock-field AI記事作成ツール おすすめ
-              button style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#4A5CF6,#9B8AF6);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer" 記事を生成する
+              button style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#60A5FA);color:white;font-size:13px;font-weight:600;border:none;cursor:pointer" 記事を生成する
               .mock-score-row
                 div
                   .mock-score-label SEOスコア
@@ -496,8 +422,8 @@
           .step-num-icon
             .step-circle
               svg viewBox="0 0 28 28" fill="none"
-                rect x="4" y="5" width="20" height="17" rx="3" stroke="#4A5CF6" stroke-width="1.75"
-                path d="M9 10h10M9 14h6" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round"
+                rect x="4" y="5" width="20" height="17" rx="3" stroke="currentColor" stroke-width="1.75"
+                path d="M9 10h10M9 14h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
             .step-num-badge 01
           .step-label メールアドレスを入力
           .step-desc メールアドレスを入力して「無料で始める」をクリック
@@ -508,8 +434,8 @@
           .step-num-icon
             .step-circle
               svg viewBox="0 0 28 28" fill="none"
-                circle cx="14" cy="10" r="5" stroke="#4A5CF6" stroke-width="1.75"
-                path d="M5 23c0-5 4-8 9-8s9 3 9 8" stroke="#4A5CF6" stroke-width="1.75" stroke-linecap="round"
+                circle cx="14" cy="10" r="5" stroke="currentColor" stroke-width="1.75"
+                path d="M5 23c0-5 4-8 9-8s9 3 9 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
             .step-num-badge 02
           .step-label すぐに利用開始
           .step-desc 登録完了後、すぐにすべての機能をご利用いただけます
@@ -520,8 +446,8 @@
           .step-num-icon
             .step-circle
               svg viewBox="0 0 28 28" fill="none"
-                rect x="4" y="6" width="20" height="18" rx="3" stroke="#4A5CF6" stroke-width="1.75"
-                path d="M9 3v5M19 3v5M4 13h20" stroke="#4A5CF6" stroke-width="1.5" stroke-linecap="round"
+                rect x="4" y="6" width="20" height="18" rx="3" stroke="currentColor" stroke-width="1.75"
+                path d="M9 3v5M19 3v5M4 13h20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
             .step-num-badge 03
           .step-label 7日間たっぷりお試し
           .step-desc 7日間すべての機能をお試しいただき、継続するかご判断ください
@@ -545,44 +471,38 @@
         details.faq-item
           summary.faq-q
             | 無料プランは本当に無料ですか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer はい。クレジットカードの登録不要で、月間3記事まで無料でご利用いただけます。
         details.faq-item
           summary.faq-q
             | SEOスコアはどのように計測されますか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer 独自のアルゴリズムで、記事のSEO最適化度を100点満点でスコア化します。
         details.faq-item
           summary.faq-q
             | 年額払いの解約はできますか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer はい。年額プランはいつでも解約可能で、残り期間の返金も対応いたします。
         details.faq-item
           summary.faq-q
             | 他のツールとの連携はできますか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer WordPress連携や各種CMSへのエクスポートに対応しています。
         details.faq-item
           summary.faq-q
             | チームでの利用は可能ですか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer ビジネスプラン以上で、最大5名までのチーム共有が可能です。
         details.faq-item
           summary.faq-q
             | サポートはどのように受けられますか？
-            span.faq-icon
-              svg viewBox="0 0 14 14" fill="none"
-                path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            svg.faq-icon viewBox="0 0 14 14" fill="none"
+              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer メール・チャットにてご利用中の全プランでサポートを提供しています。
 
   /-- CTA BANNER --
@@ -593,81 +513,30 @@
         | まずは
         span.free2 無料
         | で、AIの力を体験してください
-      p.cta-sub クレジットカード登録不要。いつでも解約OK。すべての機能を7日間たっぷりお試しいただけます。
-      .cta-actions
-        button.btn-white 無料で始める →
-      p.cta-note クレジットカード登録不要・いつでも解約OK
 
-  /-- FOOTER --
-  footer.footer
-    .footer-inner
-      .footer-top
-        div
-          .footer-logo
-            img src="data:image/png" alt="Drafify"
-          p.footer-tagline 本格メディア運用のためのAI記事生成システム
-        .footer-links
-          .footer-col
-            h4 サービス
-            ul
-              li: a href="#features" 機能
-              li: a href="#pricing" 料金プラン
-              li: a href="#cases" 導入事例
-              li: a href="#faq" よくある質問
-          .footer-col
-            h4 リンク
-            ul
-              li: a href="https://column.okey.work/dashboard" ダッシュボード
-              li: a href="#" 利用規約
-              li: a href="#" プライバシーポリシー
-              li: a href="#" お問い合わせ
-      .footer-bottom
-        span © 2025 Drafify. All Rights Reserved.
-        div style="display:flex;gap:16px"
-          a href="#" 利用規約
-          a href="#" プライバシーポリシー
-
-javascript:
-  const prices = {
-    starter: { monthly: 3000, annual: 2400 },
-    biz: { monthly: 9000, annual: 7200 }
-  };
-  let isAnnual = true;
-
-  function setToggle(annual, btn) {
-    isAnnual = annual;
-    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    updatePrices();
-  }
-
-  function updatePrices() {
-    const s = prices.starter;
-    const b = prices.biz;
-    if (isAnnual) {
-      document.getElementById('starter-price').textContent = s.annual.toLocaleString();
-      document.getElementById('starter-orig').style.display = 'block';
-      document.getElementById('starter-note').textContent = '年額払いで20%お得';
-      document.getElementById('biz-price').textContent = b.annual.toLocaleString();
-      document.getElementById('biz-orig').style.display = 'block';
-      document.getElementById('biz-note').textContent = '年額払いで20%お得';
-    } else {
-      document.getElementById('starter-price').textContent = s.monthly.toLocaleString();
-      document.getElementById('starter-orig').style.display = 'none';
-      document.getElementById('starter-note').textContent = '';
-      document.getElementById('biz-price').textContent = b.monthly.toLocaleString();
-      document.getElementById('biz-orig').style.display = 'none';
-      document.getElementById('biz-note').textContent = '';
-    }
-  }
-
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const id = a.getAttribute('href').slice(1);
-      if (!id) return;
-      const el = document.getElementById(id);
-      if (!el) return;
-      e.preventDefault();
-      window.scrollTo({ top: el.offsetTop - 72, behavior: 'smooth' });
-    });
-  });
+script
+  | function setToggle(isYearly, btn) {
+  |   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  |   btn.classList.add('active');
+  |   document.querySelectorAll('.plan-card').forEach(card => {
+  |     const key     = card.dataset.planKey;
+  |     const monthly = parseInt(card.dataset.monthly, 10);
+  |     const yearly  = parseInt(card.dataset.yearly,  10);
+  |     if (!key || isNaN(monthly)) return;
+  |     const price   = isYearly ? yearly : monthly;
+  |     const priceEl = card.querySelector('#' + key + '-price');
+  |     const origEl  = card.querySelector('#' + key + '-orig');
+  |     const noteEl  = card.querySelector('#' + key + '-note');
+  |     if (priceEl) priceEl.textContent = price.toLocaleString('ja-JP');
+  |     if (origEl) {
+  |       origEl.style.display = (isYearly && monthly > yearly) ? '' : 'none';
+  |     }
+  |     if (noteEl) {
+  |       if (isYearly) {
+  |         noteEl.textContent = (key === 'free') ? 'クレジットカード登録不要' : '年額払いで20%お得';
+  |       } else {
+  |         noteEl.textContent = (key === 'free') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
+  |       }
+  |     }
+  |   });
+  | }

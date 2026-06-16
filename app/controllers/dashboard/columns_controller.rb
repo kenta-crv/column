@@ -173,4 +173,20 @@ def index
     flash[:alert] = "ログインが必要です。"
     redirect_to root_path # もしくは new_client_session_path など要件に合わせて変更
   end
+
+  def setting; end
+
+  def management
+    start_of_month = Time.current.beginning_of_month
+    end_of_month   = Time.current.end_of_month
+
+    # 各Clientに完全に1対1で紐づく、monthly_usage_logsの最新のsent_countをピンポイントで取得します。
+    # サブクエリ形式にすることで、結合によるデータの重複や他クライアントとの数値の混ざりを完全に防ぎます。
+    @clients = Client.select(
+                       'clients.*',
+                       "(SELECT sent_count FROM monthly_usage_logs WHERE monthly_usage_logs.client_id = clients.id AND monthly_usage_logs.created_at BETWEEN '#{start_of_month.to_s(:db)}' AND '#{end_of_month.to_s(:db)}' ORDER BY monthly_usage_logs.id DESC LIMIT 1) AS current_month_sends"
+                     )
+                     .includes(:subscriptions)
+                     .order(created_at: :desc)
+  end
 end

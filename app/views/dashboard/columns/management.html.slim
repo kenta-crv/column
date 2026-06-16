@@ -1,0 +1,81 @@
+.management-page.container-fluid.py-4
+
+  .management-container
+    .management-header
+      h1.management-title
+        | Management
+
+      p.management-subtitle
+        | Contract Client Dashboard
+
+    .management-card
+      .management-card__body
+
+        .management-table-wrap
+          table.management-table
+            thead
+              tr
+                th ID
+                th Email
+                th Plan
+                th Amount
+                th Monthly Sends
+                th Status
+                th Contract Date
+
+            tbody
+              - @clients.each do |client|
+                -# クライアントが契約している最新のアクティブまたは直近のサブスクリプションを取得
+                - subscription = client.subscriptions.order(created_at: :desc).first
+
+                tr
+                  td
+                    .client-id
+                      = client.id
+
+                  td
+                    .client-email
+                      = client.email
+
+                  td
+                    - if subscription.present?
+                      -# Subscriptionモデルの plan_name メソッドを使って「スタンダードプラン」等を表示
+                      .plan-badge class="plan-#{subscription.plan_type}"
+                        = subscription.plan_name rescue subscription.plan_type
+                    - else
+                      span.empty-text -
+
+                  td
+                    - if subscription.present?
+                      -# 【バグ根徹】case文による固定額を排除し、Subscriptionモデル内のPLAN_PRICES値から正しく出力する
+                      .price-text
+                        = "¥#{number_with_delimiter(subscription.price)}"
+                    - else
+                      span.empty-text -
+
+                  td
+                    -# ===== 【修正】右側の上限件数が黒い背景と同化しないよう文字色クラスを変更 =====
+                    .monthly-sends-text
+                      - current_sends = client.respond_to?(:current_month_sends) ? client.current_month_sends.to_i : 0
+                      - monthly_limit = client.respond_to?(:monthly_limit) ? client.monthly_limit.to_i : 0
+
+                      span.font-weight-bold
+                        = "#{number_with_delimiter(current_sends)} 件"
+                      
+                      - if monthly_limit > 0
+                        span.text-white-50.small
+                          = " / #{number_with_delimiter(monthly_limit)} 件"
+
+                  td
+                    - if subscription.present?
+                      .status-badge class="status-#{subscription.status}"
+                        = subscription.status
+                    - else
+                      span.empty-text -
+
+                  td
+                    .contract-date
+                      - if subscription.present?
+                        = l(subscription.created_at, format: :long)
+                      - else
+                        span.empty-text -

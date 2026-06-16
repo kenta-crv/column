@@ -370,3 +370,7 @@ document.addEventListener("turbo:load", () => {
     }, 3000); // 3秒後に消え始める
   });
 });
+
+
+
+

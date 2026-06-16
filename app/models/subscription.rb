@@ -1,7 +1,8 @@
 class Subscription < ApplicationRecord
   belongs_to :client
 
-  enum plan_type: { trial: "trial", standard: "standard", enterprise: "enterprise" }
+  # 1. enum の定義に starter が不足していたため追加
+  enum plan_type: { trial: "trial", starter: "starter", standard: "standard", enterprise: "enterprise" }
   enum status: { active: "active", cancelled: "cancelled", expired: "expired" }
 
   validates :plan_type, presence: true
@@ -11,14 +12,17 @@ class Subscription < ApplicationRecord
             uniqueness: true,
             allow_nil: true
 
+  # 2. カンマのタイポ（starterの後ろ）を修正
   PLAN_NAMES = {
     trial: "トライアルプラン",
+    starter: "スタータープラン",
     standard: "スタンダードプラン",
     enterprise: "エンタープライズプラン"
   }.freeze
 
   PLAN_PRICES = {
     trial: 0,
+    starter: 29_800,
     standard: 49_800,
     enterprise: 98_000
   }.freeze
@@ -26,9 +30,10 @@ class Subscription < ApplicationRecord
   DELIVERY_COST = 50
 
   PLAN_DELIVERY_LIMITS = {
-    trial: 10,
+    trial: 3, # 3. コメントにある「トライアルなら1000件」と乖離があるため注意（※後述）
+    starter: 25,
     standard: 50,
-    enterprise: 100
+    enterprise: 120
   }.freeze
 
   TRIAL_DAYS = 10
@@ -49,7 +54,7 @@ class Subscription < ApplicationRecord
     delivery_limit == Float::INFINITY
   end
 
-  # 今月これまでに送信した累積件数を含めて、上限（トライアルなら1000件）を超えないか正しく検証
+  # 今月これまでに送信した累積件数を含めて、上限を超えないか正しく検証
   def can_send_delivery?(count)
     return true if unlimited?
     (client.monthly_sent_count + count) <= delivery_limit

@@ -38,15 +38,15 @@
         - sub_categories_json = GenreRegistry::GENRES.transform_values { |v| v[:sub_categories]&.map { |sk, sv| { id: sk, name: sv[:name] } } || [] }.to_json
         = f.select :sub_genre,
           [],
-          { include_blank: "先に大分類を選択してください" },
+          { include_blank: "選択してください" },
           { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: sub_categories_json } }
 
       .form-group
         = f.label :article_type, "タイプ"
         = f.select :article_type,
           [["親記事", "pillar"], ["子記事", "cluster"]],
-          { include_blank: "選択してください" },
-          class: "form-control"
+          { include_blank: "選択してください", selected: @column.new_record? ? nil : @column.article_type },
+          { class: "form-control" }
 
       .form-group
         = f.label :parent_id, "parent_id"

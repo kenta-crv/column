@@ -132,36 +132,47 @@ def index
         .count
   end
       
-  def show
+def show
     # 1. 閲覧ドメインの許可ジャンルを再判定
     allowed_for_show = case request.host
                        when "ri-plus.jp"   then "app"
                        when "自販機.net"  then "vender"
                        when "j-work.jp"    then "cargo"
                        when "okey.work"    then "cleaning"
-                       when "kurasera.life"    then "housekeeping"
+                       when "kurasera.life" then "housekeeping"
                        else nil
                        end
 
-    # DB内の値が日本語("家事代行")か英語キーかに関わらず、厳密な英語キーに変換
-    current_genre_key = GenreRegistry.from_ja(@column.genre) || @column.genre.to_s
+    # DB内の値が日本語か英語キーかに関わらず、厳密な英語キーに変換
+    # ※GenreRegistryが存在しない、または判定に失敗した場合のフォールバックを強化
+    current_genre_key = if defined?(GenreRegistry) && GenreRegistry.respond_to?(:from_ja)
+                          GenreRegistry.from_ja(@column.genre)
+                        end
+    current_genre_key ||= @column.genre.to_s.strip.downcase
 
     # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
-    # ※ハブドメイン（allowed_for_show が nil）の時はこのチェックをスキップさせて正常にハブ表示する
-    if allowed_for_show.present? && current_genre_key != allowed_for_show
+    # 大文字小文字の差異やスペースの混入で404化するのを防ぐため、downcase・stripを徹底
+    if allowed_for_show.present? && current_genre_key != allowed_for_show.to_s.strip.downcase
+      Rails.logger.warn "[Domain Block] Host: #{request.host} (Allowed: #{allowed_for_show}) tried to access Column ID: #{@column.id} with Genre: #{current_genre_key}"
       return render_404
     end
 
-    # 3. URL正規化（301リダイレクト）
-    # 個別公開用ドメインからアクセスされている場合のみ、リダイレクト処理を有効化する
+    # 3. URL正規化（301リダイレクト）の無限ループ抑止改修
     if allowed_for_show.present?
       begin
-        expected_path = columns_show_path(genre: current_genre_key, id: @column.code)
-        if request.path != expected_path
+        # パラメータが正常に解決できるか検証しつつ、想定パスを生成
+        expected_path = columns_show_path(genre: current_genre_key, id: @column.code.presence || @column.id)
+        
+        # 完全に一致していない場合のみリダイレクト。ただしクエリストリング（?page=等）を除外してパス部分のみで比較
+        current_path_without_query = request.path.chomp('/')
+        expected_path_without_query = expected_path.split('?').first.chomp('/')
+
+        if current_path_without_query != expected_path_without_query
+          Rails.logger.info "[301 Redirect Triggered] From: #{request.path} To: #{expected_path}"
           return redirect_to expected_path, status: :moved_permanently
         end
       rescue ActionController::UrlGenerationError => e
-        # 予期せぬ文字等でURL生成が万が一失敗した場合も、システムをクラッシュさせずにログを残して404へ落とす
+        # URL生成失敗時にクローラーを死なせないためのセーフティ
         Rails.logger.error "UrlGenerationError inside show for Column##{@column.id}: #{e.message}"
         return render_404
       end
@@ -190,7 +201,7 @@ def index
       "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
     end
   end
-
+  
   def bulk_update_drafts
     column_ids = params[:column_ids]
     return redirect_to(draft_columns_path) if column_ids.blank?

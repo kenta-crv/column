@@ -9,61 +9,8 @@ link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;70
 = stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload"
 
 / ページ遷移時の多重読み込みとイベント蓄積を完全に防止するため、HEAD内でdefer属性を付与して管理
-= javascript_include_tag "application", "data-turbo-track": "reload", defer: true
+= javascript_include_tag "application", "data-turbo-track": "reload"
 
 = display_meta_tags
 = favicon_link_tag "favicon.ico"
 
-/ Google tag (gtag.js) - 広告とアナリティクスの双方を正しく計測できるよう、メインタグのID指定を最適化
-script async=true src="https://www.googletagmanager.com/gtag/js?id=AW-10998015402"
-script
-  |
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-10998015402');
-    gtag('config', 'G-KKJH6MHMBK');
-
-/ Googleコンバージョン用関数
-script
-  | function gtag_report_conversion(url) {
-  |   var callback = function () {
-  |     if (typeof(url) != 'undefined') {
-  |       window.location = url;
-  |     }
-  |   };
-  |   gtag('event', 'conversion', {
-  |       'send_to': 'AW-10998015402/gkRoCOiiwZAcEKrLofwo',
-  |       'value': 1.0,
-  |       'currency': 'JPY',
-  |       'event_callback': callback
-  |   });
-  |   return false;
-  | }
-
-/ Pay.jp SDKの読み込み
-script src="https://js.pay.jp/v2/pay.js"
-
-/ Pay.jpの初期化ロジック - インスタンスの多重バインド・ゾンビ化を完全にブロック
-- payjp_key = @payjp_public_key || Rails.application.credentials.dig(:payjp, :public_key) || ENV["PAYJP_PUBLIC_KEY"]
-script
-  | (function() {
-      const initPayjp = function() {
-        if (typeof Payjp === 'undefined') {
-          console.error('Pay.jp SDK failed to load');
-          return;
-        }
-        
-        if (!window.payjpInstance) {
-          window.payjpInstance = Payjp('#{payjp_key}');
-          console.log('Payjp initialized');
-        }
-      };
-
-      document.addEventListener('turbo:load', initPayjp);
-      if (document.readyState !== 'loading') {
-        initPayjp();
-      } else {
-        document.addEventListener('DOMContentLoaded', initPayjp);
-      }
-    })();

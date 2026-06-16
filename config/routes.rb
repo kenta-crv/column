@@ -27,6 +27,8 @@ Rails.application.routes.draw do
     end
 
     root to: "columns#index"
+    get 'setting', to: 'dashboards#setting'
+    get 'management', to: 'dashboards#management'
 
     resource :subscription, only: [:show, :update] do
       get :cancel_confirm

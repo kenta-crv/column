@@ -193,10 +193,6 @@
           GenreRegistry::GENRES.map { |k, v| [v[:ja], k] },
           { include_blank: "すべてのカテゴリ", selected: params[:genre] },
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
-      button type="submit" class="btn-filter-toggle btn-primary"
-        svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
-        span 絞り込み
 
 / 4. 一括画像生成パネル
 .bulk-panel
