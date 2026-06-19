@@ -249,6 +249,8 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (2.2.23)
+    rack-cors (2.0.2)
+      rack (>= 2.0.0)
     rack-protection (3.2.0)
       base64 (>= 0.1.0)
       rack (~> 2.2, >= 2.2.4)
@@ -421,6 +423,7 @@ DEPENDENCIES
   omniauth-twitter
   openai
   puma (~> 3.11)
+  rack-cors
   rails (~> 6.1.7)
   rake (~> 13.3)
   sass-rails (~> 5.0)

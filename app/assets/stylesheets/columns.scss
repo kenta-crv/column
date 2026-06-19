@@ -607,3 +607,496 @@
   color: #aaa;
   border: 1px solid #ddd;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================
+// 2026 AI-Inspired Theme (Adaptive Modern)
+// ==========================================
+
+// 変数定義（周囲の環境に馴染むよう、半透明レイヤーや現在の文字色をベースに設計）
+$theme-accent-gradient: linear-gradient(135deg, #a78bfa 0%, #6366f1 50%, #3b82f6 100%);
+$theme-border-glow: #8b5cf6;
+
+// フォーム要素やカードの背景（現在の背景色に対して薄くレイヤーを重ねる設定）
+$theme-card-bg: rgba(255, 255, 255, 0.03); // ダーク・ライト双方で馴染む微細なレイヤー
+$theme-input-bg: rgba(0, 0, 0, 0.02);
+$theme-border: rgba(0, 0, 0, 0.08);
+
+// ※現在の環境がダークテーマベースの場合は、以下のように反転させて自動追従させます
+@media (prefers-color-scheme: dark) {
+  $theme-card-bg: rgba(255, 255, 255, 0.05);
+  $theme-input-bg: rgba(255, 255, 255, 0.03);
+  $theme-border: rgba(255, 255, 255, 0.1);
+}
+
+// ベースコンテナ（背景色は親要素から継承）
+.container-fluid.py-4 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.api-settings-page {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+// ヘッダーエリア
+.api-settings-header {
+  border-bottom: 1px solid $theme-border;
+  padding-bottom: 1.5rem;
+
+  .api-settings-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    color: inherit;
+  }
+
+  .api-settings-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin: 0;
+  }
+}
+
+// メイン設定カード（モダンなインライン・ボーダーとシャドウ表現）
+.api-settings-card {
+  background: $theme-card-bg;
+  border: 1px solid $theme-border;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  .api-settings-card__body {
+    padding: 2.5rem;
+  }
+}
+
+// フォームセクション
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid $theme-border;
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0;
+  }
+
+  .form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    color: inherit;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: $theme-accent-gradient;
+      border-radius: 2px;
+      margin-right: 0.75rem;
+    }
+  }
+}
+
+// フォーム要素
+.form-group {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+  }
+
+  // 入力フィールド共通
+  .form-control {
+    width: 100%;
+    background-color: $theme-input-bg;
+    border: 1px solid $theme-border;
+    border-radius: 8px;
+    color: inherit;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: $theme-border-glow;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+
+    &[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      border-style: dashed;
+      background-color: rgba(0, 0, 0, 0.01);
+    }
+  }
+
+  textarea.form-control {
+    font-family: monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .form-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.5;
+  }
+}
+
+// チェックボックス（カスタムデザイン）
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background-color: $theme-input-bg;
+    border: 1px solid $theme-border;
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+
+    &:checked {
+      background: $theme-accent-gradient;
+      border-color: transparent;
+
+      &::after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 4px;
+        height: 9px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+    }
+  }
+
+  .form-check-label {
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-bottom: 0;
+  }
+}
+
+// ボタン・アクションエリア
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $theme-border;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+
+    &.btn-primary {
+      background: $theme-accent-gradient;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+
+      &:hover {
+        opacity: 0.95;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    &.btn-secondary {
+      background-color: rgba(0, 0, 0, 0.05);
+      color: inherit;
+      border: 1px solid $theme-border;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+      }
+    }
+  }
+}
+
+// 埋め込み手順エリア
+.api-instructions {
+  background: $theme-card-bg;
+  border: 1px solid $theme-border;
+  border-radius: 16px;
+  padding: 2rem;
+
+  .api-instructions-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .api-instructions-step {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    // flexアイテムの縮小によるはみ出しを防ぐため、親に最小幅の計算を保証させる
+    min-width: 0; 
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #8b5cf6;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-content {
+      flex-grow: 1;
+      // flex子要素内のテキストオーバーフロー・コンテナ突き抜けを防ぐ最重要プロパティ
+      min-width: 0; 
+
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+      }
+
+      code {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        background-color: rgba(0, 0, 0, 0.04);
+        border: 1px solid $theme-border;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #0284c7; 
+        overflow-x: auto;      // 横スクロールを有効化
+        white-space: nowrap;   // 折り返さずに1行で表示
+        box-sizing: border-box; // パディングを含めた幅計算にする
+      }
+    }
+  }
+}
+
+// メディアクエリ（ダークモード時のコードブロック調整）
+@media (prefers-color-scheme: dark) {
+  .api-instructions .api-instructions-step .step-content code {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #38bdf8;
+  }
+}
+
+
+
+// ==========================================
+// Management Table & Badges (Additional CSS)
+// ==========================================
+
+.management-table-wrap {
+  width: 100%;
+  overflow-x: auto; // 横スクロールで見切れを防止
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+.management-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+
+  thead {
+    border-bottom: 2px solid $theme-border;
+    
+    th {
+      padding: 1rem 0.75rem;
+      font-weight: 600;
+      opacity: 0.6;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $theme-border;
+      transition: background-color 0.15s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+      }
+    }
+
+    td {
+      padding: 1.25rem 0.75rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  }
+}
+
+// データテキストの微調整
+.client-id {
+  font-family: monospace;
+  opacity: 0.5;
+}
+
+.client-email {
+  font-weight: 500;
+}
+
+.price-text {
+  font-weight: 600;
+}
+
+.contract-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.empty-text {
+  opacity: 0.3;
+}
+
+// 2026年トレンド：ベタ塗りせず、シアーな背景とボーダーで魅せるバッジ
+.plan-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 50px;
+  border: 1px solid transparent;
+}
+
+// プラン毎のカラー（変数がない場合は直接カラーコードでも可）
+.plan-badge {
+  &.plan-premium {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+  &.plan-standard {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+  &.plan-free {
+    background: rgba(107, 114, 128, 0.1);
+    color: inherit;
+    border-color: rgba(107, 114, 128, 0.2);
+  }
+}
+
+// ステータス毎のカラー
+.status-badge {
+  &.status-active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+    
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: #10b981;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      box-shadow: 0 0 8px #10b981; // サイバー感のあるグローエフェクト
+    }
+  }
+  &.status-canceled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+}
+
+// ボタンのサイズバリエーション（テーブル用）
+.btn.btn-sm {
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}

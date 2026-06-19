@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>埋め込みテスト</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #articles {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .embedded-article {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #eee;
+    }
+    .article-title {
+      color: #333;
+    }
+    .article-body {
+      line-height: 1.6;
+    }
+    .article-meta {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+    .embed-loading {
+      text-align: center;
+      color: #666;
+    }
+    .embed-error {
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>埋め込みテストページ</h1>
+  <p>このページは埋め込みJSのテスト用です。</p>
+  
+  <div id="articles"></div>
+  
+  <script src="http://localhost:3001/embed.js" data-api-key="test_api_key_12345678901234567890123456789012"></script>
+</body>
+</html>

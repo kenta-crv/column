@@ -1,15 +1,14 @@
-.management-page.container-fluid.py-4
-
-  .management-container
-    .management-header
-      h1.management-title
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title
         | Management
 
-      p.management-subtitle
+      p.api-settings-subtitle
         | Contract Client Dashboard
 
-    .management-card
-      .management-card__body
+    .api-settings-card
+      .api-settings-card__body
 
         .management-table-wrap
           table.management-table
@@ -22,10 +21,10 @@
                 th Monthly Sends
                 th Status
                 th Contract Date
+                th API Settings
 
             tbody
               - @clients.each do |client|
-                -# クライアントが契約している最新のアクティブまたは直近のサブスクリプションを取得
                 - subscription = client.subscriptions.order(created_at: :desc).first
 
                 tr
@@ -39,7 +38,6 @@
 
                   td
                     - if subscription.present?
-                      -# Subscriptionモデルの plan_name メソッドを使って「スタンダードプラン」等を表示
                       .plan-badge class="plan-#{subscription.plan_type}"
                         = subscription.plan_name rescue subscription.plan_type
                     - else
@@ -47,14 +45,12 @@
 
                   td
                     - if subscription.present?
-                      -# 【バグ根徹】case文による固定額を排除し、Subscriptionモデル内のPLAN_PRICES値から正しく出力する
                       .price-text
                         = "¥#{number_with_delimiter(subscription.price)}"
                     - else
                       span.empty-text -
 
                   td
-                    -# ===== 【修正】右側の上限件数が黒い背景と同化しないよう文字色クラスを変更 =====
                     .monthly-sends-text
                       - current_sends = client.respond_to?(:current_month_sends) ? client.current_month_sends.to_i : 0
                       - monthly_limit = client.respond_to?(:monthly_limit) ? client.monthly_limit.to_i : 0
@@ -79,3 +75,7 @@
                         = l(subscription.created_at, format: :long)
                       - else
                         span.empty-text -
+
+                  td
+                    .form-actions style="margin-top: 0; padding-top: 0; border-top: none;"
+                      = link_to "API設定", api_settings_dashboard_client_path(client), class: "btn btn-sm btn-primary"

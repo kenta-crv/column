@@ -1,0 +1,77 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title
+        | API設定
+      
+      p.api-settings-subtitle
+        = "クライアント: #{@client.email}"
+
+    .api-settings-card
+      .api-settings-card__body
+        = form_with model: @client, url: (admin_signed_in? ? update_api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), local: true, method: :patch do |f|
+          .form-section
+            h3.form-section-title
+              | 基本設定
+            
+            .form-group
+              = f.label :api_key, "APIキー"
+              = f.text_field :api_key, class: "form-control", readonly: true
+              small.form-text
+                | APIキーは自動生成されます。再発行が必要な場合は管理者にお問い合わせください。
+
+            .form-group
+              = f.label :webhook_url, "Webhook URL"
+              = f.text_field :webhook_url, class: "form-control", placeholder: "https://client-site.com/webhook/articles"
+              small.form-text
+                | 記事更新時の通知先URL（オプション）
+
+          .form-section
+            h3.form-section-title
+              | ジャンル設定
+            
+            .form-group
+              = f.label :allowed_genres, "許可ジャンル"
+              - GenreRegistry::GENRES.each do |key, value|
+                .form-check
+                  = check_box_tag "client[allowed_genres][]", key.to_s, Array(@client.allowed_genres).include?(key.to_s), id: "genre_#{key}"
+                  = label_tag "genre_#{key}", value[:ja], class: "form-check-label"
+              small.form-text
+                | このクライアントがアクセス可能なジャンルを選択してください
+
+          .form-section
+            h3.form-section-title
+              | 埋め込み設定
+            
+            .form-group
+              = f.label :embed_settings, "埋め込み設定（JSON）"
+              = f.text_area :embed_settings, class: "form-control", rows: 5, value: (@client.embed_settings || {}).to_json
+              small.form-text
+                | カスタム埋め込み設定（オプション）
+
+          .form-actions
+            = f.submit "設定を保存", class: "btn btn-primary"
+            = link_to "キャンセル", (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn btn-secondary"
+
+    .api-instructions
+      h3.api-instructions-title
+        | クライアントへの埋め込み手順
+      
+      .api-instructions-step
+        .step-number 1
+        .step-content
+          h4 スクリプトタグを設置
+          code
+            = "<script src=\"https://#{request.host}/embed.js\" data-api-key=\"#{@client.api_key}\"></script>"
+      
+      .api-instructions-step
+        .step-number 2
+        .step-content
+          h4 コンテナを追加
+          code
+            = "<div id=\"articles\"></div>"
+      
+      .api-instructions-step
+        .step-number 3
+        .step-content
+          h4 記事が自動的に読み込まれます

@@ -1,77 +1,84 @@
+/ ==========================================
+/ app/views/dashboard/columns/setting.html.slim (修正版全文)
+/ ==========================================
+
 #okurite-client-portal
   .wrapper
-    = render 'sidebar'
+    / 1. レイアウトファイル（application）側にサイドバーがあるため、ここの重複エラーの原因となる render を削除してレイアウトを統一します
 
     #content
-      header.top-header
-        h2 Settings
+      .api-settings-page
+        .api-settings-header
+          h1.api-settings-title
+            | Settings
+          
+          p.api-settings-subtitle
+            | Account Settings & Configuration
 
-      .settings-section.mt-4
-        .glass-card
-          .card-header-flex
-            h5 Account Settings
-
-          .card-body
+        .api-settings-card
+          .api-settings-card__body
 
             / ===== メール変更 =====
-            h6.mt-3 Email Address
-            = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-              .form-group
-                = f.email_field :email, class: 'form-control', value: current_client.email
-              .form-group.mt-2
-                = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
-              .mt-2
-                = f.submit 'Update Email', class: 'btn-electric-outline'
-
-            hr
+            .form-section
+              h3.form-section-title Email Address
+              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+                .form-group
+                  = f.label :email, "Email Address"
+                  = f.email_field :email, class: 'form-control', value: current_client.email
+                .form-group
+                  = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
+                .form-actions style="border-top: none; padding-top: 0;"
+                  = f.submit 'Update Email', class: 'btn btn-primary btn-sm'
 
             / ===== パスワード変更 =====
-            h6.mt-4 Change Password
-            = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-              .form-group
-                = f.password_field :current_password, placeholder: 'Current Password', class: 'form-control'
-              .form-group.mt-2
-                = f.password_field :password, placeholder: 'New Password', class: 'form-control'
-              .form-group.mt-2
-                = f.password_field :password_confirmation, placeholder: 'Confirm Password', class: 'form-control'
-              .mt-2
-                = f.submit 'Change Password', class: 'btn-electric-outline'
-
-            hr
+            .form-section
+              h3.form-section-title Change Password
+              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+                .form-group
+                  = f.label :current_password, "Current Password"
+                  = f.password_field :current_password, placeholder: 'Current Password', class: 'form-control'
+                .form-group
+                  = f.label :password, "New Password"
+                  = f.password_field :password, placeholder: 'New Password', class: 'form-control'
+                .form-group
+                  = f.label :password_confirmation, "Confirm Password"
+                  = f.password_field :password_confirmation, placeholder: 'Confirm Password', class: 'form-control'
+                .form-actions style="border-top: none; padding-top: 0;"
+                  = f.submit 'Change Password', class: 'btn btn-primary btn-sm'
 
             / ===== 会社情報 =====
-            h6.mt-4 Company Information
-            = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-              .form-group
-                = f.text_field :company, placeholder: 'Company', class: 'form-control'
-
-              .form-group.mt-2
-                = f.text_field :name, placeholder: 'Name', class: 'form-control'
-
-              .form-group.mt-2
-                = f.text_field :tel, placeholder: 'Tel', class: 'form-control'
-
-              .form-group.mt-2
-                = f.text_field :address, placeholder: 'Address', class: 'form-control'
-
-              .form-group.mt-2
-                = f.text_field :url, placeholder: 'URL', class: 'form-control'
-
-              .form-group.mt-2
-                = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
-
-              .mt-2
-                = f.submit 'Update Company Info', class: 'btn-electric-outline'
-
-            hr
+            .form-section
+              h3.form-section-title Company Information
+              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+                .form-group
+                  = f.label :company, "Company"
+                  = f.text_field :company, placeholder: 'Company', class: 'form-control'
+                .form-group
+                  = f.label :name, "Name"
+                  = f.text_field :name, placeholder: 'Name', class: 'form-control'
+                .form-group
+                  = f.label :tel, "Tel"
+                  = f.text_field :tel, placeholder: 'Tel', class: 'form-control'
+                .form-group
+                  = f.label :address, "Address"
+                  = f.text_field :address, placeholder: 'Address', class: 'form-control'
+                .form-group
+                  = f.label :url, "URL"
+                  = f.text_field :url, placeholder: 'URL', class: 'form-control'
+                .form-group
+                  = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
+                .form-actions style="border-top: none; padding-top: 0;"
+                  = f.submit 'Update Company Info', class: 'btn btn-primary btn-sm'
 
             / ===== プラン変更 =====
-            h6.mt-4 Subscription
-            p 現在のプランを変更・管理できます
-            = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn-electric-outline'
-
-            hr
+            .form-section
+              h3.form-section-title Subscription
+              .form-group
+                p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 1rem;" 現在のプランを変更・管理できます
+                = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn btn-secondary btn-sm'
 
             / ===== ログアウト =====
-            h6.mt-4 Logout
-            = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn-electric-outline'
+            .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
+              h3.form-section-title Logout
+              .form-group
+                = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn btn-secondary btn-sm', style: 'color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'

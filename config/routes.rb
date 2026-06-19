@@ -13,6 +13,12 @@ Rails.application.routes.draw do
 
   # --- 管理画面を /dashboard 配下に完全移行 ---
   namespace :dashboard do
+    # 特定ルートをresourcesの前に定義して優先順位を確保
+    get 'setting', to: 'columns#setting'
+    get 'management', to: 'columns#management'
+    get 'api_settings', to: 'clients#my_api_settings'
+    patch 'api_settings', to: 'clients#update_my_api_settings'
+
     resources :columns do
       collection do
         get :drafts
@@ -26,9 +32,14 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :clients do
+      member do
+        get :api_settings
+        patch :update_api_settings
+      end
+    end
+
     root to: "columns#index"
-    get 'setting', to: 'dashboards#setting'
-    get 'management', to: 'dashboards#management'
 
     resource :subscription, only: [:show, :update] do
       get :cancel_confirm
@@ -101,4 +112,15 @@ Rails.application.routes.draw do
   get '/unsubscribe/:token', to: 'unsubscribes#show', as: :unsubscribe
   post '/webhooks/stripe', to: 'webhooks#stripe'
   get '/l/:token', to: 'click_tracking#redirect', as: :click_tracking
+
+  # API for article distribution
+  namespace :api do
+    namespace :v1 do
+      resources :articles, only: [:index, :show] do
+        collection do
+          post :render_html
+        end
+      end
+    end
+  end
 end
