@@ -15,7 +15,12 @@ Rails.application.routes.draw do
   namespace :dashboard do
     # 特定ルートをresourcesの前に定義して優先順位を確保
     get 'setting', to: 'columns#setting'
-    get 'management', to: 'columns#management'
+    
+    # レイアウトの判定（controller_name == "dashboards"）と一致させるため、
+    # もしコントローラーが DashboardsController であれば、以下のように to: 'dashboards#management' に修正します。
+    # 現状の ColumnsController#management のままで良ければ、to: 'columns#management' に戻してください。
+    get 'management', to: 'dashboards#management'
+    
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'
 
@@ -113,7 +118,6 @@ Rails.application.routes.draw do
   post 'stripe/webhook', to: 'stripe_webhooks#create'
   get 'plans', to: 'plans#index', as: :plans
   post 'plans/select', to: 'plans#select', as: :select_plan
-
 
   get '/unsubscribe/:token', to: 'unsubscribes#show', as: :unsubscribe
   post '/webhooks/stripe', to: 'webhooks#stripe'
