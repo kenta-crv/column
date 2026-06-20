@@ -2,95 +2,47 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title, :remove_image]
   before_action :set_breadcrumbs
   
-  # スレッド多重実行を防止するアプリケーション変数
   @@bulk_image_generating = false
 
-def index
-    # 1. ホスト判定：このドメインが許可する唯一のジャンルを確定させる
-    @allowed_genre = case request.host
-                     when "ri-plus.jp" then "app"
-                     when "自販機.net" then "vender"
-                     when "j-work.jp" then "cargo"
-                     when "okey.work" then "cleaning"
-                     when "kurasera.life" then "housekeeping"
-                     else nil
-                     end
-
-    # 2. クエリ構築
+  def index
     columns = Column
+                .where("body IS NOT NULL AND TRIM(body) != ''")
                 .select(
-                  :id,
-                  :title,
-                  :description,
-                  :genre,
-                  :article_type,
-                  :updated_at,
-                  :file,
-                  :code,
-                  :parent_id,
-                  :status,
-                  :sub_genre,
-                  :sub_category
+                  :id, :title, :description, :body,
+                  :genre, :article_type, :updated_at,
+                  :file, :code, :parent_id, :status,
+                  :sub_genre, :sub_category
                 )
 
-    # 検索パラメータ params[:q] がある場合は、下書き(draft)や本文空の記事も含めて検索対象にする
     if params[:q].present?
-      columns = columns.where("title LIKE ? OR keyword LIKE ? OR description LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%")
-    else
-      # 通常の一覧表示時は、既存通り下書きと本文空の記事を物理排除
-      columns = columns.where.not(status: "draft")
-                       .where.not(body: [nil, ""])
+      columns = columns.where(
+        "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
+        "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
+      )
     end
 
-    # 3. 物理的排除
-    if @allowed_genre.present?
-      columns = columns.where(genre: @allowed_genre)
+    columns = columns.where(genre: params[:genre])                if params[:genre].present?
+    columns = columns.where(article_type: params[:article_type])  if params[:article_type].present?
+    columns = columns.where(genre: params[:selected_genre])       if params[:selected_genre].present?
 
-      if params[:genre].present? && params[:genre] != @allowed_genre
-        return render_404
-      end
-    else
-      columns = columns.where(genre: params[:genre]) if params[:genre].present?
-    end
-
-    # 4. 共通フィルタ
-    columns = columns.where(status: params[:status]) if params[:status].present?
-    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
-
-    if params[:selected_genre].present?
-      columns = columns.where(genre: params[:selected_genre])
-    end
-
-    # 5. 並び順
     columns = columns.order(updated_at: :desc)
 
-    # =========================================================================
-    # 30件表示のページネーション適用
-    # =========================================================================
     @paginated_columns = columns.page(params[:page]).per(30)
-    
-    # 配列としての処理用
     @columns = @paginated_columns.to_a
 
-    # =========================================================================
-    # Pillar の場合のみジャンルごとにグループ化（ページ内の30件を対象）
-    # =========================================================================
     if params[:article_type] == "pillar"
       @grouped_columns = @columns.group_by(&:genre)
 
       @all_genres = Column
-                      .where.not(status: "draft")
+                      .where("body IS NOT NULL AND TRIM(body) != ''")
                       .distinct
                       .pluck(:genre)
                       .compact
     end
 
-    # =========================================================================
-    # 子記事カウント
-    # =========================================================================
     if @columns.present?
       @child_counts = Column
-                        .where.not(body: [nil, ""])
+                        .where("body IS NOT NULL AND TRIM(body) != ''")
                         .where(parent_id: @columns.map(&:id))
                         .group(:parent_id)
                         .count
@@ -98,92 +50,33 @@ def index
       @child_counts = {}
     end
 
-    # =========================================================================
-    # ジャンル別カウント（全体の総数配信用）
-    # =========================================================================
-    base_count_query =
-      if @allowed_genre.present?
-        Column.where(genre: @allowed_genre)
-      else
-        Column.all
-      end
+    base_count_query = Column.where("body IS NOT NULL AND TRIM(body) != ''")
 
     if params[:q].present?
-      base_count_query = base_count_query.where("title LIKE ? OR keyword LIKE ? OR description LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%")
-    else
-      base_count_query = base_count_query
-                           .where.not(status: "draft")
-                           .where.not(body: [nil, ""])
+      base_count_query = base_count_query.where(
+        "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
+        "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
+      )
     end
 
-    base_count_query = base_count_query.where(genre: params[:genre]) if params[:genre].present?
+    base_count_query = base_count_query.where(genre: params[:genre])          if params[:genre].present?
     base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
 
-    @genre_pillar_counts =
-      base_count_query
-        .where(article_type: "pillar")
-        .group(:genre)
-        .count
-
-    @genre_child_counts =
-      base_count_query
-        .where(article_type: "child")
-        .group(:genre)
-        .count
+    @genre_pillar_counts = base_count_query.where(article_type: "pillar").group(:genre).count
+    @genre_child_counts  = base_count_query.where(article_type: "child").group(:genre).count
   end
-      
-def show
-    # 1. 閲覧ドメインの許可ジャンルを再判定
-    allowed_for_show = case request.host
-                       when "ri-plus.jp"   then "app"
-                       when "自販機.net"  then "vender"
-                       when "j-work.jp"    then "cargo"
-                       when "okey.work"    then "cleaning"
-                       when "kurasera.life" then "housekeeping"
-                       else nil
-                       end
 
-    # DB内の値が日本語か英語キーかに関わらず、厳密な英語キーに変換
-    # ※GenreRegistryが存在しない、または判定に失敗した場合のフォールバックを強化
+  def show
     current_genre_key = if defined?(GenreRegistry) && GenreRegistry.respond_to?(:from_ja)
                           GenreRegistry.from_ja(@column.genre)
                         end
     current_genre_key ||= @column.genre.to_s.strip.downcase
 
-    # 2. 記事のジャンルがドメイン許可と不一致なら即404（物理的シャットアウト）
-    # 大文字小文字の差異やスペースの混入で404化するのを防ぐため、downcase・stripを徹底
-    if allowed_for_show.present? && current_genre_key != allowed_for_show.to_s.strip.downcase
-      Rails.logger.warn "[Domain Block] Host: #{request.host} (Allowed: #{allowed_for_show}) tried to access Column ID: #{@column.id} with Genre: #{current_genre_key}"
-      return render_404
-    end
-
-    # 3. URL正規化（301リダイレクト）の無限ループ抑止改修
-    if allowed_for_show.present?
-      begin
-        # パラメータが正常に解決できるか検証しつつ、想定パスを生成
-        expected_path = columns_show_path(genre: current_genre_key, id: @column.code.presence || @column.id)
-        
-        # 完全に一致していない場合のみリダイレクト。ただしクエリストリング（?page=等）を除外してパス部分のみで比較
-        current_path_without_query = request.path.chomp('/')
-        expected_path_without_query = expected_path.split('?').first.chomp('/')
-
-        if current_path_without_query != expected_path_without_query
-          Rails.logger.info "[301 Redirect Triggered] From: #{request.path} To: #{expected_path}"
-          return redirect_to expected_path, status: :moved_permanently
-        end
-      rescue ActionController::UrlGenerationError => e
-        # URL生成失敗時にクローラーを死なせないためのセーフティ
-        Rails.logger.error "UrlGenerationError inside show for Column##{@column.id}: #{e.message}"
-        return render_404
-      end
-    end
-
-    # 4. 表示用データの準備
     if @column.article_type == "pillar"
       if admin_signed_in?
         @children = @column.children.order(updated_at: :desc)
       else
-        @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
+        @children = @column.children.where("body IS NOT NULL AND TRIM(body) != ''").order(updated_at: :desc)
       end
     else
       @children = []
@@ -196,9 +89,10 @@ def show
     @headings = []
     @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
       tag, text = Regexp.last_match(1), Regexp.last_match(2)
+      clean_text = text.gsub('#', '')
       idx = @headings.size
-      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
-      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+      @headings << { tag: tag, text: clean_text, id: "heading-#{idx}", level: tag[1].to_i }
+      "<#{tag} id='heading-#{idx}'>#{clean_text}</#{tag}>"
     end
   end
   
@@ -211,12 +105,10 @@ def show
       Column.where(id: column_ids).find_each do |c|
         GenerateColumnBodyJob.perform_later(c.id)
       end
-
       redirect_to columns_path
 
     when "delete_bulk"
       Column.where(id: column_ids).destroy_all
-
       redirect_to draft_columns_path
     end
   end
@@ -255,10 +147,9 @@ def show
   end
 
   # ======================
-  # IMAGE ACTIONS (NON-SIDEKIK THREAD BASE)
+  # IMAGE ACTIONS (NON-SIDEKIQ THREAD BASE)
   # ======================
   
-  # 画像単体削除アクション
   def remove_image
     if @column.respond_to?(:file) && @column.file.respond_to?(:purge)
       @column.file.purge
@@ -268,29 +159,33 @@ def show
     redirect_back fallback_location: columns_path, notice: "画像を削除しました。"
   end
 
-  # JSON用カウントチェッカー
   def check_bulk_image_count
-    genre = params[:bulk_genre]
+    genre        = params[:bulk_genre]
     article_type = params[:bulk_article_type]
 
-    query = Column.where(file: nil).where.not(body: [nil, ""])
-    query = query.where(genre: genre) if genre.present?
+    query = Column
+              .where("body IS NOT NULL AND TRIM(body) != ''")
+              .where(file: nil)
+
+    query = query.where(genre: genre)               if genre.present?
     query = query.where(article_type: article_type) if article_type.present?
 
     render json: { count: query.count, is_running: @@bulk_image_generating }
   end
 
-  # Sidekiqなしで動くネイティブスレッド一括自動生成
   def bulk_generate_images
     if @@bulk_image_generating
       return redirect_to columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
     end
 
-    genre = params[:bulk_genre]
+    genre        = params[:bulk_genre]
     article_type = params[:bulk_article_type]
 
-    query = Column.where(file: nil).where.not(body: [nil, ""])
-    query = query.where(genre: genre) if genre.present?
+    query = Column
+              .where("body IS NOT NULL AND TRIM(body) != ''")
+              .where(file: nil)
+
+    query = query.where(genre: genre)               if genre.present?
     query = query.where(article_type: article_type) if article_type.present?
 
     target_ids = query.pluck(:id)
@@ -298,10 +193,8 @@ def show
     if target_ids.any?
       @@bulk_image_generating = true
 
-      # Sidekiqなどのキューシステムを完全に排除し、Rubyの軽量スレッドでプロセスを分離
       Thread.new do
         begin
-          # スレッドプールからのDBコネクションを明示的に貸与・返却管理
           ActiveRecord::Base.connection_pool.with_connection do
             Column.where(id: target_ids, file: nil).find_each do |column|
               begin
@@ -312,7 +205,6 @@ def show
             end
           end
         ensure
-          # タスク完了または異常終了時に確実にロックを解除
           @@bulk_image_generating = false
         end
       end
@@ -333,9 +225,9 @@ def show
   end
 
   def draft
-    @columns = Column.where(status: "draft")
-                     .or(Column.where(body: [nil, ""]))
-                     .order(created_at: :desc)
+    @columns = Column
+                 .where("body IS NULL OR TRIM(body) = ''")
+                 .order(created_at: :desc)
   end
 
   def approve
@@ -401,7 +293,6 @@ def show
   private
 
   def set_column
-    # codeだけでなく、旧URLパラメータ(id形式)での検索もできるようにフォールバック
     @column = Column.find_by(code: params[:id]) || Column.find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}" unless @column
   end

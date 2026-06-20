@@ -177,17 +177,28 @@ curl -X GET https://your-domain.com/api/v1/articles \
     "article_type": "cluster",
     "file_url": "https://...",
     "created_at": "2026-06-18T00:00:00+09:00",
-    "updated_at": "2026-06-18T00:00:00+09:00"
+    "updated_at": "2026-06-18T00:00:00+09:00",
+    "url": "https://your-domain.com/api/v1/articles/article-slug"
   }
 ]
 ```
 
+**注意**: 各記事には `url` フィールドが含まれており、これを使用して個別の記事詳細にアクセスできます。
+
 ### 単一記事取得
 
 ```bash
-curl -X GET https://your-domain.com/api/v1/articles/1 \
+curl -X GET https://your-domain.com/api/v1/articles/:code \
   -H "X-API-Key: YOUR_API_KEY"
 ```
+
+**例**:
+```bash
+curl -X GET https://your-domain.com/api/v1/articles/article-slug \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+**注意**: 記事はIDではなくcode（slug）で指定します。
 
 ### HTMLレンダリング
 

@@ -1,0 +1,44 @@
+/ AIタイトル提案モーダル
+#title-suggestion-modal.modal-overlay style="display: none;"
+  .modal-content
+    .modal-header
+      h3 AIタイトル提案
+      button.modal-close onclick="closeTitleSuggestionModal()" ✕
+    .modal-body
+      #title-suggestion-form
+        .form-group
+          label キーワード1 *
+          input type="text" id="keyword1" placeholder="例: 荷物" required
+        .form-group
+          label キーワード2 *
+          input type="text" id="keyword2" placeholder="例: 配送" required
+        .form-group
+          label ターゲット層
+          select id="target_layer"
+            option value="big" ビッグキーワード（広範なユーザー層）
+            option value="middle" ミドルキーワード（特定のニーズ層）
+            option value="small" スモールキーワード（購買意欲の高い層）
+        .form-group
+          label ジャンル *
+          select id="genre-select-modal"
+            option value="" 選択してください
+            - GenreRegistry::GENRES.each do |key, data|
+              option value=data[:ja] = data[:ja]
+        button.btn.btn-primary onclick="generateTitles()" style="width: 100%; margin-top: 16px; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"
+          svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+          span style="letter-spacing: 0.3px;" タイトルを生成
+      #title-suggestion-loading style="display: none; text-align: center; padding: 40px;"
+        .spinner
+          svg.spinner-icon viewBox="0 0 50 50"
+            circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
+        p AIがタイトルを生成中...
+      #title-suggestion-results style="display: none;"
+        h4 タイトル候補
+        #titles-list style="max-height: 400px; overflow-y: auto; margin-top: 16px;"
+        button.btn.btn-primary onclick="createSelectedColumns()" style="width: 100%; margin-top: 16px; height: 38px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"
+          span 選択したタイトルを登録
+        button.btn.btn-secondary onclick="backToForm()" style="width: 100%; margin-top: 8px; height: 38px; display: inline-flex; align-items: center; justify-content: center; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; cursor: pointer; transition: background-color 0.2s, border-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.backgroundColor='#fff'; this.style.borderColor='#e2e8f0';"
+          span 入力画面に戻る
+    .modal-footer
+

@@ -25,6 +25,12 @@ Rails.application.routes.draw do
         get :export
         post :bulk_generate_images
         get :check_bulk_image_count
+        
+        # JS側の GET "/dashboard/columns/suggest" を、コントローラーの suggest_titles メソッドへ繋ぐ
+        get :suggest, to: 'columns#suggest_titles'
+        
+        post :create_from_suggestion
+        post :bulk_create_from_suggestions
       end
 
       member do
@@ -116,11 +122,12 @@ Rails.application.routes.draw do
   # API for article distribution
   namespace :api do
     namespace :v1 do
-      resources :articles, only: [:index, :show] do
+      resources :articles, only: [:index] do
         collection do
           post :render_html
         end
       end
+      get 'articles/:code', to: 'articles#show', as: :article
     end
   end
 end

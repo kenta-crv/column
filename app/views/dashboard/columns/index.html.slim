@@ -7,17 +7,22 @@
         input type="hidden" name="genre" value=params[:genre]
       - if params[:language].present?
         input type="hidden" name="language" value=params[:language]
-      select.filter-select name="export_format" style="height: 32px; min-width: 140px; padding: 0 24px 0 10px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 13px; background-color: #fff; box-sizing: border-box; cursor: pointer;"
+      select.filter-select name="export_format" style="height: 36px; min-width: 140px; padding: 0 24px 0 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px; background-color: #fff; box-sizing: border-box; cursor: pointer;"
         option value="text" テキストのみ抽出
         option value="html" HTML構造を維持
-      button type="submit" class="btn btn-export" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; height: 36px; padding: 0 12px;"
-        svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      button type="submit" class="btn btn-export" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; height: 36px; padding: 0 14px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='#fff'"
+        svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
           polyline points="17 8 12 3 7 8"
           line x1="12" y1="3" x2="12" y2="15"
         span エクスポート
 
   .header-right style="display: flex; align-items: center; gap: 12px;"
+    button.btn.btn-primary onclick="openTitleSuggestionModal()" style="height: 36px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; cursor: pointer; transition: background-color 0.2s, border-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.backgroundColor='#fff'; this.style.borderColor='#e2e8f0';"
+      svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"
+        path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+      span AIタイトル提案
+
     = form_with url: columns_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form" } do |f|
       .search-box-wrapper
         button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center;"
@@ -116,7 +121,7 @@
         .trend.down
           span ↓ 5.2%
         .value-row
-          .value = Column.where(status: "draft").count
+          .value = Column.where("body IS NULL OR TRIM(body) = ''").count
           .comparison （前月比）
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
@@ -156,7 +161,7 @@
         span 成功率
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
-      .success-meta 高品質で生成
+      .success-meta 高高品質で生成
       .score-box
         .score-avg AI品質スコア平均
         .score-value
@@ -177,7 +182,7 @@
       span.count-badge.bg-primary = Column.count
     = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
       span.tab-label 下書き
-      span.count-badge = Column.where(body: [nil, ""]).count
+      span.count-badge = Column.where("body IS NULL OR TRIM(body) = ''").count
     = link_to dashboard_columns_path(scope: "pillar"), class: "tab-btn #{'active' if params[:scope] == 'pillar'}" do
       span.tab-label 親記事
       span.count-badge = Column.where(article_type: "pillar").count
@@ -186,7 +191,7 @@
       span.count-badge = Column.where(article_type: "cluster").count
     = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
       span.tab-label 公開済み
-      span.count-badge = Column.where.not(body: [nil, ""]).count
+      span.count-badge = Column.where("body IS NOT NULL AND TRIM(body) != ''").count
     = link_to dashboard_columns_path(scope: "error"), class: "tab-btn #{'active' if params[:scope] == 'error'}" do
       span.tab-label エラー
       span.count-badge = Column.where(status: "error").count
@@ -283,12 +288,10 @@
                       - if c.keyword.present?
                         span.tag-item = c.genre
               td
-                - if c.status == "approved"
+                - if c.body.present?
                   span.status-badge.published 公開済み
-                - elsif c.status == "draft"
-                  span.status-badge.draft 下書き
                 - else
-                  span.status-badge.reserved = c.status || "未設定"
+                  span.status-badge.draft 下書き
               td.date-text = c.updated_at.strftime("%Y/%m/%d %H:%M")
               td
                 - if c.quality_score.present? && c.quality_score > 0
@@ -351,41 +354,48 @@
     line x1="12" y1="5" x2="12" y2="19"
     line x1="5" y1="12" x2="19" y2="12"
 
+= render "title_suggestion_modal"
+
 javascript:
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn  = document.getElementById('languageDropdownBtn');
-    const menu = document.getElementById('languageMenu');
+  (function() {
+    const initAll = () => {
+      // 言語ドロップダウン
+      const btn  = document.getElementById('languageDropdownBtn');
+      const menu = document.getElementById('languageMenu');
+      if (btn && menu) {
+        const freshBtn = btn.cloneNode(true);
+        btn.replaceWith(freshBtn);
+        freshBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target) && e.target !== freshBtn) {
+            menu.style.display = 'none';
+          }
+        });
+      }
 
-    if (btn && menu) {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-      });
-      document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && e.target !== btn) {
-          menu.style.display = 'none';
-        }
-      });
-    }
+      // ActionCable
+      if (typeof ActionCable !== 'undefined') {
+        const cable = ActionCable.createConsumer('/cable');
+        cable.subscriptions.create('GenerationChannel', {
+          received(data) { updateGenerationStatus(data); },
+          connected()    { console.log('Connected to GenerationChannel'); },
+          disconnected() { console.log('Disconnected from GenerationChannel'); }
+        });
+      } else {
+        console.error('ActionCable is not defined.');
+      }
+    };
 
-    if (typeof ActionCable !== 'undefined') {
-      const cable = ActionCable.createConsumer('/cable');
-      cable.subscriptions.create('GenerationChannel', {
-        received(data) {
-          console.log('Received ActionCable data:', data);
-          updateGenerationStatus(data);
-        },
-        connected() {
-          console.log('Connected to GenerationChannel');
-        },
-        disconnected() {
-          console.log('Disconnected from GenerationChannel');
-        }
-      });
+    document.addEventListener('turbo:load', initAll);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAll);
     } else {
-      console.error('ActionCable is not defined. Make sure cable.js is loaded.');
+      initAll();
     }
-  });
+  })();
 
   function toggleAllColumns(source) {
     document.querySelectorAll('.column-select-checkbox')
@@ -485,3 +495,104 @@ javascript:
         ${feedback ? `<div class="quality-feedback">${feedback}</div>` : ''}
       </div>`;
   }
+
+  function openTitleSuggestionModal() {
+    const modal = document.getElementById('title-suggestion-modal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeTitleSuggestionModal() {
+    const modal = document.getElementById('title-suggestion-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function generateTitles() {
+    const keyword1    = document.getElementById('keyword1').value;
+    const keyword2    = document.getElementById('keyword2').value;
+    const targetLayer = document.getElementById('target_layer').value;
+    const genre       = document.getElementById('genre-select-modal').value;
+
+    if (!keyword1 || !keyword2 || !genre) {
+      alert('キーワードとジャンルを入力してください');
+      return;
+    }
+
+    document.getElementById('title-suggestion-form').style.display    = 'none';
+    document.getElementById('title-suggestion-loading').style.display = 'block';
+
+    fetch(`/dashboard/columns/suggest?keyword1=${encodeURIComponent(keyword1)}&keyword2=${encodeURIComponent(keyword2)}&target_layer=${encodeURIComponent(targetLayer)}&genre=${encodeURIComponent(genre)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('title-suggestion-loading').style.display  = 'none';
+      document.getElementById('title-suggestion-results').style.display  = 'block';
+
+      if (data.success) {
+        const titlesList = document.getElementById('titles-list');
+        titlesList.innerHTML = '';
+        data.titles.forEach((title, index) => {
+          const div = document.createElement('div');
+          div.className = 'title-option';
+          div.innerHTML = `
+            <input type="checkbox" class="title-checkbox" value="${title}" id="title-${index}">
+            <label for="title-${index}" style="margin-left: 8px; cursor: pointer;">${title}</label>
+          `;
+          titlesList.appendChild(div);
+        });
+      } else {
+        document.getElementById('titles-list').innerHTML = '<p style="color: red;">' + data.error + '</p>';
+      }
+    })
+    .catch(() => {
+      document.getElementById('title-suggestion-loading').style.display = 'none';
+      document.getElementById('title-suggestion-results').style.display = 'block';
+      document.getElementById('titles-list').innerHTML = '<p style="color: red;">エラーが発生しました</p>';
+    });
+  }
+
+  function createSelectedColumns() {
+    const checkboxes = document.querySelectorAll('.title-checkbox:checked');
+    if (checkboxes.length === 0) {
+      alert('タイトルを選択してください');
+      return;
+    }
+
+    const titles = Array.from(checkboxes).map(cb => cb.value);
+    const genre  = document.getElementById('genre-select-modal').value;
+
+    if (!confirm(`${titles.length}件のタイトルを登録しますか？`)) return;
+
+    fetch('/dashboard/columns/bulk_create_from_suggestions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ titles, genre })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        closeTitleSuggestionModal();
+        alert(`${data.created_count}件の記事を作成しました`);
+        location.reload();
+      } else {
+        alert('エラー: ' + data.error);
+      }
+    })
+    .catch(() => { alert('エラーが発生しました'); });
+  }
+
+  function backToForm() {
+    document.getElementById('title-suggestion-results').style.display = 'none';
+    document.getElementById('title-suggestion-form').style.display    = 'block';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeTitleSuggestionModal();
+  });

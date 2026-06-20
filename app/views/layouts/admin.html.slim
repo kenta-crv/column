@@ -4,29 +4,24 @@ html
     title Drafity Admin
     = csrf_meta_tags
     = csp_meta_tag
-    / admin から application に変更し、アセット見つからないエラーを回避
     = stylesheet_link_tag "application", media: "all"
     = javascript_include_tag "application", defer: true
     meta name="viewport" content="width=device-width, initial-scale=1"
 
   body.admin-body
     .admin-shell
-      / --- Sidebar (左側固定) ---
       aside class="admin-sidebar"
         .sidebar-top
-          / ロゴ（link_to で root_path へリンクし、image_tag で画像を表示）
           .logo
             = link_to root_path, class: "logo-link" do
               = image_tag "logo.png", alt: "Drafity Logo", width: "200", style: "filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));"
 
-          / 新規記事生成ボタン（= link_to へ変更）
           = link_to new_column_path, class: "btn-create-article" do
             svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               line x1="12" y1="5" x2="12" y2="19"
               line x1="5" y1="12" x2="19" y2="12"
             | 親記事の作成開始
 
-          / ナビゲーション
           nav.sidebar-nav
             /= link_to dashboard_root_path, class: (controller_name == "columns" && action_name == "dashboard_index" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -49,7 +44,6 @@ html
                 path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
               | ドラフト一覧
 
-            / クラスター記事生成
             = link_to "/columns?article_type=pillar" do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
@@ -60,7 +54,6 @@ html
                 path d="M7.5 7.5L5 5"
               | クラスタータイトル生成
 
-            / クラスター記事一括生成
             /= link_to columns_path(article_type: "pillar") do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
@@ -77,7 +70,6 @@ html
                 path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
               | 新規ジャンル指定
 
-            / ----- 設定リンクブロック -----
             - if admin_signed_in?
               = link_to dashboard_management_path, class: (controller_name == "dashboards" && action_name == "management" ? "active" : nil) do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -91,13 +83,6 @@ html
                   path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                 | API設定
 
-              = link_to dashboard_setting_path, class: (controller_name == "columns" && action_name == "setting" ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  circle cx="12" cy="12" r="3"
-                  path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                | アカウント設定
-
-            / ログアウトボタン
             - if admin_signed_in?
               = link_to destroy_admin_session_path, method: :delete, class: "logout-link" do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -114,15 +99,22 @@ html
                 | ログアウト
 
         .sidebar-bottom
-          / プロフィール
-          .user-profile
-            img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Avatar" class="avatar"
-            .user-info
-              span.user-name Yuki Tanaka
-              span.user-plan Pro Plan
-            button.btn-user-menu •••
+          .user-profile style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative;"
+            .user-info-group style="display: flex; align-items: center; gap: 12px;"
+              img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Avatar" class="avatar"
+              .user-info
+                span.user-name Yuki Tanaka
+                span.user-plan Pro Plan
+            .user-menu-wrapper style="position: static;"
+              button.btn-user-menu#userMenuBtn type="button" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px 8px; font-size: 16px;" •••
+              .user-menu-dropdown#userMenuDropdown style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; margin-bottom: 8px; background-color: #1e293b; border: 1px solid #334155; border-radius: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); z-index: 50; padding: 6px 0;"
+                - if client_signed_in?
+                  = link_to dashboard_setting_path, style: "display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 13px; color: #f8fafc; text-decoration: none; transition: background-color 0.2s;", onmouseover: "this.style.backgroundColor='#334155'", onmouseout: "this.style.backgroundColor='transparent'" do
+                    svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      circle cx="12" cy="12" r="3"
+                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    | アカウント設定
 
-          / 使用状況
           .usage-container
             .usage-header 今月の使用状況
             .usage-stats
@@ -131,6 +123,34 @@ html
             .usage-progress-bar
               .usage-progress-fill style="width: 54%;"
 
-      / --- Main Content Area (右側可変領域) ---
       main.admin-main
         = yield
+
+  javascript:
+    (function() {
+      const initUserMenu = () => {
+        const btn      = document.getElementById('userMenuBtn');
+        const dropdown = document.getElementById('userMenuDropdown');
+        if (!btn || !dropdown) return;
+
+        const freshBtn = btn.cloneNode(true);
+        btn.replaceWith(freshBtn);
+
+        freshBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        document.addEventListener('click', (e) => {
+          if (!dropdown.contains(e.target) && e.target !== freshBtn) {
+            dropdown.style.display = 'none';
+          }
+        });
+      };
+
+      document.addEventListener('turbo:load', initUserMenu);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initUserMenu);
+      } else {
+        initUserMenu();
+      }
+    })();

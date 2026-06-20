@@ -179,4 +179,68 @@ def index
   def management
     @clients = Client.includes(:subscriptions).order(created_at: :desc)
   end
+
+  def suggest_titles
+    result = PillarTitleSuggestionService.call(
+      keyword1: params[:keyword1],
+      keyword2: params[:keyword2],
+      target_layer: params[:target_layer],
+      genre: params[:genre]
+    )
+
+    if result[:success]
+      render json: { success: true, titles: result[:titles] }
+    else
+      render json: { success: false, error: result[:error] }
+    end
+  end
+
+  def create_from_suggestion
+    @column = Column.new(
+      title: params[:title],
+      article_type: "pillar",
+      genre: params[:genre],
+      status: "draft"
+    )
+
+    if @column.save
+      render json: { success: true, column_id: @column.id, redirect_path: edit_column_path(@column) }
+    else
+      render json: { success: false, error: @column.errors.full_messages.join(", ") }
+    end
+  end
+
+  def bulk_create_from_suggestions
+    titles = params[:titles]
+    genre = params[:genre]
+
+    if titles.blank? || genre.blank?
+      render json: { success: false, error: "タイトルとジャンルを指定してください" }
+      return
+    end
+
+    created_count = 0
+    errors = []
+
+    titles.each do |title|
+      column = Column.new(
+        title: title,
+        article_type: "pillar",
+        genre: genre,
+        status: "draft"
+      )
+
+      if column.save
+        created_count += 1
+      else
+        errors << "#{title}: #{column.errors.full_messages.join(', ')}"
+      end
+    end
+
+    if created_count > 0
+      render json: { success: true, created_count: created_count, errors: errors }
+    else
+      render json: { success: false, error: "記事を作成できませんでした: #{errors.join(', ')}" }
+    end
+  end
 end

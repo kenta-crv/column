@@ -13,14 +13,14 @@
 
         <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
           <h2 style="font-size: 1.25rem; margin: 0 0 12px 0; font-weight: bold; line-height: 1.4;">
-            <a href="#article-<%= column.id %>" style="color: #007bff; text-decoration: none;"><%= column.title %></a>
+            <% # 💡 codeを最優先、なければidを使用するリンク先端口 %>
+            <% link_target = column.code.presence || column.id %>
+            <a href="?column=<%= link_target %>" style="color: #007bff; text-decoration: none;"><%= column.title %></a>
           </h2>
           
           <% if column.description.present? %>
             <% 
-              # 💡 データベース内で本文と混ざっているHTMLタグや改行コードを完全に除去
               clean_text = column.description.to_s.gsub(/<[^>]*>/, "").gsub(/\s+/, " ").strip
-              # 💡 先頭の120文字だけを強制抽出して、本文の侵入を物理的に遮断
               short_desc = clean_text[0, 120]
               short_desc += "..." if clean_text.length > 120
             %>
@@ -29,19 +29,8 @@
             </p>
           <% end %>
           
-
-          
-          <% if column.keyword.present? %>
-            <div style="margin-top: auto; padding-top: 10px; font-size: 0.85rem; color: #777;">
-              <span style="font-weight: bold;">キーワード:</span> <%= column.keyword %>
-            </div>
-          <% end %>
-          
-          <div style="margin-top: 10px; font-size: 0.8rem; color: #999; display: flex; gap: 10px;">
-            <span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px;"><%= column.genre %></span>
-            <% if column.sub_genre.present? %>
-              <span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px;"><%= column.sub_genre %></span>
-            <% end %>
+          <div style="margin-top: auto; font-size: 0.8rem; color: #999; display: flex; gap: 10px;">
+            <span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; color: #333;"><%= column.genre %></span>
             <span><%= column.updated_at.strftime('%Y年%m月%d日') %></span>
           </div>
         </div>
