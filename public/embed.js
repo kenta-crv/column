@@ -1,24 +1,28 @@
 (function() {
   'use strict';
 
-  function initEmbed() {
+  function scanAndEmbed() {
     const scripts = document.querySelectorAll('script[src*="embed.js"]');
     
     scripts.forEach(function(script) {
+      // すでに処理済みのスクリプトはスキップ
+      if (script.dataset.embedded === 'true') return;
+
       const apiKey = script.dataset.apiKey;
       const containerId = script.dataset.containerId || 'articles';
       const container = document.getElementById(containerId);
       
-      if (!container) {
-        console.error('Container element not found: #' + containerId);
-        return;
-      }
+      // コンテナ要素がDOM上にまだ存在しない場合はスキップして次の監視に委ねる
+      if (!container) return;
       
       if (!apiKey) {
         console.error('API key not found in data-api-key attribute');
+        script.dataset.embedded = 'true';
         return;
       }
       
+      // 処理開始フラグを立てて実行
+      script.dataset.embedded = 'true';
       loadArticles(apiKey, container);
     });
   }
@@ -70,7 +74,17 @@
     return window.location.origin;
   }
 
-  // DOMContentLoadedを待たずに即時実行
-  initEmbed();
+  // 1. スクリプト読み込み時点での即時実行を試行
+  scanAndEmbed();
 
+  // 2. 3002番側のSlimレンダリング完了を検知するため、DOMの動的変化を自動監視
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(function() {
+      scanAndEmbed();
+    });
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  }
 })();
