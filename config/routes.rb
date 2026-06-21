@@ -13,13 +13,8 @@ Rails.application.routes.draw do
 
   # --- 管理画面を /dashboard 配下に完全移行 ---
   namespace :dashboard do
-    # 特定ルートをresourcesの前に定義して優先順位を確保
     get 'setting', to: 'columns#setting'
-    
-    # レイアウトの判定（controller_name == "dashboards"）と一致させるため、
-    # もしコントローラーが DashboardsController であれば、以下のように to: 'dashboards#management' に修正します。
-    # 現状の ColumnsController#management のままで良ければ、to: 'columns#management' に戻してください。
-    get 'management', to: 'dashboards#management'
+    get 'management', to: 'columns#management'
     
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'
