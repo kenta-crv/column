@@ -26,14 +26,12 @@
   function loadArticles(apiKey, container) {
     container.innerHTML = '<div class="embed-loading" style="padding:20px; text-align:center;">読み込み中...</div>';
     
-    // 💡 URLのパラメータから「column」の名前でコード値を取得する
     const urlParams = new URLSearchParams(window.location.search);
     const columnCode = urlParams.get('column');
     
     const apiEndpoint = determineApiEndpoint();
     let url = apiEndpoint + '/api/v1/articles/render_html?api_key=' + encodeURIComponent(apiKey);
     
-    // 💡 コード値がURLに含まれていれば、3001番側にもそのまま転送して詳細HTMLを要求する
     if (columnCode) {
       url += '&column=' + encodeURIComponent(columnCode);
     }
@@ -66,7 +64,7 @@
       const scriptSrc = scripts[0].src;
       const match = scriptSrc.match(/^(https?:\/\/[^\/]+)/);
       if (match) {
-        return match[1];
+        return match[1]; // 💡 これにより http://localhost:3001 でも https://drafity.pro でも自動で切り替わります
       }
     }
     return window.location.origin;

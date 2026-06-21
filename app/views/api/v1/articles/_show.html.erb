@@ -5,7 +5,7 @@
     
     <% if @column.file.present? %>
       <div class="column-image-wrapper" style="width: 100% !important; max-width: 780px !important; margin: 0 auto 50px !important; border-radius: 14px !important; overflow: hidden !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important; background: #f3f4f6 !important; position: relative !important; border: 1px solid rgba(0, 0, 0, 0.05) !important; box-sizing: border-box !important;">
-        <img src="http://localhost:3001<%= @column.file.url %>" alt="<%= @column.title %>" class="column-thumb-main" style="display: block !important; width: 100% !important; height: auto !important; max-height: 480px !important; object-fit: cover !important; transition: transform 0.5s ease !important;">
+        <img src="<%= @column.file.url %>" alt="<%= @column.title %>" class="column-thumb-main" style="display: block !important; width: 100% !important; height: auto !important; max-height: 480px !important; object-fit: cover !important; transition: transform 0.5s ease !important;">
       </div>
     <% end %>
 
@@ -36,14 +36,10 @@
 
     <div class="column-body" style="font-size: 17px !important; line-height: 1.9 !important; color: #333 !important; display: block !important;">
       <style>
-        /* 3002番側のグローバルCSSを完全にシャットアウトする優先スタイル定義群 */
         .column-body h2, .column-body h3, .column-body h4 { font-weight: 700 !important; margin-top: 60px !important; margin-bottom: 20px !important; scroll-margin-top: 100px !important; display: block !important; }
         .column-body h2 { font-size: 26px !important; color: #111 !important; border-bottom: 3px solid #3b82f6 !important; padding-bottom: 6px !important; }
-        
-        /* h3の擬似要素による ▹ マーク演出を完全再現 */
         .column-body h3 { font-size: 22px !important; color: #1e40af !important; position: relative !important; padding-left: 14px !important; }
         .column-body h3::before { content: "▹" !important; position: absolute !important; left: 0 !important; color: #3b82f6 !important; font-weight: 700 !important; }
-        
         .column-body h4 { font-size: 18px !important; color: #374151 !important; }
         .column-body p { margin-bottom: 20px !important; line-height: 1.9 !important; color: #333 !important; display: block !important; }
         .column-body img { display: block !important; margin: 40px auto !important; max-width: 100% !important; border-radius: 12px !important; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important; height: auto !important; }
@@ -54,11 +50,9 @@
         .column-body ol { margin: 15px 0 25px 25px !important; padding-left: 0 !important; list-style-type: decimal !important; display: block !important; }
         .column-body li { margin-bottom: 5px !important; line-height: 1.9 !important; display: list-item !important; }
 
-        /* ホバーインタラクション */
         .blog-container .toc .toc-list .toc-item a:hover { color: #2563eb !important; text-decoration: none !important; }
         .blog-container .column-image-wrapper:hover .column-thumb-main { transform: scale(1.02) !important; }
 
-        /* レスポンシブ(max-width: 768px)指定の競合排除 */
         @media (max-width: 768px) {
           .blog-container { padding: 60px 15px !important; }
           .blog-container .container { padding: 40px 24px !important; }
@@ -74,8 +68,25 @@
           .blog-container .column-body h4 { font-size: 16px !important; }
         }
       </style>
-      <%= raw Kramdown::Document.new(@column.body).to_html %>
+      <%= raw(@column_body_with_ids) %>
     </div>
+
+    <% if @column.article_type == "pillar" %>
+      <% public_children = @children.select { |c| c.body.present? && c.code.present? } %>
+      <% if public_children.any? %>
+        <div class="related-articles" style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+          <h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px; font-weight: 700; margin-top: 0;">関連記事一覧</h2>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <% public_children.each do |child| %>
+              <li style="margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; display: flex; align-items: baseline;">
+                <span style="color: #007bff; margin-right: 12px; font-size: 1.2rem;">●</span>
+                <a href="?column=<%= child.code %>" style="color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"><%= child.title %></a>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    <% end %>
 
     <div class="embed-back-action-wrap" style="margin-top: 60px !important; padding-top: 40px !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; text-align: center !important; display: block !important;">
       <a href="?" id="embed-back-to-index-btn" style="display: inline-block !important; padding: 14px 40px !important; background: #374151 !important; color: #fff !important; border-radius: 8px !important; text-decoration: none !important; font-weight: 700 !important; font-size: 16px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important;">一覧へ戻る</a>
