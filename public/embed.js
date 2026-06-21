@@ -64,15 +64,13 @@
       const scriptSrc = scripts[0].src;
       const match = scriptSrc.match(/^(https?:\/\/[^\/]+)/);
       if (match) {
-        return match[1]; // 💡 これにより http://localhost:3001 でも https://drafity.pro でも自動で切り替わります
+        return match[1];
       }
     }
     return window.location.origin;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEmbed);
-  } else {
-    initEmbed();
-  }
+  // DOMContentLoadedを待たずに即時実行
+  initEmbed();
+
 })();
