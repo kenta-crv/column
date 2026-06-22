@@ -5,18 +5,20 @@
     const scripts = document.querySelectorAll('script[src*="embed.js"]');
     
     scripts.forEach(function(script) {
-      // 💡 ページ遷移のたびに再実行できるよう、一度実行したタグでもコンテナが空なら再処理する
       const apiKey = script.dataset.apiKey;
       const containerId = script.dataset.containerId || 'articles';
       const container = document.getElementById(containerId);
       
-      if (!container) return;
+      if (!container) {
+        console.error('Container element not found: #' + containerId);
+        return;
+      }
       
-      // すでに読み込み中、または取得済みの場合は重複実行を防ぐ
-      if (container.dataset.embeddedLoaded === 'true') return;
-      if (!apiKey) return;
+      if (!apiKey) {
+        console.error('API key not found in data-api-key attribute');
+        return;
+      }
       
-      container.dataset.embeddedLoaded = 'true';
       loadArticles(apiKey, container);
     });
   }
@@ -24,12 +26,14 @@
   function loadArticles(apiKey, container) {
     container.innerHTML = '<div class="embed-loading" style="padding:20px; text-align:center;">読み込み中...</div>';
     
+    // 💡 URLのパラメータから「column」の名前でコード値を取得する
     const urlParams = new URLSearchParams(window.location.search);
     const columnCode = urlParams.get('column');
     
     const apiEndpoint = determineApiEndpoint();
     let url = apiEndpoint + '/api/v1/articles/render_html?api_key=' + encodeURIComponent(apiKey);
     
+    // 💡 コード値がURLに含まれていれば、3001番側にもそのまま転送して詳細HTMLを要求する
     if (columnCode) {
       url += '&column=' + encodeURIComponent(columnCode);
     }
@@ -48,12 +52,11 @@
         container.innerHTML = html;
       } else {
         container.innerHTML = '<div class="embed-error">データを取得できませんでした。</div>';
-        container.dataset.embeddedLoaded = 'false';
       }
     })
     .catch(function(error) {
+      console.error('Fetch operation error:', error);
       container.innerHTML = '<div class="embed-error">記事の読み込みに失敗しました。</div>';
-      container.dataset.embeddedLoaded = 'false';
     });
   }
 
@@ -69,14 +72,9 @@
     return window.location.origin;
   }
 
-  // 1. 通常の初回読み込み時の実行
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initEmbed);
   } else {
     initEmbed();
   }
-
-  // 2. 💡 RailsのTurbolinksによるページ遷移（更新）を監視して強制再実行
-  document.addEventListener('turbolinks:load', initEmbed);
-
 })();

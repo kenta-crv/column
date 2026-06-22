@@ -1,302 +1,101 @@
-<div class="embed-blog-container">
-  <div class="embed-inner-container">
+<div class="blog-container" style="background: #f9fafb !important; padding: 80px 0 !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; box-sizing: border-box !important; width: 100% !important; display: block !important;">
+  <div class="container" style="max-width: 880px !important; margin: 0 auto !important; background: #fff !important; padding: 60px 50px !important; border-radius: 16px !important; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important; box-sizing: border-box !important;">
     
-    <h1 class="embed-column-title"><%= @column.title %></h1>
+    <h1 class="column-title" style="font-size: 36px !important; font-weight: 700 !important; color: #111 !important; text-align: center !important; margin: 0 0 40px 0 !important; line-height: 1.4 !important; display: block !important;"><%= @column.title %></h1>
     
     <% if @column.file.present? %>
-      <div class="embed-column-image-wrapper">
-        <img src="<%= @column.file.url %>" alt="<%= @column.title %>" class="embed-column-thumb-main">
+      <div class="column-image-wrapper" style="width: 100% !important; max-width: 780px !important; margin: 0 auto 50px !important; border-radius: 14px !important; overflow: hidden !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important; background: #f3f4f6 !important; position: relative !important; border: 1px solid rgba(0, 0, 0, 0.05) !important; box-sizing: border-box !important;">
+        <img src="http://drafity.pro<%= @column.file.url %>" alt="<%= @column.title %>" class="column-thumb-main" style="display: block !important; width: 100% !important; height: auto !important; max-height: 480px !important; object-fit: cover !important; transition: transform 0.5s ease !important;">
       </div>
     <% end %>
 
     <% if @headings.present? && @headings.any? %>
-      <div class="embed-toc">
-        <div class="embed-toc-title">目次</div>
-        <ul class="embed-toc-list">
+      <div class="toc" style="background: #f0f4ff !important; border: 1px solid #c7d2fe !important; border-radius: 12px !important; padding: 25px 30px !important; margin-bottom: 50px !important; font-size: 15px !important; line-height: 1.7 !important; box-sizing: border-box !important; display: block !important;">
+        <div class="toc-title" style="font-size: 20px !important; font-weight: 700 !important; color: #3b82f6 !important; margin-bottom: 12px !important; display: block !important;">目次</div>
+        <ul class="toc-list" style="list-style: none !important; padding-left: 0 !important; margin: 0 !important; display: block !important;">
           <% @headings.each do |h| %>
             <% 
-              level_class = "embed-toc-level-#{h[:level]}"
+              level_class = "toc-level-#{h[:level]}"
               indent_style = ""
               font_size_style = ""
               if h[:level] == 3
-                indent_style = "margin-left: 18px;"
-                font_size_style = "font-size: 14px;"
+                indent_style = "margin-left: 18px !important;"
+                font_size_style = "font-size: 14px !important;"
               elsif h[:level] == 4
-                indent_style = "margin-left: 30px;"
-                font_size_style = "font-size: 13px;"
+                indent_style = "margin-left: 30px !important;"
+                font_size_style = "font-size: 13px !important;"
               end
             %>
-            <li class="embed-toc-item <%= level_class %>" style="<%= indent_style %> <%= font_size_style %>">
-              <a href="#<%= h[:id] %>"><%= h[:text] %></a>
+            <li class="toc-item <%= level_class %>" style="margin: 6px 0 !important; display: list-item !important; <%= indent_style %> <%= font_size_style %>">
+              <a href="#<%= h[:id] %>" style="color: #374151 !important; text-decoration: none !important; transition: color 0.2s ease !important; display: inline-block !important;"><%= h[:text] %></a>
             </li>
           <% end %>
         </ul>
       </div>
     <% end %>
 
-    <div class="embed-column-body">
-      <%= raw(@column_body_with_ids) %>
+    <div class="column-body" style="font-size: 17px !important; line-height: 1.9 !important; color: #333 !important; display: block !important;">
+      <style>
+        /* 3002番側のグローバルCSSを完全にシャットアウトする優先スタイル定義群 */
+        .column-body h2, .column-body h3, .column-body h4 { font-weight: 700 !important; margin-top: 60px !important; margin-bottom: 20px !important; scroll-margin-top: 100px !important; display: block !important; }
+        .column-body h2 { font-size: 26px !important; color: #111 !important; border-bottom: 3px solid #3b82f6 !important; padding-bottom: 6px !important; }
+        
+        /* h3の擬似要素による ▹ マーク演出を完全再現 */
+        .column-body h3 { font-size: 22px !important; color: #1e40af !important; position: relative !important; padding-left: 14px !important; }
+        .column-body h3::before { content: "▹" !important; position: absolute !important; left: 0 !important; color: #3b82f6 !important; font-weight: 700 !important; }
+        
+        .column-body h4 { font-size: 18px !important; color: #374151 !important; }
+        .column-body p { margin-bottom: 20px !important; line-height: 1.9 !important; color: #333 !important; display: block !important; }
+        .column-body img { display: block !important; margin: 40px auto !important; max-width: 100% !important; border-radius: 12px !important; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important; height: auto !important; }
+        .column-body a { color: #2563eb !important; text-decoration: underline !important; }
+        .column-body a:hover { opacity: 0.8 !important; }
+        .column-body blockquote { background: #f1f5f9 !important; border-left: 5px solid #3b82f6 !important; padding: 15px 20px !important; border-radius: 8px !important; color: #444 !important; margin: 25px 0 !important; font-style: italic !important; display: block !important; }
+        .column-body ul { margin: 15px 0 25px 25px !important; padding-left: 0 !important; list-style-type: disc !important; display: block !important; }
+        .column-body ol { margin: 15px 0 25px 25px !important; padding-left: 0 !important; list-style-type: decimal !important; display: block !important; }
+        .column-body li { margin-bottom: 5px !important; line-height: 1.9 !important; display: list-item !important; }
+
+        /* ホバーインタラクション */
+        .blog-container .toc .toc-list .toc-item a:hover { color: #2563eb !important; text-decoration: none !important; }
+        .blog-container .column-image-wrapper:hover .column-thumb-main { transform: scale(1.02) !important; }
+
+        /* レスポンシブ(max-width: 768px)指定の競合排除 */
+        @media (max-width: 768px) {
+          .blog-container { padding: 60px 15px !important; }
+          .blog-container .container { padding: 40px 24px !important; }
+          .blog-container .column-title { font-size: 28px !important; margin-bottom: 30px !important; }
+          .blog-container .column-image-wrapper { margin-bottom: 35px !important; border-radius: 8px !important; }
+          .blog-container .column-image-wrapper::after { border-radius: 8px !important; }
+          .blog-container .toc { padding: 18px 20px !important; }
+          .blog-container .toc .toc-title { font-size: 18px !important; }
+          .blog-container .toc .toc-list a { font-size: 14px !important; }
+          .blog-container .column-body { font-size: 15px !important; }
+          .blog-container .column-body h2 { font-size: 22px !important; }
+          .blog-container .column-body h3 { font-size: 18px !important; }
+          .blog-container .column-body h4 { font-size: 16px !important; }
+        }
+      </style>
+      <%= raw Kramdown::Document.new(@column.body).to_html %>
     </div>
 
-    <% if @column.article_type == "pillar" %>
-      <% public_children = @children.select { |c| c.body.present? && c.code.present? } %>
-      <% if public_children.any? %>
-        <div class="embed-related-articles">
-          <h2 class="embed-related-title">関連記事一覧</h2>
-          <ul class="embed-related-list">
-            <% public_children.each do |child| %>
-              <li class="embed-related-item">
-                <span class="embed-related-dot">●</span>
-                <a href="?column=<%= child.code %>"><%= child.title %></a>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-    <% end %>
-
-    <div class="embed-back-action-wrap">
-      <a href="?" id="embed-back-to-index-btn">一覧へ戻る</a>
+    <div class="embed-back-action-wrap" style="margin-top: 60px !important; padding-top: 40px !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; text-align: center !important; display: block !important;">
+      <a href="?" id="embed-back-to-index-btn" style="display: inline-block !important; padding: 14px 40px !important; background: #374151 !important; color: #fff !important; border-radius: 8px !important; text-decoration: none !important; font-weight: 700 !important; font-size: 16px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important;">一覧へ戻る</a>
     </div>
+
+    <script>
+      (function() {
+        const backBtn = document.getElementById('embed-back-to-index-btn');
+        if (backBtn) {
+          backBtn.href = window.location.pathname;
+          
+          backBtn.onmouseover = function() { 
+            this.style.setProperty('background', '#2563eb', 'important');
+          };
+          backBtn.onmouseout = function() { 
+            this.style.setProperty('background', '#374151', 'important');
+          };
+        }
+      })();
+    </script>
 
   </div>
 </div>
-
-<style>
-  .embed-blog-container {
-    background: #f9fafb;
-    padding: 80px 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    box-sizing: border-box;
-    width: 100%;
-    display: block;
-  }
-  .embed-blog-container .embed-inner-container {
-    max-width: 880px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 60px 50px;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    box-sizing: border-box;
-  }
-  .embed-blog-container .embed-column-title {
-    font-size: 36px;
-    font-weight: 700;
-    color: #111;
-    text-align: center;
-    margin: 0 0 40px 0;
-    line-height: 1.4;
-  }
-  .embed-blog-container .embed-column-image-wrapper {
-    width: 100%;
-    max-width: 780px;
-    margin: 0 auto 50px;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    background: #f3f4f6;
-    position: relative;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-  .embed-blog-container .embed-column-image-wrapper::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 14px;
-    pointer-events: none;
-  }
-  .embed-blog-container .embed-column-image-wrapper .embed-column-thumb-main {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 480px;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-  }
-  .embed-blog-container .embed-column-image-wrapper:hover .embed-column-thumb-main {
-    transform: scale(1.02);
-  }
-  .embed-blog-container .embed-toc {
-    background: #f0f4ff;
-    border: 1px solid #c7d2fe;
-    border-radius: 12px;
-    padding: 25px 30px;
-    margin-bottom: 50px;
-    font-size: 15px;
-    line-height: 1.7;
-    box-sizing: border-box;
-  }
-  .embed-blog-container .embed-toc-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #3b82f6;
-    margin-bottom: 12px;
-  }
-  .embed-blog-container .embed-toc-list {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  .embed-blog-container .embed-toc-list .embed-toc-item {
-    margin: 6px 0;
-  }
-  .embed-blog-container .embed-toc-list .embed-toc-item a {
-    color: #374151;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  .embed-blog-container .embed-toc-list .embed-toc-item a:hover {
-    color: #2563eb;
-  }
-  
-  .embed-column-body {
-    font-size: 17px;
-    line-height: 1.9;
-    color: #333;
-  }
-  .embed-column-body h2, .embed-column-body h3, .embed-column-body h4 {
-    font-weight: 700;
-    margin-top: 60px;
-    margin-bottom: 20px;
-    scroll-margin-top: 100px;
-  }
-  .embed-column-body h2 {
-    font-size: 26px;
-    color: #111;
-    border-bottom: 3px solid #3b82f6;
-    padding-bottom: 6px;
-  }
-  .embed-column-body h3 {
-    font-size: 22px;
-    color: #1e40af;
-    position: relative;
-    padding-left: 14px;
-  }
-  .embed-column-body h3::before {
-    content: "▹";
-    position: absolute;
-    left: 0;
-    color: #3b82f6;
-  }
-  .embed-column-body h4 {
-    font-size: 18px;
-    color: #374151;
-  }
-  .embed-column-body p {
-    margin-bottom: 20px;
-  }
-  .embed-column-body img {
-    display: block;
-    margin: 40px auto;
-    max-width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    height: auto;
-  }
-  .embed-column-body a {
-    color: #2563eb;
-  }
-  .embed-column-body a:hover {
-    opacity: 0.8;
-  }
-  .embed-column-body blockquote {
-    background: #f1f5f9;
-    border-left: 5px solid #3b82f6;
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: #444;
-    margin: 25px 0;
-    font-style: italic;
-  }
-  .embed-column-body ul, .embed-column-body ol {
-    margin: 15px 0 25px 25px;
-  }
-
-  .embed-related-articles {
-    margin: 50px 0;
-    padding: 30px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  }
-  .embed-related-title {
-    font-size: 1.5rem;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 15px;
-    margin: 0 0 25px 0;
-    font-weight: 700;
-  }
-  .embed-related-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .embed-related-item {
-    margin-bottom: 18px;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 12px;
-    display: flex;
-    align-items: baseline;
-  }
-  .embed-related-dot {
-    color: #007bff;
-    margin-right: 12px;
-    font-size: 1.2rem;
-  }
-  .embed-related-item a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-
-  .embed-back-action-wrap {
-    margin-top: 60px;
-    padding-top: 40px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    text-align: center;
-  }
-  #embed-back-to-index-btn {
-    display: inline-block;
-    padding: 14px 40px;
-    background: #374151;
-    color: #fff;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-  }
-
-  @media (max-width: 768px) {
-    .embed-blog-container { padding: 60px 15px !important; }
-    .embed-blog-container .embed-inner-container { padding: 40px 24px !important; }
-    .embed-blog-container .embed-column-title { font-size: 28px !important; margin-bottom: 30px !important; }
-    .embed-blog-container .embed-column-image-wrapper { margin-bottom: 35px !important; border-radius: 8px !important; }
-    .embed-blog-container .embed-toc { padding: 18px 20px !important; }
-    .embed-blog-container .embed-toc-title { font-size: 18px !important; }
-    .embed-blog-container .embed-toc-list a { font-size: 14px !important; }
-    .embed-column-body { font-size: 15px !important; }
-    .embed-column-body h2 { font-size: 22px !important; }
-    .embed-column-body h3 { font-size: 18px !important; }
-    .embed-column-body h4 { font-size: 16px !important; }
-  }
-</style>
-
-<script>
-  (function() {
-    const backBtn = document.getElementById('embed-back-to-index-btn');
-    if (backBtn) {
-      backBtn.href = window.location.pathname;
-      backBtn.onmouseover = function() { this.style.setProperty('background', '#2563eb', 'important'); };
-      backBtn.onmouseout = function() { this.style.setProperty('background', '#374151', 'important'); };
-    }
-  })();
-</script>
