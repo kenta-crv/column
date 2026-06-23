@@ -1697,3 +1697,85 @@ a:-webkit-any-link {
     cursor: pointer;
     flex: 1;
   }
+
+
+
+
+
+
+
+
+
+
+
+  /* ==========================================================================
+   API Settings - Code Block Styles (Charcoal Black Theme)
+   ========================================================================== */
+
+.custom-code-block {
+  background-color: #1e1e1e; // 深みのあるマットブラック
+  border: 1px solid #2d2d2d;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1rem 0;
+  font-family: ui-monospace, SFMono-Regular, SF Pro Mono, Menlo, Monaco, Consolas, monospace;
+
+  .code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #252526; // ヘッダーは一段明るいブラックで境界を明瞭に
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #2d2d2d;
+  }
+
+  .code-lang {
+    color: #858585;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .code-copy-btn {
+    background-color: #333333;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    color: #cccccc;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+
+    &:hover {
+      background-color: #444444;
+      border-color: #555555;
+      color: #ffffff;
+    }
+
+    &.copied {
+      background-color: #198754; // 成功時は控えめなグリーンで通知
+      border-color: #198754;
+      color: #ffffff;
+    }
+  }
+
+  .code-block-body {
+    pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+      white-space: pre; // 確実に改行を維持
+      word-spacing: normal;
+      word-break: normal;
+    }
+
+    code {
+      color: #d4d4d4; // 眩しすぎないライトグレー
+      font-size: 0.9rem;
+      line-height: 1.6;
+      background: transparent;
+      padding: 0;
+    }
+  }
+}

@@ -45,7 +45,8 @@
             
             .form-group
               = f.label :embed_settings, "埋め込み設定（JSON）"
-              = f.text_area :embed_settings, class: "form-control", rows: 5, value: (@client.embed_settings || {}).to_json
+              - display_value = @client.embed_settings.is_a?(Hash) ? JSON.pretty_generate(@client.embed_settings) : @client.embed_settings.to_s
+              = f.text_area :embed_settings, class: "form-control", rows: 5, value: display_value
               small.form-text
                 | カスタム埋め込み設定（オプション）
 
@@ -60,18 +61,46 @@
       .api-instructions-step
         .step-number 1
         .step-content
-          h4 スクリプトタグを設置
-          code
-            = "<script src=\"https://#{request.host}/embed.js\" data-api-key=\"#{@client.api_key}\"></script>"
+          h4 以下のコードを対象のページに貼り付けてください
+          
+          .custom-code-block
+            .code-block-header
+              span.code-lang HTML
+              button.code-copy-btn.js-copy-btn type="button" data-target="embed-code"
+                | コピー
+            .code-block-body
+              pre
+                code#embed-code
+                  = "<main class=\"content-area\">\n  <div id=\"articles\"></div>\n</main>\n\n<script src=\"https://drafity.pro/embed.js\" data-api-key=\"#{@client.api_key}\"></script>"
       
       .api-instructions-step
         .step-number 2
         .step-content
-          h4 コンテナを追加
-          code
-            = "<div id=\"articles\"></div>"
+          h4 指定した場所に記事が自動的に読み込まれます
+
+javascript:
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyBtn = document.querySelector('.js-copy-btn');
+    if (!copyBtn) return;
+
+    copyBtn.addEventListener('click', () => {
+      const targetId = copyBtn.getAttribute('data-target');
+      const codeElement = document.getElementById(targetId);
       
-      .api-instructions-step
-        .step-number 3
-        .step-content
-          h4 記事が自動的に読み込まれます
+      if (codeElement) {
+        const textToCopy = codeElement.textContent;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          copyBtn.textContent = 'コピー完了';
+          copyBtn.classList.add('copied');
+          
+          setTimeout(() => {
+            copyBtn.textContent = 'コピー';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        }).catch(err => {
+          console.error('コピーに失敗しました: ', err);
+        });
+      }
+    });
+  });
