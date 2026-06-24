@@ -38,18 +38,16 @@ def render_html
 
     html = render_to_string(
       partial: 'api/v1/articles/show',
-      locals: { column: @column }
+      locals: { column: @column, base_url: request.base_url }
     )
   else
-    # 一覧画面用のデータを取得
     @columns = Column.where(genre: @client.allowed_genres)
                      .where.not(body: [nil, ""])
                      .order(updated_at: :desc)
 
-    # 実際のファイル名 `_articles.html.erb` に合わせて partial を指定
     html = render_to_string(
       partial: 'api/v1/articles/articles',
-      locals: { columns: @columns }
+      locals: { columns: @columns, base_url: request.base_url }
     )
   end
 
@@ -58,7 +56,7 @@ def render_html
     return
   end
 
-  base_url = "http://drafity.pro"
+  base_url = request.base_url
   processed_html = html.gsub('src="/', "src=\"#{base_url}/")
                        .gsub('href="/', "href=\"#{base_url}/")
 

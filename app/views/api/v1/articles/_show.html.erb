@@ -5,7 +5,7 @@
     
     <% if @column.file.present? %>
       <div class="column-image-wrapper" style="width: 100% !important; max-width: 780px !important; margin: 0 auto 50px !important; border-radius: 14px !important; overflow: hidden !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important; background: #f3f4f6 !important; position: relative !important; border: 1px solid rgba(0, 0, 0, 0.05) !important; box-sizing: border-box !important;">
-        <img src="http://drafity.pro<%= @column.file.url %>" alt="<%= @column.title %>" class="column-thumb-main" style="display: block !important; width: 100% !important; height: auto !important; max-height: 480px !important; object-fit: cover !important; transition: transform 0.5s ease !important;">
+        <img src="<%= base_url %><%= @column.file.url %>" alt="<%= @column.title %>" class="column-thumb-main" style="display: block !important; width: 100% !important; height: auto !important; max-height: 480px !important; object-fit: cover !important; transition: transform 0.5s ease !important;">
       </div>
     <% end %>
 
