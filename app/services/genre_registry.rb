@@ -2,6 +2,7 @@ module GenreRegistry
   GENRES = {
     cleaning: {
       ja: "清掃",
+      host: ["okey.work"],
       service_name: "OK清掃",
       keywords: ["日常清掃", "オフィス清掃", "学校清掃", "施設清掃", "店舗清掃"],
       sub_categories: {
@@ -140,6 +141,7 @@ module GenreRegistry
     },
     housekeeping: {
       ja: "家事代行",
+      host: ["kurasera.life"],
       service_name: "クラセラ",
       keywords: ["家事代行", "お手伝いさん", "家政婦", "ハウスキーピング"],
       strong_points: "家事代行・お手伝いさん・家政婦・ハウスキーピングの依頼なら『クラセラ』",
@@ -158,6 +160,7 @@ module GenreRegistry
     },
     pest: {
       ja: "シロアリ駆除",
+      host: [],
       service_name: "シロアリ害虫駆除なら『シロアリ駆除士隊』",
       keywords: ["シロアリ駆除"],
       strong_points: "自宅のシロアリにお悩みの方に向けて害虫の駆除を行います。",
@@ -177,8 +180,9 @@ module GenreRegistry
     # ----------------------------------------------------------------
     # 5. 特殊清掃（緊急・専門事案）
     # ----------------------------------------------------------------
-    cleaning: {
+    emergency_cleaning: {
       ja: "特殊清掃",
+      host: ["okey.work"],
       service_name: "OK特殊クリーンサービス",
       keywords: ["特殊清掃", "遺品整理", "孤独死清掃", "ゴミ屋敷片付け", "特殊消臭"],
       sub_categories: {
@@ -196,6 +200,7 @@ module GenreRegistry
     },
     cargo: {
       ja: "Amazon配送",
+      host: ["okey.work"],
       service_name: "J Work",
       keywords: ["Amazonデリバリー", "軽貨物配送", "配送ドライバー"],
       sub_categories: {
@@ -225,6 +230,7 @@ module GenreRegistry
     },
     app: {
       ja: "営業代行",
+      host: ["ri-plus.jp"],
       service_name: "Okurite",
       strong_points: "AIを活用した低価格かつ大量アプローチを叶えるトータル営業代行サービス",
       keywords: ["営業代行", "テレアポ", "インサイドセールス", "コールセンター", "フォーム営業", "営業KPI", "営業戦略"],
@@ -275,6 +281,7 @@ module GenreRegistry
     },
     meetia: {
       ja: "AI商談",
+      host: ["meetia.pro"],
       service_name: "Meeita",
       strong_points: "オンライン商談・サービス説明をAIアバターが代行することで商談におけるフローの完全削減し、24時間営業できる環境が実現",
       keywords: ["AI商談", "AI営業代行", "AI商談代行", "商談経費削減", "24時間AI営業アバター"],
@@ -294,6 +301,7 @@ module GenreRegistry
     },
     vender: {
       ja: "自販機設置",
+      host: ["自販機.net"],
       service_name: "自動販売機の設置なら『自販機ねっと』",
       strong_points: "中小企業や小規模企業・個人オーナー向けに自動販売機の購入・販売サービス、大手企業や商店街・繁華街に向けては自動販売機の一括見積もりサービスを提供しております。",
       keywords: ["自販機", "自動販売機"],
@@ -327,6 +335,7 @@ module GenreRegistry
     # ----------------------------------------------------------------    
     ai_article_generation: {    
       ja: "AI記事生成",    
+      host: ["drafity.pro"],    
       service_name: "AI記事生成サービス",    
       strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",    
       keywords: ["AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],    
