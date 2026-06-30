@@ -8,11 +8,11 @@ Rails.application.configure do
 # 許可するホスト名の一覧を追加（ポート番号付きも含む）
   config.hosts << "drafity.pro"
   config.hosts << "j-work.jp"
-  config.hosts << "ri-plus.jp"
+  config.hosts << "okurite.pro"
   config.hosts << "自販機.net"
   config.hosts << "drafity.pro:3000"
   config.hosts << "j-work.jp:3000"
-  config.hosts << "ri-plus.jp:3000"
+  config.hosts << "okurite.pro:3000"
   config.hosts << "自販機.net:3000"
   # Do not eager load code on boot.
   config.eager_load = false

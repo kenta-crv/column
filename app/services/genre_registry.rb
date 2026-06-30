@@ -230,7 +230,7 @@ module GenreRegistry
     },
     app: {
       ja: "営業代行",
-      host: ["ri-plus.jp"],
+      host: ["okurite.pro"],
       service_name: "Okurite",
       strong_points: "AIを活用した低価格かつ大量アプローチを叶えるトータル営業代行サービス",
       keywords: ["営業代行", "テレアポ", "インサイドセールス", "コールセンター", "フォーム営業", "営業KPI", "営業戦略"],
