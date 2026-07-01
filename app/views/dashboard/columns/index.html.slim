@@ -1,25 +1,23 @@
-.admin-content-header style="display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;"
-  .header-left style="display: flex; align-items: center; gap: 12px;"
-    form action=export_dashboard_columns_path method="get" data-turbo="false" style="display: flex; align-items: center; gap: 8px; margin: 0; padding: 0;"
+.admin-content-header.dashboard-toolbar
+  .header-left.dashboard-toolbar__left
+    = form_tag export_dashboard_columns_path, method: :get, data: { turbo: false }, class: "dashboard-toolbar__export-form" do
       - if params[:scope].present?
-        input type="hidden" name="scope" value=params[:scope]
+        = hidden_field_tag :scope, params[:scope]
       - if params[:genre].present?
-        input type="hidden" name="genre" value=params[:genre]
+        = hidden_field_tag :genre, params[:genre]
       - if params[:language].present?
-        input type="hidden" name="language" value=params[:language]
-      select.filter-select name="export_format" style="height: 36px; min-width: 140px; padding: 0 24px 0 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px; background-color: #fff; box-sizing: border-box; cursor: pointer;"
-        option value="text" テキストのみ抽出
-        option value="html" HTML構造を維持
-      button type="submit" class="btn btn-export" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; height: 36px; padding: 0 14px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='#fff'"
+        = hidden_field_tag :language, params[:language]
+      = select_tag :export_format, options_for_select([["テキストのみ抽出", "text"], ["HTML構造を維持", "html"]]), class: "filter-select dashboard-toolbar__export-select"
+      = button_tag type: "submit", class: "btn btn-export dashboard-toolbar__export-btn" do
         svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
           polyline points="17 8 12 3 7 8"
           line x1="12" y1="3" x2="12" y2="15"
         span エクスポート
 
-  .header-right style="display: flex; align-items: center; gap: 12px;"
-    button.btn.btn-primary onclick="openTitleSuggestionModal()" style="height: 36px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; cursor: pointer; transition: background-color 0.2s, border-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.backgroundColor='#fff'; this.style.borderColor='#e2e8f0';"
-      svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"
+  .header-right.dashboard-toolbar__right
+    button.btn.btn-title-suggest type="button" onclick="openTitleSuggestionModal()"
+      svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
       span AIタイトル提案
 
@@ -33,7 +31,7 @@
         span.search-shortcut ⌘ K
 
     - if client_signed_in?
-      = link_to dashboard_api_settings_path, class: "btn btn-primary", style: "height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px;"
+      = link_to dashboard_api_settings_path, class: "btn btn-primary dashboard-toolbar__api-btn" do
         svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           circle cx="12" cy="12" r="3"
           path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z

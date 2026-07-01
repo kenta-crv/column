@@ -9,8 +9,18 @@ html
     meta name="viewport" content="width=device-width, initial-scale=1"
 
   body.admin-body
+    .admin-sidebar-overlay#sidebarOverlay
+    header.admin-mobile-header
+      button.admin-sidebar-toggle#sidebarToggle type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="adminSidebar"
+        svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          line x1="3" y1="6" x2="21" y2="6"
+          line x1="3" y1="12" x2="21" y2="12"
+          line x1="3" y1="18" x2="21" y2="18"
+      = link_to root_path, class: "admin-mobile-logo" do
+        = image_tag "logo.png", alt: "Drafity Logo", height: "28"
+
     .admin-shell
-      aside class="admin-sidebar"
+      aside.admin-sidebar#adminSidebar
         .sidebar-top
           .logo
             = link_to root_path, class: "logo-link" do
@@ -128,6 +138,50 @@ html
 
   javascript:
     (function() {
+      const initSidebar = () => {
+        const toggleEl = document.getElementById('sidebarToggle');
+        const sidebar  = document.getElementById('adminSidebar');
+        const overlay  = document.getElementById('sidebarOverlay');
+        if (!toggleEl || !sidebar || !overlay) return;
+
+        const freshToggle = toggleEl.cloneNode(true);
+        toggleEl.replaceWith(freshToggle);
+
+        const closeSidebar = () => {
+          sidebar.classList.remove('is-open');
+          overlay.classList.remove('is-visible');
+          document.body.classList.remove('sidebar-open');
+          freshToggle.setAttribute('aria-expanded', 'false');
+        };
+
+        const openSidebar = () => {
+          sidebar.classList.add('is-open');
+          overlay.classList.add('is-visible');
+          document.body.classList.add('sidebar-open');
+          freshToggle.setAttribute('aria-expanded', 'true');
+        };
+
+        freshToggle.addEventListener('click', () => {
+          sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+        });
+
+        overlay.addEventListener('click', closeSidebar);
+
+        sidebar.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () => {
+            if (window.matchMedia('(max-width: 768px)').matches) closeSidebar();
+          });
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeSidebar();
+        });
+
+        window.addEventListener('resize', () => {
+          if (window.innerWidth > 768) closeSidebar();
+        });
+      };
+
       const initUserMenu = () => {
         const btn      = document.getElementById('userMenuBtn');
         const dropdown = document.getElementById('userMenuDropdown');
@@ -147,10 +201,15 @@ html
         });
       };
 
-      document.addEventListener('turbo:load', initUserMenu);
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initUserMenu);
-      } else {
+      const initAll = () => {
+        initSidebar();
         initUserMenu();
+      };
+
+      document.addEventListener('turbo:load', initAll);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+      } else {
+        initAll();
       }
     })();

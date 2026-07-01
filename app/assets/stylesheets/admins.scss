@@ -219,6 +219,123 @@ body.admin-body {
   margin-left: 4px;
 }
 
+/* ダッシュボード上部ツールバー */
+.dashboard-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 16px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.dashboard-toolbar__left,
+.dashboard-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dashboard-toolbar__left {
+  flex: 0 0 auto;
+}
+
+.dashboard-toolbar__right {
+  flex: 1 1 420px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.dashboard-toolbar__export-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.dashboard-toolbar__export-select {
+  height: 36px;
+  min-width: 170px;
+  width: auto;
+  max-width: 100%;
+  padding: 0 28px 0 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  background-color: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard-toolbar__export-btn,
+.btn-title-suggest {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.dashboard-toolbar__export-btn:hover,
+.btn-title-suggest:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn-title-suggest svg {
+  flex-shrink: 0;
+}
+
+.dashboard-toolbar .search-box-form {
+  flex: 1 1 180px;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.dashboard-toolbar .search-box-wrapper {
+  width: 100%;
+}
+
+.dashboard-toolbar .search-input {
+  width: 100%;
+  max-width: 280px;
+}
+
+.dashboard-toolbar .search-input:focus {
+  max-width: 320px;
+}
+
+.dashboard-toolbar .btn-icon-badge,
+.dashboard-toolbar .btn-icon-action,
+.dashboard-toolbar .language-dropdown-wrapper {
+  flex-shrink: 0;
+}
+
+.dashboard-toolbar__api-btn {
+  height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ==========================================================================
    4. Advanced KPI Section (ミニグラフ & サークルチャート)
    ========================================================================== */
@@ -1051,6 +1168,128 @@ a,
 
 a:-webkit-any-link {
   text-decoration: none !important;
+}
+
+/* ==========================================================================
+   Admin Dashboard - Responsive (768px以下のみ。デスクトップは既存レイアウト維持)
+   ========================================================================== */
+@media (max-width: 992px) {
+  .kpi-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .kpi-success-card {
+    justify-content: flex-start;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-stat-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-success-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .success-right {
+    align-self: center;
+  }
+
+  .dashboard-toolbar__right {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-toolbar .search-box-form {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .dashboard-toolbar .search-input,
+  .dashboard-toolbar .search-input:focus {
+    max-width: none;
+  }
+
+  .filter-control-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .tabs-group {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+
+  .dropdowns-group-form .filter-select {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rich-dashboard-table {
+    min-width: 720px;
+  }
+
+  .table-footer-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .bulk-panel .grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bulk-panel button {
+    width: 100%;
+    height: 40px;
+  }
+
+  .bulk-action-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .bulk-action-bar .btn {
+    width: 100%;
+  }
+
+  .generation-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-input:focus {
+    width: 100%;
+  }
+
+  .search-shortcut {
+    display: none;
+  }
+
+  .floating-sparkle-btn {
+    bottom: 20px;
+    right: 20px;
+  }
 }
 
 

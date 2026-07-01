@@ -1100,3 +1100,22 @@ $theme-border: rgba(0, 0, 0, 0.08);
   font-size: 0.8rem;
   border-radius: 6px;
 }
+
+@media (max-width: 768px) {
+  .api-settings-page {
+    gap: 1.25rem;
+  }
+
+  .api-settings-header .api-settings-title {
+    font-size: 1.4rem;
+  }
+
+  .api-settings-card .api-settings-card__body {
+    padding: 1.25rem;
+  }
+
+  .form-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
