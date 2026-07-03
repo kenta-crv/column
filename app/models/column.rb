@@ -1,10 +1,15 @@
 class Column < ApplicationRecord
   mount_uploader :file, ImagesUploader
+  belongs_to :client, optional: true
   belongs_to :parent, class_name: "Column", optional: true
   has_many :children, class_name: "Column", foreign_key: :parent_id
   
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
+  scope :without_image_file, -> { where("file IS NULL OR file = ''") }
+  scope :missing_generated_image, -> {
+    where("body IS NOT NULL AND TRIM(body) != ''").merge(without_image_file)
+  }
 
   def pillar?
     article_type == "pillar"

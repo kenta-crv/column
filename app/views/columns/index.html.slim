@@ -21,40 +21,7 @@
                 class: "btn #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}", 
                 data: { turbo: false }
 
-  / 画像一括自動生成コントロールパネル（レイアウト崩れ・重なり防止調整版）
-  .row style="margin-top: 10px; margin-bottom: 40px;"
-    .col-12
-      .bulk-panel style="background: #f8f9fa; padding: 25px; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-        h5 style="margin-top: 0; margin-bottom: 20px; font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px;" 
-          span 🛠️
-          span 条件指定・画像一括自動生成パネル
-        
-        form#bulk-image-form action=bulk_generate_images_columns_path method="post" data-turbo="false"
-          = hidden_field_tag :authenticity_token, form_authenticity_token
-          .row.g-3.align-items-end
-            .col-md-4
-              .form-group style="margin-bottom: 0;"
-                label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 8px; color: #555;" ジャンル（大分類）
-                select name="bulk_genre" id="bulk-genre-select" class="form-select" style="height: 42px;"
-                  option value="" 全てのジャンル
-                  - if defined?(GenreRegistry::GENRES) && GenreRegistry::GENRES.present?
-                    - GenreRegistry::GENRES.each do |k, v|
-                      option value=k = v[:ja]
-            
-            .col-md-4
-              .form-group style="margin-bottom: 0;"
-                label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 8px; color: #555;" 記事タイプ
-                select name="bulk_article_type" id="bulk-article-type-select" class="form-select" style="height: 42px;"
-                  option value="" 全てのタイプ
-                  option value="pillar" 親記事（pillar）
-                  option value="child" 子記事（child）
-            
-            .col-md-4
-              button type="button" id="btn-trigger-bulk-generation" class="btn btn-danger w-100" style="font-weight: bold; height: 42px; display: flex; align-items: center; justify-content: center; gap: 5px;"
-                span ⚡
-                span 画像自動生成を開始
-
-.section-knowhow
+.section-knowhow.columns-index-page
   .container
     h1.section-title style="margin-top: 20px;"
       - if params[:article_type] == 'pillar'
@@ -80,17 +47,18 @@
     - all_active_genres = ((@genre_pillar_counts&.keys || []) + (@genre_child_counts&.keys || [])).uniq.compact
     - if admin_signed_in?
       - if all_active_genres.present?
-        .genre-summary-container style="margin-top: 25px; margin-bottom: 25px;"
-          .summary-title style="font-weight: bold; margin-bottom: 10px; color: #444;" 【ジャンル別記事総数】
+        .genre-summary-container
+          .summary-title 【ジャンル別記事総数】
           .summary-grid
             - all_active_genres.each do |genre|
-              .summary-item style="background: #fff; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; display: inline-block; margin-right: 10px; margin-bottom: 10px;"
+              .summary-item
                 strong = genre.upcase
-                span.ms-2 style="font-size: 0.9rem;"
-                  | Pillar: 
-                  span.pillar-num style="color: #ffc107; font-weight: bold;" #{@genre_pillar_counts&.[](genre) || 0}
-                  |  / Cluster: 
-                  span.child-num style="color: #0d6efd; font-weight: bold;" #{@genre_child_counts&.[](genre) || 0}
+                span.summary-counts
+                  = link_to columns_path(article_type: 'pillar', selected_genre: genre), class: "summary-count-link summary-count-link--pillar", data: { turbo: false } do
+                    | Pillar: #{@genre_pillar_counts&.[](genre) || 0}
+                  span.summary-count-separator /
+                  = link_to columns_path(article_type: 'child', selected_genre: genre), class: "summary-count-link summary-count-link--cluster", data: { turbo: false } do
+                    | Cluster: #{@genre_child_counts&.[](genre) || 0}
 
     - if params[:article_type] == 'pillar' && @grouped_columns.present?
       - @grouped_columns.each do |genre, columns|
@@ -98,8 +66,10 @@
           .genre-header
             h2.genre-name = genre.upcase
             .genre-stats
-              span.badge.bg-warning.text-dark.me-2 Pillar: #{@genre_pillar_counts&.[](genre) || 0}
-              span.badge.bg-primary Cluster: #{@genre_child_counts&.[](genre) || 0}
+              = link_to columns_path(article_type: 'pillar', selected_genre: genre), class: "columns-index-stat-badge columns-index-stat-badge--pillar", data: { turbo: false } do
+                | Pillar: #{@genre_pillar_counts&.[](genre) || 0}
+              = link_to columns_path(article_type: 'child', selected_genre: genre), class: "columns-index-stat-badge columns-index-stat-badge--cluster", data: { turbo: false } do
+                | Cluster: #{@genre_child_counts&.[](genre) || 0}
           
           .columns-list
             - columns.each do |column|
@@ -119,12 +89,12 @@
                     = link_to column.title, column_path(link_target), data: { turbo: false }
                   
                   .column-meta
-                    span.badge.badge-pillar
+                    span.columns-index-meta-badge.columns-index-meta-badge--pillar
                       | Pillar (#{ @child_counts&.[](column.id) || 0 } 子記事)
-                    span.update-date
+                    span.columns-index-meta-date.update-date
                       | #{column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")}
                     - if admin_signed_in?
-                      span.badge.badge-id ID: #{column.id}
+                      span.columns-index-meta-badge.columns-index-meta-badge--id ID: #{column.id}
 
                   - if admin_signed_in?
                     .admin-actions
@@ -153,13 +123,13 @@
                     span.ms-1 style="color:#999; font-size:0.8rem;" （#{column.updated_at.in_time_zone.strftime("%Y/%m/%d")}）
                 
                 - if admin_signed_in?
-                  .column-admin-links style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;"
-                    span.badge.bg-info = column.genre
+                  .column-admin-links
+                    span.columns-index-meta-badge.columns-index-meta-badge--genre = column.genre
                     - if column.article_type == "pillar"
-                      span.badge.bg-warning.text-dark Pillar (#{ @child_counts&.[](column.id) || 0 })
+                      span.columns-index-meta-badge.columns-index-meta-badge--pillar Pillar (#{ @child_counts&.[](column.id) || 0 })
                     - else
-                      span.badge.bg-primary Cluster
-                    span.badge.badge-id ID: #{column.id}
+                      span.columns-index-meta-badge.columns-index-meta-badge--cluster Cluster
+                    span.columns-index-meta-badge.columns-index-meta-badge--id ID: #{column.id}
                     = link_to '編集', edit_column_path(column), class: 'btn btn-sm btn-edit', data: { turbo: false }
                     = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn btn-sm btn-delete'
         - else
@@ -169,44 +139,3 @@
     / ページネーションコントロールの追加
     .pagination-wrapper style="margin-top: 40px; display: flex; justify-content: center;"
       = paginate @paginated_columns
-
-javascript:
-  (function() {
-    const initBulkImagePanel = () => {
-      const btnTrigger = document.getElementById('btn-trigger-bulk-generation');
-      const form = document.getElementById('bulk-image-form');
-      if (!btnTrigger || !form) return;
-
-      btnTrigger.onclick = async function() {
-        const genre = document.getElementById('bulk-genre-select').value;
-        const articleType = document.getElementById('bulk-article-type-select').value;
-
-        try {
-          const response = await fetch(`/columns/check_bulk_image_count?bulk_genre=${genre}&bulk_article_type=${articleType}`);
-          const data = await response.json();
-          
-          if (data.is_running) {
-            alert("現在、サーバー側で別の画像一括自動生成スレッドが動作しています。処理が完了するまで新しい生成は開始できません。");
-            return;
-          }
-
-          if (data.count === 0) {
-            alert("指定された条件（画像なし且つ本文あり）に合致する記事は0件です。");
-            return;
-          }
-
-          const confirmed = confirm(`条件に合致する画像未設定の記事が 【 ${data.count} 件 】 見つかりました。一括生成プロセスを開始します。よろしいですか？`);
-          if (confirmed) {
-            form.submit();
-          }
-        } catch (error) {
-          console.error("エラーが発生しました:", error);
-          alert("件数およびステータスの同期確認に失敗しました。");
-        }
-      };
-    };
-
-    document.removeEventListener('turbo:load', initBulkImagePanel);
-    document.addEventListener('turbo:load', initBulkImagePanel);
-    initBulkImagePanel();
-  })();

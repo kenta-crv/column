@@ -1,0 +1,106 @@
+= form_with scope: :service_genre, url: service_genre.persisted? ? dashboard_service_genre_path(service_genre) : dashboard_service_genres_path, method: service_genre.persisted? ? :patch : :post, local: true do |f|
+  - if service_genre.errors.any?
+    .form-section
+      .service-genre-errors
+        p 入力内容を確認してください
+        ul
+          - service_genre.errors.full_messages.each do |message|
+            li = message
+
+  .form-section
+    h3.form-section-title 基本情報
+
+    - if admin_signed_in?
+      .form-group
+        = f.label :client_id, "クライアント"
+        = f.select :client_id, options_for_select([["システム共通", ""]] + Client.order(:email).map { |c| [c.email, c.id] }, service_genre.client_id), {}, class: "form-control"
+        small.form-text 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
+
+    .form-group
+      = f.label :key, "キー（英小文字・URL用）"
+      = f.text_field :key, class: "form-control", placeholder: "例: cleaning", readonly: service_genre.persisted?
+      small.form-text 記事の genre 値として使用されます。作成後は変更できません。
+
+    .form-group
+      = f.label :ja, "表示名（日本語）"
+      = f.text_field :ja, class: "form-control", placeholder: "例: 清掃"
+
+    .form-group
+      = f.label :service_name, "サービス名"
+      = f.text_field :service_name, class: "form-control", placeholder: "例: OK清掃"
+
+    .form-group
+      = f.label :strong_points, "強み・訴求ポイント"
+      = f.text_area :strong_points, class: "form-control", rows: 4
+      small.form-text 中分類がない場合、親記事・子記事生成時に AI へ渡される訴求情報です。
+
+  .form-section
+    h3.form-section-title 連携設定
+
+    .form-group
+      = f.label :hosts_text, "ホスト（ドメイン）"
+      = f.text_area :hosts_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :hosts_text).presence || Array(service_genre.hosts).join("\n"), placeholder: "1行1件、またはカンマ区切り"
+      small.form-text 例: okey.work
+
+    .form-group
+      = f.label :keywords_text, "キーワード"
+      = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: "1行1件、またはカンマ区切り"
+
+    .form-group
+      = f.label :images_text, "画像ファイル名"
+      = f.text_area :images_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :images_text).presence || Array(service_genre.images).join("\n"), placeholder: "例: app1.jpg"
+
+  .form-section
+    h3.form-section-title 中分類
+    p.sub-categories-intro
+      | 記事作成時の中分類プルダウンと、親記事・子記事の生成内容の参考情報として使われます。
+      | 中分類を選んで記事を生成すると、各項目の内容が AI への指示文に含まれます。
+
+    #sub-categories-list.sub-categories-list
+      - service_genre_sub_category_items(service_genre).each do |item|
+        = render "sub_category_fields", item: item
+
+    button#add-sub-category.btn.btn-secondary type="button" + 中分類を追加
+
+    template#sub-category-template
+      = render "sub_category_fields", item: {}
+
+  .form-actions
+    = f.submit submit_label, class: "btn btn-primary"
+    = link_to "一覧に戻る", dashboard_service_genres_path, class: "btn btn-secondary"
+
+javascript:
+  document.addEventListener('DOMContentLoaded', () => {
+    const list = document.getElementById('sub-categories-list');
+    const addBtn = document.getElementById('add-sub-category');
+    const template = document.getElementById('sub-category-template');
+    if (!list || !addBtn || !template) return;
+
+    const updateTitles = () => {
+      list.querySelectorAll('.sub-category-item').forEach((item) => {
+        const nameInput = item.querySelector('input[name*="[name]"]');
+        const title = item.querySelector('.sub-category-item__title');
+        if (!title || !nameInput) return;
+        title.textContent = nameInput.value.trim() || '新しい中分類';
+      });
+    };
+
+    addBtn.addEventListener('click', () => {
+      list.appendChild(template.content.cloneNode(true));
+      updateTitles();
+    });
+
+    list.addEventListener('click', (event) => {
+      const removeBtn = event.target.closest('.sub-category-remove');
+      if (!removeBtn) return;
+      removeBtn.closest('.sub-category-item')?.remove();
+    });
+
+    list.addEventListener('input', (event) => {
+      if (event.target.matches('input[name*="[name]"]')) {
+        updateTitles();
+      }
+    });
+
+    updateTitles();
+  });

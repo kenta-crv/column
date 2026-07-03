@@ -3,7 +3,7 @@ class Api::V1::ArticlesController < ApplicationController
   before_action :authenticate_client
 
   def index
-    columns = Column.where(genre: @client.allowed_genres)
+    columns = Column.where(genre: @client.genre_keys)
                    .where.not(body: [nil, ""])
                    .order(updated_at: :desc)
     
@@ -13,7 +13,7 @@ class Api::V1::ArticlesController < ApplicationController
   def show
     column = Column.find(params[:id])
     
-    unless @client.allowed_genres.include?(column.genre)
+    unless @client.genre_keys.include?(column.genre)
       render json: { error: 'Genre not allowed' }, status: :forbidden
       return
     end
@@ -24,8 +24,8 @@ class Api::V1::ArticlesController < ApplicationController
 def render_html
   if params[:column].present?
     @column = Column.unscope(:where)
-                   .where(genre: @client.allowed_genres)
-                   .find_by(code: params[:column]) || Column.unscope(:where).where(genre: @client.allowed_genres).find_by(id: params[:column])
+                   .where(genre: @client.genre_keys)
+                   .find_by(code: params[:column]) || Column.unscope(:where).where(genre: @client.genre_keys).find_by(id: params[:column])
 
     if @column.nil?
       render content_type: 'text/html', body: '<div style="padding:20px;color:red;">記事が見つかりません。</div>'
@@ -41,7 +41,7 @@ def render_html
       locals: { column: @column, base_url: request.base_url }
     )
   else
-    @columns = Column.where(genre: @client.allowed_genres)
+    @columns = Column.where(genre: @client.genre_keys)
                      .where.not(body: [nil, ""])
                      .order(updated_at: :desc)
 

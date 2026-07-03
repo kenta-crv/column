@@ -23,6 +23,7 @@ Rails.application.routes.draw do
       collection do
         get :drafts
         get :export
+        get :image_generation
         post :bulk_generate_images
         get :check_bulk_image_count
         
@@ -45,6 +46,8 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :service_genres, except: [:show]
+
     root to: "columns#index"
 
     resource :subscription, only: [:show, :update] do
@@ -61,7 +64,7 @@ Rails.application.routes.draw do
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
   scope ':genre/columns', constraints: {
-    genre: Regexp.new(GenreRegistry::GENRES.keys.join("|"))
+    genre: Regexp.new(GenreRegistry::FALLBACK_GENRES.keys.map(&:to_s).join("|"))
   } do
     get '/',    to: 'columns#index', as: :columns_index
     get '/:id', to: 'columns#show',  as: :columns_show
@@ -76,14 +79,12 @@ Rails.application.routes.draw do
       get :draft
       get :check_bulk_image_count
       post :bulk_generate_images
-      post :generate_gemini
       post :generate_pillar
       post :generate_from_selected
       match 'bulk_update_drafts', via: [:post, :patch]
     end
 
     member do
-      post :generate_from_pillar
       patch :remove_image
       post :generate_title
       patch :approve
@@ -91,8 +92,6 @@ Rails.application.routes.draw do
   end
 
   root to: 'tops#index'
-
-  get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
   get '/tops',    to: 'tops#index'
 
@@ -110,7 +109,6 @@ Rails.application.routes.draw do
   get 'checkout/success', to: 'checkout#success', as: :checkout_success
   get 'checkout/cancel', to: 'checkout#cancel', as: :checkout_cancel
 
-  post 'stripe/webhook', to: 'stripe_webhooks#create'
   get 'plans', to: 'plans#index', as: :plans
   post 'plans/select', to: 'plans#select', as: :select_plan
 

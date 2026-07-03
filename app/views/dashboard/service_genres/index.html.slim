@@ -1,0 +1,45 @@
+.container-fluid.py-4
+  .api-settings-page.service-genres-page
+    .api-settings-header
+      .service-genres-header-row
+        div
+          h1.api-settings-title サービス・ジャンル管理
+          p.api-settings-subtitle 記事生成やAPI連携で使用するジャンル・サービス情報を管理します
+        = link_to "新規作成", new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
+
+    .api-settings-card
+      .api-settings-card__body
+        - if @service_genres.present?
+          .management-table-wrap
+            table.management-table.service-genres-table
+              thead
+                tr
+                  th キー
+                  th 表示名
+                  th サービス名
+                  - if admin_signed_in?
+                    th クライアント
+                  th 中分類数
+                  th 操作
+              tbody
+                - @service_genres.each do |genre|
+                  tr
+                    td
+                      code.genre-key = genre.key
+                    td = genre.ja
+                    td = genre.service_name.presence || "—"
+                    - if admin_signed_in?
+                      td
+                        - if genre.client_id.present?
+                          span = genre.client&.email || "Client ##{genre.client_id}"
+                        - else
+                          span.empty-text システム
+                    td = "#{genre.sub_categories_count}件"
+                    td
+                      .form-actions.service-genres-actions
+                        = link_to "編集", edit_dashboard_service_genre_path(genre), class: "btn btn-secondary btn-sm"
+                        = link_to "削除", dashboard_service_genre_path(genre), method: :delete, data: { confirm: "「#{genre.ja}」を削除しますか？" }, class: "btn btn-secondary btn-sm service-genres-delete-btn"
+        - else
+          .service-genres-empty
+            p まだサービス・ジャンルが登録されていません。
+            = link_to "最初のジャンルを作成", new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"

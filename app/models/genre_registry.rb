@@ -1,5 +1,5 @@
 module GenreRegistry
-  GENRES = {
+  FALLBACK_GENRES = {
     cleaning: {
       ja: "清掃",
       host: ["okey.work"],
@@ -361,20 +361,87 @@ module GenreRegistry
     }    
   }.freeze
 
+  class << self
+    def genres(client: nil)
+      cache = (@genres_cache ||= {})
+      cache_key = client&.id || :global
+      cache[cache_key] ||= load_genres(client)
+    end
+
+    def reset!
+      @genres_cache = nil
+      remove_const(:GENRES) if const_defined?(:GENRES, false)
+    end
+
+    def genre_keys
+      genres.keys.map(&:to_s)
+    end
+
+    def const_missing(name)
+      if name == :GENRES
+        const_set(:GENRES, genres)
+      else
+        super
+      end
+    end
+
+    private
+
+    def load_genres(client)
+      if client
+        return {} unless service_genres_table_ready?
+
+        ServiceGenre.where(client_id: client.id).order(:ja).each_with_object({}) do |record, hash|
+          hash[record.key.to_sym] = record.to_registry_hash
+        end
+      else
+        result = FALLBACK_GENRES.deep_dup
+        return result unless service_genres_table_ready?
+
+        ServiceGenre.find_each do |record|
+          result[record.key.to_sym] = record.to_registry_hash
+        end
+        result
+      end
+    end
+
+    def service_genres_table_ready?
+      ActiveRecord::Base.connection.data_source_exists?("service_genres")
+    rescue ActiveRecord::NoDatabaseError, ActiveRecord::ConnectionNotEstablished
+      false
+    end
+  end
 
   # --- ヘルパーメソッド ---
 
   def self.from_ja(ja)
-    GENRES.find { |_, v| v[:ja] == ja }&.first&.to_s
+    genres.find { |_, v| v[:ja] == ja }&.first&.to_s
   end
 
-  def self.to_ja(key)
-    GENRES[key.to_sym]&.dig(:ja)
+  def self.resolve_key(genre, client: nil)
+    return nil if genre.blank?
+
+    registry = genres(client: client)
+    key_str = genre.to_s
+    return key_str if registry.key?(key_str.to_sym)
+
+    from_ja_key = from_ja(key_str)
+    return from_ja_key if from_ja_key.present? && registry.key?(from_ja_key.to_sym)
+
+    key_str
+  end
+
+  def self.to_ja(key, client: nil)
+    return nil if key.blank?
+
+    genres(client: client)[key.to_sym]&.dig(:ja)
   end
 
   # AI生成用のプロフィール。中分類がある場合はそれを優先する
-  def self.service_profile(category_key, sub_key = nil)
-    g = GENRES[category_key.to_sym]
+  def self.service_profile(category_key, sub_key = nil, client: nil)
+    return "専門知識に基づいた最適なソリューションを提供。" if category_key.blank?
+
+    g = genres(client: client)[category_key.to_sym]
     return "専門知識に基づいた最適なソリューションを提供。" unless g
 
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
@@ -395,16 +462,16 @@ module GenreRegistry
 
   # 元々定義されていたメソッド（Controllerで使用するため必須）
   def self.allowed_hosts(host)
-    GENRES.find { |_, v| v[:host].include?(host) }&.first
+    genres.find { |_, v| v[:host].include?(host) }&.first
   end
 
   # 画像取得用
-  def self.images(key)
-    GENRES[key.to_sym]&.dig(:images) || []
+  def self.images(key, client: nil)
+    genres(client: client)[key.to_sym]&.dig(:images) || []
   end
 
   # キーワード取得用
-  def self.keywords(ja)
-    GENRES[from_ja(ja)&.to_sym]&.dig(:keywords) || []
+  def self.keywords(ja, client: nil)
+    genres(client: client)[from_ja(ja)&.to_sym]&.dig(:keywords) || []
   end
 end

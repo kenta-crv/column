@@ -28,18 +28,16 @@
         = f.label :genre, "ジャンル（大分類）"
         / GenreRegistry::GENRES のトップレベルの項目（ja）をそのまま大分類として表示します
         = f.select :genre,
-          GenreRegistry::GENRES.map { |k, v| [v[:ja], k] },
+          @column_form_genre_options,
           { include_blank: "選択してください" },
           { class: "form-control", id: "genre-select" }
 
       .form-group
         = f.label :sub_genre, "中分類（サブカテゴリ）"
-        / 各ジャンル配下の `sub_categories` 内のデータを抽出し、大分類のキーに紐づくJSONに変換してデータ属性へ渡します
-        - sub_categories_json = GenreRegistry::GENRES.transform_values { |v| v[:sub_categories]&.map { |sk, sv| { id: sk, name: sv[:name] } } || [] }.to_json
         = f.select :sub_genre,
           [],
           { include_blank: "選択してください" },
-          { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: sub_categories_json } }
+          { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: @column_form_sub_categories_json } }
 
       .form-group
         = f.label :article_type, "タイプ"

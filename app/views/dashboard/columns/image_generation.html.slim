@@ -1,0 +1,110 @@
+.image-generation-page
+  .dashboard-page-header
+    h1 画像一括自動生成
+    p.dashboard-page-subtitle 条件を指定して、画像未設定の記事にAPI経由で画像を生成します。
+
+  .bulk-panel
+    h3 🛠️ 条件指定・画像一括自動生成
+    form#bulk-image-form action=bulk_generate_images_dashboard_columns_path method="post" data-turbo="false"
+      = hidden_field_tag :authenticity_token, form_authenticity_token
+      .grid
+        .field
+          label ジャンル（大分類）
+          select#bulk-genre-select name="bulk_genre"
+            option value="" 全てのジャンル
+            - if @dashboard_genre_options.present?
+              - @dashboard_genre_options.each do |label, key|
+                option value=key = label
+            - elsif @all_genres.present?
+              - @all_genres.each do |g|
+                option value=g = g
+        .field
+          label 記事タイプ
+          select#bulk-article-type-select name="bulk_article_type"
+            option value="" 全てのタイプ
+            option value="pillar" 親記事（pillar）
+            option value="child" 子記事（child）
+        button type="button" id="btn-trigger-bulk-generation" class="btn-export"
+          span ⚡
+          span 画像自動生成を開始
+
+  .image-generation-list-panel
+    .image-generation-list-header
+      h3 画像未生成一覧
+      span.image-generation-list-count = "#{@missing_image_total}件"
+
+    - if @columns.present?
+      .table-wrap
+        table.rich-dashboard-table.image-generation-table
+          thead
+            tr
+              th ID
+              th 記事タイトル
+              th ジャンル
+              th タイプ
+              th 更新日時
+          tbody
+            - @columns.each do |column|
+              tr
+                td = column.id
+                td
+                  - link_target = column.code.presence || column.id
+                  = link_to column.title, column_path(link_target), class: "article-link"
+                td = column.genre.presence || "—"
+                td = column.article_type == "pillar" ? "親記事" : "子記事"
+                td.date-text = column.updated_at.strftime("%Y/%m/%d %H:%M")
+
+      .table-footer-pagination
+        .pagination-info
+          | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
+        .pagination-nav
+          = paginate @columns
+    - else
+      p.image-generation-empty 画像未生成の記事はありません
+
+  .dashboard-back-link
+    = link_to "← Dashboardに戻る", dashboard_root_path
+
+javascript:
+  (function() {
+    const initBulkImagePanel = () => {
+      const btnTrigger = document.getElementById('btn-trigger-bulk-generation');
+      const form = document.getElementById('bulk-image-form');
+      if (!btnTrigger || !form) return;
+
+      btnTrigger.onclick = async function() {
+        const genre = document.getElementById('bulk-genre-select').value;
+        const articleType = document.getElementById('bulk-article-type-select').value;
+
+        try {
+          const response = await fetch(`/dashboard/columns/check_bulk_image_count?bulk_genre=${encodeURIComponent(genre)}&bulk_article_type=${encodeURIComponent(articleType)}`);
+          const data = await response.json();
+
+          if (data.is_running) {
+            alert("現在、サーバー側で別の画像一括自動生成スレッドが動作しています。処理が完了するまで新しい生成は開始できません。");
+            return;
+          }
+
+          if (data.count === 0) {
+            alert("指定された条件（画像なし且つ本文あり）に合致する記事は0件です。");
+            return;
+          }
+
+          const confirmed = confirm(`条件に合致する画像未設定の記事が 【 ${data.count} 件 】 見つかりました。一括生成プロセスを開始します。よろしいですか？`);
+          if (confirmed) {
+            form.submit();
+          }
+        } catch (error) {
+          console.error("エラーが発生しました:", error);
+          alert("件数およびステータスの同期確認に失敗しました。");
+        }
+      };
+    };
+
+    document.addEventListener('turbo:load', initBulkImagePanel);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBulkImagePanel);
+    } else {
+      initBulkImagePanel();
+    }
+  })();

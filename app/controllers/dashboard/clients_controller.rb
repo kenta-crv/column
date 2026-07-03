@@ -2,6 +2,7 @@ class Dashboard::ClientsController < ApplicationController
   before_action :authenticate_admin_or_client!
   before_action :set_client, only: [:api_settings, :update_api_settings]
   before_action :ensure_own_client, only: [:api_settings, :update_api_settings], unless: :admin_signed_in?
+  before_action :assign_client_genre_options, only: [:api_settings, :my_api_settings, :update_api_settings, :update_my_api_settings]
   layout "admin"
 
   def api_settings
@@ -13,8 +14,6 @@ class Dashboard::ClientsController < ApplicationController
   end
 
   def update_api_settings
-    allowed_genres = params[:client][:allowed_genres].present? ? params[:client][:allowed_genres].reject(&:blank?) : []
-
     embed_settings_raw = params[:client][:embed_settings]
     embed_settings = begin
       JSON.parse(embed_settings_raw)
@@ -24,7 +23,6 @@ class Dashboard::ClientsController < ApplicationController
 
     if @client.update(
       webhook_url: params[:client][:webhook_url],
-      allowed_genres: allowed_genres,
       embed_settings: embed_settings
     )
       redirect_to (admin_signed_in? ? api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), notice: "API設定を更新しました"
@@ -35,7 +33,6 @@ class Dashboard::ClientsController < ApplicationController
 
   def update_my_api_settings
     @client = current_client
-    allowed_genres = params[:client][:allowed_genres].present? ? params[:client][:allowed_genres].reject(&:blank?) : []
 
     embed_settings_raw = params[:client][:embed_settings]
     embed_settings = begin
@@ -46,7 +43,6 @@ class Dashboard::ClientsController < ApplicationController
 
     if @client.update(
       webhook_url: params[:client][:webhook_url],
-      allowed_genres: allowed_genres,
       embed_settings: embed_settings
     )
       redirect_to dashboard_api_settings_path, notice: "API設定を更新しました"
@@ -56,6 +52,10 @@ class Dashboard::ClientsController < ApplicationController
   end
 
   private
+
+  def assign_client_genre_options
+    @client_service_genres = @client.service_genres.order(:ja)
+  end
 
   def set_client
     @client = Client.find(params[:id])

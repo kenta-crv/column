@@ -1,9 +1,9 @@
 .drafify-lp
-  /-- NAV --
+  /-- NAV  --
   nav.nav
     .nav-inner
       = link_to "/"
-        = image_tag "logo2.png", width:"150px"
+        = image_tag "logo2.png", width: "150px"
       .nav-links
         a href="#features" 特徴
         a href="#features" 機能
@@ -12,7 +12,7 @@
         a href="#faq" よくある質問
       .nav-cta
         button.btn-login ログイン
-        a.btn-primary href="https://column.okey.work/dashboard" 無料で始める →
+        = link_to "無料で始める →", "/clients/sign_up", class: "btn-primary"
 
   /-- HERO --
   section.hero
@@ -47,19 +47,13 @@
               path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
             | 画像AI自動生成
         .hero-actions
-          a.btn-primary-lg href="https://column.okey.work/dashboard"
-            | トライアルを開始する
-            svg viewBox="0 0 16 16" fill="none"
-              path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+          = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
           a.btn-ghost href="#features" デモを見る →
         .hero-social
           .hero-avatars
             span U
             span K
             span T
-          /p.hero-social-text
-            | 累計利用者数 
-            strong 5000人突破！
       .hero-right
         .pc-wrap
           .float-card.fc-time
@@ -69,8 +63,7 @@
                 path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
             div
               .float-label 生成時間
-              .float-value
-                | 平均40秒
+              .float-value 平均40秒
           .float-card.fc-score
             .score-circle
               svg viewBox="0 0 44 44"
@@ -79,10 +72,7 @@
               .score-num 92
             div
               .float-label クラスター記事
-              .float-value
-                | 15記事〜
-                span
-                  | 
+              .float-value 15記事〜
           .float-card.fc-words
             .float-icon
               svg viewBox="0 0 16 16" fill="none"
@@ -92,9 +82,7 @@
               .float-label 文字数
               .float-value
                 | 約6,000-8,000
-                span
-                  | 字
-          /= image_tag "main.png", class: "pc-img"
+                span 字
 
   /-- TRUST --
   .trust-bar
@@ -108,46 +96,103 @@
         span.trust-logo Lancers
         span.trust-logo excite.
 
-  /-- FEATURES STRIP --
+  /-- PROBLEM --
+  section.problem-section
+    .problem-inner
+      .section-header
+        span.overline NEED SOLUTIONS?
+        h2.section-title こんなお悩みありませんか？
+      .problem-grid
+        .problem-card-item
+          .pci-icon ！
+          p.pci-text AIで記事を生成依頼しても精度が低い
+        .problem-card-item
+          .pci-icon ！
+          p.pci-text Googleに最適な記事構成がわからない
+        .problem-card-item
+          .pci-icon ！
+          p.pci-text 最適な記事構成の文章の難易度が高い
+        .problem-card-item
+          .pci-icon ！
+          p.pci-text ライターに任せているが、納品が遅い
+        .problem-card-item
+          .pci-icon ！
+          p.pci-text AIに自動で高品質な記事を作ってもらいたい
+
+  /-- CONCEPT --
+  section.concept-section
+    .concept-inner
+      .concept-md
+        h3.concept-sub-title 現在のGoogleで上位表示されやすい「最適な記事構成」とは？
+        .concept-grid
+          .concept-card
+            .cc-num 01
+            h4.cc-title ピラー・クラスター構造
+            p.cc-desc ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。
+          .concept-card
+            .cc-num 02
+            h4.cc-title E-E-A-Tへの適応
+            p.cc-desc 経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。
+          .concept-card
+            .cc-num 03
+            h4.cc-title ユーザーファースト
+            p.cc-desc 単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。
+
+  /-- WHAT WE GENERATE & FEATURES --
   section.features-strip#features
     .features-inner
+      .section-header
+        span.overline FEATURES & OUTPUTS
+        h2.section-title Drafityで生成・実現できること
+        p.section-sub
+          | タイトル、キーワード選定、説明文、画像、本文、さらに子記事・親記事の自動設計まで網羅。
+          br
+          | 記事生成中は画面を閉じてもバックグラウンドで自動処理されます。
       .features-grid
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.75"
-              path d="M17 17l3 3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-          .fi-title SEOに強い記事構成
-          .fi-desc 上位表示を狙える構成をAIが自動で提案
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-              path d="M16 8l4-2-2 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-              path d="M12 8v4l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          .fi-title 高品質な文章を生成
-          .fi-desc 自然で読みやすく、読者に伝わる文章を自動作成
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
               path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="currentColor" stroke-width="1.5"
-              path d="M2 12h20M12 2c-2.5 3.5-2.5 13.5 0 20M12 2c2.5 3.5 2.5 13.5 0 20" stroke="currentColor" stroke-width="1.5"
-          .fi-title 最新情報を自動収集
-          .fi-desc 最新の情報をもとに信頼性の高い記事を生成
+          .fi-title テーマ条件の自動提案
+          .fi-desc 検索需要を捉えた最適なテーマをAIが提案
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="1.5"
-              rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"
-              path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-          .fi-title コピペチェック機能
-          .fi-desc オリジナル性を保証し安心して公開可能
+              path d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10" stroke="currentColor" stroke-width="1.5"
+          .fi-title 親子記事の自動連携
+          .fi-desc ピラー記事とそれを補完するクラスター記事を自動生成
         .feature-item
           .fi-icon
             svg viewBox="0 0 24 24" fill="none"
-              path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-          .fi-title 分析・改善までサポート
-          .fi-desc SEOスコアや改善提案で成果につながる記事へ
+              path d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+          .fi-title 画像AI自動生成
+          .fi-desc 文脈に適したアイキャッチや挿入画像をAIが描画
+        .feature-item
+          .fi-icon
+            svg viewBox="0 0 24 24" fill="none"
+              circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"
+              path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+          .fi-title 記事ランク自動査定
+          .fi-desc 生成された記事の品質やSEOスコアを瞬時に可視化
+        .feature-item
+          .fi-icon
+            svg viewBox="0 0 24 24" fill="none"
+              path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+          .fi-title APIによる自動同期
+          .fi-desc 外部サイトやCMSへ生成した最適記事をシームレスに出力
+
+  /-- ENTERPRISE AGENT --
+  section.enterprise-agent-section
+    .ea-inner
+      .ea-badge 自律型AIエージェント
+      h3.ea-title
+        | プロンプトは最小限に。
+        br
+        | 「AIが主体的に動く」次の時代へ。
+      p.ea-desc
+        | Enterpriseプランでは、AIが自律的にピラータイトル・本文、そして関連するクラスタータイトル・本文までを思考し一連の流れを完全自動生成。
+        br
+        | PCやブラウザを閉じている間も裏側でタスクが進行し、完了状況はメールやSMSでリアルタイムに通知されます。
 
   /-- PRICING --
   section.pricing-section#pricing
@@ -231,8 +276,8 @@
               cta_text: "問い合わせる →", \
               features: [ \
                 "月間#{Subscription::PLAN_DELIVERY_LIMITS[:enterprise]}記事まで作成", \
-                "AI記事生成（最高品質）", \
-                "テンプレート無制限", \
+                "自律型AIエージェント機能主体運用", \
+                "SMS・メール自動進行通知", \
                 "チーム共有 無制限", \
                 "専任カスタマーサクセス", \
                 "カスタム機能開発（応相談）", \
@@ -253,10 +298,9 @@
               .plan-price-main
                 span.price-yen ¥
                 span.price-num id="#{plan_key}-price" = plan[:yearly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')
-                span.price-unit
-                  | / 月
-              .plan-price-note id="#{plan_key}-note" = plan[:note]
-            a.plan-cta class=(plan[:popular] ? "filled" : "outline") href="#" = plan[:cta_text]
+                span.price-unit "/ 月"
+            .plan-price-note id="#{plan_key}-note" = plan[:note]
+            = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{plan[:popular] ? 'filled' : 'outline'}"
             hr.plan-divider
             ul.plan-features
               - plan[:features].each do |feature|
@@ -295,6 +339,33 @@
                 path d="M4 16l4-4 4 4 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
             .shared-item-title アップデート無償提供
             .shared-item-desc 新機能・改善はすべて無償でご利用可能
+
+  /-- VOICES (TESTIMONIALS) --
+  section.voices-section#cases
+    .voices-inner
+      .section-header
+        span.overline CASE STUDIES
+        h2.section-title お客様の声
+        p.section-sub 導入後にメディア運用が劇的に変化した、驚きと喜びの声が届いています。
+      .voices-grid
+        .voice-card
+          .voice-rating ★★★★★
+          h4.voice-title 「月間100本の記事生成が1人で可能になりました」
+          p.voice-text 以前は外注ライターのディレクションと進捗管理に追われていましたが、Drafifyを導入してからはテーマ設定からクラスター記事構築まで完全に自社で完結。画像も同時に生成されるため作業コストが大幅に削れました。
+          .voice-meta
+            .voice-user 広告代理店 メディア運用担当者様
+        .voice-card
+          .voice-rating ★★★★★
+          h4.voice-title 「狙った複合キーワードで上位表示を連発」
+          p.voice-text Googleの最新志向を反映したピラー・クラスターの連携設計が素晴らしく、自動生成された記事にもかかわらず、E-E-A-Tを意識した深みのあるコンテンツが届きます。分析査定機能のスコアを信頼してそのまま公開しています。
+          .voice-meta
+            .voice-user ITベンチャー SEO責任者様
+        .voice-card
+          .voice-rating ★★★★★
+          h4.voice-title 「Enterpriseプランの自律稼動には驚かされました」
+          p.voice-text キーワードを最小限セットして放置するだけで、AIが自律して次々と親子記事を書き進めてくれます。進捗がSMSやメールで通知されるため、本当にPCを閉じて待つだけ。メディア量産のゲームチェンジャーです。
+          .voice-meta
+            .voice-user メディア運営会社 経営者様
 
   /-- FREE TRIAL --
   section.trial-section
@@ -335,7 +406,7 @@
                     path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                   | トライアル期間中の解約もワンクリックで簡単
             div
-              button.trial-btn 無料で始める →
+              = link_to "無料で始める →", "/clients/sign_up", class: "trial-btn"
               p.trial-cancel-note 解約はいつでも可能です。トライアル終了後は自動で課金されません。
           /-- CENTER mock --
           .trial-center
@@ -351,24 +422,23 @@
                   .mock-score-label SEOスコア
                   div style="display:flex;align-items:baseline;gap:3px"
                     span.mock-score-val 92
-                    span.mock-score-max
-                      | /100
+                    span.mock-score-max "/100"
                 .mock-checks
                   .mock-check-item
                     svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
                     | 見出し構成
                   .mock-check-item
                     svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
                     | キーワード最適化
                   .mock-check-item
                     svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
                     | 読みやすさ
                   .mock-check-item
                     svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
                     | 独自性
           /-- RIGHT --
           .trial-right
@@ -457,7 +527,7 @@
         div
           span.price-zero-tag 7日間
         .price-zero-cta
-          button.btn-trial 無料トライアルを始める →
+          = link_to "無料トライアルを始める →", "/clients/sign_up", class: "btn-trial"
 
   /-- FAQ --
   section.faq-section#faq
@@ -470,37 +540,31 @@
             | 無料プランは本当に無料ですか？
             svg.faq-icon viewBox="0 0 14 14" fill="none"
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer はい。クレジットカードの登録不要で、月間3記事まで無料でご利用いただけます。
+          p.faq-answer はい。クレジットカードの登録不要で、月間3記事まで無料でずっとご利用いただけます。
         details.faq-item
           summary.faq-q
             | SEOスコアはどのように計測されますか？
             svg.faq-icon viewBox="0 0 14 14" fill="none"
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer 独自のアルゴリズムで、記事のSEO最適化度を100点満点でスコア化します。
+          p.faq-answer Googleの上位表示アルゴリズムの傾向をAIが独自に多角分析し、見出し構成やキーワード比率などから100点満点で客観的に自動査定します。
         details.faq-item
           summary.faq-q
-            | 年額払いの解約はできますか？
+            | 記事生成中にブラウザを閉じても大丈夫ですか？
             svg.faq-icon viewBox="0 0 14 14" fill="none"
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer はい。年額プランはいつでも解約可能で、残り期間の返金も対応いたします。
+          p.faq-answer はい、完全に問題ありません。バックグラウンドのサーバーサイドですべて自動進行・生成されるため、画面を閉じた状態でも処理は継続されます。
         details.faq-item
           summary.faq-q
-            | 他のツールとの連携はできますか？
+            | 他のツールやWordPressとの連携はできますか？
             svg.faq-icon viewBox="0 0 14 14" fill="none"
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer WordPress連携や各種CMSへのエクスポートに対応しています。
+          p.faq-answer はい、API連携やCMS向けのエクスポート機能を備えており、生成した最適記事をスムーズに構築サイトへ反映させることができます。
         details.faq-item
           summary.faq-q
-            | チームでの利用は可能ですか？
+            | チームでの利用やEnterpriseプランのカスタマイズは可能ですか？
             svg.faq-icon viewBox="0 0 14 14" fill="none"
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer ビジネスプラン以上で、最大5名までのチーム共有が可能です。
-        details.faq-item
-          summary.faq-q
-            | サポートはどのように受けられますか？
-            svg.faq-icon viewBox="0 0 14 14" fill="none"
-              path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          p.faq-answer メール・チャットにてご利用中の全プランでサポートを提供しています。
+          p.faq-answer ビジネスプラン以上で複数人共有（最大5名）が可能です。Enterpriseプランでは制限が無制限となり、AIエージェントによる完全自動運用やカスタム機能開発も個別に応相談で対応いたします。
 
   /-- CTA BANNER --
   section.cta-banner
@@ -510,6 +574,8 @@
         | まずは
         span.free2 無料
         | で、AIの力を体験してください
+      .cta-actions style="margin-top: 32px"
+        = link_to "無料アカウント作成", "/clients/sign_up", class: "btn-white"
 
 script
   | function setToggle(isYearly, btn) {

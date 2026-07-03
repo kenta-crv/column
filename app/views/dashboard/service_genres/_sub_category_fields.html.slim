@@ -1,0 +1,46 @@
+- item = (item || {}).with_indifferent_access
+.sub-category-item
+  .sub-category-item__header
+    h4.sub-category-item__title = item[:name].presence || "新しい中分類"
+    button.sub-category-remove type="button" 削除
+  .sub-category-item__body
+    .sub-category-grid
+      .form-group
+        label キー（英小文字）
+        input.form-control type="text" name="service_genre[sub_categories_items][][key]" value=item[:key] placeholder="例: daily_standard"
+        small.form-text 記事の sub_genre 値として使用されます
+      .form-group
+        label 名称 *
+        input.form-control type="text" name="service_genre[sub_categories_items][][name]" value=item[:name] placeholder="例: 日常清掃"
+      .form-group.sub-category-grid__full
+        label ターゲット
+        input.form-control type="text" name="service_genre[sub_categories_items][][target]" value=item[:target] placeholder="例: 清掃美化を外注したい企業や施設"
+        small.form-text 誰向けのサービスか（記事生成時に AI へ渡されます）
+      .form-group.sub-category-grid__full
+        label 説明
+        textarea.form-control name="service_genre[sub_categories_items][][description]" rows="3" placeholder="サービス内容の説明" = item[:description]
+        small.form-text サービス内容の概要（記事生成時に AI へ渡されます）
+      .form-group
+        label 特徴
+        textarea.form-control name="service_genre[sub_categories_items][][features_text]" rows="3" placeholder="1行1件" = item[:features_text]
+        small.form-text 1行1件。記事に反映したいサービス特徴
+      .form-group
+        label キーワード
+        textarea.form-control name="service_genre[sub_categories_items][][keywords_text]" rows="3" placeholder="1行1件" = item[:keywords_text]
+        small.form-text 1行1件。関連キーワードのヒント
+      .form-group
+        label 料金目安
+        input.form-control type="text" name="service_genre[sub_categories_items][][price_hint]" value=item[:price_hint] placeholder="例: 要お見積り"
+        small.form-text 記事内で料金感を伝えるための参考情報
+      .form-group
+        label 対応エリア
+        input.form-control type="text" name="service_genre[sub_categories_items][][area]" value=item[:area] placeholder="例: 全国対応"
+        small.form-text 対応地域の参考情報
+      .form-group.sub-category-grid__full
+        label 強み
+        textarea.form-control name="service_genre[sub_categories_items][][strengths]" rows="2" placeholder="この中分類の強み" = item[:strengths]
+        small.form-text 自社の強み・差別化ポイント
+      .form-group.sub-category-grid__full
+        label 業界課題・差別化
+        textarea.form-control name="service_genre[sub_categories_items][][industry_weakness]" rows="2" placeholder="業界の課題と自社の立ち位置" = item[:industry_weakness]
+        small.form-text 業界の一般的な課題と、それに対する自社の立ち位置

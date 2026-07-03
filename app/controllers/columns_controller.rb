@@ -1,12 +1,12 @@
 class ColumnsController < ApplicationController
-  before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_from_pillar, :generate_title, :remove_image]
+  before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image]
   before_action :set_breadcrumbs
+  before_action :assign_column_form_genre_options, only: [:new, :create, :edit, :update]
   
   @@bulk_image_generating = false
 
 def index
-  current_genre_key = GenreRegistry.allowed_hosts(request.host)
-  effective_genre = params[:genre].presence || current_genre_key&.to_s
+  effective_genre = resolve_public_genre_filter
 
   columns = Column
               .where("body IS NOT NULL AND TRIM(body) != ''")
@@ -127,10 +127,18 @@ end
 
   def create
     @column = Column.new(column_params)
+    assign_column_client!(@column)
+
+    unless admin_or_allowed_genre?(@column.genre)
+      @column.errors.add(:genre, "は利用できません")
+      render :new, status: :unprocessable_entity
+      return
+    end
+
     if @column.save
       redirect_to columns_path, notice: "作成しました"
     else
-      render 'new'
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -139,10 +147,16 @@ end
   end
 
   def update
+    unless admin_or_allowed_genre?(column_params[:genre])
+      @column.errors.add(:genre, "は利用できません")
+      render :edit, status: :unprocessable_entity
+      return
+    end
+
     if @column.update(column_params)
       redirect_to columns_path, notice: "更新しました"
     else
-      render 'edit'
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -223,12 +237,6 @@ end
   # ======================
   # GENERATION ACTIONS
   # ======================
-  def generate_gemini
-    batch = params[:batch] || 20
-    created = GeminiColumnGenerator.generate_columns(batch_count: batch.to_i)
-    redirect_to draft_columns_path, notice: "#{created}件生成しました"
-  end
-
   def draft
     @columns = Column
                  .where("body IS NULL OR TRIM(body) = ''")
@@ -260,11 +268,6 @@ end
           .each { |c| GenerateColumnBodyJob.perform_later(c.id) }
 
     redirect_to draft_columns_path, notice: "生成開始"
-  end
-
-  def generate_from_pillar
-    GenerateChildColumnsJob.perform_later(@column.id, 25)
-    redirect_to columns_show_path(genre: @column.genre, id: @column.code), notice: "子記事生成開始"
   end
 
   def generate_title
@@ -324,5 +327,36 @@ end
       :title, :file, :choice, :keyword, :description, :genre, :code,
       :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre
     )
+  end
+
+  def resolve_public_genre_filter
+    return params[:genre].to_s if params[:genre].present?
+
+    # drafity.pro はメインプラットフォーム。/columns では全ジャンルを表示する
+    return nil if main_platform_host?(request.host)
+
+    GenreRegistry.allowed_hosts(request.host)&.to_s
+  end
+
+  def main_platform_host?(host)
+    host.to_s.downcase.sub(/\Awww\./, "") == "drafity.pro"
+  end
+
+  def assign_column_form_genre_options
+    registry = column_form_genre_registry
+    @column_form_genre_options = registry.map { |key, value| [value[:ja], key.to_s] }
+    @column_form_sub_categories_json = registry.transform_values do |value|
+      value[:sub_categories]&.map { |sub_key, sub_value| { id: sub_key, name: sub_value[:name] } } || []
+    end.to_json
+  end
+
+  def column_form_genre_registry
+    if admin_signed_in?
+      GenreRegistry.genres
+    elsif client_signed_in?
+      client_accessible_genre_registry
+    else
+      GenreRegistry.genres
+    end
   end
 end

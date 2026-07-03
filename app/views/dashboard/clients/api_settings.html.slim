@@ -28,16 +28,20 @@
 
           .form-section
             h3.form-section-title
-              | ジャンル設定
-            
+              | ジャンル
+
             .form-group
-              = f.label :allowed_genres, "許可ジャンル"
-              - GenreRegistry::GENRES.each do |key, value|
-                .form-check
-                  = check_box_tag "client[allowed_genres][]", key.to_s, Array(@client.allowed_genres).include?(key.to_s), id: "genre_#{key}"
-                  = label_tag "genre_#{key}", value[:ja], class: "form-check-label"
+              - if @client_service_genres.present?
+                ul.allowed-genres-list
+                  - @client_service_genres.each do |genre|
+                    li
+                      = genre.ja
+                      code.genre-key = genre.key
+              - else
+                p.form-text ジャンルが未登録です。
               small.form-text
-                | このクライアントがアクセス可能なジャンルを選択してください
+                = link_to "サービス・ジャンル管理", dashboard_service_genres_path
+                | で追加・編集します。APIで公開されるジャンルもここで登録したものになります。
 
           .form-section
             h3.form-section-title

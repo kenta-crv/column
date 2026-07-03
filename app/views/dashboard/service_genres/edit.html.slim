@@ -1,0 +1,9 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title サービス・ジャンル編集
+      p.api-settings-subtitle = @service_genre.ja
+
+    .api-settings-card
+      .api-settings-card__body
+        = render "form", service_genre: @service_genre, submit_label: "更新する"

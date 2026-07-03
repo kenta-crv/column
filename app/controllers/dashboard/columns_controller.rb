@@ -1,19 +1,27 @@
 class Dashboard::ColumnsController < ApplicationController
-before_action :authenticate_admin_or_client!
+  before_action :authenticate_admin_or_client!
+  before_action :require_admin!, only: [:management]
+  before_action :enforce_client_genre_param!, only: [:index, :export]
+  before_action :assign_dashboard_genre_options, only: [:index, :image_generation]
 
   # レイアウトは既存の "admin" をそのまま流用
   layout "admin"
 
-def index
-    # 1. 基本となるクエリを定義
-    base_scope = Column.all
+  @@bulk_image_generating = false
 
-    # 絞り込み用の共通スコープ（ジャンル指定や言語指定がある場合はKPIやタブのカウントにもそれを反映させる）
+  def index
+    base_scope = dashboard_columns_base_scope
+    assign_dashboard_tab_counts(base_scope)
+
+    @kpi_published_count = base_scope.where.not(body: [nil, ""]).where(status: "approved").count
+    @kpi_draft_count = base_scope.where("body IS NULL OR TRIM(body) = ''").count
+    @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
+    @kpi_completed_generation_count = base_scope.where(generation_status: "completed").count
+    @kpi_reserved_count = base_scope.where(status: "reserved").count
+
     filtered_base = base_scope
     filtered_base = filtered_base.where(genre: params[:genre]) if params[:genre].present?
     filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
-
-    # 各種KPIカード及びフィルタ用タブの実態件数を正確に集計
     @total_count     = filtered_base.count
     @draft_count     = filtered_base.where(body: [nil, ""]).count
     @pillar_count    = filtered_base.where(article_type: "pillar").count
@@ -21,6 +29,7 @@ def index
     @published_count = filtered_base.where.not(body: [nil, ""]).where(status: "approved").count
     @error_count     = filtered_base.where(status: "error").count
     @reserved_count  = filtered_base.where(status: "reserved").count
+    @no_image_count  = filtered_base.merge(Column.missing_generated_image).count
 
     # 成功率とクオリティ平均の計算（実態ベースでの算出。データがない場合は固定フォールバック）
     total_processed = @published_count + @error_count
@@ -41,11 +50,20 @@ def index
         scope = scope.where.not(body: [nil, ""]).where(status: "approved")
       when "error"
         scope = scope.where(status: "error")
+      when "no_image"
+        scope = scope.merge(Column.missing_generated_image)
       end
     end
 
     # 3. 最後にページネーションを適用
     @columns = scope.page(params[:page]).per(30)
+
+    pillar_ids = @columns.select(&:pillar?).map(&:id)
+    @child_counts = if pillar_ids.any?
+                      dashboard_columns_base_scope.where(parent_id: pillar_ids).group(:parent_id).count
+                    else
+                      {}
+                    end
 
     # 相互互換データの確保
     @genre_pillar_counts = filtered_base.where(article_type: "pillar").group(:genre).count
@@ -64,26 +82,62 @@ def index
   end
   
   
-  def bulk_generate_images
-    BulkImageGeneratorService.call(
-      genre: params[:bulk_genre],
-      article_type: params[:bulk_article_type]
-    )
+  def image_generation
+    @all_genres = dashboard_columns_base_scope.distinct.pluck(:genre).compact
+    scope = dashboard_columns_base_scope.merge(Column.missing_generated_image).order(updated_at: :desc)
+    scope = scope.where(genre: params[:filter_genre]) if params[:filter_genre].present? && admin_or_allowed_genre?(params[:filter_genre])
+    scope = scope.where(article_type: params[:filter_article_type]) if params[:filter_article_type].present?
+    @missing_image_total = scope.count
+    @columns = scope.page(params[:page]).per(30)
+  end
 
-    # リダイレクト先を dashboard のパスに変更
-    redirect_to dashboard_columns_path, notice: "画像生成を開始しました"
+  def bulk_generate_images
+    if @@bulk_image_generating
+      return redirect_to image_generation_dashboard_columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
+    end
+
+    genre        = params[:bulk_genre]
+    article_type = params[:bulk_article_type]
+
+    query = dashboard_columns_base_scope.merge(Column.missing_generated_image)
+    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
+    query = query.where(article_type: article_type) if article_type.present?
+
+    target_ids = query.pluck(:id)
+
+    if target_ids.any?
+      @@bulk_image_generating = true
+
+      Thread.new do
+        begin
+          ActiveRecord::Base.connection_pool.with_connection do
+            Column.where(id: target_ids).merge(Column.without_image_file).find_each do |column|
+              begin
+                FluxImageGeneratorService.generate!(column)
+              rescue => e
+                Rails.logger.error "[Thread Image Gen Error] ID: #{column.id} - #{e.message}"
+              end
+            end
+          end
+        ensure
+          @@bulk_image_generating = false
+        end
+      end
+
+      redirect_to image_generation_dashboard_columns_path, notice: "#{target_ids.size}件の画像自動生成処理をバックグラウンドで開始しました。"
+    else
+      redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
+    end
   end
 
   def check_bulk_image_count
-    scope = Column.all
-    scope = scope.where(genre: params[:bulk_genre]) if params[:bulk_genre].present?
-    scope = scope.where(article_type: params[:bulk_article_type]) if params[:bulk_article_type].present?
-
-    scope = scope.where(file: [nil, ""])
+    query = dashboard_columns_base_scope.merge(Column.missing_generated_image)
+    query = query.where(genre: params[:bulk_genre])               if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
+    query = query.where(article_type: params[:bulk_article_type]) if params[:bulk_article_type].present?
 
     render json: {
-      count: scope.count,
-      is_running: BulkImageGeneratorService.running?
+      count: query.count,
+      is_running: @@bulk_image_generating
     }
   end
 
@@ -92,7 +146,7 @@ def index
     require "csv"
 
     # 1. 画面の絞り込みと完全に同じクエリ条件のベースを構築
-    scope = Column.order(updated_at: :desc)
+    scope = dashboard_columns_base_scope.order(updated_at: :desc)
 
     if params[:scope].present?
       case params[:scope]
@@ -106,6 +160,8 @@ def index
         scope = scope.where.not(body: [nil, ""])
       when "error"
         scope = scope.where(status: "error")
+      when "no_image"
+        scope = scope.merge(Column.missing_generated_image)
       end
     end
 
@@ -154,11 +210,12 @@ def index
   end
 
   def remove_image
-    column = Column.find(params[:id])
+    column = dashboard_columns_base_scope.find(params[:id])
     column.update(file: nil)
-    
-    # リダイレクト先を dashboard のパスに変更
+
     redirect_to dashboard_columns_path
+  rescue ActiveRecord::RecordNotFound
+    redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
 
   def authenticate_admin_or_client!
@@ -181,11 +238,18 @@ def index
   end
 
   def suggest_titles
+    unless admin_or_allowed_genre?(params[:genre])
+      return render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
+    end
+
     result = PillarTitleSuggestionService.call(
       keyword1: params[:keyword1],
       keyword2: params[:keyword2],
       target_layer: params[:target_layer],
-      genre: params[:genre]
+      genre: params[:genre],
+      custom_prompt: params[:custom_prompt],
+      suggestion_count: params[:suggestion_count],
+      client: (client_signed_in? ? current_client : nil)
     )
 
     if result[:success]
@@ -202,6 +266,7 @@ def index
       genre: params[:genre],
       status: "draft"
     )
+    assign_column_client!(@column)
 
     if @column.save
       render json: { success: true, column_id: @column.id, redirect_path: edit_column_path(@column) }
@@ -219,6 +284,11 @@ def index
       return
     end
 
+    unless admin_or_allowed_genre?(genre)
+      render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
+      return
+    end
+
     created_count = 0
     errors = []
 
@@ -229,6 +299,7 @@ def index
         genre: genre,
         status: "draft"
       )
+      assign_column_client!(column)
 
       if column.save
         created_count += 1
@@ -242,5 +313,36 @@ def index
     else
       render json: { success: false, error: "記事を作成できませんでした: #{errors.join(', ')}" }
     end
+  end
+
+  private
+
+  def require_admin!
+    return if admin_signed_in?
+
+    flash[:alert] = "管理者権限が必要です。"
+    redirect_to dashboard_root_path
+  end
+
+  def enforce_client_genre_param!
+    return unless client_signed_in?
+    return if params[:genre].blank?
+    return if admin_or_allowed_genre?(params[:genre])
+
+    redirect_to dashboard_columns_path(scope: params[:scope]), alert: "指定されたジャンルにはアクセスできません。"
+  end
+
+  def assign_dashboard_genre_options
+    @dashboard_genre_options = dashboard_genre_registry_options
+  end
+
+  def assign_dashboard_tab_counts(scope)
+    @tab_count_all       = scope.count
+    @tab_count_draft     = scope.where("body IS NULL OR TRIM(body) = ''").count
+    @tab_count_pillar    = scope.where(article_type: "pillar").count
+    @tab_count_cluster   = scope.where(article_type: "cluster").count
+    @tab_count_published = scope.where("body IS NOT NULL AND TRIM(body) != ''").count
+    @tab_count_error     = scope.where(status: "error").count
+    @tab_count_no_image  = scope.merge(Column.missing_generated_image).count
   end
 end

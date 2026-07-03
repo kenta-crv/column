@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_06_17_083601) do
+ActiveRecord::Schema.define(version: 2026_07_02_130000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -73,8 +73,10 @@ ActiveRecord::Schema.define(version: 2026_06_17_083601) do
     t.string "sub_genre"
     t.string "generation_status", default: "idle", null: false
     t.float "quality_score", default: 0.0
-    t.json "evaluation_metrics", default: {}
+    t.json "evaluation_metrics", default: "\"{}\""
+    t.integer "client_id"
     t.index ["article_type"], name: "index_columns_on_article_type"
+    t.index ["client_id"], name: "index_columns_on_client_id"
     t.index ["code"], name: "index_columns_on_code", unique: true
     t.index ["generation_status"], name: "index_columns_on_generation_status"
     t.index ["parent_id"], name: "index_columns_on_parent_id"
@@ -124,6 +126,22 @@ ActiveRecord::Schema.define(version: 2026_06_17_083601) do
     t.index ["stripe_payment_intent_id"], name: "index_payments_on_stripe_payment_intent_id", unique: true
   end
 
+  create_table "service_genres", force: :cascade do |t|
+    t.integer "client_id"
+    t.string "key", null: false
+    t.string "ja", null: false
+    t.string "service_name"
+    t.text "strong_points"
+    t.json "hosts", default: []
+    t.json "keywords", default: []
+    t.json "images", default: []
+    t.json "sub_categories", default: {}
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["client_id", "key"], name: "index_service_genres_on_client_id_and_key", unique: true
+    t.index ["client_id"], name: "index_service_genres_on_client_id"
+  end
+
   create_table "sites", force: :cascade do |t|
     t.string "name", null: false
     t.string "domain", null: false
@@ -148,6 +166,8 @@ ActiveRecord::Schema.define(version: 2026_06_17_083601) do
     t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
   end
 
+  add_foreign_key "columns", "clients"
   add_foreign_key "payments", "clients"
+  add_foreign_key "service_genres", "clients"
   add_foreign_key "subscriptions", "clients"
 end

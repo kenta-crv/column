@@ -3,12 +3,18 @@ class Client < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   has_many :monthly_usage_logs, dependent: :destroy
+  has_many :columns, dependent: :nullify
+  has_many :service_genres, dependent: :destroy
 
   has_one :plan
   has_many :subscriptions, dependent: :destroy
   has_one :active_subscription, -> { where(status: :active) }, class_name: "Subscription"
   has_many :payments, dependent: :destroy
 
+
+  def genre_keys
+    service_genres.pluck(:key)
+  end
 
   def full_name
     [first_name, last_name].compact.join(" ")

@@ -23,6 +23,51 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def current_client_allowed_genre_keys
+    return [] unless client_signed_in?
+
+    current_client.genre_keys
+  end
+
+  def admin_or_allowed_genre?(genre)
+    return true if admin_signed_in?
+
+    current_client_allowed_genre_keys.include?(genre.to_s)
+  end
+
+  def dashboard_columns_base_scope
+    if admin_signed_in?
+      Column.all
+    elsif client_signed_in?
+      Column.where(client_id: current_client.id)
+    else
+      Column.none
+    end
+  end
+
+  def client_accessible_genre_registry
+    return GenreRegistry.genres unless client_signed_in?
+
+    GenreRegistry.genres(client: current_client)
+  end
+
+  def dashboard_genre_registry_options
+    registry = if admin_signed_in?
+                 GenreRegistry.genres
+               else
+                 client_accessible_genre_registry
+               end
+
+    registry.map { |key, value| [value[:ja], key.to_s] }
+  end
+
+  def assign_column_client!(column)
+    return unless client_signed_in?
+    return if column.client_id.present?
+
+    column.client_id = current_client.id
+  end
+
   def after_sign_in_path_for(resource)
     case resource
     when Admin
