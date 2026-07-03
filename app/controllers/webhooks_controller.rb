@@ -74,6 +74,7 @@ class WebhooksController < ApplicationController
               subscription_plan: final_plan_type,
               subscription_status: 'active'
           )
+        end
 
       elsif session.mode == 'payment'
         campaign_id = session.metadata.campaign_id
