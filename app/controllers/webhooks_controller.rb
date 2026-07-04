@@ -46,7 +46,7 @@ class WebhooksController < ApplicationController
     begin
       if session.mode == 'subscription'
         plan_type = session.metadata.plan_type
-        trial_ends_at = nil 
+        trial_ends_at = (plan_type == "trial") ? Subscription::TRIAL_DAYS.days.from_now : nil
 
         if defined?(Subscription) && Subscription.respond_to?(:plan_types)
           unless Subscription.plan_types.keys.include?(plan_type.to_s)
@@ -59,36 +59,31 @@ class WebhooksController < ApplicationController
 
         Subscription.transaction do
           sub = client.subscriptions.find_or_initialize_by(stripe_subscription_id: session.subscription)
-          
+
           client.subscriptions.where.not(id: sub.id).update_all(status: :cancelled)
 
-          final_plan_type = (plan_type == "trial") ? "enterprise" : plan_type
-          
           sub.update!(
-            plan_type: final_plan_type,
+            plan_type: plan_type,
             status: :active,
             trial_ends_at: trial_ends_at
-            )
-            
+          )
+
           client.update!(
-              subscription_plan: final_plan_type,
-              subscription_status: 'active'
+            subscription_plan: plan_type.to_s,
+            subscription_status: "active",
+            trial_ends_at: trial_ends_at
           )
         end
 
       elsif session.mode == 'payment'
-        campaign_id = session.metadata.campaign_id
-        campaign = client.campaigns.find_by(id: campaign_id) if campaign_id.present?
+        return if session.amount_total.to_i <= 0
 
         client.payments.create!(
-          campaign: campaign,
           amount: session.amount_total,
           status: 'succeeded',
           stripe_payment_intent_id: session.payment_intent,
-          description: campaign ? "Campaign delivery: #{campaign.title}" : "One-time payment"
+          description: "One-time payment"
         )
-
-        ::PushNotificationSender.deliver(campaign) if campaign
       end
 
     rescue => e

@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
 
   before_action :init_breadcrumbs
 
-  helper_method :breadcrumbs
+  helper_method :breadcrumbs, :current_client_usage_summary
 
   def check_trial_expiration
     return unless current_client.present?
@@ -23,10 +23,19 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def current_client_allowed_genre_keys
-    return [] unless client_signed_in?
+  def authenticate_admin_or_client!
+    return if admin_signed_in?
+    return if client_signed_in?
 
-    current_client.genre_keys
+    flash[:alert] = "ログインが必要です。"
+    redirect_to root_path
+  end
+
+  def require_admin!
+    return if admin_signed_in?
+
+    flash[:alert] = "管理者権限が必要です。"
+    redirect_to dashboard_root_path
   end
 
   def admin_or_allowed_genre?(genre)
@@ -43,6 +52,12 @@ class ApplicationController < ActionController::Base
     else
       Column.none
     end
+  end
+
+  def current_client_allowed_genre_keys
+    return [] unless client_signed_in?
+
+    current_client.genre_keys
   end
 
   def client_accessible_genre_registry
@@ -66,6 +81,12 @@ class ApplicationController < ActionController::Base
     return if column.client_id.present?
 
     column.client_id = current_client.id
+  end
+
+  def current_client_usage_summary
+    return nil unless client_signed_in?
+
+    current_client.usage_summary
   end
 
   def after_sign_in_path_for(resource)

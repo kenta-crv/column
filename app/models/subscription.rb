@@ -1,67 +1,253 @@
 class Subscription < ApplicationRecord
   belongs_to :client
 
-  # 1. enum の定義に starter が不足していたため追加
-  enum plan_type: { trial: "trial", starter: "starter", standard: "standard", enterprise: "enterprise" }
+  enum plan_type: {
+    trial: "trial",
+    starter: "starter",
+    standard: "standard",
+    business: "business",
+    enterprise: "enterprise"
+  }
+
   enum status: { active: "active", cancelled: "cancelled", expired: "expired" }
 
   validates :plan_type, presence: true
   validates :status, presence: true
-
-  validates :stripe_subscription_id,
-            uniqueness: true,
-            allow_nil: true
-
-  # 2. カンマのタイポ（starterの後ろ）を修正
-  PLAN_NAMES = {
-    trial: "トライアルプラン",
-    starter: "スタータープラン",
-    standard: "スタンダードプラン",
-    enterprise: "エンタープライズプラン"
-  }.freeze
-
-  PLAN_PRICES = {
-    trial: 0,
-    starter: 29_800,
-    standard: 49_800,
-    enterprise: 98_000
-  }.freeze
-
-  DELIVERY_COST = 50
-
-  PLAN_DELIVERY_LIMITS = {
-    trial: 3, # 3. コメントにある「トライアルなら1000件」と乖離があるため注意（※後述）
-    starter: 25,
-    standard: 50,
-    enterprise: 120
-  }.freeze
+  validates :stripe_subscription_id, uniqueness: true, allow_nil: true
 
   TRIAL_DAYS = 10
+  YEARLY_DISCOUNT_RATE = 0.8
+  POST_TRIAL_PLAN = :standard
+
+  # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
+  PLANS = {
+    trial: {
+      name: "トライアル",
+      lp_name: "トライアル",
+      description: "まずはAI記事作成を気軽に試したい方へ",
+      price: 0,
+      pillar_articles: 1,
+      child_articles: 3,
+      title_suggestions: 3,
+      image_generations: 5,
+      genre_count: 1,
+      api_enabled: false,
+      ai_autonomous: false,
+      lp_popular: false,
+      lp_featured: false,
+      lp_cta: "無料で始める →",
+      lp_note: "クレジットカード登録不要",
+      show_on_lp: true,
+      checkout_selectable: true
+    },
+    starter: {
+      name: "スターター",
+      lp_name: "スターター",
+      description: "個人ブロガーや小規模サイトの運営におすすめ",
+      price: 29_800,
+      pillar_articles: 3,
+      child_articles: 45,
+      title_suggestions: 5,
+      image_generations: 60,
+      genre_count: 1,
+      api_enabled: true,
+      ai_autonomous: false,
+      lp_popular: false,
+      lp_featured: false,
+      lp_cta: "このプランで始める →",
+      lp_note: "年額払いで20%お得",
+      show_on_lp: true,
+      checkout_selectable: true
+    },
+    standard: {
+      name: "スタンダード",
+      lp_name: "スタンダード",
+      description: "本格的にメディア運用を始めたい方へ",
+      price: 49_800,
+      pillar_articles: 5,
+      child_articles: 75,
+      title_suggestions: 10,
+      image_generations: 125,
+      genre_count: 3,
+      api_enabled: true,
+      ai_autonomous: false,
+      lp_popular: true,
+      lp_featured: false,
+      lp_cta: "このプランで始める →",
+      lp_note: "年額払いで20%お得",
+      show_on_lp: true,
+      checkout_selectable: true
+    },
+    business: {
+      name: "ビジネス",
+      lp_name: "ビジネス",
+      description: "複数メディアの運営やチーム利用に最適",
+      price: 98_000,
+      pillar_articles: 15,
+      child_articles: 225,
+      title_suggestions: 30,
+      image_generations: 250,
+      genre_count: 10,
+      api_enabled: true,
+      ai_autonomous: true,
+      lp_popular: false,
+      lp_featured: true,
+      lp_cta: "このプランで始める →",
+      lp_note: "年額払いで20%お得",
+      show_on_lp: true,
+      checkout_selectable: true
+    },
+    enterprise: {
+      name: "エンタープライズ",
+      lp_name: "エンタープライズ",
+      description: "大規模運用・カスタマイズが必要な企業様へ",
+      price: 198_000,
+      pillar_articles: 50,
+      child_articles: 750,
+      title_suggestions: 100,
+      image_generations: 1000,
+      genre_count: 20,
+      api_enabled: true,
+      ai_autonomous: true,
+      lp_popular: false,
+      lp_featured: false,
+      lp_cta: "問い合わせる →",
+      lp_note: "年額払いで20%お得",
+      show_on_lp: true,
+      checkout_selectable: true
+    }
+  }.freeze
+
+  PLAN_ORDER = PLANS.keys.freeze
+  PAID_PLAN_TYPES = (PLAN_ORDER - [:trial]).freeze
+
+  # 後方互換（既存コード向け）
+  PLAN_NAMES = PLANS.transform_values { |v| "#{v[:name]}プラン" }.freeze
+  PLAN_PRICES = PLANS.transform_values { |v| v[:price] }.freeze
+
+  class << self
+    def config_for(plan_key)
+      PLANS[plan_key.to_sym] || {}
+    end
+
+    def lp_plans
+      PLAN_ORDER.filter_map do |key|
+        config = PLANS[key]
+        next unless config[:show_on_lp]
+
+        {
+          key: key,
+          name: config[:lp_name],
+          description: config[:description],
+          monthly_price: config[:price],
+          yearly_price: yearly_price_for(config[:price]),
+          note: config[:lp_note],
+          cta_text: config[:lp_cta],
+          popular: config[:lp_popular],
+          featured: config[:lp_featured],
+          features: feature_list_for(key)
+        }
+      end
+    end
+
+    def checkout_plans
+      PAID_PLAN_TYPES
+    end
+
+    def feature_list_for(plan_key)
+      config = config_for(plan_key)
+      return [] if config.blank?
+
+      period = plan_key.to_sym == :trial ? "期間中" : "月"
+
+      features = [
+        "親記事 #{period}#{config[:pillar_articles]}記事",
+        "子記事 #{period}#{config[:child_articles]}記事",
+        "AIタイトル提案 #{config[:title_suggestions]}回",
+        "画像生成 #{config[:image_generations]}回",
+        "ジャンル #{config[:genre_count]}個まで"
+      ]
+
+      features << (config[:api_enabled] ? "API利用可" : "API利用不可")
+      features << "AI主導生成（自律型エージェント）" if config[:ai_autonomous]
+      features
+    end
+
+    def yearly_price_for(monthly_price)
+      return 0 if monthly_price.to_i <= 0
+
+      (monthly_price * YEARLY_DISCOUNT_RATE).to_i
+    end
+
+    def stripe_price_env_key(plan_key)
+      "STRIPE_PRICE_#{plan_key.to_s.upcase}"
+    end
+
+    def stripe_price_id_for(plan_key)
+      ENV[stripe_price_env_key(plan_key)]
+    end
+
+    def limits_for(plan_key)
+      config = config_for(plan_key)
+      config.slice(
+        :pillar_articles,
+        :child_articles,
+        :title_suggestions,
+        :image_generations,
+        :genre_count,
+        :api_enabled,
+        :ai_autonomous
+      )
+    end
+  end
+
+  def plan_config
+    self.class.config_for(plan_type)
+  end
+
+  def limits
+    self.class.limits_for(plan_type)
+  end
 
   def plan_name
     PLAN_NAMES[plan_type.to_sym]
   end
 
   def price
-    PLAN_PRICES[plan_type.to_sym] || 0
+    plan_config[:price] || 0
   end
 
+  def yearly_price
+    self.class.yearly_price_for(price)
+  end
+
+  def feature_list
+    self.class.feature_list_for(plan_type)
+  end
+
+  # 後方互換: 記事生成上限の合計
   def delivery_limit
-    PLAN_DELIVERY_LIMITS[plan_type.to_sym] || 0
+    (limits[:pillar_articles] || 0) + (limits[:child_articles] || 0)
+  end
+
+  def api_enabled?
+    limits[:api_enabled]
+  end
+
+  def ai_autonomous?
+    limits[:ai_autonomous]
   end
 
   def unlimited?
-    delivery_limit == Float::INFINITY
-  end
-
-  # 今月これまでに送信した累積件数を含めて、上限を超えないか正しく検証
-  def can_send_delivery?(count)
-    return true if unlimited?
-    (client.monthly_sent_count + count) <= delivery_limit
+    false
   end
 
   def trial?
     plan_type == "trial"
+  end
+
+  def paid?
+    !trial?
   end
 
   def trial_active?
@@ -72,12 +258,13 @@ class Subscription < ApplicationRecord
     trial? && trial_ends_at.present? && trial_ends_at <= Time.current
   end
 
-  # トライアル期間終了時のアップグレード先を「enterprise（98,000円）」に完全統一
   def expire_trial_and_upgrade!
     return unless trial?
     return if trial_ends_at.blank?
     return if trial_ends_at > Time.current
     return if status != "active"
+
+    upgrade_plan = POST_TRIAL_PLAN
 
     transaction do
       update!(status: :expired)
@@ -85,12 +272,12 @@ class Subscription < ApplicationRecord
       client.subscriptions.where(status: :active).update_all(status: :cancelled)
 
       client.subscriptions.create!(
-        plan_type: :enterprise,
+        plan_type: upgrade_plan,
         status: :active
       )
 
       client.update!(
-        subscription_plan: "enterprise",
+        subscription_plan: upgrade_plan.to_s,
         subscription_status: "active",
         trial_ends_at: nil
       )

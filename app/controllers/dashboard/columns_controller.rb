@@ -105,6 +105,15 @@ class Dashboard::ColumnsController < ApplicationController
 
     target_ids = query.pluck(:id)
 
+    if client_signed_in?
+      remaining = current_client.plan_limits[:image_generations] - current_client.image_generation_usage_count
+      if remaining <= 0
+        return redirect_to image_generation_dashboard_columns_path,
+                           alert: current_client.plan_limit_message(:image_generation)
+      end
+      target_ids = target_ids.first(remaining)
+    end
+
     if target_ids.any?
       @@bulk_image_generating = true
 
@@ -218,18 +227,7 @@ class Dashboard::ColumnsController < ApplicationController
     redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
 
-  def authenticate_admin_or_client!
-    # 1. 管理者（Admin）としてログインしている場合はアクセスを許可
-    return if admin_signed_in?
-
-    # 2. クライアント（Client）としてログインしている場合はアクセスを許可
-    return if client_signed_in?
-
-    # 3. どちらもログインしていない場合は、共通のルート（または任意のログイン画面）へリダイレクト
-    # flash で警告を出し、トップページや適切なサインイン画面へ戻します
-    flash[:alert] = "ログインが必要です。"
-    redirect_to root_path # もしくは new_client_session_path など要件に合わせて変更
-  end
+  private
 
   def setting; end
 
@@ -240,6 +238,10 @@ class Dashboard::ColumnsController < ApplicationController
   def suggest_titles
     unless admin_or_allowed_genre?(params[:genre])
       return render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
+    end
+
+    if client_signed_in? && !current_client.can_suggest_titles?
+      return render json: { success: false, error: current_client.plan_limit_message(:title_suggestion) }
     end
 
     result = PillarTitleSuggestionService.call(
@@ -253,6 +255,7 @@ class Dashboard::ColumnsController < ApplicationController
     )
 
     if result[:success]
+      current_client.record_title_suggestion! if client_signed_in?
       render json: { success: true, titles: result[:titles] }
     else
       render json: { success: false, error: result[:error] }
@@ -291,8 +294,13 @@ class Dashboard::ColumnsController < ApplicationController
 
     created_count = 0
     errors = []
+    remaining_slots = if client_signed_in?
+                        current_client.plan_limits[:pillar_articles] - current_client.pillar_usage_count
+                      else
+                        titles.size
+                      end
 
-    titles.each do |title|
+    titles.first(remaining_slots).each do |title|
       column = Column.new(
         title: title,
         article_type: "pillar",
@@ -310,19 +318,14 @@ class Dashboard::ColumnsController < ApplicationController
 
     if created_count > 0
       render json: { success: true, created_count: created_count, errors: errors }
+    elsif remaining_slots <= 0 && client_signed_in?
+      render json: { success: false, error: current_client.plan_limit_message(:pillar) }
     else
       render json: { success: false, error: "記事を作成できませんでした: #{errors.join(', ')}" }
     end
   end
 
   private
-
-  def require_admin!
-    return if admin_signed_in?
-
-    flash[:alert] = "管理者権限が必要です。"
-    redirect_to dashboard_root_path
-  end
 
   def enforce_client_genre_param!
     return unless client_signed_in?

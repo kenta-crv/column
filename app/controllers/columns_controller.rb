@@ -1,5 +1,7 @@
 class ColumnsController < ApplicationController
+  before_action :authenticate_admin_or_client!, except: [:index, :show]
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image]
+  before_action :require_column_access!, only: [:edit, :update, :destroy, :approve, :generate_title, :remove_image]
   before_action :set_breadcrumbs
   before_action :assign_column_form_genre_options, only: [:new, :create, :edit, :update]
   
@@ -14,7 +16,7 @@ def index
                 :id, :title, :description, :body,
                 :genre, :article_type, :updated_at,
                 :file, :code, :parent_id, :status,
-                :sub_genre, :sub_category
+                :sub_genre
               )
 
   if params[:q].present?
@@ -103,18 +105,22 @@ end
   
   def bulk_update_drafts
     column_ids = params[:column_ids]
-    return redirect_to(draft_columns_path) if column_ids.blank?
+    if column_ids.blank?
+      return redirect_to delete_bulk_fallback_path, alert: "未選択"
+    end
+
+    scope = dashboard_columns_base_scope.where(id: column_ids)
 
     case params[:action_type]
     when "approve_bulk"
-      Column.where(id: column_ids).find_each do |c|
+      scope.find_each do |c|
         GenerateColumnBodyJob.perform_later(c.id)
       end
-      redirect_to columns_path
+      redirect_to dashboard_root_path, notice: "本文生成を開始しました"
 
     when "delete_bulk"
-      Column.where(id: column_ids).destroy_all
-      redirect_to draft_columns_path
+      scope.destroy_all
+      redirect_to delete_bulk_fallback_path, notice: "選択した子記事を削除しました"
     end
   end
 
@@ -182,11 +188,11 @@ end
     genre        = params[:bulk_genre]
     article_type = params[:bulk_article_type]
 
-    query = Column
+    query = dashboard_columns_base_scope
               .where("body IS NOT NULL AND TRIM(body) != ''")
               .where(file: nil)
 
-    query = query.where(genre: genre)               if genre.present?
+    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
     query = query.where(article_type: article_type) if article_type.present?
 
     render json: { count: query.count, is_running: @@bulk_image_generating }
@@ -200,14 +206,22 @@ end
     genre        = params[:bulk_genre]
     article_type = params[:bulk_article_type]
 
-    query = Column
+    query = dashboard_columns_base_scope
               .where("body IS NOT NULL AND TRIM(body) != ''")
               .where(file: nil)
 
-    query = query.where(genre: genre)               if genre.present?
+    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
     query = query.where(article_type: article_type) if article_type.present?
 
     target_ids = query.pluck(:id)
+
+    if client_signed_in?
+      remaining = current_client.plan_limits[:image_generations] - current_client.image_generation_usage_count
+      if remaining <= 0
+        return redirect_to columns_path, alert: current_client.plan_limit_message(:image_generation)
+      end
+      target_ids = target_ids.first(remaining)
+    end
 
     if target_ids.any?
       @@bulk_image_generating = true
@@ -238,7 +252,7 @@ end
   # GENERATION ACTIONS
   # ======================
   def draft
-    @columns = Column
+    @columns = dashboard_columns_base_scope
                  .where("body IS NULL OR TRIM(body) = ''")
                  .order(created_at: :desc)
   end
@@ -264,16 +278,26 @@ end
     ids = params[:column_ids]
     return redirect_to draft_columns_path, alert: "未選択" if ids.blank?
 
-    Column.where(id: ids, article_type: "pillar")
-          .each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+    dashboard_columns_base_scope
+      .where(id: ids, article_type: "pillar")
+      .find_each { |c| GenerateColumnBodyJob.perform_later(c.id) }
 
     redirect_to draft_columns_path, notice: "生成開始"
   end
 
   def generate_title
     topic_plans = GptTitleGenerator.generate_titles(@column)
+    return_path = public_column_show_path(@column)
 
     if topic_plans.any?
+      if @column.client_id.present?
+        owner = @column.client
+        unless owner.can_create_child?(count: topic_plans.size)
+          redirect_back fallback_location: return_path, alert: owner.plan_limit_message(:child)
+          return
+        end
+      end
+
       ActiveRecord::Base.transaction do
         topic_plans.each do |plan|
           Column.create!(
@@ -282,16 +306,15 @@ end
             article_type: "child",
             status: "draft",
             genre: @column.genre,
-            choice: @column.choice
+            choice: @column.choice,
+            client_id: @column.client_id
           )
         end
       end
 
-      redirect_to columns_show_path(genre: @column.genre, id: @column.code),
-                  notice: "#{topic_plans.size}件生成しました"
+      redirect_back fallback_location: return_path, notice: "#{topic_plans.size}件生成しました"
     else
-      redirect_to columns_show_path(genre: @column.genre, id: @column.code),
-                  alert: "生成失敗"
+      redirect_back fallback_location: return_path, alert: "生成失敗"
     end
   end
 
@@ -303,6 +326,14 @@ end
   def set_column
     @column = Column.find_by(code: params[:id]) || Column.find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}" unless @column
+  end
+
+  def require_column_access!
+    return if admin_signed_in?
+    return if client_signed_in? && @column.client_id == current_client.id
+
+    flash[:alert] = "指定された記事にアクセスできません。"
+    redirect_to root_path
   end
 
   def render_404
@@ -358,5 +389,22 @@ end
     else
       GenreRegistry.genres
     end
+  end
+
+  def public_column_show_path(column)
+    genre_key = GenreRegistry.resolve_key(column.genre)
+    columns_show_path(genre: genre_key, id: column.code)
+  end
+  helper_method :public_column_show_path
+
+  def delete_bulk_fallback_path
+    if params[:return_pillar_code].present?
+      pillar = Column.find_by(code: params[:return_pillar_code])
+      return public_column_show_path(pillar) if pillar
+    end
+
+    return draft_columns_path if params[:redirect_context] == "draft"
+
+    dashboard_root_path
   end
 end

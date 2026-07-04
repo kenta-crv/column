@@ -616,9 +616,62 @@
     &.active { background: var(--white); color: var(--ink); box-shadow: var(--shadow-sm); }
   }
   .toggle-save { background: #EFF6FF; color: var(--blue); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-left: 6px; }
-  .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: start; }
+
+  .pricing-scroll-wrap {
+    position: relative;
+    margin: 0 -12px;
+    padding: 0 44px;
+  }
+
+  .pricing-scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-subtle);
+    background: var(--white);
+    color: var(--ink-mid);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+
+    svg { width: 18px; height: 18px; }
+
+    &:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      box-shadow: var(--shadow);
+    }
+
+    &.pricing-scroll-prev { left: 0; }
+    &.pricing-scroll-next { right: 0; }
+  }
+
+  .pricing-grid {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 18px 4px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+
+    &::-webkit-scrollbar { height: 6px; }
+    &::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+  }
   
   .plan-card {
+    flex: 0 0 260px;
+    scroll-snap-align: start;
     background: var(--white);
     border-radius: var(--r);
     border: 1px solid var(--border-subtle);
@@ -628,15 +681,22 @@
     transition: all 0.2s;
 
     &:hover { box-shadow: var(--shadow); border-color: #CBD5E1; }
-    &.popular { border: 2px solid var(--blue); box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08); }
+    &.popular { border: 2px solid var(--blue); box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.12); }
+    &.featured {
+      border: 2px solid var(--purple);
+      box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.15);
+      background: linear-gradient(180deg, #FAF5FF 0%, var(--white) 40%);
+    }
   }
   
   .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--blue); color: var(--white); font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 99px; white-space: nowrap; }
+  .featured-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--purple-gradient); color: var(--white); font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 99px; white-space: nowrap; }
   .plan-name {
     font-size: 20px;
     font-weight: 700;
     color: var(--ink);
     &.accent { color: var(--blue); }
+    &.featured-name { color: var(--purple); }
   }
   .plan-desc { font-size: 13px; color: var(--ink-lt); margin-top: 8px; line-height: 1.5; min-height: 38px; }
   .plan-price { margin: 28px 0 8px; }
@@ -669,6 +729,12 @@
       background: var(--blue-gradient);
       color: var(--white);
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      &:hover { opacity: 0.95; }
+    }
+    &.featured-cta {
+      background: var(--purple-gradient);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
       &:hover { opacity: 0.95; }
     }
   }
@@ -913,7 +979,10 @@
 
   /* RESPONSIVE */
   @media(max-width: 900px) {
-    .hero-inner, .trial-card-inner, .pricing-grid, .concept-grid, .voices-grid { grid-template-columns: 1fr; }
+    .hero-inner, .trial-card-inner, .concept-grid, .voices-grid { grid-template-columns: 1fr; }
+    .pricing-scroll-wrap { padding: 0 36px; margin: 0; }
+    .pricing-scroll-btn { width: 32px; height: 32px; }
+    .plan-card { flex: 0 0 240px; }
     .trial-left, .trial-right { border: none; border-top: 1px solid #F1F5F9; }
     .hero-right { justify-content: center; margin-top: 24px; }
     .fc-time, .fc-score, .fc-words { position: static; margin-bottom: 10px; }
@@ -926,5 +995,8 @@
     .nav-links { display: none; }
     .features-grid, .shared-grid { grid-template-columns: 1fr; }
     .price-zero-row { flex-direction: column; text-align: center; }
+    .pricing-scroll-btn { display: none; }
+    .pricing-scroll-wrap { padding: 0; }
+    .plan-card { flex: 0 0 85vw; max-width: 300px; }
   }
 }

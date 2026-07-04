@@ -1,7 +1,6 @@
 class ContractsController < ApplicationController
   protect_from_forgery with: :null_session, only: [:create]
-
-  #before_action :authenticate_admin!, only: [:index, :destroy, :send_mail]
+  before_action :authenticate_admin!, except: [:new, :create]
     def index
       @contracts = Contract.order(created_at: "DESC").page(params[:page])
     end

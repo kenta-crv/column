@@ -70,37 +70,80 @@
     = link_to "一覧に戻る", dashboard_service_genres_path, class: "btn btn-secondary"
 
 javascript:
-  document.addEventListener('DOMContentLoaded', () => {
-    const list = document.getElementById('sub-categories-list');
-    const addBtn = document.getElementById('add-sub-category');
-    const template = document.getElementById('sub-category-template');
-    if (!list || !addBtn || !template) return;
+  (function() {
+    const initSubCategories = () => {
+      const list = document.getElementById('sub-categories-list');
+      const addBtn = document.getElementById('add-sub-category');
+      const template = document.getElementById('sub-category-template');
+      if (!list || !addBtn || !template) return;
 
-    const updateTitles = () => {
-      list.querySelectorAll('.sub-category-item').forEach((item) => {
-        const nameInput = item.querySelector('input[name*="[name]"]');
-        const title = item.querySelector('.sub-category-item__title');
-        if (!title || !nameInput) return;
-        title.textContent = nameInput.value.trim() || '新しい中分類';
+      if (list.dataset.initialized === 'true') return;
+      list.dataset.initialized = 'true';
+
+      const syncHeaderState = (item, open) => {
+        const header = item.querySelector('.sub-category-item__header');
+        if (!header) return;
+        header.setAttribute('aria-expanded', open ? 'true' : 'false');
+      };
+
+      const setOpen = (item, open) => {
+        item.classList.toggle('is-open', open);
+        syncHeaderState(item, open);
+      };
+
+      const updateTitles = () => {
+        list.querySelectorAll('.sub-category-item').forEach((item) => {
+          const nameInput = item.querySelector('input[name*="[name]"]');
+          const title = item.querySelector('.sub-category-item__title');
+          if (!title || !nameInput) return;
+          title.textContent = nameInput.value.trim() || '新しい中分類';
+        });
+      };
+
+      addBtn.addEventListener('click', () => {
+        const node = template.content.cloneNode(true);
+        list.appendChild(node);
+        const item = list.lastElementChild;
+        if (item) setOpen(item, true);
+        updateTitles();
       });
+
+      list.addEventListener('click', (event) => {
+        const removeBtn = event.target.closest('.sub-category-remove');
+        if (removeBtn) {
+          event.stopPropagation();
+          removeBtn.closest('.sub-category-item')?.remove();
+          return;
+        }
+
+        const header = event.target.closest('.sub-category-item__header');
+        if (!header) return;
+
+        const item = header.closest('.sub-category-item');
+        if (!item) return;
+        setOpen(item, !item.classList.contains('is-open'));
+      });
+
+      list.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const header = event.target.closest('.sub-category-item__header');
+        if (!header) return;
+        event.preventDefault();
+        const item = header.closest('.sub-category-item');
+        if (!item) return;
+        setOpen(item, !item.classList.contains('is-open'));
+      });
+
+      list.addEventListener('input', (event) => {
+        if (event.target.matches('input[name*="[name]"]')) {
+          updateTitles();
+        }
+      });
+
+      updateTitles();
     };
 
-    addBtn.addEventListener('click', () => {
-      list.appendChild(template.content.cloneNode(true));
-      updateTitles();
-    });
-
-    list.addEventListener('click', (event) => {
-      const removeBtn = event.target.closest('.sub-category-remove');
-      if (!removeBtn) return;
-      removeBtn.closest('.sub-category-item')?.remove();
-    });
-
-    list.addEventListener('input', (event) => {
-      if (event.target.matches('input[name*="[name]"]')) {
-        updateTitles();
-      }
-    });
-
-    updateTitles();
-  });
+    document.addEventListener('turbolinks:load', initSubCategories);
+    document.addEventListener('DOMContentLoaded', initSubCategories);
+    initSubCategories();
+  })();

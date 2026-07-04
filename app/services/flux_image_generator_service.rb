@@ -10,6 +10,13 @@ class FluxImageGeneratorService
   def self.generate!(column)
     raise 'Column not found' if column.nil?
 
+    if column.client_id.present?
+      client = column.client
+      unless client.can_generate_images?
+        raise StandardError, client.plan_limit_message(:image_generation)
+      end
+    end
+
     prompt = build_prompt(column)
 
     puts "================ IMAGE PROMPT ================"
@@ -76,6 +83,8 @@ class FluxImageGeneratorService
       column.file = file
       column.save!
     end
+
+    column.client&.record_image_generation!
 
     tmp_path.to_s
   end

@@ -117,10 +117,6 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
-    dotenv (3.2.0)
-    dotenv-rails (3.2.0)
-      dotenv (= 3.2.0)
-      railties (>= 6.1)
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
@@ -412,7 +408,6 @@ DEPENDENCIES
   coffee-rails (~> 4.2)
   date (< 3.5)
   devise
-  dotenv-rails
   friendly_id (~> 5.5)
   httparty
   jbuilder (~> 2.5)

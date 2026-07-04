@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
-  devise_for :admins, controllers: {
+  get "/robots.txt", to: "robots#show"
+  get "/sitemap.xml", to: "sitemaps#show"
+
+  devise_for :admins, skip: [:registrations], controllers: {
     sessions: "admins/sessions",
-    registrations: "admins/registrations",
     passwords: "admins/passwords"
   }
   
@@ -64,7 +66,7 @@ Rails.application.routes.draw do
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
   scope ':genre/columns', constraints: {
-    genre: Regexp.new(GenreRegistry::FALLBACK_GENRES.keys.map(&:to_s).join("|"))
+    genre: Regexp.new(GenreRegistry.genre_keys.join("|"))
   } do
     get '/',    to: 'columns#index', as: :columns_index
     get '/:id', to: 'columns#show',  as: :columns_show

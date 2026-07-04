@@ -8,7 +8,7 @@ class ContractMailer < ActionMailer::Base
     mail(
       from: @contract.email,
       to: "info@j-work.jp", # ここも正しいドメイン付きアドレスに
-      subject: '株式会社セールスプロにお問い合わせがありました'
+      subject: '株式会社J Workにお問い合わせがありました'
     )
   end
 

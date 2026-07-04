@@ -109,8 +109,10 @@ javascript:
       }
     };
 
-    // Turbo環境対応
-    document.removeEventListener('turbo:load', initGenreSelect);
-    document.addEventListener('turbo:load', initGenreSelect);
+    // Turbolinks環境対応
+    document.removeEventListener('turbolinks:load', initGenreSelect);
+    document.addEventListener('turbolinks:load', initGenreSelect);
+    document.removeEventListener('DOMContentLoaded', initGenreSelect);
+    document.addEventListener('DOMContentLoaded', initGenreSelect);
     initGenreSelect();
   })();

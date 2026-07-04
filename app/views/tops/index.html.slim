@@ -205,109 +205,48 @@
           br
           | すべてのプランに、AIによる高品質な記事作成を体験できます。
       .toggle-wrap
-        button.toggle-btn onclick="setToggle(false,this)" 月額払い
-        button.toggle-btn.active onclick="setToggle(true,this)"
+        button.toggle-btn.active onclick="setToggle(false,this)" 月額払い
+        button.toggle-btn onclick="setToggle(true,this)"
           | 年額払い
           span.toggle-save 20%お得
-      .pricing-grid
-        - pricing_plans = { \
-            free: { \
-              name: "フリー", \
-              desc: "まずはAI記事作成を気軽に試したい方へ", \
-              monthly_price: Subscription::PLAN_PRICES[:trial], \
-              yearly_price: Subscription::PLAN_PRICES[:trial], \
-              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:trial], \
-              note: "クレジットカード登録不要", \
-              cta_text: "無料で始める →", \
-              features: [ \
-                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:trial]}記事まで作成", \
-                "AI記事生成（標準品質）", \
-                "テンプレート5種類", \
-                "SEOスコア分析（基本）", \
-                "コピー＆チェック機能", \
-                "メールサポート" \
-              ] \
-            }, \
-            starter: { \
-              name: "スターター", \
-              desc: "個人ブロガーや小規模サイトの運営におすすめ", \
-              monthly_price: Subscription::PLAN_PRICES[:starter], \
-              yearly_price: (Subscription::PLAN_PRICES[:starter] * 0.8).to_i, \
-              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:starter], \
-              note: "年額払いで20%お得", \
-              cta_text: "7日間無料トライアル →", \
-              features: [ \
-                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:starter]}記事まで作成", \
-                "AI記事生成（高品質）", \
-                "テンプレート20種類", \
-                "SEOスコア分析（詳細）", \
-                "コピー＆チェック機能", \
-                "キーワード調査ツール", \
-                "メールサポート" \
-              ] \
-            }, \
-            business: { \
-              name: "ビジネス", \
-              desc: "複数メディアの運営やチーム利用に最適", \
-              monthly_price: Subscription::PLAN_PRICES[:standard], \
-              yearly_price: (Subscription::PLAN_PRICES[:standard] * 0.8).to_i, \
-              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:standard], \
-              note: "年額払いで20%お得", \
-              cta_text: "7日間無料トライアル →", \
-              popular: true, \
-              features: [ \
-                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:standard]}記事まで作成", \
-                "AI記事生成（最高品質）", \
-                "テンプレート無制限", \
-                "SEOスコア分析（詳細）", \
-                "キーワード調査ツール", \
-                "AI自動リライト機能", \
-                "チーム共有（最大5名）", \
-                "優先サポート" \
-              ] \
-            }, \
-            enterprise: { \
-              name: "エンタープライズ", \
-              desc: "大規模運用・カスタマイズが必要な企業様へ", \
-              monthly_price: Subscription::PLAN_PRICES[:enterprise], \
-              yearly_price: (Subscription::PLAN_PRICES[:enterprise] * 0.8).to_i, \
-              article_limit: Subscription::PLAN_DELIVERY_LIMITS[:enterprise], \
-              note: "年額払いで20%お得", \
-              cta_text: "問い合わせる →", \
-              features: [ \
-                "月間#{Subscription::PLAN_DELIVERY_LIMITS[:enterprise]}記事まで作成", \
-                "自律型AIエージェント機能主体運用", \
-                "SMS・メール自動進行通知", \
-                "チーム共有 無制限", \
-                "専任カスタマーサクセス", \
-                "カスタム機能開発（応相談）", \
-                "SLA保証・セキュリティ強化" \
-              ] \
-            } \
-          }
-
-        - pricing_plans.each do |plan_key, plan|
-          .plan-card class=(plan[:popular] ? "popular" : "") data-plan-key=plan_key data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
-            - if plan[:popular]
-              .popular-badge 人気 No.1
-            .plan-name class=(plan[:popular] ? "accent" : "") = plan[:name]
-            .plan-desc = plan[:desc]
-            .plan-price
-              - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
-                .plan-price-orig id="#{plan_key}-orig" = "¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月"
-              .plan-price-main
-                span.price-yen ¥
-                span.price-num id="#{plan_key}-price" = plan[:yearly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')
-                span.price-unit "/ 月"
-            .plan-price-note id="#{plan_key}-note" = plan[:note]
-            = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{plan[:popular] ? 'filled' : 'outline'}"
-            hr.plan-divider
-            ul.plan-features
-              - plan[:features].each do |feature|
-                li
-                  svg viewBox="0 0 16 16" fill="none"
-                    path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-                  = feature
+      .pricing-scroll-wrap
+        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" onclick="scrollPricing(-1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .pricing-grid
+          - Subscription.lp_plans.each do |plan|
+            - card_classes = [("popular" if plan[:popular]), ("featured" if plan[:featured])].compact.join(" ")
+            - cta_class = plan[:popular] ? "filled" : (plan[:featured] ? "featured-cta" : "outline")
+            .plan-card class=card_classes data-plan-key=plan[:key] data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
+              - if plan[:popular]
+                .popular-badge 人気 No.1
+              - elsif plan[:featured]
+                .featured-badge イチオシ
+              .plan-name class=(plan[:popular] ? "accent" : (plan[:featured] ? "featured-name" : "")) = plan[:name]
+              .plan-desc = plan[:description]
+              .plan-price
+                - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
+                  .plan-price-orig id="#{plan[:key]}-orig" style="display:none" = "¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月"
+                .plan-price-main
+                  span.price-yen ¥
+                  span.price-num id="#{plan[:key]}-price" = plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')
+                  span.price-unit "/ 月"
+              .plan-price-note id="#{plan[:key]}-note"
+                - if plan[:key] == :trial
+                  = plan[:note]
+                - else
+                  | ¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月（月額払い）
+              = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{cta_class}"
+              hr.plan-divider
+              ul.plan-features
+                - plan[:features].each do |feature|
+                  li
+                    svg viewBox="0 0 16 16" fill="none"
+                      path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    = feature
+        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" onclick="scrollPricing(1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
       /-- shared features --
       .shared-features
@@ -596,10 +535,17 @@ script
   |     }
   |     if (noteEl) {
   |       if (isYearly) {
-  |         noteEl.textContent = (key === 'free') ? 'クレジットカード登録不要' : '年額払いで20%お得';
+  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '年額払いで20%お得';
   |       } else {
-  |         noteEl.textContent = (key === 'free') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
+  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
   |       }
   |     }
   |   });
+  | }
+  | function scrollPricing(direction) {
+  |   const grid = document.querySelector('.pricing-grid');
+  |   if (!grid) return;
+  |   const card = grid.querySelector('.plan-card');
+  |   const step = card ? card.offsetWidth + 20 : 280;
+  |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
   | }

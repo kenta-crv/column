@@ -49,15 +49,12 @@
               .d-flex.flex-wrap.gap-3
                 - current_plan = @subscription&.plan_type || @target_client.subscription_plan
 
-                - unless current_plan == 'standard'
-                  = link_to checkout_confirmation_path(plan_type: "standard", client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--primary", style: "text-decoration: none;" do
-                    i.fas.fa-level-up-alt.me-1
-                    = "#{Subscription::PLAN_NAMES[:standard]}に変更"
+                - Subscription.checkout_plans.each do |plan_key|
+                  - next if current_plan == plan_key.to_s
 
-                - unless current_plan == 'enterprise'
-                  = link_to checkout_confirmation_path(plan_type: "enterprise", client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--primary", style: "text-decoration: none;" do
-                    i.fas.fa-rocket.me-1
-                    = "#{Subscription::PLAN_NAMES[:enterprise]}に変更"
+                  = link_to checkout_confirmation_path(plan_type: plan_key, client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--primary", style: "text-decoration: none;" do
+                    i.fas.fa-level-up-alt.me-1
+                    = "#{Subscription::PLAN_NAMES[plan_key]}に変更"
 
             - if is_active
               .mt-4.pt-4 style="border-top: 1px solid rgba(56, 189, 248, 0.1);"

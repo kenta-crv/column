@@ -19,6 +19,10 @@ class Column < ApplicationRecord
     article_type == "cluster"
   end
 
+  def child?
+    %w[child cluster].include?(article_type)
+  end
+
   def cluster_full?
     return false unless pillar?
     return false if cluster_limit.blank?
@@ -27,6 +31,8 @@ class Column < ApplicationRecord
 
   extend FriendlyId
   friendly_id :code, use: :slugged, slug_column: :code
+
+  validate :within_client_plan_limits, on: :create
 
   def should_generate_new_friendly_id?
     code_changed? || super
@@ -59,6 +65,19 @@ class Column < ApplicationRecord
   end
 
   private
+
+  def within_client_plan_limits
+    return if client_id.blank?
+
+    owner = client
+    return unless owner
+
+    if pillar? && !owner.can_create_pillar?
+      errors.add(:base, owner.plan_limit_message(:pillar))
+    elsif child? && !owner.can_create_child?
+      errors.add(:base, owner.plan_limit_message(:child))
+    end
+  end
 
   def assign_random_file
     return if file.present?

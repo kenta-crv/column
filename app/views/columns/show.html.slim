@@ -29,16 +29,17 @@
           | 管理者メニュー：クラスター記事（子記事）戦略
         p style="font-size: 0.9rem; color: #666;"
           | この親記事に基づき、OpenAIで魅力的な子記事タイトル（15〜25件）を自動生成します。
-        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？" }
+        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？", turbo: false }
 
       .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
         h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
         
         / 一括生成・削除用フォーム
         = @column.title
-        = form_tag bulk_update_drafts_columns_path, method: :post do
+        = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbo: false } do
           / JavaScriptでアクションタイプを動的に書き換えるための hidden_field
           = hidden_field_tag :action_type, "approve_bulk"
+          = hidden_field_tag :return_pillar_code, @column.code
           
           .admin-actions style="margin-bottom: 15px; display: flex; gap: 10px;"
             = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
@@ -70,7 +71,7 @@
             - public_children.each do |child|
               li style="margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; display: flex; align-items: baseline;"
                 span style="color: #007bff; margin-right: 12px; font-size: 1.2rem;" ●
-                = link_to child.title, columns_show_path(genre: child.genre, id: child.code), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
+                = link_to child.title, public_column_show_path(child), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
       = link_to '一覧へ戻る', columns_path, class: 'btn btn-default'

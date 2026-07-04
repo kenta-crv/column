@@ -7,6 +7,7 @@ class ServiceGenre < ApplicationRecord
   validates :ja, presence: true
 
   before_validation :normalize_key
+  validate :within_client_genre_limit, on: :create
   after_save :sync_client_allowed_genres, if: :client_id?
   after_destroy :sync_client_allowed_genres_on_destroy, if: :client_id?
   after_commit :reset_genre_registry_cache
@@ -81,6 +82,16 @@ class ServiceGenre < ApplicationRecord
 
   def normalize_key
     self.key = key.to_s.strip.downcase if key.present?
+  end
+
+  def within_client_genre_limit
+    return if client_id.blank?
+
+    owner = client
+    return unless owner
+    return if owner.can_add_genre?
+
+    errors.add(:base, owner.plan_limit_message(:genre))
   end
 
   def sync_client_allowed_genres

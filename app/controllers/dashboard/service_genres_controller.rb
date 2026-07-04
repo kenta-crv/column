@@ -160,12 +160,4 @@ class Dashboard::ServiceGenresController < ApplicationController
   def split_list(text)
     text.to_s.split(/[\n,、]/).map(&:strip).reject(&:blank?)
   end
-
-  def authenticate_admin_or_client!
-    return if admin_signed_in?
-    return if client_signed_in?
-
-    flash[:alert] = "ログインが必要です。"
-    redirect_to root_path
-  end
 end

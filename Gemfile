@@ -70,7 +70,6 @@ gem 'omniauth-twitter'
 gem 'meta-tags'
 
 gem 'httparty'      # API呼び出し用
-gem 'dotenv-rails', groups: [:development, :test]
 gem 'kramdown'
 
 # Gemfile
