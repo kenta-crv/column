@@ -15,7 +15,7 @@ class Dashboard::ServiceGenresController < ApplicationController
                      else
                        ServiceGenre.new
                      end
-    @service_genre.client = current_client if client_signed_in?
+    @service_genre.client = current_client if client_signed_in? && !admin_signed_in?
     @fallback_templates = GenreRegistry::FALLBACK_GENRES
   end
 
@@ -102,10 +102,10 @@ class Dashboard::ServiceGenresController < ApplicationController
       sub_categories: sub_categories
     }
 
-    if client_signed_in?
-      attrs[:client_id] = current_client.id
-    elsif admin_signed_in?
+    if admin_signed_in?
       attrs[:client_id] = permitted[:client_id].presence
+    elsif client_signed_in?
+      attrs[:client_id] = current_client.id
     end
 
     [attrs, sub_category_error]

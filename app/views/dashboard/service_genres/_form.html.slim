@@ -13,7 +13,8 @@
     - if admin_signed_in?
       .form-group
         = f.label :client_id, "クライアント"
-        = f.select :client_id, options_for_select([["システム共通", ""]] + Client.order(:email).map { |c| [c.email, c.id] }, service_genre.client_id), {}, class: "form-control"
+        - selected_client_id = service_genre.client_id.presence || ""
+        = f.select :client_id, options_for_select([["システム共通", ""]] + Client.order(:email).map { |c| [c.email, c.id] }, selected_client_id), {}, class: "form-control"
         small.form-text 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
 
     .form-group

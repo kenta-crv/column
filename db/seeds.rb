@@ -1,7 +1,118 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
-#   Character.create(name: 'Luke', movie: movies.first)
+# frozen_string_literal: true
+
+def upsert_service_genre!(attrs)
+  genre = ServiceGenre.find_or_initialize_by(client_id: nil, key: attrs.fetch(:key))
+  genre.assign_attributes(attrs.except(:key))
+  genre.save!
+  puts "ServiceGenre: #{genre.key} (#{genre.ja})"
+end
+
+upsert_service_genre!(
+  key: "ai_article_generation",
+  ja: "AI記事生成",
+  service_name: "Drafify",
+  strong_points: <<~TEXT.strip,
+    最新AIがGoogleの検索志向を分析し、SEOに強く読者の心に響く高品質な記事を自動生成。
+    ピラー・クラスター構造（親記事＋子記事）の設計から、E-E-A-T対応の本文・画像生成、SEOスコア査定、CMS/API連携まで一貫対応。
+    平均40秒で記事生成、バックグラウンド処理で画面を閉じても自動進行。EnterpriseプランではAIエージェントが自律的に記事量産。
+  TEXT
+  hosts: ["drafity.pro"],
+  keywords: [
+    "AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツSEO",
+    "E-E-A-T", "オウンドメディア", "記事量産", "AIライティング", "コンテンツ資産化"
+  ],
+  images: [],
+  sub_categories: {
+    "seo_generation" => {
+      "name" => "AI記事生成",
+      "target" => "オウンドメディアの流入を増やし、コンテンツ資産化を進めたい企業・個人",
+      "description" => "AIが検索需要を捉えたテーマを提案し、ピラー記事（親）とクラスター記事（子）を自動設計・生成。約6,000〜8,000字の高品質記事を平均40秒で生成し、SEOスコアで品質を可視化します。",
+      "features" => [
+        "テーマ・キーワードの自動提案",
+        "親子記事（ピラー・クラスター）の自動連携",
+        "E-E-A-T対応の高精度記事生成",
+        "画像AI自動生成",
+        "記事ランク・SEOスコア自動査定",
+        "API/CMS連携による自動同期",
+        "バックグラウンド生成（画面を閉じても処理継続）"
+      ],
+      "keywords" => ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツ資産化"],
+      "price_hint" => "無料プラン 月3記事（クレカ不要・ずっと無料）/ トライアル 7日間無料 / スターター ¥29,800 / スタンダード ¥49,800 / ビジネス ¥98,000 / エンタープライズ ¥198,000（各月額・年額20%OFF）",
+      "area" => "全国対応",
+      "strengths" => "単なる記事生成ではなく、Google上位表示に適したピラー・クラスター構造の設計から生成・査定まで一貫対応。EnterpriseプランではAIエージェントが自律的に親子記事を量産し、進捗をメール・SMS通知。",
+      "industry_weakness" => "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafifyはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
+    },
+    "enterprise_agent" => {
+      "name" => "自律型AIエージェント",
+      "target" => "プロンプト入力を最小限に、AIが主体的に記事量産を行いたい大規模メディア運営者",
+      "description" => "Enterpriseプラン向けの自律型AIエージェント。キーワードを最小限セットするだけで、AIがピラータイトル・本文、関連クラスタータイトル・本文まで思考し一連の流れを完全自動生成。PCを閉じている間も裏側でタスクが進行。",
+      "features" => [
+        "ピラー・クラスター記事の完全自動生成",
+        "プロンプト最小限の自律稼働",
+        "バックグラウンド処理",
+        "メール・SMSによる進捗通知",
+        "無制限の記事生成"
+      ],
+      "keywords" => ["AIエージェント", "自律型記事生成", "Enterprise", "メディア量産"],
+      "price_hint" => "エンタープライズ ¥198,000/月（年額20%OFF・AIエージェント完全自動運用・カスタム機能は個別応相談）",
+      "area" => "全国対応",
+      "strengths" => "人の介入なしでメディア量産のゲームチェンジャー。放置するだけで親子記事が次々と完成し、進捗がリアルタイム通知される。",
+      "industry_weakness" => "従来の記事生成は都度のプロンプト入力と人手確認が必要だが、自律エージェントにより運用工数を構造的に削減。"
+    }
+  }
+)
+
+upsert_service_genre!(
+  key: "meetia",
+  ja: "AI商談代行",
+  service_name: "Meetia",
+  strong_points: <<~TEXT.strip,
+    営業担当者が行う商談工程をAIアバター「ミーティア」が代行するAI商談代行サービス。
+    資料アップロードだけで24時間365日、ユーザーが知りたいタイミングで即時商談を開始。
+    商談結果の報告・見込み度分析・離脱分析・自動追客まで一気通貫で営業工数をゼロに。
+  TEXT
+  hosts: ["meetia.pro"],
+  keywords: [
+    "AI商談", "AI商談代行", "AI営業代行", "AIアバター", "24時間商談",
+    "商談自動化", "インサイドセールス", "リード獲得", "商談経費削減", "自動追客"
+  ],
+  images: [],
+  sub_categories: {
+    "ai_negotiation" => {
+      "name" => "24時間即時AI商談",
+      "target" => "商談工数を削減し、問い合わせ直後の機会損失を防ぎたいBtoB企業",
+      "description" => "営業資料・FAQをアップロードするだけでAIが内容を深く読解。Web上のアバターを介して24時間365日、待機時間ゼロで双方向のヒアリングと提案を自動実行。BANT情報を抽出しCRMへ連携。",
+      "features" => [
+        "資料・FAQの自動解析",
+        "商談スクリプトの自動構成・音声化",
+        "24時間365日即時AI商談",
+        "ユーザー情報・BANT情報の自動抽出",
+        "商談結果の即時レポート",
+        "見込み度（A〜Dランク）の自動判定",
+        "離脱ポイント・関心部分の可視化"
+      ],
+      "keywords" => ["AI商談", "AI商談代行", "24時間商談", "AIアバター", "即時商談"],
+      "price_hint" => "フリー ¥0 / ライト ¥30,000 / スタンダード ¥70,000 / プロ ¥150,000 / エンタープライズ カスタム（各月額）",
+      "area" => "全国対応",
+      "strengths" => "資料アップロードのみで即運用開始。深夜・休日のアクセスも取りこぼさず、熱量が最も高い瞬間に質の高い商談を開始。商談対応の属人化と時間制約を排除。",
+      "industry_weakness" => "従来の営業は担当者依存で対応品質・速度にばらつきがあり、資料請求後の架電タイムラグで競合に流れるケースが多い。Meetiaは即時商談で機会損失を構造的に解消。"
+    },
+    "auto_followup" => {
+      "name" => "自動追客・フォローアップ",
+      "target" => "商談後の追客・ステータス管理を自動化し、成約率を安定させたい営業組織",
+      "description" => "AI商談中に導入検討時期や社内調整タイミングを自然な会話でヒアリング。回答時期をトリガーに、メール配信システムや各種ツール連携で最適な追客コンテンツを自動配信。",
+      "features" => [
+        "導入時期に合わせた自動フォロー",
+        "商談ステータス管理",
+        "見込み度に基づく追客シナリオ",
+        "CRM/Slack連携",
+        "お礼メール・定期アプローチの自動化"
+      ],
+      "keywords" => ["自動追客", "フォローアップ", "AI営業", "商談後フォロー", "リードナーチャリング"],
+      "price_hint" => "プロ ¥150,000/月 / エンタープライズ カスタム（自動追客・シナリオ完全自由）",
+      "area" => "全国対応",
+      "strengths" => "商談から追客までAIが一気通貫で代行。月曜朝には見込み度でセグメントされた商談結果とネクストアクションがCRMに並ぶ状態を実現。",
+      "industry_weakness" => "商談後のフォローは人手依存になりがちで取りこぼしが発生するが、AIが検討時期に合わせた最適タイミングで自動追客。"
+    }
+  }
+)
