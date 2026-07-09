@@ -15,7 +15,7 @@ class EvaluateColumnQualityJob < ApplicationJob
       )
 
       # ✅ 評価完了をActionCableでブロードキャスト（リアルタイム反映用）
-      ActionCable.server.broadcast('GenerationChannel', {
+      ActionCable.server.broadcast(GenerationChannel::STREAM_NAME, {
         status:             'evaluated',
         column_id:          column.id,
         quality_score:      evaluation[:overall_score],

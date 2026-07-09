@@ -70,15 +70,16 @@
                 .form-actions style="border-top: none; padding-top: 0;"
                   = f.submit 'Update Company Info', class: 'btn btn-primary btn-sm'
 
-            / ===== プラン変更 =====
+            / ===== プラン・利用状況 =====
             .form-section
-              h3.form-section-title Subscription
-              .form-group
-                p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 1rem;" 現在のプランを変更・管理できます
-                = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn btn-secondary btn-sm'
+              h3.form-section-title Subscription & Plan
+              - if client_signed_in?
+                = render "dashboard/columns/plans_billing"
+              - else
+                p style="font-size: 0.95rem; opacity: 0.8;" クライアントアカウントでログインしてください。
 
             / ===== ログアウト =====
             .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
               h3.form-section-title Logout
-              .form-group
-                = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn btn-secondary btn-sm', style: 'color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'
+              .form-actions style="border-top: none; padding-top: 0; margin-top: 0;"
+                = link_to 'ログアウト', destroy_client_session_path, method: :delete, class: 'btn-setting-logout'

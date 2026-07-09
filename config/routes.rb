@@ -21,11 +21,23 @@ Rails.application.routes.draw do
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'
 
+    resources :autonomous_runs, only: [:index, :new, :create, :show, :destroy] do
+      member do
+        post :approve_child_titles
+        post :retry
+        delete "children/:child_id", action: :destroy_child, as: :destroy_child
+      end
+      collection do
+        patch :update_settings
+      end
+    end
+
     resources :columns do
       collection do
         get :drafts
         get :export
         get :image_generation
+        get :generation_status
         post :bulk_generate_images
         get :check_bulk_image_count
         
@@ -34,10 +46,12 @@ Rails.application.routes.draw do
         
         post :create_from_suggestion
         post :bulk_create_from_suggestions
+        post :create_child_title
       end
 
       member do
         patch :remove_image
+        post :cancel_generation
       end
     end
 
@@ -89,6 +103,7 @@ Rails.application.routes.draw do
     member do
       patch :remove_image
       post :generate_title
+      post :create_child_title
       patch :approve
     end
   end

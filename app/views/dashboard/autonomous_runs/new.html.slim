@@ -1,0 +1,43 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title AI主導生成を開始
+      p.api-settings-subtitle 親タイトルを入力するだけで、親記事→子タイトル→子記事を自動生成します
+
+    .api-settings-card
+      .api-settings-card__body
+        = form_with model: @run, url: dashboard_autonomous_runs_path, local: true do |f|
+          .form-section
+            h3.form-section-title 基本設定
+
+            .form-group
+              = f.label :title, "親記事タイトル"
+              = f.text_field :title, class: "form-control", required: true, placeholder: "例：オフィス清掃の完全ガイド"
+
+            .form-group
+              = f.label :genre, "ジャンル"
+              = f.select :genre, @genre_options, { include_blank: "選択してください" }, class: "form-control", required: true
+
+            .form-group
+              = f.label :cluster_limit, "子記事数（1〜25）"
+              = f.range_field :cluster_limit, class: "form-control-range", min: 1, max: 25, value: @run.cluster_limit, id: "clusterLimitRange"
+              p.form-text
+                | 生成数:
+                strong#clusterLimitValue = @run.cluster_limit
+                |  本
+                br
+                small 通知・承認の設定は一覧ページで変更できます。
+
+          .form-actions
+            = f.submit "自律生成を開始", class: "btn btn-primary", data: { confirm: "Sidekiqでバックグラウンド生成を開始します。よろしいですか？" }
+            = link_to "キャンセル", dashboard_autonomous_runs_path, class: "btn btn-secondary"
+
+javascript:
+  document.addEventListener('DOMContentLoaded', function() {
+    const range = document.getElementById('clusterLimitRange');
+    const label = document.getElementById('clusterLimitValue');
+    if (!range || !label) return;
+    range.addEventListener('input', function() {
+      label.textContent = range.value;
+    });
+  });

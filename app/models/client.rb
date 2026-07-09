@@ -2,9 +2,12 @@ class Client < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  validates :company, :name, :tel, :address, :url, presence: true, on: :create
+
   has_many :client_usage_logs, dependent: :destroy
   has_many :columns, dependent: :nullify
   has_many :service_genres, dependent: :destroy
+  has_many :autonomous_content_runs, dependent: :destroy
 
   has_one :plan
   has_many :subscriptions, dependent: :destroy
@@ -96,6 +99,10 @@ class Client < ApplicationRecord
     title_suggestion_usage_count < plan_limits[:title_suggestions]
   end
 
+  def max_title_suggestion_count
+    (plan_limits[:title_suggestion_max_per_use] || Subscription::TITLE_SUGGESTION_BAR_MAX).to_i.clamp(1, Subscription::TITLE_SUGGESTION_BAR_MAX)
+  end
+
   def can_generate_images?(count: 1)
     image_generation_usage_count + count <= plan_limits[:image_generations]
   end
@@ -106,6 +113,42 @@ class Client < ApplicationRecord
 
   def ai_autonomous_enabled?
     plan_limits[:ai_autonomous]
+  end
+
+  DEFAULT_AUTONOMOUS_SETTINGS = {
+    "notify_on" => ["cycle_complete"],
+    "pause_for_approval_at" => nil,
+    "default_cluster_limit" => 15
+  }.freeze
+
+  def autonomous_settings_with_defaults
+    DEFAULT_AUTONOMOUS_SETTINGS.merge(autonomous_settings.is_a?(Hash) ? autonomous_settings : {})
+  end
+
+  def pause_for_child_title_approval?
+    autonomous_settings_with_defaults["pause_for_approval_at"] == "child_titles"
+  end
+
+  def autonomous_notify_on
+    Array(autonomous_settings_with_defaults["notify_on"])
+  end
+
+  def default_cluster_limit
+    autonomous_settings_with_defaults["default_cluster_limit"].to_i.clamp(
+      AutonomousContentRun::MIN_CLUSTER_LIMIT,
+      AutonomousContentRun::MAX_CLUSTER_LIMIT
+    )
+  end
+
+  def update_autonomous_settings!(notify_on:, pause_for_child_titles:, default_cluster_limit:)
+    settings = autonomous_settings_with_defaults.dup
+    settings["notify_on"] = notify_on
+    settings["pause_for_approval_at"] = pause_for_child_titles ? "child_titles" : nil
+    settings["default_cluster_limit"] = default_cluster_limit.to_i.clamp(
+      AutonomousContentRun::MIN_CLUSTER_LIMIT,
+      AutonomousContentRun::MAX_CLUSTER_LIMIT
+    )
+    update!(autonomous_settings: settings)
   end
 
   def record_title_suggestion!

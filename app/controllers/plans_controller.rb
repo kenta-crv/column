@@ -1,30 +1,16 @@
 class PlansController < ApplicationController
   before_action :authenticate_client!
+  layout "application"
 
   def index
-    @is_new_account = current_client.created_at > Subscription::TRIAL_DAYS.days.ago
+    load_subscription
 
-    # =========================
-    # 現在のサブスク（必ず実データ）
-    # =========================
-    @subscription = current_client.subscriptions
-                                 .where(status: :active)
-                                 .order(created_at: :desc)
-                                 .first
-
-    # fallback（念のため）
-    if @subscription.nil?
-      @subscription = current_client.subscriptions
-                                   .order(created_at: :desc)
-                                   .first
+    if onboarding_complete?
+      redirect_to dashboard_setting_path, notice: "プランの変更は設定画面から行えます。"
+      return
     end
 
-    # =========================
-    # 支払い履歴
-    # =========================
-    @payments = current_client.payments
-                              .order(created_at: :desc)
-                              .limit(50)
+    @is_new_account = current_client.created_at > Subscription::TRIAL_DAYS.days.ago
   end
 
   def select
@@ -61,5 +47,17 @@ class PlansController < ApplicationController
     end
 
     redirect_to checkout_confirmation_path(plan_type: plan_type)
+  end
+
+  private
+
+  def load_subscription
+    @subscription = current_client.subscriptions.where(status: :active).order(created_at: :desc).first
+    @subscription ||= current_client.subscriptions.order(created_at: :desc).first
+  end
+
+  def onboarding_complete?
+    current_client.subscription_status == "active" &&
+      current_client.subscriptions.where(status: :active).exists?
   end
 end

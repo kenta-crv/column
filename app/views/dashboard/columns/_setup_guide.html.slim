@@ -1,0 +1,145 @@
+- setup_next = defined?(@setup_next_step) && @setup_next_step.present? ? @setup_next_step : :genre
+- genre_count = defined?(@setup_genre_count) ? @setup_genre_count.to_i : 0
+- pillar_count = defined?(@setup_pillar_count) ? @setup_pillar_count.to_i : 0
+- child_title_count = defined?(@setup_child_count) ? @setup_child_count.to_i : 0
+- child_body_count = defined?(@setup_child_body_count) ? @setup_child_body_count.to_i : 0
+- progress_percent = defined?(@setup_progress_percent) ? @setup_progress_percent.to_i : 0
+- completed_steps = defined?(@setup_completed_steps) ? @setup_completed_steps.to_i : 0
+- all_done = setup_next == :done
+
+- genre_done = genre_count.positive?
+- pillar_done = pillar_count.positive?
+- child_title_done = child_title_count.positive?
+- child_body_done = child_body_count.positive?
+
+- genre_current = setup_next == :genre
+- pillar_current = setup_next == :pillar
+- child_title_current = setup_next == :child_title
+- child_body_current = setup_next == :child_body
+
+.setup-progress-card class=(all_done ? "setup-progress-card--complete" : "")
+  .setup-progress-card__header
+    .setup-progress-card__heading
+      h3.setup-progress-card__title
+        | 初回セットアップ
+      - if all_done
+        p.setup-progress-card__subtitle
+          | 記事生成の準備が整いました
+      - else
+        p.setup-progress-card__subtitle
+          | 4ステップで記事生成の準備を完了できます
+    .setup-progress-card__progress
+      span.setup-progress-card__count
+        = "#{completed_steps}/4"
+      .setup-progress-bar role="progressbar" aria-valuenow=progress_percent aria-valuemin="0" aria-valuemax="100"
+        .setup-progress-bar__fill style="width: #{progress_percent}%"
+
+  ol.setup-progress-stepper
+    - step1_class = [genre_done ? "setup-progress-stepper__item--done" : nil, genre_current ? "setup-progress-stepper__item--current" : nil].compact.join(" ")
+    li.setup-progress-stepper__item class=step1_class
+      .setup-progress-stepper__node
+        - if genre_done
+          svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            polyline points="20 6 9 17 4 12"
+        - else
+          | 1
+      .setup-progress-stepper__label ジャンル作成
+      .setup-progress-stepper__meta
+        - if genre_done
+          | #{genre_count}件
+        - elsif genre_current
+          span.setup-progress-stepper__now 今ここ
+        - else
+          | 未着手
+
+    - step2_class = [pillar_done ? "setup-progress-stepper__item--done" : nil, pillar_current ? "setup-progress-stepper__item--current" : nil].compact.join(" ")
+    li.setup-progress-stepper__item class=step2_class
+      .setup-progress-stepper__node
+        - if pillar_done
+          svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            polyline points="20 6 9 17 4 12"
+        - else
+          | 2
+      .setup-progress-stepper__label 親記事作成
+      .setup-progress-stepper__meta
+        - if pillar_done
+          | #{pillar_count}件
+        - elsif pillar_current
+          span.setup-progress-stepper__now 今ここ
+        - else
+          | 未着手
+
+    - step3_class = [child_title_done ? "setup-progress-stepper__item--done" : nil, child_title_current ? "setup-progress-stepper__item--current" : nil].compact.join(" ")
+    li.setup-progress-stepper__item class=step3_class
+      .setup-progress-stepper__node
+        - if child_title_done
+          svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            polyline points="20 6 9 17 4 12"
+        - else
+          | 3
+      .setup-progress-stepper__label 子記事タイトル
+      .setup-progress-stepper__meta
+        - if child_title_done
+          | #{child_title_count}件
+        - elsif child_title_current
+          span.setup-progress-stepper__now 今ここ
+        - else
+          | 未着手
+
+    - step4_class = [child_body_done ? "setup-progress-stepper__item--done" : nil, child_body_current ? "setup-progress-stepper__item--current" : nil].compact.join(" ")
+    li.setup-progress-stepper__item class=step4_class
+      .setup-progress-stepper__node
+        - if child_body_done
+          svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            polyline points="20 6 9 17 4 12"
+        - else
+          | 4
+      .setup-progress-stepper__label 子記事本文
+      .setup-progress-stepper__meta
+        - if child_body_done
+          | #{child_body_count}件
+        - elsif child_body_current
+          span.setup-progress-stepper__now 今ここ
+        - else
+          | 未着手
+
+  - if all_done
+    .setup-progress-card__footer.setup-progress-card__footer--complete
+      span.setup-progress-card__complete-badge
+        svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
+          polyline points="22 4 12 14.01 9 11.01"
+        | セットアップ完了
+      .setup-progress-card__footer-links
+        = link_to "親記事を追加", new_column_path, class: "btn btn-sm btn-outline-secondary"
+        = link_to "ジャンル管理", dashboard_service_genres_path, class: "btn btn-sm btn-outline-secondary"
+  - else
+    .setup-progress-card__footer
+      .setup-progress-card__action-copy
+        - case setup_next
+        - when :genre
+          strong ジャンルを登録してください
+          p サービスに合ったジャンルを先に作成します
+        - when :pillar
+          strong 親記事（ピラー）を作成してください
+          p 手動作成または AI タイトル提案から始められます
+        - when :child_title
+          strong 子記事タイトルを追加してください
+          p 親記事詳細から AI 生成するか、下のフォームで手動追加できます
+        - when :child_body
+          strong 子記事本文を生成してください
+          p 親記事を開き、子記事を選んでクラスター作成を実行します
+
+      .setup-progress-card__action-buttons
+        - case setup_next
+        - when :genre
+          = link_to "ジャンルを作成", new_dashboard_service_genre_path, class: "btn btn-primary"
+        - when :pillar
+          = link_to "親記事を作成", new_column_path, class: "btn btn-primary"
+          button.btn.btn-title-suggest type="button" onclick="openTitleSuggestionModal()"
+            | AIタイトル提案
+        - when :child_title, :child_body
+          = link_to "親記事一覧", dashboard_columns_path(scope: "pillar"), class: "btn btn-primary"
+
+    - if setup_next == :child_title && defined?(@manual_child_parent_options) && @manual_child_parent_options.present?
+      = render "manual_child_title_form"

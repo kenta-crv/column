@@ -10,19 +10,19 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def new
-    @service_genre = if params[:template].present?
+    @service_genre = if admin_signed_in? && params[:template].present?
                        ServiceGenre.from_fallback_template(params[:template])
                      else
                        ServiceGenre.new
                      end
     @service_genre.client = current_client if client_signed_in? && !admin_signed_in?
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
+    @fallback_templates = fallback_templates_for_current_user
   end
 
   def create
     attrs, sub_category_error = service_genre_attributes
     @service_genre = ServiceGenre.new(attrs)
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
+    @fallback_templates = fallback_templates_for_current_user
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
@@ -35,12 +35,12 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def edit
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
+    @fallback_templates = fallback_templates_for_current_user
   end
 
   def update
     attrs, sub_category_error = service_genre_attributes
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
+    @fallback_templates = fallback_templates_for_current_user
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
@@ -81,7 +81,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   def service_genre_attributes
     permitted = params.require(:service_genre).permit(
       :key, :ja, :service_name, :strong_points, :client_id,
-      :hosts_text, :keywords_text, :images_text,
+      :hosts_text, :keywords_text,
       sub_categories_items: [
         :key, :name, :target, :description,
         :features_text, :keywords_text, :price_hint, :area,
@@ -98,7 +98,6 @@ class Dashboard::ServiceGenresController < ApplicationController
       strong_points: permitted[:strong_points],
       hosts: split_list(permitted[:hosts_text]),
       keywords: split_list(permitted[:keywords_text]),
-      images: split_list(permitted[:images_text]),
       sub_categories: sub_categories
     }
 
@@ -159,5 +158,9 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def split_list(text)
     text.to_s.split(/[\n,、]/).map(&:strip).reject(&:blank?)
+  end
+
+  def fallback_templates_for_current_user
+    admin_signed_in? ? GenreRegistry::FALLBACK_GENRES : {}
   end
 end

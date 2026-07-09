@@ -11,6 +11,28 @@ class Column < ApplicationRecord
     where("body IS NOT NULL AND TRIM(body) != ''").merge(without_image_file)
   }
 
+  STALE_GENERATION_AFTER = 10.minutes
+
+  def self.recover_stale_generations!(scope: all)
+    recovered_ids = []
+    scope.where(generation_status: "generating")
+         .where("updated_at < ?", STALE_GENERATION_AFTER.ago)
+         .find_each do |column|
+      column.update_columns(
+        generation_status: "failed",
+        status: "error"
+      )
+      recovered_ids << column.id
+
+      AutonomousContentRun.where(pillar_column_id: column.id)
+                          .where.not(status: %w[completed failed paused])
+                          .find_each do |run|
+        run.mark_failed!("親記事の生成が中断またはタイムアウトしました。")
+      end
+    end
+    recovered_ids
+  end
+
   def pillar?
     article_type == "pillar"
   end

@@ -1,6 +1,7 @@
 :concurrency: 10
 :queues:
   - [article_generation, 5]
+  - [article_evaluation, 2]
   - [default, 1]
 :redis:
-  url: redis://:password@hostname:6379/0
+  url: <%= ENV.fetch("REDIS_URL", "redis://localhost:6379/0") %>

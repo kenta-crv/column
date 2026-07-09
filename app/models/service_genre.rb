@@ -3,7 +3,7 @@ class ServiceGenre < ApplicationRecord
 
   validates :key, presence: true,
                   format: { with: /\A[a-z0-9_]+\z/, message: "は英小文字・数字・アンダースコアのみ使用できます" },
-                  uniqueness: { scope: :client_id }
+                  uniqueness: { case_sensitive: false }
   validates :ja, presence: true
 
   before_validation :normalize_key
@@ -26,6 +26,14 @@ class ServiceGenre < ApplicationRecord
 
   def sub_categories_count
     (sub_categories || {}).size
+  end
+
+  def self.owner_client_id_for(key)
+    find_by(key: key.to_s)&.client_id
+  end
+
+  def self.registered_key?(key)
+    key.present? && exists?(key: key.to_s)
   end
 
   def sub_categories_for_form

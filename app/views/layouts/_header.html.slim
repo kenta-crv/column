@@ -42,15 +42,13 @@
                 a.nav-link-custom href="javascript:void(0)" data-target="case" 導入事例
             .mobile-nav-actions
               = image_tag "search.png", class: "search-icon", alt: "Search"
-              button.btn.login-btn
-                | ログイン
+              = link_to "ログイン", new_client_session_path, class: "btn login-btn"
               button.btn.contact-btn.d-flex.align-items-center.gap-2
                 a.nav-link-custom href="javascript:void(0)" data-target="inquiry" お問い合わせ
                 = image_tag "arrow-down.png", class: "arrow-icon", alt: "Arrow"
         .d-flex.align-items-center.gap-3.d-none.d-lg-flex
           = image_tag "search.png", class: "search-icon", alt: "Search"
-          button.btn.login-btn
-            | ログイン
+          = link_to "ログイン", new_client_session_path, class: "btn login-btn"
           button.btn.contact-btn.d-flex.align-items-center.gap-2
             a.nav-link-custom href="javascript:void(0)" data-target="inquiry" お問い合わせ
             = image_tag "arrow-down.png", class: "arrow-icon", alt: "Arrow"

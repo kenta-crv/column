@@ -20,7 +20,7 @@
         path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
       span AIタイトル提案
 
-    = form_with url: columns_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form dashboard-toolbar__search-form" } do |f|
+    = form_with url: public_columns_index_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form dashboard-toolbar__search-form" } do |f|
       .search-box-wrapper
         button.search-submit-btn type="submit"
           svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"
@@ -31,7 +31,7 @@
 
   .dashboard-toolbar__actions
     - if client_signed_in?
-      = link_to dashboard_api_settings_path, class: "btn btn-primary dashboard-toolbar__api-btn" do
+      = link_to dashboard_api_settings_path, class: "dashboard-toolbar__api-btn" do
         svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           circle cx="12" cy="12" r="3"
           path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z
@@ -58,6 +58,8 @@
           | English
         a href="?lang=de" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
           | Deutsch
+
+= render "setup_guide"
 
 / 2. KPIグリッド
 .kpi-main-grid
@@ -192,7 +194,7 @@
   .tabs-group
     = link_to dashboard_columns_path, class: "tab-btn #{'active' if params[:scope].blank?}" do
       span.tab-label すべて
-      span.count-badge.bg-primary = @tab_count_all
+      span.count-badge.count-badge--highlight = @tab_count_all
     = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
       span.tab-label 下書き
       span.count-badge = @tab_count_draft
@@ -235,13 +237,14 @@
   .generation-list id="generation-list"
     - if @generating_columns.present?
       - @generating_columns.each do |c|
-        .generation-item id="generation-item-#{c.id}" data-status="#{c.generation_status}"
+        .generation-item id="generation-item-#{c.id}" data-status="#{c.generation_status}" data-column-id=c.id
           .generation-spinner
             svg.spinner-icon viewBox="0 0 50 50"
               circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
           .generation-info
             .generation-title = c.title
-            .generation-status = c.generation_status
+            .generation-status 生成中...
+          button.generation-cancel-btn type="button" data-column-id=c.id 停止
     - else
       .no-generation
         | 現在生成中の記事はありません
@@ -276,8 +279,11 @@
                   - else
                     .article-thumb-placeholder 📄
                   .article-detail
-                    - link_target = c.code.presence || c.id
-                    = link_to column_path(link_target), class: "article-link" do
+                  - if c.body.present?
+                    = link_to public_column_show_path(c), class: "article-link" do
+                      span.article-title = c.title
+                  - else
+                    = link_to "javascript:void(0)", class: "article-link", onclick: "alert('本文がまだありません。先に本文生成を行ってください。'); return false;" do
                       span.article-title = c.title
                     .article-tags
                       span.tag-item = c.article_type == "pillar" ? "親記事" : "子記事"
@@ -304,6 +310,9 @@
                   svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                     polygon points="5 3 19 12 5 21 5 3"
                   | 生成
+                - if c.pillar?
+                  = link_to pillar_manage_path(c), class: "btn btn-sm btn-outline-primary", style: "padding: 0 8px; font-size: 11px; height: 28px; display: inline-flex; align-items: center; white-space: nowrap; text-decoration: none;", title: "親詳細へ（子記事の作成・管理）" do
+                    | 子記事管理
                 = link_to edit_column_path(c), class: "btn-row-action", title: "編集" do
                   svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
@@ -349,11 +358,6 @@
       option 30件
       option 50件
 
-= link_to new_column_path, class: "floating-sparkle-btn" do
-  svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-    line x1="12" y1="5" x2="12" y2="19"
-    line x1="5" y1="12" x2="19" y2="12"
-
 = render "title_suggestion_modal"
 
 javascript:
@@ -387,6 +391,9 @@ javascript:
       } else {
         console.error('ActionCable is not defined.');
       }
+
+      initGenerationPolling();
+      initGenerationCancelButtons();
     };
 
     document.addEventListener('turbo:load', initAll);
@@ -419,6 +426,7 @@ javascript:
         item.id             = `generation-item-${data.column_id}`;
         item.className      = 'generation-item';
         item.dataset.status = 'generating';
+        item.dataset.columnId = data.column_id;
         item.innerHTML      = `
           <div class="generation-spinner">
             <svg class="spinner-icon" viewBox="0 0 50 50">
@@ -428,7 +436,8 @@ javascript:
           <div class="generation-info">
             <div class="generation-title">${data.title || ''}</div>
             <div class="generation-status">生成中...</div>
-          </div>`;
+          </div>
+          <button class="generation-cancel-btn" type="button" data-column-id="${data.column_id}">停止</button>`;
         generationList.insertBefore(item, generationList.firstChild);
       }
 
@@ -454,6 +463,9 @@ javascript:
           statusEl.textContent = '完了';
           statusEl.style.color = '#10b981';
         }
+        const cancelBtn = item.querySelector('.generation-cancel-btn');
+        if (cancelBtn) cancelBtn.remove();
+        attachGenerationRefreshButton(item);
       }
       if (data.quality_score) {
         updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
@@ -461,6 +473,10 @@ javascript:
 
     } else if (data.status === 'evaluated') {
       updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
+      const item = document.getElementById(`generation-item-${data.column_id}`);
+      if (item && !item.querySelector('.generation-refresh-btn')) {
+        attachGenerationRefreshButton(item);
+      }
 
     } else if (data.status === 'failed') {
       if (generatingCount) {
@@ -469,13 +485,117 @@ javascript:
       const item = document.getElementById(`generation-item-${data.column_id}`);
       if (item) {
         item.dataset.status = 'failed';
+        const spinner = item.querySelector('.generation-spinner');
+        if (spinner) {
+          spinner.innerHTML = `<span style="color:#ef4444;font-weight:bold;">✕</span>`;
+        }
         const statusEl = item.querySelector('.generation-status');
         if (statusEl) {
-          statusEl.textContent = 'エラー';
+          statusEl.textContent = '停止・エラー';
           statusEl.style.color = '#ef4444';
         }
+        const cancelBtn = item.querySelector('.generation-cancel-btn');
+        if (cancelBtn) cancelBtn.remove();
+        setTimeout(() => item.remove(), 5000);
       }
+      refreshGenerationPanelIfEmpty();
     }
+  }
+
+  function refreshGenerationPanelIfEmpty() {
+    const generationList = document.getElementById('generation-list');
+    if (!generationList) return;
+    if (generationList.querySelectorAll('.generation-item').length === 0) {
+      generationList.innerHTML = '<div class="no-generation">現在生成中の記事はありません</div>';
+    }
+  }
+
+  function initGenerationCancelButtons() {
+    const list = document.getElementById('generation-list');
+    if (!list || list.dataset.cancelBound === 'true') return;
+    list.dataset.cancelBound = 'true';
+
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.generation-cancel-btn');
+      if (!btn) return;
+
+      const columnId = btn.dataset.columnId;
+      if (!columnId || !confirm('この記事の生成を停止しますか？')) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.content;
+      fetch(`/dashboard/columns/${columnId}/cancel_generation`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': token,
+          'Accept': 'application/json'
+        }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            updateGenerationStatus({ column_id: columnId, status: 'failed' });
+          } else {
+            alert(data.error || '停止に失敗しました');
+          }
+        })
+        .catch(() => alert('停止に失敗しました'));
+    });
+  }
+
+  function initGenerationPolling() {
+    const poll = () => {
+      fetch('/dashboard/columns/generation_status', { headers: { 'Accept': 'application/json' } })
+        .then((res) => res.json())
+        .then((data) => {
+          const generatingCount = document.getElementById('generating-count');
+          const completedCount  = document.getElementById('completed-count');
+          if (generatingCount) generatingCount.textContent = data.generating_count;
+          if (completedCount)  completedCount.textContent = data.completed_count;
+
+          const generationList = document.getElementById('generation-list');
+          if (!generationList) return;
+
+          const existingIds = new Set(
+            Array.from(generationList.querySelectorAll('.generation-item')).map((el) => el.dataset.columnId)
+          );
+          const serverIds = new Set(data.columns.map((c) => String(c.id)));
+
+          existingIds.forEach((id) => {
+            if (!serverIds.has(id)) {
+              const item = document.getElementById(`generation-item-${id}`);
+              if (!item) return;
+              if (item.dataset.status === 'completed' || item.dataset.status === 'failed') return;
+              // 生成中リストから外れた = 完了（エラーではない）
+              updateGenerationStatus({ column_id: id, status: 'completed', title: item.querySelector('.generation-title')?.textContent });
+            }
+          });
+
+          data.columns.forEach((col) => {
+            if (!document.getElementById(`generation-item-${col.id}`)) {
+              updateGenerationStatus({ column_id: col.id, status: 'generating', title: col.title });
+            }
+          });
+
+          initGenerationCancelButtons();
+          refreshGenerationPanelIfEmpty();
+        })
+        .catch(() => {});
+    };
+
+    poll();
+    setInterval(poll, 60000);
+  }
+
+  function attachGenerationRefreshButton(item) {
+    if (!item || item.querySelector('.generation-refresh-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'generation-refresh-btn';
+    btn.textContent = '更新';
+    btn.title = '一覧とAIスコアを反映';
+    btn.addEventListener('click', () => window.location.reload());
+    item.appendChild(btn);
   }
 
   function updateTableRowScore(columnId, score, metrics) {
@@ -491,7 +611,37 @@ javascript:
       </div>`;
   }
 
+  function clampSuggestionCount(value) {
+    const input = document.getElementById('suggestion-count');
+    const planMax = parseInt(input?.dataset.planMax || '5', 10);
+    const parsed = parseInt(value, 10);
+    const count = Number.isNaN(parsed) ? 1 : parsed;
+    return Math.min(planMax, Math.max(1, count));
+  }
+
+  function syncSuggestionCountDisplay() {
+    const input = document.getElementById('suggestion-count');
+    const valueEl = document.getElementById('suggestion-count-value');
+    if (!input || !valueEl) return;
+
+    const clamped = clampSuggestionCount(input.value);
+    if (String(clamped) !== input.value) {
+      input.value = clamped;
+    }
+    valueEl.textContent = clamped;
+  }
+
+  function initSuggestionCountSlider() {
+    const input = document.getElementById('suggestion-count');
+    if (!input || input.dataset.initialized === 'true') return;
+
+    input.dataset.initialized = 'true';
+    input.addEventListener('input', syncSuggestionCountDisplay);
+    syncSuggestionCountDisplay();
+  }
+
   function openTitleSuggestionModal() {
+    initSuggestionCountSlider();
     const modal = document.getElementById('title-suggestion-modal');
     if (modal) modal.style.display = 'flex';
   }
@@ -507,7 +657,7 @@ javascript:
     const targetLayer = document.getElementById('target_layer').value;
     const genre       = document.getElementById('genre-select-modal').value;
     const customPrompt = document.getElementById('custom-prompt').value;
-    const suggestionCount = document.getElementById('suggestion-count').value;
+    const suggestionCount = clampSuggestionCount(document.getElementById('suggestion-count').value);
 
     if (!keyword1 || !keyword2 || !genre) {
       alert('キーワードとジャンルを入力してください');
@@ -531,14 +681,19 @@ javascript:
     fetch(`/dashboard/columns/suggest?${params.toString()}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(async (response) => {
+      const data = await response.json().catch(() => null);
       document.getElementById('title-suggestion-loading').style.display  = 'none';
       document.getElementById('title-suggestion-results').style.display  = 'block';
+
+      if (!data) {
+        document.getElementById('titles-list').innerHTML = '<p style="color: red;">サーバーからの応答を読み取れませんでした。ページを再読み込みして再度お試しください。</p>';
+        return;
+      }
 
       if (data.success) {
         const titlesList = document.getElementById('titles-list');
@@ -553,13 +708,13 @@ javascript:
           titlesList.appendChild(div);
         });
       } else {
-        document.getElementById('titles-list').innerHTML = '<p style="color: red;">' + data.error + '</p>';
+        document.getElementById('titles-list').innerHTML = '<p style="color: red;">' + (data.error || 'エラーが発生しました') + '</p>';
       }
     })
     .catch(() => {
       document.getElementById('title-suggestion-loading').style.display = 'none';
       document.getElementById('title-suggestion-results').style.display = 'block';
-      document.getElementById('titles-list').innerHTML = '<p style="color: red;">エラーが発生しました</p>';
+      document.getElementById('titles-list').innerHTML = '<p style="color: red;">通信エラーが発生しました。しばらくしてから再度お試しください。</p>';
     });
   }
 
@@ -604,3 +759,7 @@ javascript:
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeTitleSuggestionModal();
   });
+
+  document.addEventListener('DOMContentLoaded', initSuggestionCountSlider);
+  document.addEventListener('turbolinks:load', initSuggestionCountSlider);
+  initSuggestionCountSlider();

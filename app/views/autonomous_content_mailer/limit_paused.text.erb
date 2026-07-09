@@ -1,0 +1,12 @@
+<%= @client.name.presence || @client.email %> 様
+
+自律生成サイクル「<%= @run.title %>」が一時停止しました。
+
+理由:
+<%= @run.error_message %>
+
+プラン上限の引き上げ、または来月の再開をご検討ください。
+ダッシュボード: <%= @dashboard_url %>
+
+--
+Drafity

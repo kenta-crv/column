@@ -6,8 +6,10 @@
     h1.column-title = @column.title
     
     - if @column.file.present?
-      .column-image-wrapper
+      .column-image-wrapper style="position: relative; display: inline-block; max-width: 100%;"
         = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title
+        - if can_manage_column?(@column)
+          = link_to '× 画像削除', remove_image_column_path(@column), method: :patch, data: { confirm: 'この画像のみを削除しますか？', turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
 
     / 目次
     - if @headings.any?
@@ -22,48 +24,76 @@
     .column-body
       == raw(@column_body_with_ids)
 
-    / ===== 管理者用：子記事生成 & 管理一覧 =====
-    - if admin_signed_in? && @column.article_type == "pillar"
-      .admin-generation-panel style="margin: 40px 0; padding: 25px; border: 2px dashed #f0ad4e; background-color: #fcf8e3; border-radius: 8px; text-align: center;"
-        h3 style="color: #8a6d3b; margin-top: 0; font-size: 1.3rem;" 
-          | 管理者メニュー：クラスター記事（子記事）戦略
-        p style="font-size: 0.9rem; color: #666;"
-          | この親記事に基づき、OpenAIで魅力的な子記事タイトル（15〜25件）を自動生成します。
-        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？", turbo: false }
+    / ===== 子記事生成 & 管理（記事オーナー / Admin） =====
+    - if can_manage_column?(@column) && @column.article_type == "pillar"
+      - pillar_param = @column.code.presence || @column.id
+      - quota = @child_article_quota
+      - can_add_child = quota.nil? || quota[:remaining] > 0
+      .pillar-children-panel style="margin: 40px 0; padding: 25px; border: 2px dashed #c4b5fd; background-color: #f5f3ff; border-radius: 8px;"
+        h3 style="color: #5b21b6; margin-top: 0; font-size: 1.3rem;"
+          | 子記事の作成・管理
+        - if quota
+          p style="font-size: 0.9rem; color: #4c1d95; margin-bottom: 12px;"
+            | プラン上限: 子記事 #{quota[:used]} / #{quota[:limit]} 件
+            - if quota[:remaining] > 0
+              | 　｜　この親記事であと #{quota[:remaining]} 件作成可能
+            - else
+              strong 　｜　子記事の作成上限に達しています
 
-      .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
-        h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
-        
-        / 一括生成・削除用フォーム
-        = @column.title
+        .child-title-step style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #ddd6fe;"
+          h4 style="margin: 0 0 8px; font-size: 1rem; color: #5b21b6;" Step 1: 子記事タイトルを作る
+          p style="font-size: 0.9rem; color: #666; margin-bottom: 12px;"
+            | AIで一括生成するか、1件ずつ手動で追加できます。
+          - if can_add_child
+            = button_to "AIで子記事タイトルを生成", generate_title_column_path(pillar_param), method: :post, class: "btn btn-warning", data: { confirm: "子記事タイトル案を生成します。よろしいですか？", turbo: false }, style: "margin-bottom: 12px;"
+            = form_with url: create_child_title_column_path(pillar_param), method: :post, local: true do |f|
+              .d-flex style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"
+                = text_field_tag :child_title, nil, class: "form-control", placeholder: "手動追加: 例 ○○の料金相場と選び方", style: "min-width: 260px;", required: true
+                = f.submit "手動で追加", class: "btn btn-secondary"
+          - else
+            button.btn type="button" disabled="disabled" style="opacity: 0.6; cursor: not-allowed;" 子記事タイトルの追加上限に達しています
+
+      .pillar-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
+        h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;" Step 2: 子記事本文を生成する（クラスター作成）
+        p style="font-size: 0.9rem; color: #666; margin-bottom: 12px;"
+          | 下の一覧から子記事を選び、本文生成を開始してください。
         = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbo: false } do
-          / JavaScriptでアクションタイプを動的に書き換えるための hidden_field
           = hidden_field_tag :action_type, "approve_bulk"
           = hidden_field_tag :return_pillar_code, @column.code
-          
-          .admin-actions style="margin-bottom: 15px; display: flex; gap: 10px;"
-            = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
+          = hidden_field_tag :return_pillar_id, @column.id
+
+          .pillar-children-actions style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;"
+            = submit_tag "選択した子記事本文を生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
             = submit_tag "選択した子記事を一括削除する", class: "btn btn-danger", data: { confirm: "選択された子記事を一括削除しますか？" }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
-          
-          table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
-            thead
-              tr style="background: #f9f9f9;"
-                th style="padding: 8px; border-bottom: 2px solid #eee; width: 30px;"
-                  input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
-                th style="padding: 8px; border-bottom: 2px solid #eee;" タイトル
-                th style="padding: 8px; border-bottom: 2px solid #eee;" ステータス
-            tbody
-              - @children.each do |child|
-                tr
-                  td style="padding: 8px; border-bottom: 1px solid #eee;"
-                    = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
-                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.title
-                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.status
+
+          - if @children.any?
+            table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
+              thead
+                tr style="background: #f9f9f9;"
+                  th style="padding: 8px; border-bottom: 2px solid #eee; width: 30px;"
+                    input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
+                  th style="padding: 8px; border-bottom: 2px solid #eee;" タイトル
+                  th style="padding: 8px; border-bottom: 2px solid #eee;" ステータス
+                  th style="padding: 8px; border-bottom: 2px solid #eee;" 本文
+              tbody
+                - @children.each do |child|
+                  tr
+                    td style="padding: 8px; border-bottom: 1px solid #eee;"
+                      = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
+                    td style="padding: 8px; border-bottom: 1px solid #eee;" = child.title
+                    td style="padding: 8px; border-bottom: 1px solid #eee;" = child.status
+                    td style="padding: 8px; border-bottom: 1px solid #eee;"
+                      - if child.body.present?
+                        span style="color: #10b981;" あり
+                      - else
+                        span style="color: #94a3b8;" 未生成
+          - else
+            p style="color: #64748b; margin: 0;" まだ子記事がありません。上の Step 1 からタイトルを追加してください。
 
     / ===== 関連記事一覧（一般公開用：本文があるもののみ） =====
     - if @column.article_type == "pillar"
       - public_children = @children.select { |c| c.body.present? && c.code.present? }
-      - if public_children.any?
+      - if public_children.any? && !can_manage_column?(@column)
         .related-articles style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"
           h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px;"
             | 関連記事一覧
@@ -74,4 +104,7 @@
                 = link_to child.title, public_column_show_path(child), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
-      = link_to '一覧へ戻る', columns_path, class: 'btn btn-default'
+      - if client_signed_in?
+        = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
+      - else
+        = link_to '一覧へ戻る', public_columns_index_path(genre: @column.genre), class: 'btn btn-default'

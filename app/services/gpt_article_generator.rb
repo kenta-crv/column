@@ -107,7 +107,8 @@ class GptArticleGenerator
         json_mode: false
       ) + "\n\n"
 
-      sleep(0.5) 
+      column.touch
+      sleep(0.5)
     end
 
     # まとめ文の生成（プロンプト側で「## まとめ」を出力させるため、ここでは見出しを結合しない）

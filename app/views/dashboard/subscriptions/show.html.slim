@@ -1,0 +1,69 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title 契約・支払い履歴
+      p.api-settings-subtitle 現在の契約状況とお支払い履歴を確認できます
+
+    .api-settings-card style="margin-bottom: 20px;"
+      .api-settings-card__body
+        - is_trial = (@subscription&.trial?) || (@target_client.subscription_plan == "trial")
+        - is_active = @subscription.present? ? @subscription.active? : (@target_client.subscription_status == "active" || is_trial)
+
+        .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
+          h3.form-section-title 現在の契約
+          - if @subscription.present? || is_trial
+            .row.g-3
+              .col-md-4
+                p.mb-1 style="font-size: 12px; color: #64748b;" プラン
+                p.mb-0 style="font-size: 18px; font-weight: 700;"
+                  - if is_trial
+                    = Subscription::PLAN_NAMES[:trial]
+                  - else
+                    = @subscription.plan_name
+              .col-md-4
+                p.mb-1 style="font-size: 12px; color: #64748b;" ステータス
+                p.mb-0
+                  - if is_trial
+                    span style="color: #059669; font-weight: 600;" トライアル中
+                  - elsif is_active
+                    span style="color: #059669; font-weight: 600;" 有効
+                  - else
+                    span style="color: #dc2626; font-weight: 600;" 停止中
+              - if is_trial && @subscription&.trial_ends_at.present?
+                .col-md-4
+                  p.mb-1 style="font-size: 12px; color: #64748b;" トライアル終了日
+                  p.mb-0 style="font-weight: 600;" = @subscription.trial_ends_at.strftime("%Y年%m月%d日")
+
+            .form-actions style="border-top: 1px solid #e2e8f0; margin-top: 20px; padding-top: 16px;"
+              = link_to "プランを変更する", dashboard_setting_path, class: "btn btn-primary btn-sm"
+              - if is_active
+                = link_to "解約する", cancel_confirm_dashboard_subscription_path(subscription_path_params), class: "btn btn-secondary btn-sm", style: "color: #dc2626; border-color: #fecaca; margin-left: 8px;"
+          - else
+            p style="color: #64748b; margin-bottom: 16px;" アクティブなサブスクリプションがありません。
+            = link_to "プランを選択する", dashboard_setting_path, class: "btn btn-primary btn-sm"
+
+    .api-settings-card
+      .api-settings-card__body
+        h3.form-section-title 支払い履歴
+        - if @payments.present?
+          .table-responsive
+            table.table style="margin-bottom: 0;"
+              thead
+                tr
+                  th 日付
+                  th 金額
+                  th 内容
+                  th ステータス
+              tbody
+                - @payments.each do |payment|
+                  tr
+                    td = payment.created_at.strftime("%Y/%m/%d")
+                    td style="font-weight: 600;" = payment.formatted_amount
+                    td = payment.description
+                    td
+                      - if payment.succeeded?
+                        span style="color: #059669; font-weight: 600;" 成功
+                      - else
+                        span style="color: #dc2626; font-weight: 600;" = payment.status
+        - else
+          p style="color: #94a3b8; margin: 0;" 支払い履歴がありません。

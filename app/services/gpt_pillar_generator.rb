@@ -155,6 +155,7 @@ class GptPillarGenerator
       body_content += section_body
       body_content += "\n\n"
 
+      column.touch
       sleep(1.2)
     end
 
