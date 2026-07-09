@@ -38,6 +38,7 @@ Rails.application.routes.draw do
 
       member do
         patch :remove_image
+        patch :stop_generation
       end
     end
 

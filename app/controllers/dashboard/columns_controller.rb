@@ -227,6 +227,20 @@ class Dashboard::ColumnsController < ApplicationController
     redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
 
+  def stop_generation
+    column = dashboard_columns_base_scope.find(params[:id])
+
+    if column.generation_status == "generating"
+      column.update!(generation_status: "cancelled")
+      broadcast_generation_status(column)
+      redirect_to dashboard_columns_path, notice: "記事生成を停止しました。"
+    else
+      redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます。"
+    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
+  end
+
   private
 
   def setting; end
@@ -347,5 +361,16 @@ class Dashboard::ColumnsController < ApplicationController
     @tab_count_published = scope.where("body IS NOT NULL AND TRIM(body) != ''").count
     @tab_count_error     = scope.where(status: "error").count
     @tab_count_no_image  = scope.merge(Column.missing_generated_image).count
+  end
+
+  def broadcast_generation_status(column)
+    ActionCable.server.broadcast(
+      "GenerationChannel",
+      {
+        column_id: column.id,
+        status: column.generation_status,
+        title: column.title
+      }
+    )
   end
 end

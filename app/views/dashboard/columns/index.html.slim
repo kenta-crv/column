@@ -242,6 +242,7 @@
           .generation-info
             .generation-title = c.title
             .generation-status = c.generation_status
+          = button_to "停止", stop_generation_dashboard_column_path(c), method: :patch, class: "btn btn-danger", form: { data: { turbo: false }, style: "display:inline-block; margin-left:auto;" }, data: { confirm: "この記事の生成を停止しますか？" }
     - else
       .no-generation
         | 現在生成中の記事はありません
@@ -432,7 +433,8 @@ javascript:
           <div class="generation-info">
             <div class="generation-title">${data.title || ''}</div>
             <div class="generation-status">生成中...</div>
-          </div>`;
+          </div>
+          <button class="btn btn-danger" style="margin-left:auto;" onclick="stopGeneration(${data.column_id})">停止</button>`;
         generationList.insertBefore(item, generationList.firstChild);
       }
 
@@ -493,6 +495,20 @@ javascript:
       <div class="quality-score-cell">
         <div class="quality-score-value">${parseFloat(score).toFixed(1)}</div>
       </div>`;
+  }
+
+  function stopGeneration(columnId) {
+    if (!confirm('この記事の生成を停止しますか？')) return;
+
+    fetch(`/dashboard/columns/${columnId}/stop_generation`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      }
+    }).catch(() => {
+      alert('停止リクエストに失敗しました');
+    });
   }
 
   function openTitleSuggestionModal() {

@@ -4,6 +4,8 @@ require "openssl"
 require "openai"
 
 class GptArticleGenerator
+  class GenerationCancelledError < StandardError; end
+
   MODEL_NAME = "gpt-4o-mini"
   MAX_RETRIES = 3 # 本文が抽出されない、または文字数が足りない場合のリトライ回数
 
@@ -48,6 +50,7 @@ class GptArticleGenerator
     # ==============================
     # STEP 0: meta情報生成 & DBステータス正常化
     # ==============================
+    ensure_not_cancelled!(column)
     meta_data = generate_meta_info(column, category, genre_data, sub_data, eeat_context)
     if meta_data
       clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
@@ -71,6 +74,7 @@ class GptArticleGenerator
     # ==============================
     # STEP 1: 構成生成
     # ==============================
+    ensure_not_cancelled!(column)
     structure_data = generate_structure(column, category, genre_data, sub_data, eeat_context)
     return original_body if structure_data.nil?
 
@@ -83,6 +87,7 @@ class GptArticleGenerator
     full_article = ""
 
     # 導入文の生成（想定: 700〜1100文字）
+    ensure_not_cancelled!(column)
     intro_prompt_text = introduction_prompt(column, category, genre_data, sub_data, eeat_context)
     full_article += generate_section_content_with_retry(
       "導入",
@@ -94,6 +99,7 @@ class GptArticleGenerator
 
     # 各H2見出しの本文生成（想定: 1200〜1800文字）
     structure.each do |h2|
+      ensure_not_cancelled!(column)
       next if h2["h2_title"].blank?
       
       full_article += "## #{h2['h2_title']}\n\n"
@@ -111,6 +117,7 @@ class GptArticleGenerator
     end
 
     # まとめ文の生成（プロンプト側で「## まとめ」を出力させるため、ここでは見出しを結合しない）
+    ensure_not_cancelled!(column)
     conclusion_prompt_text = conclusion_prompt(column, category, genre_data, sub_data, eeat_context)
     full_article += generate_section_content_with_retry(
       "まとめ",
@@ -129,6 +136,7 @@ class GptArticleGenerator
 
   def self.generate_section_content_with_retry(name, prompt, column, min_length: 50, json_mode: false)
     MAX_RETRIES.times do |i|
+      ensure_not_cancelled!(column)
       response = call_gpt_api(prompt, json_mode: json_mode)
       content = response&.dig("choices", 0, "message", "content")
       
@@ -140,6 +148,13 @@ class GptArticleGenerator
       sleep(1)
     end
     "（#{name}の本文生成に失敗しました。再生成してください。）"
+  end
+
+  def self.ensure_not_cancelled!(column)
+    column.reload
+    if column.generation_status == "cancelled"
+      raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
+    end
   end
 
   def self.detect_genre_code(keyword)

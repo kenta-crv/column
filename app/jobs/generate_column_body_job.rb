@@ -42,6 +42,10 @@ class GenerateColumnBodyJob < ApplicationJob
           Rails.logger.error("❌ Evaluation thread error: #{e.message}")
         end
       end
+    rescue GptArticleGenerator::GenerationCancelledError => e
+      column.update_columns(generation_status: "cancelled")
+      Rails.logger.info("⏹️ Generation cancelled for column #{column.id}: #{e.message}")
+      broadcast_generation_status(column)
     rescue => e
       # 【証拠2】どこで落ちたかをDBに刻む（ログが消えてもDBで確認可能）
       error_info = "❌ 失敗: #{e.class} - #{e.message}\n場所: #{e.backtrace.first}"
