@@ -276,9 +276,13 @@
                   - else
                     .article-thumb-placeholder 📄
                   .article-detail
-                    - link_target = c.code.presence || c.id
-                    = link_to column_path(link_target), class: "article-link" do
-                      span.article-title = c.title
+                    - if c.body.present?
+                      - link_target = c.code.presence || c.id
+                      = link_to column_path(link_target), class: "article-link" do
+                        span.article-title = c.title
+                    - else
+                      = link_to "javascript:void(0)", class: "article-link", onclick: "alert('本文がまだありません。先に本文生成を行ってください。'); return false;" do
+                        span.article-title = c.title
                     .article-tags
                       span.tag-item = c.article_type == "pillar" ? "親記事" : "子記事"
                       - if c.pillar?
