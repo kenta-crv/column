@@ -1,28 +1,27 @@
-.sc-detect.container
-  .row.justify-content-center
-    .col-lg-8
-      h1.sc-detect__title サブスクリプション解約
+.api-settings-page.subscription-page.subscription-page--cancel
+  .api-settings-header
+    h1.api-settings-title サブスクリプション解約
+    p.api-settings-subtitle 解約手続きの確認
 
-      .sc-detect__card
-        .sc-detect__card-body.p-4.p-md-5.text-center
-          h2 style="font-size: 1.35rem; font-weight: 700; color: #dc2626; margin-bottom: 1rem;"
-            | 本当にサブスクリプションを解約しますか？
+  .api-settings-card
+    .api-settings-card__body.subscription-cancel-card
+      h2.subscription-cancel-title 本当にサブスクリプションを解約しますか？
 
-          p style="line-height: 1.8; color: #4b5563; margin-bottom: 1.5rem;"
-            | 解約手続きを完了すると、自動更新が停止されます。
-            br
-            strong style="color: #2563eb; font-size: 1.1rem;"
-              | 最終利用可能日： #{@available_until.strftime("%Y年%m月%d日")}
-            br
-            span.text-muted この日付まで、すべての有料機能を引き続きご利用いただけます。
+      p.subscription-cancel-text
+        | 解約手続きを完了すると、自動更新が停止されます。
+        br
+        strong.subscription-cancel-date
+          | 最終利用可能日： #{@available_until.strftime("%Y年%m月%d日")}
+        br
+        span.subscription-cancel-note この日付まで、すべての有料機能を引き続きご利用いただけます。
 
-          .mb-4
-            small.text-muted.d-block.mb-2 現在のプラン
-            span.sc-detect__status-badge.sc-detect__status-badge--info
-              = Subscription.display_name_for(@target_client.subscription_plan || @subscription&.plan_type || "trial")
+      .subscription-cancel-plan
+        span.subscription-info-label 現在のプラン
+        span.plan-badge class="plan-#{@target_client.subscription_plan || @subscription&.plan_type || 'trial'}"
+          = Subscription.display_name_for(@target_client.subscription_plan || @subscription&.plan_type || "trial")
 
-          .d-flex.flex-wrap.justify-content-center.gap-3.mt-4
-            = link_to "設定へ戻る", dashboard_setting_path(client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--primary", style: "text-decoration: none; min-width: 180px;"
+      .subscription-actions.subscription-actions--center
+        = link_to "設定へ戻る", dashboard_setting_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--primary"
 
-            = form_with url: cancel_dashboard_subscription_path(client_id: params[:client_id]), method: :post, local: true, data: { turbo: false }, html: { style: "display: inline-block;" } do |f|
-              = f.submit "解約を確定する", class: "sc-detect__btn sc-detect__btn--danger", style: "min-width: 180px; cursor: pointer;"
+        = form_with url: cancel_dashboard_subscription_path(client_id: params[:client_id]), method: :post, local: true, data: { turbo: false }, html: { class: "subscription-cancel-form" } do |f|
+          = f.submit "解約を確定する", class: "subscription-btn subscription-btn--danger"

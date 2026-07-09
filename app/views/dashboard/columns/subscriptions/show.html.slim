@@ -1,7 +1,7 @@
-.sc-detect.container
-  .text-center.mb-5
-    h1.sc-detect__title style="border-bottom: none; margin-bottom: 10px;" サブスクリプション管理
-    p.lead 現在のプランと変更・支払い履歴を確認できます
+.api-settings-page.subscription-page
+  .api-settings-header
+    h1.api-settings-title サブスクリプション管理
+    p.api-settings-subtitle 現在のプランと変更・支払い履歴を確認できます
 
   - is_trial = (@subscription&.trial?) || (@target_client.subscription_plan == "trial")
   - current_plan_key = (@subscription&.plan_type || @target_client.subscription_plan || "trial").to_sym
@@ -11,61 +11,70 @@
     - trial_ends_at = @subscription.created_at + Subscription::TRIAL_DAYS.days
 
   - if @subscription.present? || is_trial
-    .sc-detect__card.mb-4
-      .sc-detect__card-header
-        h5.mb-0 現在のプラン
-      .sc-detect__card-body
-        .row.g-3
-          .col-md-4
-            small.text-muted プラン名
-            .fw-bold.fs-5 = Subscription.display_name_for(current_plan_key)
-          .col-md-4
-            small.text-muted ステータス
-            div
-              - status_class = is_active ? "success" : "danger"
-              span.sc-detect__status-badge class="sc-detect__status-badge--#{status_class}"
-                = is_trial ? "トライアル中" : @subscription&.status&.capitalize
-          - if is_trial && trial_ends_at.present?
-            .col-md-4
-              small.text-muted トライアル終了日
-              .fw-bold = trial_ends_at.strftime("%Y年%m月%d日")
+    .api-settings-card
+      .api-settings-card__body
+        .form-section
+          h3.form-section-title 現在のプラン
 
-        .mt-4.pt-3 style="border-top: 1px solid #e5e7eb;"
-          p.text-muted.mb-3 プランの変更・比較はプラン選択ページで行えます。
-          = link_to plans_path(client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--primary", style: "text-decoration: none;" do
-            | プランを変更する
+          .subscription-info-grid
+            .subscription-info-item
+              span.subscription-info-label プラン名
+              span.subscription-info-value.subscription-info-value--plan = Subscription.display_name_for(current_plan_key)
+
+            .subscription-info-item
+              span.subscription-info-label ステータス
+              - status_class = is_active ? "active" : "canceled"
+              span.status-badge class="status-#{status_class}"
+                = is_trial ? "トライアル中" : @subscription&.status&.capitalize
+
+            - if is_trial && trial_ends_at.present?
+              .subscription-info-item
+                span.subscription-info-label トライアル終了日
+                span.subscription-info-value = trial_ends_at.strftime("%Y年%m月%d日")
+
+        .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
+          h3.form-section-title プラン変更
+          p.subscription-note プランの変更・比較はプラン選択ページで行えます。
+          .subscription-actions
+            = link_to plans_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--primary" do
+              | プランを変更する
 
     - if is_active
-      .text-center.mt-5.pt-4 style="border-top: 1px solid #e5e7eb;"
-        = link_to "サブスクリプションを解約する", cancel_confirm_dashboard_subscription_path(client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--danger", data: { turbo: false }
+      .subscription-cancel-box
+        = link_to cancel_confirm_dashboard_subscription_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--danger", data: { turbo: false } do
+          | サブスクリプションを解約する
 
   - else
-    .text-center.py-5
-      p.text-muted アクティブなサブスクリプションがありません。
-      = link_to plans_path(client_id: params[:client_id]), class: "sc-detect__btn sc-detect__btn--warning mt-3", style: "text-decoration: none; justify-content: center; min-width: 200px;" do
-        | プランを選択する
+    .api-settings-card
+      .api-settings-card__body.subscription-empty
+        p アクティブなサブスクリプションがありません。
+        = link_to plans_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--warning" do
+          | プランを選択する
 
-  h2.sc-detect__title style="font-size: 1.5rem; margin-top: 3rem;" 支払い履歴
+  .api-settings-card
+    .api-settings-card__body
+      .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
+        h3.form-section-title 支払い履歴
 
-  .sc-detect__table-wrapper
-    - if @payments.present?
-      table.sc-detect__table
-        thead
-          tr
-            th 日付
-            th 金額
-            th 説明
-            th ステータス
-        tbody
-          - @payments.each do |payment|
-            tr
-              td = payment.created_at.strftime("%Y/%m/%d")
-              td.fw-bold = payment.formatted_amount
-              td = payment.description
-              td
-                - p_status = payment.succeeded? ? "success" : "danger"
-                span.sc-detect__status-badge class="sc-detect__status-badge--#{p_status}"
-                  = payment.status.capitalize
-    - else
-      .p-4.text-center.text-muted
-        | 支払い履歴がありません。
+        - if @payments.present?
+          .management-table-wrap
+            table.management-table
+              thead
+                tr
+                  th 日付
+                  th 金額
+                  th 説明
+                  th ステータス
+              tbody
+                - @payments.each do |payment|
+                  tr
+                    td = payment.created_at.strftime("%Y/%m/%d")
+                    td.price-text = payment.formatted_amount
+                    td = payment.description
+                    td
+                      - p_status = payment.succeeded? ? "active" : "canceled"
+                      span.status-badge class="status-#{p_status}"
+                        = payment.status.capitalize
+        - else
+          .subscription-empty.subscription-empty--compact
+            p 支払い履歴がありません。

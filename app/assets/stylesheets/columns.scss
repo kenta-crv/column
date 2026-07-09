@@ -1591,13 +1591,228 @@ $theme-border: rgba(0, 0, 0, 0.08);
   font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .sub-category-grid {
-    grid-template-columns: 1fr;
+// ==========================================
+// Subscription Page (Dashboard)
+// ==========================================
+
+.subscription-page {
+  max-width: 820px;
+}
+
+.subscription-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.subscription-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.subscription-info-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.65;
+  letter-spacing: 0.02em;
+}
+
+.subscription-info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: inherit;
+
+  &--plan {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.subscription-note {
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.9rem;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.subscription-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  &--center {
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+}
+
+.subscription-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.65rem 1.35rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--primary {
+    background: $theme-accent-gradient;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+
+    &:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.28);
+      color: #fff;
+    }
+  }
+
+  &--warning {
+    background: #f59e0b;
+    color: #fff;
+
+    &:hover {
+      background: #d97706;
+      color: #fff;
+    }
+  }
+
+  &--danger {
+    background: #fff;
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.35);
+
+    &:hover {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+  }
+}
+
+.subscription-cancel-box {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.subscription-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+
+  p {
+    margin-bottom: 1.25rem;
+    opacity: 0.75;
+  }
+
+  &--compact {
+    padding: 1.5rem 1rem;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.subscription-cancel-card {
+  text-align: center;
+}
+
+.subscription-cancel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 1rem;
+}
+
+.subscription-cancel-text {
+  line-height: 1.8;
+  opacity: 0.85;
+  margin-bottom: 1.5rem;
+}
+
+.subscription-cancel-date {
+  display: inline-block;
+  margin: 0.35rem 0;
+  color: #4f46e5;
+  font-size: 1.05rem;
+}
+
+.subscription-cancel-note {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.subscription-cancel-plan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.subscription-cancel-form {
+  display: inline-block;
+  margin: 0;
+}
+
+.plan-badge {
+  &.plan-trial {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  &.plan-starter {
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+    border-color: rgba(107, 114, 128, 0.2);
+  }
+
+  &.plan-standard {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  &.plan-business {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+
+  &.plan-enterprise {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
   }
 }
 
 @media (max-width: 768px) {
+  .sub-category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-actions {
+    flex-direction: column;
+
+    .subscription-btn {
+      width: 100%;
+    }
+  }
+
   .api-settings-page {
     gap: 1.25rem;
   }
