@@ -15,9 +15,7 @@ Rails.application.configure do
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = true
-  # In production, jobs must be processed by Sidekiq workers.
-  # :async uses only in-process threads and can stall or lose jobs on restarts.
-  config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_adapter = :async
   # Ensures that a master key has been made available in either ENV["RAILS_MASTER_KEY"]
   # or in config/master.key. This key is used to decrypt credentials (and other encrypted files).
   # config.require_master_key = true
