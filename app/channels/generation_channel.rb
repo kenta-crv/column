@@ -1,6 +1,6 @@
 class GenerationChannel < ApplicationCable::Channel
   def subscribed
-    stream_from 'generation_channel'
+    stream_from "GenerationChannel"
   end
 
   def unsubscribed

@@ -888,6 +888,11 @@ body.admin-body {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
+
+  &.is-queued .spinner-icon,
+  &.is-queued .spinner-icon circle {
+    animation: none;
+  }
 }
 
 .spinner-icon {

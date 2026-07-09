@@ -11,6 +11,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   def index
     base_scope = dashboard_columns_base_scope
+    Column.recover_stale_generations!(base_scope)
     assign_dashboard_tab_counts(base_scope)
 
     @kpi_published_count = base_scope.where.not(body: [nil, ""]).where(status: "approved").count
@@ -77,8 +78,36 @@ class Dashboard::ColumnsController < ApplicationController
     @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
 
     # リアルタイム生成中の記事を取得
-    @generating_columns = filtered_base.where(generation_status: 'generating').limit(10)
-    @generating_count = filtered_base.where(generation_status: 'generating').count
+    @active_generation_columns = filtered_base.generation_active.order(updated_at: :desc).limit(20)
+    @queued_count = filtered_base.generation_queued.count
+    @generating_count = filtered_base.generation_running.count
+    @active_generation_count = @queued_count + @generating_count
+    @generating_columns = @active_generation_columns
+  end
+
+  def generation_status
+    base_scope = dashboard_columns_base_scope
+    Column.recover_stale_generations!(base_scope)
+
+    active_scope = base_scope.generation_active.order(updated_at: :desc).limit(50)
+    queued_count = base_scope.generation_queued.count
+    generating_count = base_scope.generation_running.count
+    completed_count = base_scope.where(generation_status: "completed").count
+
+    render json: {
+      queued_count: queued_count,
+      generating_count: generating_count,
+      active_count: queued_count + generating_count,
+      completed_count: completed_count,
+      items: active_scope.map do |column|
+        {
+          id: column.id,
+          title: column.title,
+          status: column.generation_status,
+          status_label: generation_status_label(column.generation_status)
+        }
+      end
+    }
   end
   
   
@@ -231,11 +260,11 @@ class Dashboard::ColumnsController < ApplicationController
     column = dashboard_columns_base_scope.find(params[:id])
     Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
-    unless column.generation_status == "generating"
-      return redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます"
+    unless %w[generating queued].include?(column.generation_status)
+      return redirect_to dashboard_columns_path, alert: "生成中または待機中の記事のみ停止できます"
     end
 
-    GenerateColumnBodyJob.request_stop!(column.id)
+    GenerateColumnBodyJob.request_stop!(column.id) if column.generation_status == "generating"
     column.update!(generation_status: "cancelled")
     redirect_to dashboard_columns_path, notice: "生成を停止しました"
   rescue ActiveRecord::RecordNotFound
@@ -377,5 +406,16 @@ class Dashboard::ColumnsController < ApplicationController
     Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
   rescue StandardError => e
     Rails.logger.error("[GenerationChannel] broadcast failed: #{e.class} - #{e.message}")
+  end
+
+  def generation_status_label(status)
+    case status
+    when "queued" then "待機中"
+    when "generating" then "生成中"
+    when "completed" then "完了"
+    when "failed" then "エラー"
+    when "cancelled" then "停止"
+    else status
+    end
   end
 end

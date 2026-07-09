@@ -149,6 +149,42 @@ body.admin-body {
   margin-top: auto;
 }
 
+.sidebar-account-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #7e84a3;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  svg {
+    color: #4a5275;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &.active {
+    color: var(--text-light);
+    background: var(--sidebar-active-bg);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 0 #3b82f6;
+
+    svg {
+      color: #3b82f6;
+    }
+  }
+}
+
 .user-profile {
   display: flex;
   align-items: center;

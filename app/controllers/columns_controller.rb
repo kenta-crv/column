@@ -121,26 +121,33 @@ end
         )
       end
 
-      target_ids = scope.pluck(:id)
+      targets = scope.merge(Column.without_generated_body)
+      target_ids = targets.pluck(:id)
       if target_ids.blank?
         return redirect_to(dashboard_root_path, alert: "対象の記事が見つかりませんでした")
       end
 
+      Column.where(id: target_ids).update_all(
+        status: "approved",
+        generation_status: "queued",
+        updated_at: Time.current
+      )
+
       Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
-          Column.where(id: target_ids).find_each do |column|
+          target_ids.each do |column_id|
             begin
-              next if column.generated_body?
-              column.update_columns(status: "approved")
-              GenerateColumnBodyJob.perform_now(column.id)
+              GenerateColumnBodyJob.perform_later(column_id)
             rescue => e
-              Rails.logger.error("[BulkGenerate] column_id=#{column.id} #{e.class}: #{e.message}")
+              Rails.logger.error("[BulkGenerate] enqueue column_id=#{column_id} #{e.class}: #{e.message}")
             end
           end
         end
+      rescue => e
+        Rails.logger.error("[BulkGenerate] thread error #{e.class}: #{e.message}")
       end
 
-      return redirect_to(dashboard_root_path, notice: "#{target_ids.size}件の本文生成を開始しました")
+      return redirect_to(dashboard_root_path, notice: "#{target_ids.size}件の本文生成をキューに追加しました")
 
     when "delete_bulk"
       deleted_count = scope.delete_all
@@ -288,11 +295,11 @@ end
       return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
     end
 
-    @column.update!(status: "approved")
+    @column.update!(status: "approved", generation_status: "queued")
 
     Thread.new do
       ActiveRecord::Base.connection_pool.with_connection do
-        GenerateColumnBodyJob.perform_now(@column.id)
+        GenerateColumnBodyJob.perform_later(@column.id)
       end
     rescue => e
       Rails.logger.error("[ApproveGenerate] column_id=#{@column.id} #{e.class}: #{e.message}")

@@ -12,8 +12,26 @@ class Column < ApplicationRecord
   }
   scope :without_generated_body, -> { where("body IS NULL OR TRIM(body) = ''") }
   scope :with_generated_body, -> { where("body IS NOT NULL AND TRIM(body) != ''") }
+  scope :generation_active, -> { where(generation_status: %w[queued generating]) }
+  scope :generation_queued, -> { where(generation_status: "queued") }
+  scope :generation_running, -> { where(generation_status: "generating") }
 
   ALREADY_GENERATED_NOTICE = "すでに記事が作成されています。再実行する場合、記事本文を削除してください".freeze
+
+  def self.recover_stale_generations!(scope)
+    stale_generating_cutoff = 2.hours.ago
+
+    scope.merge(without_generated_body).generation_running
+      .where("updated_at < ?", stale_generating_cutoff)
+      .find_each do |column|
+        column.update_columns(
+          generation_status: "failed",
+          status: "error",
+          body: "❌ 生成がタイムアウトしました。再度実行してください。",
+          updated_at: Time.current
+        )
+      end
+  end
 
   def generated_body?
     body.to_s.strip.present?

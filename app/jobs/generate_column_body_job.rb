@@ -11,10 +11,21 @@ class GenerateColumnBodyJob < ApplicationJob
     return if column.generated_body?
     return if GenerateColumnBodyJob.cancelled?(column_id)
 
-    runtime_mutex.synchronize { runtime_threads[column_id] = Thread.current }
+    column.with_lock do
+      column.reload
+      return if column.generated_body?
+      return if GenerateColumnBodyJob.cancelled?(column_id)
+      if column.generation_status == "generating"
+        return
+      end
+      unless %w[queued idle].include?(column.generation_status)
+        return
+      end
+      column.update!(generation_status: "generating")
+    end
 
-    column.update!(generation_status: "generating")
-    broadcast_generation_status(column)
+    runtime_mutex.synchronize { runtime_threads[column_id] = Thread.current }
+    broadcast_generation_status(column.reload)
 
     begin
       if column.article_type == "pillar"

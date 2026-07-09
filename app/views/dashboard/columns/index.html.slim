@@ -225,24 +225,36 @@
   h3 🔄 リアルタイム生成状況
   .generation-stats
     .stat-item
+      .stat-label 待機中
+      .stat-value id="queued-count" = @queued_count
+    .stat-item
       .stat-label 生成中
       .stat-value id="generating-count" = @generating_count
     .stat-item
       .stat-label 完了済み
       .stat-value id="completed-count" = @kpi_completed_generation_count
   .generation-list id="generation-list"
-    - if @generating_columns.present?
-      - @generating_columns.each do |c|
+    - if @active_generation_columns.present?
+      - @active_generation_columns.each do |c|
         .generation-item id="generation-item-#{c.id}" data-status="#{c.generation_status}"
-          .generation-spinner
-            svg.spinner-icon viewBox="0 0 50 50"
-              circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
+          .generation-spinner class=(c.generation_status == "queued" ? "is-queued" : "")
+            - if c.generation_status == "queued"
+              svg.spinner-icon viewBox="0 0 50 50"
+                circle cx="25" cy="25" r="20" fill="none" stroke="#94a3b8" stroke-width="4"
+            - else
+              svg.spinner-icon viewBox="0 0 50 50"
+                circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
           .generation-info
             .generation-title = c.title
-            .generation-status = c.generation_status
-          = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
-            = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
-              span 停止
+            .generation-status = c.generation_status == "queued" ? "待機中" : "生成中"
+          - if c.generation_status == "generating"
+            = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
+              = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
+                span 停止
+          - else
+            = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
+              = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成待ちをキャンセルしますか？" }, title: "待機キャンセル" do
+                span 取消
     - else
       .no-generation
         | 現在生成中の記事はありません
@@ -385,8 +397,12 @@ javascript:
         });
       }
 
-      // Realtime subscription disabled intentionally.
-      // Dashboard updates are handled by normal page reloads.
+      // 生成状況をポーリングで更新（ActionCable非依存）
+      if (window.__generationPollTimer) {
+        clearInterval(window.__generationPollTimer);
+      }
+      pollGenerationStatus();
+      window.__generationPollTimer = setInterval(pollGenerationStatus, 5000);
     };
 
     document.addEventListener('turbo:load', initAll);
@@ -400,6 +416,64 @@ javascript:
   function toggleAllColumns(source) {
     document.querySelectorAll('.column-select-checkbox:not(:disabled)')
       .forEach(cb => cb.checked = source.checked);
+  }
+
+  function pollGenerationStatus() {
+    fetch('/dashboard/columns/generation_status', {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data) return;
+        renderGenerationPanel(data);
+      })
+      .catch(() => {});
+  }
+
+  function renderGenerationPanel(data) {
+    const queuedCount = document.getElementById('queued-count');
+    const generatingCount = document.getElementById('generating-count');
+    const completedCount = document.getElementById('completed-count');
+    const generationList = document.getElementById('generation-list');
+
+    if (queuedCount) queuedCount.textContent = data.queued_count ?? 0;
+    if (generatingCount) generatingCount.textContent = data.generating_count ?? 0;
+    if (completedCount) completedCount.textContent = data.completed_count ?? 0;
+
+    if (!generationList) return;
+
+    if (!data.items || data.items.length === 0) {
+      generationList.innerHTML = '<div class="no-generation">現在生成中の記事はありません</div>';
+      return;
+    }
+
+    generationList.innerHTML = data.items.map((item) => {
+      const isQueued = item.status === 'queued';
+      const spinnerStroke = isQueued ? '#94a3b8' : '#3b82f6';
+      const stopLabel = isQueued ? '取消' : '停止';
+      const stopConfirm = isQueued ? 'この記事の生成待ちをキャンセルしますか？' : 'この記事の生成を停止しますか？';
+      const stopButton = `
+        <form action="/dashboard/columns/${item.id}/stop_generation" method="post" style="display:inline-flex;margin-left:auto;" data-turbo="false">
+          <input type="hidden" name="_method" value="patch">
+          <input type="hidden" name="authenticity_token" value="${document.querySelector('meta[name=\"csrf-token\"]')?.content || ''}">
+          <button type="submit" class="generation-stop-btn" style="background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;" onclick="return confirm('${stopConfirm}')" title="${stopLabel}">${stopLabel}</button>
+        </form>`;
+
+      return `
+        <div class="generation-item" id="generation-item-${item.id}" data-status="${item.status}">
+          <div class="generation-spinner ${isQueued ? 'is-queued' : ''}">
+            <svg class="spinner-icon" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="${spinnerStroke}" stroke-width="4"></circle>
+            </svg>
+          </div>
+          <div class="generation-info">
+            <div class="generation-title">${item.title || ''}</div>
+            <div class="generation-status">${item.status_label || item.status}</div>
+          </div>
+          ${stopButton}
+        </div>`;
+    }).join('');
   }
 
   function updateGenerationStatus(data) {
