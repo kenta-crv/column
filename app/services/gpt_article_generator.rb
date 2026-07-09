@@ -152,7 +152,7 @@ class GptArticleGenerator
 
   def self.ensure_not_cancelled!(column)
     column.reload
-    if column.generation_status == "cancelled"
+    if column.generation_status == "cancelled" || GenerateColumnBodyJob.cancelled?(column.id)
       raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
     end
   end
@@ -555,7 +555,7 @@ class GptArticleGenerator
         uri.hostname,
         uri.port,
         use_ssl: true,
-        read_timeout: 300
+        read_timeout: 120
       ) do |http|
         http.request(req)
       end

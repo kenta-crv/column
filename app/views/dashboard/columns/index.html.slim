@@ -91,7 +91,7 @@
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
               polyline points="22 4 12 14.01 9 11.01"
-          span.label 公開済み
+          span.label 公開済
       .kpi-body
         .trend.up
           span ↑ 18.7%
@@ -154,22 +154,20 @@
                 stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"
 
   .kpi-success-card
+    - quality_score = @kpi_avg_quality_score.present? ? @kpi_avg_quality_score.to_f : nil
+    - quality_percent = quality_score.present? ? (quality_score * 20.0).round(1).clamp(0.0, 100.0) : nil
     .success-left
       .success-title
         span 成功率
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
-      .success-meta 高高品質で生成
-      .score-box
-        .score-avg AI品質スコア平均
-        .score-value
-          strong = @kpi_avg_quality_score || "—"
+      .success-meta 高品質で生成
     .success-right
       .progress-circle-box
         svg viewBox="0 0 36 36" class="circular-chart"
           path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-          path class="circle" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-        .percentage 92%
+          path class="circle" stroke-dasharray="#{quality_percent || 0}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        .percentage = quality_percent.present? ? format("%.1f", quality_percent) : "—"
 
 / ジャンル別記事総数
 - summary_genres = ((@genre_pillar_counts&.keys || []) + (@genre_child_counts&.keys || [])).uniq.compact
@@ -242,7 +240,9 @@
           .generation-info
             .generation-title = c.title
             .generation-status = c.generation_status
-          = button_to "停止", stop_generation_dashboard_column_path(c), method: :patch, class: "btn btn-danger", form: { data: { turbo: false }, style: "display:inline-block; margin-left:auto;" }, data: { confirm: "この記事の生成を停止しますか？" }
+          = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
+            = button_tag type: "submit", class: "generation-stop-btn", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
+              span 停止
     - else
       .no-generation
         | 現在生成中の記事はありません
@@ -269,7 +269,10 @@
           - @columns.each do |c|
             tr data-column-id=c.id
               td
-                input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
+                - if c.generated_body?
+                  input type="checkbox" disabled="disabled" class="table-checkbox column-select-checkbox" title="本文がある記事は一括選択できません"
+                - else
+                  input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
               td
                 .article-info-cell
                   - if c.file.present?
@@ -277,7 +280,7 @@
                   - else
                     .article-thumb-placeholder 📄
                   .article-detail
-                    - if c.body.present?
+                    - if c.generated_body?
                       - link_target = c.code.presence || c.id
                       = link_to column_path(link_target), class: "article-link" do
                         span.article-title = c.title
@@ -293,7 +296,7 @@
                       - if c.genre.present?
                         span.tag-item = c.genre
               td
-                - if c.body.present?
+                - if c.generated_body?
                   span.status-badge.published 公開済み
                 - else
                   span.status-badge.draft 下書き
@@ -305,10 +308,11 @@
                 - else
                   .quality-score-pending 評価待ち
               td.actions-cell style="display: flex; gap: 5px;"
-                = link_to approve_column_path(c), method: :patch, class: "btn btn-primary", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap;", title: "承認して本文生成" do
-                  svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
-                    polygon points="5 3 19 12 5 21 5 3"
-                  | 生成
+                - unless c.generated_body?
+                  = link_to approve_column_path(c), method: :patch, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: "承認して本文生成" do
+                    svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
+                      polygon points="5 3 19 12 5 21 5 3"
+                    | 生成
                 = link_to edit_column_path(c), class: "btn-row-action", title: "編集" do
                   svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
@@ -381,17 +385,8 @@ javascript:
         });
       }
 
-      // ActionCable
-      if (typeof ActionCable !== 'undefined') {
-        const cable = ActionCable.createConsumer('/cable');
-        cable.subscriptions.create('GenerationChannel', {
-          received(data) { updateGenerationStatus(data); },
-          connected()    { console.log('Connected to GenerationChannel'); },
-          disconnected() { console.log('Disconnected from GenerationChannel'); }
-        });
-      } else {
-        console.error('ActionCable is not defined.');
-      }
+      // Realtime subscription disabled intentionally.
+      // Dashboard updates are handled by normal page reloads.
     };
 
     document.addEventListener('turbo:load', initAll);
@@ -403,7 +398,7 @@ javascript:
   })();
 
   function toggleAllColumns(source) {
-    document.querySelectorAll('.column-select-checkbox')
+    document.querySelectorAll('.column-select-checkbox:not(:disabled)')
       .forEach(cb => cb.checked = source.checked);
   }
 
@@ -434,7 +429,9 @@ javascript:
             <div class="generation-title">${data.title || ''}</div>
             <div class="generation-status">生成中...</div>
           </div>
-          <button class="btn btn-danger" style="margin-left:auto;" onclick="stopGeneration(${data.column_id})">停止</button>`;
+          <button class="generation-stop-btn" style="margin-left:auto;" onclick="stopGeneration(${data.column_id})">
+            <span>停止</span>
+          </button>`;
         generationList.insertBefore(item, generationList.firstChild);
       }
 

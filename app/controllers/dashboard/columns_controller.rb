@@ -229,14 +229,15 @@ class Dashboard::ColumnsController < ApplicationController
 
   def stop_generation
     column = dashboard_columns_base_scope.find(params[:id])
+    Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
-    if column.generation_status == "generating"
-      column.update!(generation_status: "cancelled")
-      broadcast_generation_status(column)
-      redirect_to dashboard_columns_path, notice: "記事生成を停止しました。"
-    else
-      redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます。"
+    unless column.generation_status == "generating"
+      return redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます"
     end
+
+    GenerateColumnBodyJob.request_stop!(column.id)
+    column.update!(generation_status: "cancelled")
+    redirect_to dashboard_columns_path, notice: "生成を停止しました"
   rescue ActiveRecord::RecordNotFound
     redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
@@ -372,5 +373,9 @@ class Dashboard::ColumnsController < ApplicationController
         title: column.title
       }
     )
+  rescue LoadError, NameError => e
+    Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
+  rescue StandardError => e
+    Rails.logger.error("[GenerationChannel] broadcast failed: #{e.class} - #{e.message}")
   end
 end

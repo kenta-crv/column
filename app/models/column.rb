@@ -10,6 +10,14 @@ class Column < ApplicationRecord
   scope :missing_generated_image, -> {
     where("body IS NOT NULL AND TRIM(body) != ''").merge(without_image_file)
   }
+  scope :without_generated_body, -> { where("body IS NULL OR TRIM(body) = ''") }
+  scope :with_generated_body, -> { where("body IS NOT NULL AND TRIM(body) != ''") }
+
+  ALREADY_GENERATED_NOTICE = "すでに記事が作成されています。再実行する場合、記事本文を削除してください".freeze
+
+  def generated_body?
+    body.to_s.strip.present?
+  end
 
   def pillar?
     article_type == "pillar"

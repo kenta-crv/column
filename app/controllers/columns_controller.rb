@@ -110,17 +110,43 @@ end
     end
 
     scope = dashboard_columns_base_scope.where(id: column_ids)
+    action_type = Array(params[:action_type]).last.to_s
 
-    case params[:action_type]
+    case action_type
     when "approve_bulk"
-      scope.find_each do |c|
-        GenerateColumnBodyJob.perform_later(c.id)
+      if scope.with_generated_body.exists?
+        return redirect_to(
+          dashboard_root_path,
+          alert: Column::ALREADY_GENERATED_NOTICE
+        )
       end
-      redirect_to dashboard_root_path, notice: "本文生成を開始しました"
+
+      target_ids = scope.pluck(:id)
+      if target_ids.blank?
+        return redirect_to(dashboard_root_path, alert: "対象の記事が見つかりませんでした")
+      end
+
+      Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection do
+          Column.where(id: target_ids).find_each do |column|
+            begin
+              next if column.generated_body?
+              column.update_columns(status: "approved")
+              GenerateColumnBodyJob.perform_now(column.id)
+            rescue => e
+              Rails.logger.error("[BulkGenerate] column_id=#{column.id} #{e.class}: #{e.message}")
+            end
+          end
+        end
+      end
+
+      return redirect_to(dashboard_root_path, notice: "#{target_ids.size}件の本文生成を開始しました")
 
     when "delete_bulk"
-      scope.destroy_all
-      redirect_to delete_bulk_fallback_path, notice: "選択した子記事を削除しました"
+      deleted_count = scope.delete_all
+      return redirect_to(delete_bulk_fallback_path, notice: "#{deleted_count}件を削除しました")
+    else
+      return redirect_to(delete_bulk_fallback_path, alert: "操作種別が不正です")
     end
   end
 
@@ -160,7 +186,7 @@ end
     end
 
     if @column.update(column_params)
-      redirect_to columns_path, notice: "更新しました"
+      redirect_to dashboard_root_path, notice: "更新しました"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -258,11 +284,21 @@ end
   end
 
   def approve
-    unless @column.approved?
-      @column.update!(status: "approved")
-      GenerateColumnBodyJob.perform_later(@column.id)
+    if @column.generated_body?
+      return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
     end
-    redirect_to columns_path, notice: "承認しました。"
+
+    @column.update!(status: "approved")
+
+    Thread.new do
+      ActiveRecord::Base.connection_pool.with_connection do
+        GenerateColumnBodyJob.perform_now(@column.id)
+      end
+    rescue => e
+      Rails.logger.error("[ApproveGenerate] column_id=#{@column.id} #{e.class}: #{e.message}")
+    end
+
+    redirect_to dashboard_root_path, notice: "本文生成を開始しました"
   end
 
   def generate_pillar
@@ -278,9 +314,15 @@ end
     ids = params[:column_ids]
     return redirect_to draft_columns_path, alert: "未選択" if ids.blank?
 
-    dashboard_columns_base_scope
-      .where(id: ids, article_type: "pillar")
-      .find_each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+    scope = dashboard_columns_base_scope.where(id: ids, article_type: "pillar")
+    if scope.with_generated_body.exists?
+      return redirect_to draft_columns_path, alert: Column::ALREADY_GENERATED_NOTICE
+    end
+
+    scope.find_each do |c|
+      next if c.generated_body?
+      GenerateColumnBodyJob.perform_later(c.id)
+    end
 
     redirect_to draft_columns_path, notice: "生成開始"
   end

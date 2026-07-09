@@ -3,6 +3,8 @@ require "json"
 require "openssl"
 
 class GptPillarGenerator
+  class GenerationCancelledError < StandardError; end
+
   MODEL_NAME = "gpt-4.1-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
@@ -11,6 +13,7 @@ class GptPillarGenerator
   # ==========================================================
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
+    ensure_not_cancelled!(column)
 
     target_category = detect_category(column)
     current_genre   = column.genre.presence || GenreRegistry.from_ja(target_category) || "other"
@@ -39,6 +42,7 @@ class GptPillarGenerator
     meta_data = nil
 
     3.times do |i|
+      ensure_not_cancelled!(column)
       res = generate_meta_info(
         column,
         target_category,
@@ -73,6 +77,7 @@ class GptPillarGenerator
     structure_data = nil
 
     3.times do |i|
+      ensure_not_cancelled!(column)
       res = generate_structure(
         column,
         target_category,
@@ -111,6 +116,7 @@ class GptPillarGenerator
     body_content = ""
 
     # 導入文
+    ensure_not_cancelled!(column)
     body_content += call_text_section(
       introduction_prompt(
         column,
@@ -127,6 +133,7 @@ class GptPillarGenerator
     body_content += "## 目次\n\n"
 
     structure_data["structure"].each do |section|
+      ensure_not_cancelled!(column)
       body_content += "- #{section["h2_title"]}\n"
     end
 
@@ -134,6 +141,7 @@ class GptPillarGenerator
 
     # H2セクション
     structure_data["structure"].each do |section|
+      ensure_not_cancelled!(column)
       h2_title = section["h2_title"]
 
       body_content += "## #{h2_title}\n\n"
@@ -159,6 +167,7 @@ class GptPillarGenerator
     end
 
     # まとめ
+    ensure_not_cancelled!(column)
     body_content += call_text_section(
       conclusion_prompt(
         column,
@@ -174,6 +183,7 @@ class GptPillarGenerator
     # ----------------------------------------------------------
     # 保存
     # ----------------------------------------------------------
+    ensure_not_cancelled!(column)
     column.update!(
       body: body_content,
       status: "completed"
@@ -192,6 +202,13 @@ class GptPillarGenerator
     puts "✅ 生成完了: #{clean_code}"
 
     true
+  end
+
+  def self.ensure_not_cancelled!(column)
+    column.reload
+    if column.generation_status == "cancelled" || GenerateColumnBodyJob.cancelled?(column.id)
+      raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
+    end
   end
 
   private
@@ -500,7 +517,7 @@ class GptPillarGenerator
         uri.hostname,
         uri.port,
         use_ssl: true,
-        read_timeout: 300
+        read_timeout: 120
       ) do |http|
         http.request(req)
       end
