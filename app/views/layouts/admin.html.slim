@@ -9,6 +9,29 @@ html
     meta name="viewport" content="width=device-width, initial-scale=1"
 
   body.admin-body
+    - sidebar_user_name = admin_signed_in? ? (current_admin.try(:name).presence || current_admin.try(:email).presence || "Admin User") : (client_signed_in? ? (current_client.full_name.presence || current_client.email) : "Guest User")
+    - sidebar_plan_name = admin_signed_in? ? "Admin" : (client_signed_in? ? (current_client.current_subscription&.plan_name || "トライアルプラン") : "未契約")
+    - if admin_signed_in?
+      - usage_used = nil
+      - usage_limit = nil
+      - usage_current_label = "∞"
+      - usage_total_label = "/ 無制限"
+      - usage_progress_width = "100%"
+    - elsif client_signed_in?
+      - usage_summary = current_client.usage_summary
+      - usage_used = usage_summary[:pillar][:used].to_i + usage_summary[:child][:used].to_i
+      - usage_limit = usage_summary[:pillar][:limit].to_i + usage_summary[:child][:limit].to_i
+      - usage_current_label = usage_used.to_s
+      - usage_total_label = "/ #{usage_limit} 記事"
+      - usage_ratio = usage_limit.positive? ? ((usage_used.to_f / usage_limit) * 100).round : 0
+      - usage_progress_width = "#{usage_ratio.clamp(0, 100)}%"
+    - else
+      - usage_used = 0
+      - usage_limit = 0
+      - usage_current_label = "0"
+      - usage_total_label = "/ 0 記事"
+      - usage_progress_width = "0%"
+
     .admin-sidebar-overlay#sidebarOverlay
     header.admin-mobile-header
       button.admin-sidebar-toggle#sidebarToggle type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="adminSidebar"
@@ -116,15 +139,15 @@ html
                 | ログアウト
 
         .sidebar-bottom
-          .user-profile style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative;"
-            .user-info-group style="display: flex; align-items: center; gap: 12px;"
-              img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Avatar" class="avatar"
+          .user-profile
+            .user-info-group
+              = image_tag "/favicon.ico", alt: "Drafity Icon", class: "avatar"
               .user-info
-                span.user-name Yuki Tanaka
-                span.user-plan Pro Plan
-            .user-menu-wrapper style="position: static;"
-              button.btn-user-menu#userMenuBtn type="button" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px 8px; font-size: 16px;" •••
-              .user-menu-dropdown#userMenuDropdown style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; margin-bottom: 8px; background-color: #1e293b; border: 1px solid #334155; border-radius: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); z-index: 50; padding: 6px 0;"
+                span.user-name = sidebar_user_name
+                span.user-plan = sidebar_plan_name
+            .user-menu-wrapper
+              button.btn-user-menu#userMenuBtn type="button" •••
+              .user-menu-dropdown#userMenuDropdown
                 - if client_signed_in?
                   = link_to dashboard_setting_path, style: "display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 13px; color: #f8fafc; text-decoration: none; transition: background-color 0.2s;", onmouseover: "this.style.backgroundColor='#334155'", onmouseout: "this.style.backgroundColor='transparent'" do
                     svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -135,10 +158,10 @@ html
           .usage-container
             .usage-header 今月の使用状況
             .usage-stats
-              span.usage-current 162
-              span.usage-total = "/ 300 記事"
+              span.usage-current = usage_current_label
+              span.usage-total = usage_total_label
             .usage-progress-bar
-              .usage-progress-fill style="width: 54%;"
+              .usage-progress-fill style=("width: #{usage_progress_width};")
 
       main.admin-main
         = yield
