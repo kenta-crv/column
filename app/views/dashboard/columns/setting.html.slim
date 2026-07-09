@@ -75,10 +75,10 @@
               h3.form-section-title Subscription
               .form-group
                 p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 1rem;" 現在のプランを変更・管理できます
-                = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn btn-secondary btn-sm'
+                = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn btn-sm', style: 'display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;font-weight:600;text-decoration:none;'
 
             / ===== ログアウト =====
             .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
               h3.form-section-title Logout
               .form-group
-                = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn btn-secondary btn-sm', style: 'color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'
+                = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn btn-sm', style: 'display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;'

@@ -213,6 +213,14 @@ class Subscription < ApplicationRecord
     PLAN_NAMES[plan_type.to_sym]
   end
 
+  def display_name
+    plan_config[:lp_name].presence || plan_name
+  end
+
+  def self.display_name_for(plan_key)
+    config_for(plan_key)[:lp_name].presence || PLAN_NAMES[plan_key.to_sym]
+  end
+
   def price
     plan_config[:price] || 0
   end

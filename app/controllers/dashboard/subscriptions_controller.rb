@@ -1,5 +1,7 @@
 module Dashboard
   class SubscriptionsController < ApplicationController
+    layout "admin"
+
     before_action :authenticate_any!
     before_action :set_target_client
     before_action :set_subscription, only: [:show, :update, :cancel, :cancel_confirm]
@@ -7,6 +9,7 @@ module Dashboard
     def show
       @subscription = @target_client.subscriptions.order(created_at: :desc).first
       @payments = @target_client.payments.order(created_at: :desc).limit(10)
+      render "dashboard/columns/subscriptions/show"
     end
 
     def update
@@ -58,6 +61,8 @@ module Dashboard
         Rails.logger.error "Stripe retrieve error: #{e.message}"
         @available_until = @subscription.trial_ends_at || Date.today.end_of_month
       end
+
+      render "dashboard/columns/subscriptions/cancel_confirm"
     end
 
     def cancel

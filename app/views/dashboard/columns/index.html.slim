@@ -155,7 +155,7 @@
 
   .kpi-success-card
     - quality_score = @kpi_avg_quality_score.present? ? @kpi_avg_quality_score.to_f : nil
-    - quality_percent = quality_score.present? ? (quality_score * 20.0).round(1).clamp(0.0, 100.0) : nil
+    - quality_percent = quality_score.present? ? ((quality_score <= 5.0 ? (quality_score * 20.0) : quality_score).round(1).clamp(0.0, 100.0)) : nil
     .success-left
       .success-title
         span 成功率
@@ -201,7 +201,7 @@
       span.tab-label 子記事
       span.count-badge = @tab_count_cluster
     = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
-      span.tab-label 公開済み
+      span.tab-label 公開済
       span.count-badge = @tab_count_published
     = link_to dashboard_columns_path(scope: "error"), class: "tab-btn #{'active' if params[:scope] == 'error'}" do
       span.tab-label エラー
@@ -241,7 +241,7 @@
             .generation-title = c.title
             .generation-status = c.generation_status
           = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
-            = button_tag type: "submit", class: "generation-stop-btn", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
+            = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
               span 停止
     - else
       .no-generation
@@ -297,7 +297,7 @@
                         span.tag-item = c.genre
               td
                 - if c.generated_body?
-                  span.status-badge.published 公開済み
+                  span.status-badge.published 公開済
                 - else
                   span.status-badge.draft 下書き
               td.date-text = c.updated_at.strftime("%Y/%m/%d %H:%M")
@@ -429,7 +429,7 @@ javascript:
             <div class="generation-title">${data.title || ''}</div>
             <div class="generation-status">生成中...</div>
           </div>
-          <button class="generation-stop-btn" style="margin-left:auto;" onclick="stopGeneration(${data.column_id})">
+          <button class="generation-stop-btn" style="margin-left:auto;background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;" onclick="stopGeneration(${data.column_id})">
             <span>停止</span>
           </button>`;
         generationList.insertBefore(item, generationList.firstChild);
