@@ -4,7 +4,7 @@ html
     title Drafity Admin
     = csrf_meta_tags
     = csp_meta_tag
-    = stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload"
+    = stylesheet_link_tag "application", media: "all"
     = javascript_include_tag "application", defer: true
     meta name="viewport" content="width=device-width, initial-scale=1"
 
@@ -23,7 +23,7 @@ html
       aside.admin-sidebar#adminSidebar
         .sidebar-top
           .logo
-            = link_to dashboard_root_path, class: "logo-link" do
+            = link_to root_path, class: "logo-link" do
               = image_tag "logo.png", alt: "Drafity Logo", width: "200", style: "filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));"
 
           = link_to new_column_path, class: "btn-create-article" do
@@ -48,50 +48,32 @@ html
                 polyline points="10 9 9 9 8 9"
               | 生成管理
 
-            - if admin_signed_in?
-              = link_to draft_columns_path do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                | ドラフト一覧
+            = link_to draft_columns_path do
+              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              | ドラフト一覧
 
-              = link_to dashboard_columns_path(scope: "pillar"), class: (controller_name == "columns" && action_name == "index" && params[:scope] == "pillar" ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
-                  path d="M12 8V2"
-                  path d="M5 12H2"
-                  path d="M22 12h-3"
-                  path d="M16.5 7.5L19 5"
-                  path d="M7.5 7.5L5 5"
-                | 親記事一覧
-            - elsif client_signed_in?
-              = link_to dashboard_columns_path(scope: "pillar"), class: (controller_name == "columns" && action_name == "index" && params[:scope] == "pillar" ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
-                  path d="M12 8V2"
-                  path d="M5 12H2"
-                  path d="M22 12h-3"
-                  path d="M16.5 7.5L19 5"
-                  path d="M7.5 7.5L5 5"
-                | 親記事一覧
+            = link_to "/columns?article_type=pillar" do
+              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
+                path d="M12 8V2"
+                path d="M5 12H2"
+                path d="M22 12h-3"
+                path d="M16.5 7.5L19 5"
+                path d="M7.5 7.5L5 5"
+              | クラスタータイトル生成
 
             /= link_to columns_path(article_type: "pillar") do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
               | クラスター記事一括生成
 
-            - if admin_signed_in?
-              = link_to public_columns_index_path do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
-                  polyline points="22 4 12 14.01 9 11.01"
-                | 公開済み記事
-            - elsif client_signed_in?
-              = link_to public_columns_index_path, class: (controller_name == "columns" && action_name == "index" && params[:genre].present? ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
-                  polyline points="22 4 12 14.01 9 11.01"
-                | 公開済み記事
+            = link_to columns_path do
+              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
+                polyline points="22 4 12 14.01 9 11.01"
+              | 公開済み記事
 
             = link_to image_generation_dashboard_columns_path, class: (controller_name == "columns" && action_name == "image_generation" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -104,12 +86,6 @@ html
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
               | サービス・ジャンル管理
-
-            - if client_signed_in? && current_client.ai_autonomous_enabled?
-              = link_to dashboard_autonomous_runs_path, class: (controller_name == "autonomous_runs" ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                | AI主導生成
 
             - if admin_signed_in?
               = link_to dashboard_management_path, class: (controller_name == "dashboards" && action_name == "management" ? "active" : nil) do

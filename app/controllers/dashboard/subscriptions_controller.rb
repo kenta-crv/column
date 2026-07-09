@@ -3,7 +3,6 @@ module Dashboard
     before_action :authenticate_any!
     before_action :set_target_client
     before_action :set_subscription, only: [:show, :update, :cancel, :cancel_confirm]
-    layout "admin"
 
     def show
       @subscription = @target_client.subscriptions.order(created_at: :desc).first
@@ -97,13 +96,7 @@ module Dashboard
       end
     end
 
-    helper_method :subscription_path_params
-
     private
-
-    def subscription_path_params
-      admin_signed_in? && params[:client_id].present? ? { client_id: params[:client_id] } : {}
-    end
 
     def authenticate_any!
       unless admin_signed_in? || client_signed_in?

@@ -18,7 +18,6 @@ class Subscription < ApplicationRecord
   TRIAL_DAYS = 10
   YEARLY_DISCOUNT_RATE = 0.8
   POST_TRIAL_PLAN = :standard
-  TITLE_SUGGESTION_BAR_MAX = 5
 
   # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
   PLANS = {
@@ -29,8 +28,7 @@ class Subscription < ApplicationRecord
       price: 0,
       pillar_articles: 1,
       child_articles: 3,
-      title_suggestions: 1,
-      title_suggestion_max_per_use: 1,
+      title_suggestions: 3,
       image_generations: 5,
       genre_count: 1,
       api_enabled: false,
@@ -49,8 +47,7 @@ class Subscription < ApplicationRecord
       price: 29_800,
       pillar_articles: 3,
       child_articles: 45,
-      title_suggestions: 3,
-      title_suggestion_max_per_use: 3,
+      title_suggestions: 5,
       image_generations: 60,
       genre_count: 1,
       api_enabled: true,
@@ -69,8 +66,7 @@ class Subscription < ApplicationRecord
       price: 49_800,
       pillar_articles: 5,
       child_articles: 75,
-      title_suggestions: 5,
-      title_suggestion_max_per_use: 5,
+      title_suggestions: 10,
       image_generations: 125,
       genre_count: 3,
       api_enabled: true,
@@ -90,7 +86,6 @@ class Subscription < ApplicationRecord
       pillar_articles: 15,
       child_articles: 225,
       title_suggestions: 30,
-      title_suggestion_max_per_use: 5,
       image_generations: 250,
       genre_count: 10,
       api_enabled: true,
@@ -110,7 +105,6 @@ class Subscription < ApplicationRecord
       pillar_articles: 50,
       child_articles: 750,
       title_suggestions: 100,
-      title_suggestion_max_per_use: 5,
       image_generations: 1000,
       genre_count: 20,
       api_enabled: true,
@@ -169,7 +163,7 @@ class Subscription < ApplicationRecord
       features = [
         "親記事 #{period}#{config[:pillar_articles]}記事",
         "子記事 #{period}#{config[:child_articles]}記事",
-        title_suggestion_feature_label(config, period: period),
+        "AIタイトル提案 #{config[:title_suggestions]}回",
         "画像生成 #{config[:image_generations]}回",
         "ジャンル #{config[:genre_count]}個まで"
       ]
@@ -199,28 +193,11 @@ class Subscription < ApplicationRecord
         :pillar_articles,
         :child_articles,
         :title_suggestions,
-        :title_suggestion_max_per_use,
         :image_generations,
         :genre_count,
         :api_enabled,
         :ai_autonomous
       )
-    end
-
-    def title_suggestion_feature_label(config, period: "月")
-      times = config[:title_suggestions].to_i
-      per_use = config[:title_suggestion_max_per_use] || TITLE_SUGGESTION_BAR_MAX
-
-      if times > TITLE_SUGGESTION_BAR_MAX
-        "AIタイトル提案 #{period}#{times}回（1回あたり最大#{per_use}件）"
-      else
-        "AIタイトル提案 #{period}#{times}回（最大#{per_use}件）"
-      end
-    end
-
-    def title_suggestion_limit_label(config)
-      per_use = config[:title_suggestion_max_per_use] || TITLE_SUGGESTION_BAR_MAX
-      "タイトル #{config[:title_suggestions]}回（#{per_use}件）"
     end
   end
 

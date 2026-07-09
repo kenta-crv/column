@@ -742,13 +742,17 @@
 $theme-accent-gradient: linear-gradient(135deg, #a78bfa 0%, #6366f1 50%, #3b82f6 100%);
 $theme-border-glow: #8b5cf6;
 
-// フォーム要素やカードの背景（ダッシュボードと同系のライトUI）
-$theme-card-bg: #ffffff;
-$theme-input-bg: #ffffff;
-$theme-border: #e2e8f0;
-$theme-text: #0f172a;
-$theme-text-muted: #64748b;
-$theme-label: #334155;
+// フォーム要素やカードの背景（現在の背景色に対して薄くレイヤーを重ねる設定）
+$theme-card-bg: rgba(255, 255, 255, 0.03); // ダーク・ライト双方で馴染む微細なレイヤー
+$theme-input-bg: rgba(0, 0, 0, 0.02);
+$theme-border: rgba(0, 0, 0, 0.08);
+
+// ※現在の環境がダークテーマベースの場合は、以下のように反転させて自動追従させます
+@media (prefers-color-scheme: dark) {
+  $theme-card-bg: rgba(255, 255, 255, 0.05);
+  $theme-input-bg: rgba(255, 255, 255, 0.03);
+  $theme-border: rgba(255, 255, 255, 0.1);
+}
 
 // ベースコンテナ（背景色は親要素から継承）
 .container-fluid.py-4 {
@@ -760,81 +764,37 @@ $theme-label: #334155;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  color: $theme-text;
-
-  .api-settings-header {
-    border-bottom: 1px solid $theme-border;
-    padding-bottom: 1.25rem;
-
-    .api-settings-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.35rem;
-      color: $theme-text;
-    }
-
-    .api-settings-subtitle {
-      font-size: 0.9rem;
-      color: $theme-text-muted;
-      margin: 0;
-    }
-  }
+  gap: 2rem;
 
   // フォームセクション
   .form-section {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     padding-bottom: 2rem;
     border-bottom: 1px solid $theme-border;
 
     &:last-of-type {
       border-bottom: none;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       padding-bottom: 0;
     }
 
     .form-section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
-      color: $theme-text;
+      color: inherit;
 
       &::before {
         content: '';
         display: inline-block;
         width: 4px;
-        height: 18px;
+        height: 16px;
         background: $theme-accent-gradient;
         border-radius: 2px;
         margin-right: 0.75rem;
       }
-    }
-  }
-
-  .btn-setting-logout {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem 1rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 6px;
-    border: 1px solid #fecaca;
-    background: #ffffff;
-    color: #dc2626;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-
-    &:hover,
-    &:focus {
-      background: #fef2f2;
-      border-color: #f87171;
-      color: #b91c1c;
-      text-decoration: none;
     }
   }
 
@@ -848,18 +808,18 @@ $theme-label: #334155;
 
     label {
       display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 500;
       margin-bottom: 0.5rem;
-      color: $theme-label;
+      opacity: 0.8;
     }
 
     .form-control {
       width: 100%;
       background-color: $theme-input-bg;
-      border: 1px solid #cbd5e1;
+      border: 1px solid $theme-border;
       border-radius: 8px;
-      color: $theme-text;
+      color: inherit;
       padding: 0.75rem 1rem;
       font-size: 0.95rem;
       transition: all 0.2s ease-in-out;
@@ -868,74 +828,29 @@ $theme-label: #334155;
       &:focus {
         outline: none;
         border-color: $theme-border-glow;
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
       }
 
       &[readonly] {
-        opacity: 1;
+        opacity: 0.6;
         cursor: not-allowed;
-        border-style: solid;
-        border-color: #e2e8f0;
-        background-color: #f1f5f9;
-        color: #475569;
+        border-style: dashed;
+        background-color: rgba(0, 0, 0, 0.01);
       }
     }
 
     textarea.form-control {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: monospace;
       font-size: 0.85rem;
       resize: vertical;
       line-height: 1.5;
-      background-color: #f8fafc;
     }
 
     .form-text {
       display: block;
       margin-top: 0.5rem;
-      font-size: 0.8125rem;
-      color: $theme-text-muted;
-      line-height: 1.5;
-
-      a {
-        color: #6d28d9;
-        font-weight: 600;
-        text-decoration: none;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-    }
-  }
-
-  .allowed-genres-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 14px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-weight: 600;
-      color: $theme-text;
-
-      .genre-key {
-        font-size: 0.75rem;
-        padding: 2px 8px;
-        border-radius: 6px;
-        background: #f5f3ff;
-        color: #6d28d9;
-        border: 1px solid #ddd6fe;
-      }
+      font-size: 0.8rem;
+      opacity: 0.5;
     }
   }
 
@@ -989,7 +904,6 @@ $theme-label: #334155;
       font-size: 0.9rem;
       cursor: pointer;
       margin-bottom: 0;
-      color: $theme-label;
     }
   }
 
@@ -1032,82 +946,47 @@ $theme-label: #334155;
       }
 
       &.btn-secondary {
-        background-color: #ffffff;
-        color: #475569;
-        border: 1px solid #cbd5e1;
+        background-color: rgba(0, 0, 0, 0.05);
+        color: inherit;
+        border: 1px solid $theme-border;
 
         &:hover {
-          background-color: #f8fafc;
-          border-color: #94a3b8;
-          color: #334155;
+          background-color: rgba(0, 0, 0, 0.08);
         }
       }
     }
   }
+}
+.api-settings-header {
+  border-bottom: 1px solid $theme-border;
+  padding-bottom: 1.5rem;
 
-  .api-settings-card {
-    background: $theme-card-bg;
-    border: 1px solid $theme-border;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-
-    .api-settings-card__body {
-      padding: 2rem;
-    }
+  .api-settings-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    color: inherit;
   }
 
-  .api-instructions {
-    background: $theme-card-bg;
-    border: 1px solid $theme-border;
-    border-radius: 16px;
-    padding: 1.75rem;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  .api-settings-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin: 0;
+  }
+}
 
-    .api-instructions-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 1.25rem;
-      color: $theme-text;
-    }
+// メイン設定カード（モダンなインライン・ボーダーとシャドウ表現）
+.api-settings-card {
+  background: $theme-card-bg;
+  border: 1px solid $theme-border;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
-    .api-instructions-step {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-      min-width: 0;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      .step-number {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        border: none;
-        color: #ffffff;
-        font-size: 0.85rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
-      }
-
-      .step-content {
-        flex-grow: 1;
-        min-width: 0;
-
-        h4 {
-          font-size: 0.9375rem;
-          font-weight: 600;
-          margin: 0 0 0.5rem 0;
-          color: $theme-text;
-        }
-      }
-    }
+  .api-settings-card__body {
+    padding: 2.5rem;
   }
 }
 
@@ -1303,8 +1182,8 @@ $theme-label: #334155;
   }
 }
 
-// 埋め込み手順エリア（api-settings-page 外のフォールバック）
-.api-instructions:not(.api-settings-page .api-instructions) {
+// 埋め込み手順エリア
+.api-instructions {
   background: $theme-card-bg;
   border: 1px solid $theme-border;
   border-radius: 16px;

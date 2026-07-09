@@ -28,4 +28,5 @@ test:
 
 production:
   <<: *default
-  database: <%= Rails.root.join('db', 'production.sqlite3').to_s %>
+  # 修正案に基づき、developmentと同じDBを参照
+  database: <%= Rails.root.join('db', 'development.sqlite3').to_s %>

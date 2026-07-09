@@ -39,21 +39,16 @@
           { include_blank: "選択してください" },
           { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: @column_form_sub_categories_json } }
 
-      - if client_signed_in? && @column.new_record?
-        = f.hidden_field :article_type, value: "pillar"
-        p.form-text.text-muted クライアント向けの新規作成は親記事のみです。子記事タイトルは親記事詳細またはDashboardから追加してください。
-      - else
-        .form-group
-          = f.label :article_type, "タイプ"
-          = f.select :article_type,
-            [["親記事", "pillar"], ["子記事", "cluster"]],
-            { include_blank: "選択してください", selected: @column.new_record? ? nil : @column.article_type },
-            { class: "form-control" }
+      .form-group
+        = f.label :article_type, "タイプ"
+        = f.select :article_type,
+          [["親記事", "pillar"], ["子記事", "cluster"]],
+          { include_blank: "選択してください", selected: @column.new_record? ? nil : @column.article_type },
+          { class: "form-control" }
 
-        - if admin_signed_in?
-          .form-group
-            = f.label :parent_id, "親記事ID（子記事作成時のみ）"
-            = f.text_field :parent_id, class: "form-control", placeholder: "通常はDashboardまたは親記事詳細から作成してください"
+      .form-group
+        = f.label :parent_id, "parent_id"
+        = f.text_field :parent_id, class: "form-control"
 
       .form-group
         = f.label :prompt, "AI生成指示（任意・最優先）"

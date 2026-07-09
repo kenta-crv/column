@@ -1,8 +1,3 @@
-/* トップ: layout の空 .hero ラッパーは余白を取らない */
-body > .hero:not(:has(.breadcrumbs)) {
-  display: none;
-}
-
 /* ── Drafity 固有のスタイル（他への影響を防ぐため .drafify-lp 配下に限定） ── */
 .drafify-lp {
   --blue: #3B82F6;
@@ -50,7 +45,6 @@ body > .hero:not(:has(.breadcrumbs)) {
 
   /* NAV */
   .nav {
-    width: 100%;
     position: sticky;
     top: 0;
     z-index: 200;
@@ -59,21 +53,18 @@ body > .hero:not(:has(.breadcrumbs)) {
     border-bottom: 1px solid var(--border-subtle);
 
     &-inner {
-      max-width: 1200px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 0 24px !important;
+      padding: 0 40px 0 16px !important;
       height: 64px;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+      display: flex;
       align-items: center;
-      width: 100%;
+      justify-content: space-between;
     }
 
     &-links {
       display: flex;
       gap: 28px;
-      justify-self: center;
-      margin: 0;
 
       a {
         font-size: 14px;
@@ -94,25 +85,10 @@ body > .hero:not(:has(.breadcrumbs)) {
       display: flex;
       align-items: center;
       gap: 10px;
-      justify-self: end;
-    }
-  }
-
-  .nav-logo {
-    display: inline-flex;
-    align-items: center;
-    justify-self: start;
-    flex-shrink: 0;
-  }
-
-  @media(max-width: 620px) {
-    .nav-cta {
-      right: 8px !important;
     }
   }
 
   .btn-login {
-    display: inline-block;
     font-size: 14px;
     font-weight: 600;
     color: var(--ink-mid);
@@ -122,7 +98,6 @@ body > .hero:not(:has(.breadcrumbs)) {
     border: none;
     background: none;
     cursor: pointer;
-    text-decoration: none;
 
     &:hover {
       color: var(--blue);
@@ -153,10 +128,9 @@ body > .hero:not(:has(.breadcrumbs)) {
   .hero {
     background-image: asset-url('hero-bg.webp');
     background-repeat: no-repeat;
-    /* padding-top を 88px→28px にした分、ラップトップ画像を上に合わせる */
-    background-position: 58% -60px;
+    background-position: center top;
     background-size: 100% auto;
-    padding: 28px 0 80px;
+    padding: 88px 0 80px;
     overflow: hidden;
     position: relative;
 
@@ -225,6 +199,33 @@ body > .hero:not(:has(.breadcrumbs)) {
       gap: 14px;
       margin-top: 36px;
       flex-wrap: wrap;
+    }
+
+    &-social {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    &-avatars {
+      display: flex;
+
+      span {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid var(--white);
+        background: #E2E8F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-mid);
+        margin-right: -8px;
+        flex-shrink: 0;
+      }
     }
 
     &-right {
@@ -311,7 +312,6 @@ body > .hero:not(:has(.breadcrumbs)) {
     position: relative;
     width: 100%;
     max-width: 1100px;
-    min-height: 520px;
   }
 
   .float-card {
@@ -361,20 +361,18 @@ body > .hero:not(:has(.breadcrumbs)) {
     }
   }
 
-  .fc-words {
-    top: -5%;
-    left: -6%;
-    z-index: 3;
+  .fc-time {
+    top: 12%;
+    left: -12%;
     .float-icon {
       background: rgba(139, 92, 246, 0.08);
       svg { color: var(--purple); }
     }
   }
 
-  .fc-time {
-    top: 73%;
-    left: -5%;
-    z-index: 2;
+  .fc-words {
+    bottom: 10%;
+    left: -8%;
     .float-icon {
       background: rgba(139, 92, 246, 0.08);
       svg { color: var(--purple); }
@@ -382,10 +380,8 @@ body > .hero:not(:has(.breadcrumbs)) {
   }
 
   .fc-score {
-    top: 55%;
-    right: -3%;
-    left: auto;
-    z-index: 2;
+    top: 45%;
+    right: -10%;
     .float-icon {
       background: rgba(59, 130, 246, 0.08);
     }
@@ -533,7 +529,7 @@ body > .hero:not(:has(.breadcrumbs)) {
     padding: 80px 0;
     
     .features-inner { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
-    .features-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .features-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
   }
   
   .feature-item {
@@ -982,47 +978,21 @@ body > .hero:not(:has(.breadcrumbs)) {
   .btn-white { display: inline-flex; align-items: center; gap: 8px; background: var(--white); color: var(--blue); padding: 16px 40px; border-radius: 99px; font-size: 15.5px; font-weight: 700; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05); border: none; }
 
   /* RESPONSIVE */
-  @media(max-width: 1100px) {
-    .features-grid { grid-template-columns: 1fr; }
-    .feature-item {
-      align-items: flex-start;
-      text-align: left;
-      padding: 22px 18px;
-      gap: 10px;
-    }
-    .fi-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-    }
-    .fi-title { font-size: 15px; }
-    .fi-desc { font-size: 13px; line-height: 1.7; }
-  }
-
   @media(max-width: 900px) {
     .hero-inner, .trial-card-inner, .concept-grid, .voices-grid { grid-template-columns: 1fr; }
     .pricing-scroll-wrap { padding: 0 36px; margin: 0; }
     .pricing-scroll-btn { width: 32px; height: 32px; }
     .plan-card { flex: 0 0 240px; }
     .trial-left, .trial-right { border: none; border-top: 1px solid #F1F5F9; }
-    .hero-right { display: none; }
-    .shared-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-right { justify-content: center; margin-top: 24px; }
+    .fc-time, .fc-score, .fc-words { position: static; margin-bottom: 10px; }
+    .features-grid, .shared-grid { grid-template-columns: repeat(2, 1fr); }
     .steps-row { grid-template-columns: 1fr; gap: 24px; }
     .step-arrow { display: none; }
   }
   
   @media(max-width: 620px) {
     .nav-links { display: none; }
-    .nav-inner { grid-template-columns: auto 1fr auto; padding: 0 16px !important; }
-    .nav-cta { gap: 6px; }
-    .btn-login {
-      padding: 6px 10px;
-      font-size: 13px;
-    }
-    .btn-primary {
-      padding: 8px 12px;
-      font-size: 13px;
-    }
     .features-grid, .shared-grid { grid-template-columns: 1fr; }
     .price-zero-row { flex-direction: column; text-align: center; }
     .pricing-scroll-btn { display: none; }

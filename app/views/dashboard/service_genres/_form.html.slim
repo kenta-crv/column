@@ -47,6 +47,10 @@
       = f.label :keywords_text, "キーワード"
       = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: "1行1件、またはカンマ区切り"
 
+    .form-group
+      = f.label :images_text, "画像ファイル名"
+      = f.text_area :images_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :images_text).presence || Array(service_genre.images).join("\n"), placeholder: "例: app1.jpg"
+
   .form-section
     h3.form-section-title 中分類
     p.sub-categories-intro

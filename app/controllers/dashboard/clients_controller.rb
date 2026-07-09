@@ -1,7 +1,6 @@
 class Dashboard::ClientsController < ApplicationController
   before_action :authenticate_admin_or_client!
   before_action :set_client, only: [:api_settings, :update_api_settings]
-  before_action :set_own_client, only: [:my_api_settings, :update_my_api_settings]
   before_action :ensure_own_client, only: [:api_settings, :update_api_settings], unless: :admin_signed_in?
   before_action :assign_client_genre_options, only: [:api_settings, :my_api_settings, :update_api_settings, :update_my_api_settings]
   layout "admin"
@@ -10,6 +9,7 @@ class Dashboard::ClientsController < ApplicationController
   end
 
   def my_api_settings
+    @client = current_client
     render :api_settings
   end
 
@@ -32,6 +32,8 @@ class Dashboard::ClientsController < ApplicationController
   end
 
   def update_my_api_settings
+    @client = current_client
+
     embed_settings_raw = params[:client][:embed_settings]
     embed_settings = begin
       JSON.parse(embed_settings_raw)
@@ -52,17 +54,11 @@ class Dashboard::ClientsController < ApplicationController
   private
 
   def assign_client_genre_options
-    return unless @client
-
     @client_service_genres = @client.service_genres.order(:ja)
   end
 
   def set_client
     @client = Client.find(params[:id])
-  end
-
-  def set_own_client
-    @client = current_client
   end
 
   def ensure_own_client

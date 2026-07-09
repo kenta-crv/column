@@ -5,14 +5,13 @@ require "openssl"
 class PillarTitleSuggestionService
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
-  DEFAULT_SUGGESTION_COUNT = 1
-  ABSOLUTE_MAX_SUGGESTION_COUNT = 5
-  MIN_SUGGESTION_COUNT = 1
+  DEFAULT_SUGGESTION_COUNT = 10
+  MAX_SUGGESTION_COUNT = 30
 
   # ==========================================================
   # キーワードとターゲット層から親記事（Pillar）タイトルを生成
   # ==========================================================
-  def self.call(keyword1:, keyword2:, target_layer:, genre:, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil)
+  def self.call(keyword1:, keyword2:, target_layer:, genre:, custom_prompt: nil, suggestion_count: nil, client: nil)
     if keyword1.blank? || keyword2.blank? || genre.blank?
       Rails.logger.error("PillarTitleSuggestionService: 必須パラメータが不足しています")
       return { success: false, error: "必須パラメータが不足しています", titles: [] }
@@ -21,8 +20,7 @@ class PillarTitleSuggestionService
     genre_key = GenreRegistry.resolve_key(genre, client: client)
     genre_label = GenreRegistry.to_ja(genre_key, client: client) || genre.to_s
     service_info = GenreRegistry.service_profile(genre_key, client: client)
-    per_use_max = max_suggestion_count || (client ? client.max_title_suggestion_count : ABSOLUTE_MAX_SUGGESTION_COUNT)
-    title_count = normalize_suggestion_count(suggestion_count, max: per_use_max)
+    title_count = normalize_suggestion_count(suggestion_count)
 
     target_layer_description = case target_layer
     when "big"
@@ -109,11 +107,10 @@ class PillarTitleSuggestionService
     end
   end
 
-  def self.normalize_suggestion_count(value, max: ABSOLUTE_MAX_SUGGESTION_COUNT)
+  def self.normalize_suggestion_count(value)
     count = value.to_i
     count = DEFAULT_SUGGESTION_COUNT if count <= 0
-    upper = [max.to_i, ABSOLUTE_MAX_SUGGESTION_COUNT].min
-    count.clamp(MIN_SUGGESTION_COUNT, upper)
+    [count, MAX_SUGGESTION_COUNT].min
   end
 
   private_class_method :normalize_suggestion_count

@@ -1,7 +1,8 @@
 / data-turbo="false" で遷移時の不具合を物理的に遮断
-.sc-detect.sc-detect--checkout data-turbo="false"
-  .sc-detect__inner
-    .sc-detect__card
+.sc-detect.container.py-5 data-turbo="false"
+  .row.justify-content-center
+    .col-md-8.col-lg-6
+      .sc-detect__card
         .sc-detect__card-header
           h5
             i.fas.fa-shield-alt.me-2
@@ -47,7 +48,7 @@
 
             .sc-detect__form-actions
               = f.submit "Stripeで決済へ進む",
-                class: "sc-detect__btn sc-detect__btn--primary w-100"
+                class: "sc-detect__btn sc-detect__btn--warning w-100"
 
 
 

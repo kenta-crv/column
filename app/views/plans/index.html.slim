@@ -1,72 +1,105 @@
-- subscription = @subscription
-- current_plan = subscription&.plan_type || current_client.subscription_plan
+.sc-detect.container
+  .text-center.mb-5
+    h1.sc-detect__title style="border-bottom: none; margin-bottom: 10px;" プラン選択
+    p.lead style="color: rgba(229, 231, 235, 0.7);" あなたにぴったりのプランをお選びください
 
-.plans-onboarding-wrap
-  .plans-onboarding
-    .plans-onboarding__header
-      h1.plans-onboarding__title プラン選択
-      p.plans-onboarding__lead プランを選んでお支払い画面へ進みます。
+  - subscription = @subscription
+
+  - if client_signed_in?
+    - usage = current_client.usage_summary
+    .sc-detect__card.mb-4
+      .sc-detect__card-header
+        h5.mb-0 今月の利用状況
+      .sc-detect__card-body
+        .row.g-3
+          .col-md-4
+            small.text-muted 親記事
+            div = "#{usage[:pillar][:used]} / #{usage[:pillar][:limit]}"
+          .col-md-4
+            small.text-muted 子記事
+            div = "#{usage[:child][:used]} / #{usage[:child][:limit]}"
+          .col-md-4
+            small.text-muted AIタイトル提案
+            div = "#{usage[:title_suggestions][:used]} / #{usage[:title_suggestions][:limit]}"
+          .col-md-4
+            small.text-muted 画像生成
+            div = "#{usage[:image_generations][:used]} / #{usage[:image_generations][:limit]}"
+          .col-md-4
+            small.text-muted ジャンル
+            div = "#{usage[:genres][:used]} / #{usage[:genres][:limit]}"
+          .col-md-4
+            small.text-muted API
+            div = usage[:api_enabled] ? "利用可" : "利用不可"
+
+  - if @is_new_account
+    .sc-detect__alert.sc-detect__alert--info.mb-5 style="justify-content: center; padding: 1.5rem 0;"
+      div
+        i.fas.fa-info-circle.me-2
+        | 新規アカウントは
+        strong style="color: #38bdf8; margin: 0 5px;" = "#{Subscription::TRIAL_DAYS}日間の無料トライアル"
+        | が利用できます。
+
+  .row.row-cols-1.row-cols-md-2.row-cols-xl-3.g-4
 
     - if @is_new_account
-      .plans-onboarding__notice
-        | 新規アカウントは
-        strong = "#{Subscription::TRIAL_DAYS}日間"
-        | の無料トライアルが利用できます。
+      - is_trial_active = subscription&.trial_active?
+      - trial = Subscription.new(plan_type: :trial)
 
-    .plans-onboarding__grid
-      - if @is_new_account
-        - is_trial_active = subscription&.trial_active?
-        - trial = Subscription.new(plan_type: :trial)
-        - trial_config = Subscription.config_for(:trial)
+      .col
+        .sc-detect__card.h-100 style=(is_trial_active ? "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);" : "")
+          .sc-detect__card-header
+            h5.text-center = trial.plan_name
 
-        .plans-onboarding__card class=("plans-onboarding__card--current" if is_trial_active)
-          .plans-onboarding__card-body
-            .plans-onboarding__card-top
-              span.plans-onboarding__badge.plans-onboarding__badge--empty aria-hidden="true" &nbsp;
-            h2.plans-onboarding__card-name = trial.plan_name
-            p.plans-onboarding__card-desc = trial_config[:description]
-            .plans-onboarding__card-price
-              span.plans-onboarding__card-amount ¥0
-              span.plans-onboarding__card-period
-                = "/ #{Subscription::TRIAL_DAYS}日間"
-            ul.plans-onboarding__card-features
+          .sc-detect__card-body.d-flex.flex-column.text-center
+            .mb-4
+              span.display-5.fw-bold style="color: #ffffff;" = "¥#{trial.price}"
+              span style="color: rgba(229, 231, 235, 0.5); font-size: 0.9rem;"
+                |  / #{Subscription::TRIAL_DAYS}日間
+
+            ul.list-unstyled.mb-4.text-start style="display: inline-block; margin: 0 auto;"
               - trial.feature_list.each do |feature|
-                li = feature
-            .plans-onboarding__card-action
+                li.mb-2
+                  i.fas.fa-check-circle.me-2 style="color: #10b981;"
+                  = feature
+
+            .mt-auto
               - if is_trial_active
-                button.plans-onboarding__btn.plans-onboarding__btn--disabled type="button" disabled="disabled" 現在のプラン
+                button.sc-detect__btn.w-100 disabled="disabled" style="background: rgba(148, 163, 184, 0.2); color: rgba(229, 231, 235, 0.5); cursor: default; justify-content: center;"
+                  | 現在のプラン
               - else
-                = link_to "このプランを選択", checkout_confirmation_path(plan_type: "trial"), class: "plans-onboarding__btn plans-onboarding__btn--trial"
+                = link_to checkout_confirmation_path(plan_type: "trial"), class: "sc-detect__btn sc-detect__btn--warning w-100", style: "justify-content: center; text-decoration: none;"
+                  | このプランを選択
 
-      - Subscription.checkout_plans.each do |plan_key|
-        - plan = Subscription.new(plan_type: plan_key)
-        - config = Subscription.config_for(plan_key)
-        - is_current = current_plan == plan_key.to_s && subscription&.active?
-        - card_classes = ["plans-onboarding__card"]
-        - card_classes << "plans-onboarding__card--current" if is_current
-        - card_classes << "plans-onboarding__card--popular" if config[:lp_popular]
-        - card_classes << "plans-onboarding__card--featured" if config[:lp_featured]
+    - current_plan = subscription&.plan_type || current_client.subscription_plan
 
-        .plans-onboarding__card class=card_classes.join(" ")
-          .plans-onboarding__card-body
-            .plans-onboarding__card-top
-              - if config[:lp_popular]
-                span.plans-onboarding__badge.plans-onboarding__badge--popular 人気 No.1
-              - elsif config[:lp_featured]
-                span.plans-onboarding__badge.plans-onboarding__badge--featured イチオシ
-              - else
-                span.plans-onboarding__badge.plans-onboarding__badge--empty aria-hidden="true" &nbsp;
-            h2.plans-onboarding__card-name = plan.plan_name
-            p.plans-onboarding__card-desc = config[:description]
-            .plans-onboarding__card-price
-              span.plans-onboarding__card-amount = "¥#{number_with_delimiter(plan.price)}"
-              span.plans-onboarding__card-period
-                | / 月（税込）
-            ul.plans-onboarding__card-features
+    - Subscription.checkout_plans.each do |plan_key|
+      - plan = Subscription.new(plan_type: plan_key)
+      - is_current = current_plan == plan_key.to_s && subscription&.active?
+
+      .col
+        .sc-detect__card.h-100 style=(is_current ? "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);" : "")
+          .sc-detect__card-header
+            h5.text-center
+              = plan.plan_name
+              - if Subscription.config_for(plan_key)[:lp_popular]
+                span.badge.bg-info.ms-2 人気
+
+          .sc-detect__card-body.d-flex.flex-column.text-center
+            .mb-4
+              span.display-5.fw-bold style="color: #ffffff;" = "¥#{number_with_delimiter(plan.price)}"
+              span style="color: rgba(229, 231, 235, 0.5); font-size: 0.9rem;"
+                |  / 月
+
+            ul.list-unstyled.mb-4.text-start style="display: inline-block; margin: 0 auto;"
               - plan.feature_list.each do |feature|
-                li = feature
-            .plans-onboarding__card-action
+                li.mb-2
+                  i.fas.fa-check-circle.me-2 style="color: #10b981;"
+                  = feature
+
+            .mt-auto
               - if is_current
-                button.plans-onboarding__btn.plans-onboarding__btn--disabled type="button" disabled="disabled" 現在のプラン
+                button.sc-detect__btn.w-100 disabled="disabled" style="background: rgba(148, 163, 184, 0.2); color: rgba(229, 231, 235, 0.5); cursor: default; justify-content: center;"
+                  | 現在のプラン
               - else
-                = link_to "このプランを選択", checkout_confirmation_path(plan_type: plan_key), class: "plans-onboarding__btn plans-onboarding__btn--primary"
+                = link_to checkout_confirmation_path(plan_type: plan_key), class: "sc-detect__btn sc-detect__btn--primary w-100", style: "justify-content: center; text-decoration: none;"
+                  | このプランを選択

@@ -4,64 +4,67 @@ class Api::V1::ArticlesController < ApplicationController
   before_action :require_api_access!
 
   def index
-    columns = client_articles_scope.order(updated_at: :desc)
-
+    columns = Column.where(genre: @client.genre_keys)
+                   .where.not(body: [nil, ""])
+                   .order(updated_at: :desc)
+    
     render json: columns.map { |c| article_json(c) }
   end
 
   def show
-    column = client_articles_scope.find(params[:id])
+    column = Column.find(params[:id])
+    
+    unless @client.genre_keys.include?(column.genre)
+      render json: { error: 'Genre not allowed' }, status: :forbidden
+      return
+    end
+    
     render json: article_json(column)
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Article not found' }, status: :not_found
   end
 
-  def render_html
-    if params[:column].present?
-      @column = client_articles_scope
-                 .find_by(code: params[:column]) || client_articles_scope.find_by(id: params[:column])
+def render_html
+  if params[:column].present?
+    @column = Column.unscope(:where)
+                   .where(genre: @client.genre_keys)
+                   .find_by(code: params[:column]) || Column.unscope(:where).where(genre: @client.genre_keys).find_by(id: params[:column])
 
-      if @column.nil?
-        render content_type: 'text/html', body: '<div style="padding:20px;color:red;">記事が見つかりません。</div>'
-        return
-      end
-
-      @column_body_with_ids = @column.body
-      @headings = extract_headings(@column.body)
-      @children = client_articles_scope.where(article_type: %w[child cluster], parent_id: @column.id)
-
-      html = render_to_string(
-        partial: 'api/v1/articles/show',
-        locals: { column: @column, base_url: request.base_url }
-      )
-    else
-      @columns = client_articles_scope.order(updated_at: :desc)
-
-      html = render_to_string(
-        partial: 'api/v1/articles/articles',
-        locals: { columns: @columns, base_url: request.base_url }
-      )
-    end
-
-    if html.nil?
-      render content_type: 'text/html', body: '<div style="padding:20px;color:red;">表示するコンテンツがありません。</div>'
+    if @column.nil?
+      render content_type: 'text/html', body: '<div style="padding:20px;color:red;">記事が見つかりません。</div>'
       return
     end
 
-    base_url = request.base_url
-    processed_html = html.gsub('src="/', "src=\"#{base_url}/")
-                         .gsub('href="/', "href=\"#{base_url}/")
+    @column_body_with_ids = @column.body
+    @headings = extract_headings(@column.body)   
+    @children = Column.where(article_type: "child", genre: @column.genre)
 
-    render content_type: 'text/html', body: processed_html
+    html = render_to_string(
+      partial: 'api/v1/articles/show',
+      locals: { column: @column, base_url: request.base_url }
+    )
+  else
+    @columns = Column.where(genre: @client.genre_keys)
+                     .where.not(body: [nil, ""])
+                     .order(updated_at: :desc)
+
+    html = render_to_string(
+      partial: 'api/v1/articles/articles',
+      locals: { columns: @columns, base_url: request.base_url }
+    )
   end
+
+  if html.nil?
+    render content_type: 'text/html', body: '<div style="padding:20px;color:red;">表示するコンテンツがありません。</div>'
+    return
+  end
+
+  base_url = request.base_url
+  processed_html = html.gsub('src="/', "src=\"#{base_url}/")
+                       .gsub('href="/', "href=\"#{base_url}/")
+
+  render content_type: 'text/html', body: processed_html
+end
 
   private
-
-  def client_articles_scope
-    Column.where(client_id: @client.id)
-          .where.not(body: [nil, ""])
-          .where(genre: @client.genre_keys)
-  end
 
   def extract_headings(body)
     return [] if body.blank?

@@ -3,7 +3,6 @@ class Dashboard::ColumnsController < ApplicationController
   before_action :require_admin!, only: [:management]
   before_action :enforce_client_genre_param!, only: [:index, :export]
   before_action :assign_dashboard_genre_options, only: [:index, :image_generation]
-  before_action :assign_manual_child_parent_options, only: [:index]
 
   # レイアウトは既存の "admin" をそのまま流用
   layout "admin"
@@ -23,12 +22,6 @@ class Dashboard::ColumnsController < ApplicationController
     filtered_base = base_scope
     filtered_base = filtered_base.where(genre: params[:genre]) if params[:genre].present?
     filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
-    if params[:q].present?
-      filtered_base = filtered_base.where(
-        "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
-        "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
-      )
-    end
     @total_count     = filtered_base.count
     @draft_count     = filtered_base.where(body: [nil, ""]).count
     @pillar_count    = filtered_base.where(article_type: "pillar").count
@@ -84,54 +77,8 @@ class Dashboard::ColumnsController < ApplicationController
     @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
 
     # リアルタイム生成中の記事を取得
-    Column.recover_stale_generations!(scope: filtered_base)
     @generating_columns = filtered_base.where(generation_status: 'generating').limit(10)
     @generating_count = filtered_base.where(generation_status: 'generating').count
-    @title_suggestion_config = title_suggestion_ui_config
-    assign_dashboard_setup_state(base_scope)
-  end
-
-  def generation_status
-    scope = dashboard_columns_base_scope
-    Column.recover_stale_generations!(scope: scope)
-
-    generating = scope.where(generation_status: "generating").order(updated_at: :desc).limit(10)
-    render json: {
-      generating_count: scope.where(generation_status: "generating").count,
-      completed_count: scope.where(generation_status: "completed").count,
-      columns: generating.map { |c|
-        {
-          id: c.id,
-          title: c.title,
-          status: c.generation_status,
-          updated_at: c.updated_at.iso8601
-        }
-      }
-    }
-  end
-
-  def cancel_generation
-    column = dashboard_columns_base_scope.find(params[:id])
-
-    unless column.generation_status == "generating"
-      render json: { success: false, error: "生成中ではありません" }, status: :unprocessable_entity
-      return
-    end
-
-    column.update_columns(
-      generation_status: "failed",
-      status: "error",
-      body: column.body.presence || "生成を手動で停止しました。"
-    )
-
-    sync_autonomous_run_on_generation_stop!(column)
-
-    ActionCable.server.broadcast(
-      GenerationChannel::STREAM_NAME,
-      { column_id: column.id, status: "failed", title: column.title }
-    )
-
-    render json: { success: true }
   end
   
   
@@ -280,13 +227,9 @@ class Dashboard::ColumnsController < ApplicationController
     redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
 
-  def setting
-    return unless client_signed_in?
+  private
 
-    @is_new_account = current_client.created_at > Subscription::TRIAL_DAYS.days.ago
-    @subscription = current_client.subscriptions.where(status: :active).order(created_at: :desc).first
-    @subscription ||= current_client.subscriptions.order(created_at: :desc).first
-  end
+  def setting; end
 
   def management
     @clients = Client.includes(:subscriptions).order(created_at: :desc)
@@ -301,8 +244,6 @@ class Dashboard::ColumnsController < ApplicationController
       return render json: { success: false, error: current_client.plan_limit_message(:title_suggestion) }
     end
 
-    max_per_use = client_signed_in? ? current_client.max_title_suggestion_count : Subscription::TITLE_SUGGESTION_BAR_MAX
-
     result = PillarTitleSuggestionService.call(
       keyword1: params[:keyword1],
       keyword2: params[:keyword2],
@@ -310,7 +251,6 @@ class Dashboard::ColumnsController < ApplicationController
       genre: params[:genre],
       custom_prompt: params[:custom_prompt],
       suggestion_count: params[:suggestion_count],
-      max_suggestion_count: max_per_use,
       client: (client_signed_in? ? current_client : nil)
     )
 
@@ -385,60 +325,7 @@ class Dashboard::ColumnsController < ApplicationController
     end
   end
 
-  def create_child_title
-    pillar = dashboard_columns_base_scope.where(article_type: "pillar").find(params[:pillar_id])
-
-    unless admin_or_allowed_genre?(pillar.genre)
-      redirect_to dashboard_columns_path(scope: "pillar"), alert: "指定された親記事にはアクセスできません。"
-      return
-    end
-
-    title = params[:child_title].to_s.strip
-    if title.blank?
-      redirect_to dashboard_columns_path(scope: "pillar"), alert: "子記事タイトルを入力してください。"
-      return
-    end
-
-    remaining = remaining_child_slots_for(pillar)
-    if remaining <= 0
-      message = pillar.client&.plan_limit_message(:child) || "これ以上子記事を作成できません。"
-      redirect_to dashboard_columns_path(scope: "pillar"), alert: message
-      return
-    end
-
-    child = Column.new(
-      parent_id: pillar.id,
-      title: title,
-      article_type: "child",
-      status: "draft",
-      genre: pillar.genre,
-      choice: pillar.choice,
-      client_id: pillar.client_id
-    )
-
-    if child.save
-      redirect_to pillar_manage_path(pillar), notice: "子記事タイトルを追加しました。"
-    else
-      redirect_back fallback_location: dashboard_columns_path(scope: "pillar"), alert: child.errors.full_messages.join(", ")
-    end
-  rescue ActiveRecord::RecordNotFound
-    redirect_to dashboard_columns_path(scope: "pillar"), alert: "指定された親記事が見つかりません。"
-  end
-
   private
-
-  def sync_autonomous_run_on_generation_stop!(column)
-    run = AutonomousContentRun.find_by(pillar_column_id: column.id)
-    if run && !%w[completed failed paused].include?(run.status)
-      run.mark_failed!("記事の生成が停止されました。")
-      return
-    end
-
-    if column.parent_id.present?
-      run = AutonomousContentRun.find_by(pillar_column_id: column.parent_id)
-      run&.mark_failed!("子記事の生成が停止されました。") if run && run.status == "generating_children"
-    end
-  end
 
   def enforce_client_genre_param!
     return unless client_signed_in?
@@ -460,65 +347,5 @@ class Dashboard::ColumnsController < ApplicationController
     @tab_count_published = scope.where("body IS NOT NULL AND TRIM(body) != ''").count
     @tab_count_error     = scope.where(status: "error").count
     @tab_count_no_image  = scope.merge(Column.missing_generated_image).count
-  end
-
-  def assign_manual_child_parent_options
-    scope = dashboard_columns_base_scope.where(article_type: "pillar").order(updated_at: :desc)
-    @manual_child_parent_options = scope.limit(200).map do |column|
-      ["#{column.title} (#{column.genre})", column.id]
-    end
-  end
-
-  def assign_dashboard_setup_state(scope)
-    @setup_genre_count = if client_signed_in?
-                           current_client.service_genres.count
-                         else
-                           ServiceGenre.count
-                         end
-    @setup_pillar_count = scope.where(article_type: "pillar").count
-    @setup_child_count = scope.where(article_type: %w[child cluster]).count
-    @setup_child_body_count = scope
-                                .where(article_type: %w[child cluster])
-                                .where("body IS NOT NULL AND TRIM(body) != ''")
-                                .count
-
-    @setup_next_step = if @setup_genre_count.zero?
-                         :genre
-                       elsif @setup_pillar_count.zero?
-                         :pillar
-                       elsif @setup_child_count.zero?
-                         :child_title
-                       elsif @setup_child_body_count.zero?
-                         :child_body
-                       else
-                         :done
-                       end
-
-    @setup_completed_steps = [
-      @setup_genre_count.positive?,
-      @setup_pillar_count.positive?,
-      @setup_child_count.positive?,
-      @setup_child_body_count.positive?
-    ].count(true)
-    @setup_progress_percent = (@setup_completed_steps * 100 / 4.0).round
-  end
-
-  def title_suggestion_ui_config
-    bar_max = Subscription::TITLE_SUGGESTION_BAR_MAX
-
-    if client_signed_in?
-      plan_max = current_client.max_title_suggestion_count
-      {
-        default: 1,
-        max: plan_max,
-        bar_max: bar_max
-      }
-    else
-      {
-        default: 1,
-        max: bar_max,
-        bar_max: bar_max
-      }
-    end
   end
 end

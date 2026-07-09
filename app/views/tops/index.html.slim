@@ -11,7 +11,7 @@
         a href="#cases" 導入事例
         a href="#faq" よくある質問
       .nav-cta
-        = link_to "ログイン", new_client_session_path, class: "btn-login"
+        button.btn-login ログイン
         = link_to "無料で始める →", "/clients/sign_up", class: "btn-primary"
 
   /-- HERO --
@@ -49,6 +49,11 @@
         .hero-actions
           = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
           a.btn-ghost href="#features" デモを見る →
+        .hero-social
+          .hero-avatars
+            span U
+            span K
+            span T
       .hero-right
         .pc-wrap
           .float-card.fc-time
