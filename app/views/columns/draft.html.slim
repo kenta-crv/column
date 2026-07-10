@@ -6,7 +6,7 @@
     - if @columns.empty?
       p 対象の記事はありません
     - else
-      = form_with(url: bulk_update_drafts_columns_path, method: :post, local: true) do |form|
+      = form_with(url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbolinks: false }) do |form|
         = hidden_field_tag :redirect_context, "draft"
         .d-flex.justify-content-start.mb-3 
           = form.button "選択をChat GPTに依頼", name: "action_type", value: "approve_bulk", class: "btn btn-dark me-2", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
@@ -44,7 +44,7 @@
                 td 
                   .d-flex.gap-1
                     / 本文がない場合は「再生成」として機能するように
-                    = link_to "ChatGPT", approve_column_path(column), method: :patch, class: "btn btn-dark btn-sm"
+                    = link_to "ChatGPT", approve_column_path(column), method: :patch, data: { turbolinks: false }, class: "btn btn-dark btn-sm"
                     = link_to 'Edit', edit_column_path(column), class: 'btn btn-success', data: { turbo: false }                
                     = link_to "Delete", column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "btn btn-danger btn-sm"
 

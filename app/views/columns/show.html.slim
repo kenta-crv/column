@@ -38,7 +38,7 @@
         
         / 一括生成・削除用フォーム
         = @column.title
-        = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbo: false } do
+        = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbolinks: false } do
           / JavaScriptでアクションタイプを動的に書き換えるための hidden_field
           = hidden_field_tag :action_type, "approve_bulk"
           = hidden_field_tag :return_pillar_code, @column.code

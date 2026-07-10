@@ -312,12 +312,25 @@ end
   end
 
   def generate_pillar
-    if params[:title].present?
-      GptPillarGenerator.generate_full_article(params[:title], params[:genre], params[:choice])
-      redirect_to draft_columns_path, notice: "ドラフト作成完了"
-    else
-      redirect_to new_column_path, alert: "タイトル未入力"
+    unless params[:title].present?
+      return redirect_to new_column_path, alert: "タイトル未入力"
     end
+
+    title = params[:title]
+    genre = params[:genre]
+    choice = params[:choice]
+
+    Thread.new do
+      Rails.application.executor.wrap do
+        ActiveRecord::Base.connection_pool.with_connection do
+          GptPillarGenerator.generate_full_article(title, genre, choice)
+        end
+      end
+    rescue => e
+      Rails.logger.error("[GeneratePillar] thread error #{e.class}: #{e.message}")
+    end
+
+    redirect_to draft_columns_path, notice: "ドラフト作成を開始しました"
   end
 
   def generate_from_selected
@@ -329,12 +342,28 @@ end
       return redirect_to draft_columns_path, alert: Column::ALREADY_GENERATED_NOTICE
     end
 
-    scope.find_each do |c|
-      next if c.generated_body?
+    target_ids = scope.pluck(:id)
+    if target_ids.blank?
+      return redirect_to(draft_columns_path, alert: "対象の記事が見つかりませんでした")
+    end
 
-      c.update_columns(status: "approved", generation_status: "idle")
-      GenerateColumnBodyJob.clear_cancellation!(c.id)
-      GenerateColumnBodyJob.perform_later(c.id)
+    Thread.new do
+      Rails.application.executor.wrap do
+        ActiveRecord::Base.connection_pool.with_connection do
+          Column.where(id: target_ids).find_each do |column|
+            begin
+              next if column.generated_body?
+              column.update_columns(status: "approved", generation_status: "idle")
+              GenerateColumnBodyJob.clear_cancellation!(column.id)
+              GenerateColumnBodyJob.perform_now(column.id)
+            rescue => e
+              Rails.logger.error("[GenerateFromSelected] column_id=#{column.id} #{e.class}: #{e.message}")
+            end
+          end
+        end
+      end
+    rescue => e
+      Rails.logger.error("[GenerateFromSelected] thread error #{e.class}: #{e.message}")
     end
 
     redirect_to draft_columns_path, notice: "生成開始"
