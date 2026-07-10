@@ -5,7 +5,7 @@ html
     = csrf_meta_tags
     = csp_meta_tag
     = stylesheet_link_tag "application", media: "all"
-    = javascript_include_tag "application", defer: true
+    = javascript_include_tag "application"
     meta name="viewport" content="width=device-width, initial-scale=1"
 
   body.admin-body
@@ -205,7 +205,7 @@ html
         initSidebar();
       };
 
-      document.addEventListener('turbo:load', initAll);
+      document.addEventListener('turbolinks:load', initAll);
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAll);
       } else {

@@ -10,13 +10,11 @@ class GenerateColumnBodyJob < ApplicationJob
     return unless column
     return if column.generated_body?
 
-    if duplicate_generation_running?(column_id)
-      Rails.logger.info("[GenerateColumnBodyJob] column #{column_id} is already generating, skip duplicate run")
-      return
-    end
+    return if GenerateColumnBodyJob.cancelled?(column_id)
+
+    Rails.logger.info("[GenerateColumnBodyJob] start column_id=#{column_id} title=#{column.title.inspect}")
 
     GenerateColumnBodyJob.clear_cancellation!(column_id)
-
     runtime_mutex.synchronize { runtime_threads[column_id] = Thread.current }
 
     column.update!(generation_status: "generating")
@@ -37,6 +35,7 @@ class GenerateColumnBodyJob < ApplicationJob
       end
 
       broadcast_generation_status(column)
+      Rails.logger.info("[GenerateColumnBodyJob] completed column_id=#{column_id}")
 
       Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
@@ -62,7 +61,7 @@ class GenerateColumnBodyJob < ApplicationJob
       error_info = "❌ 失敗: #{e.class} - #{e.message}\n場所: #{e.backtrace.first}"
       column.update_columns(status: "error", body: error_info, generation_status: "failed")
       broadcast_generation_status(column)
-      Rails.logger.error error_info
+      Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
       raise e
 
     ensure
@@ -92,13 +91,6 @@ class GenerateColumnBodyJob < ApplicationJob
   end
 
   private
-
-  def duplicate_generation_running?(column_id)
-    runtime_mutex.synchronize do
-      existing = runtime_threads[column_id]
-      existing&.alive? && existing != Thread.current
-    end
-  end
 
   def self.runtime_threads
     GenerationRuntime.running_threads

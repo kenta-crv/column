@@ -77,8 +77,26 @@ class Dashboard::ColumnsController < ApplicationController
     @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
 
     # リアルタイム生成中の記事を取得
-    @generating_columns = filtered_base.where(generation_status: 'generating').limit(10)
-    @generating_count = filtered_base.where(generation_status: 'generating').count
+    @queued_count = filtered_base.where(generation_status: "queued").count
+    @generating_count = filtered_base.where(generation_status: "generating").count
+    @generating_columns = filtered_base
+                            .where(generation_status: %w[queued generating])
+                            .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
+                            .limit(30)
+  end
+
+  def generation_status
+    base_scope = dashboard_columns_base_scope
+    columns = base_scope
+                .where(generation_status: %w[queued generating])
+                .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
+                .limit(30)
+
+    render json: {
+      queued_count: base_scope.where(generation_status: "queued").count,
+      generating_count: base_scope.where(generation_status: "generating").count,
+      columns: columns.map { |c| { id: c.id, title: c.title, status: c.generation_status } }
+    }
   end
   
   
@@ -240,8 +258,8 @@ class Dashboard::ColumnsController < ApplicationController
     column = dashboard_columns_base_scope.find(params[:id])
     Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
-    unless column.generation_status == "generating"
-      return redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます"
+    unless %w[generating queued].include?(column.generation_status)
+      return redirect_to dashboard_columns_path, alert: "生成中または待機中の記事のみ停止できます"
     end
 
     GenerateColumnBodyJob.request_stop!(column.id)

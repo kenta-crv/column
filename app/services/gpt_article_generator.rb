@@ -127,7 +127,20 @@ class GptArticleGenerator
     full_article.gsub!(/\s+id=(['"])[^'"]*\1/i, "")
     full_article.gsub!(/<(h[23])[^>]*>/i, '<\1>')
     full_article += "\n\n{::options auto_ids=\"false\" /}"
+
+    column.assign_attributes(body: full_article)
+    generate_article_image!(column)
+
     full_article
+  end
+
+  def self.generate_article_image!(column)
+    return if column.file.present?
+
+    FluxImageGeneratorService.generate!(column)
+  rescue => e
+    Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
   end
 
   def self.generate_section_content_with_retry(name, prompt, column, min_length: 50, json_mode: false)

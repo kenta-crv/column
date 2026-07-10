@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         get :drafts
         get :export
         get :image_generation
+        get :generation_status
         post :bulk_generate_images
         get :check_bulk_image_count
         

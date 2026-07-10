@@ -189,6 +189,13 @@ class GptPillarGenerator
       status: "completed"
     )
 
+    begin
+      FluxImageGeneratorService.generate!(column)
+    rescue => e
+      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+    end
+
     puts "✅ 生成完了: #{clean_code}"
 
     true

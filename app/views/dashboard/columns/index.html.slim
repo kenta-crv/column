@@ -226,21 +226,21 @@
   .generation-stats
     .stat-item
       .stat-label 生成中
-      .stat-value id="generating-count" = @generating_count
+      .stat-value id="generating-count" = @queued_count + @generating_count
     .stat-item
-      .stat-label 完了済み
-      .stat-value id="completed-count" = @kpi_completed_generation_count
+      .stat-label 今回の完了
+      .stat-value id="completed-count" 0
   .generation-list id="generation-list"
     - if @generating_columns.present?
       - @generating_columns.each do |c|
-        .generation-item id="generation-item-#{c.id}" data-status="#{c.generation_status}"
+        .generation-item id="generation-item-#{c.id}" data-status=c.generation_status
           .generation-spinner
             svg.spinner-icon viewBox="0 0 50 50"
               circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
           .generation-info
             .generation-title = c.title
             .generation-status 生成中
-          = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbo: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
+          = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbolinks: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
             = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
               span 停止
     - else
@@ -366,9 +366,94 @@
 = render "title_suggestion_modal"
 
 javascript:
+  let sessionCompletedCount = 0;
+  let generationPollTimer = null;
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  function renderGenerationItem(column) {
+    return `
+      <div class="generation-item" id="generation-item-${column.id}" data-status="${column.status}">
+        <div class="generation-spinner">
+          <svg class="spinner-icon" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"></circle>
+          </svg>
+        </div>
+        <div class="generation-info">
+          <div class="generation-title">${escapeHtml(column.title)}</div>
+          <div class="generation-status">生成中</div>
+        </div>
+        <button type="button" class="generation-stop-btn" style="margin-left:auto;background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;" onclick="stopGeneration(${column.id})">
+          <span>停止</span>
+        </button>
+      </div>`;
+  }
+
+  function renderGenerationPanel(data) {
+    const generatingCount = document.getElementById('generating-count');
+    const completedCount = document.getElementById('completed-count');
+    const generationList = document.getElementById('generation-list');
+    if (!generationList) return;
+
+    const inProgressCount = (data.queued_count || 0) + (data.generating_count || 0);
+    if (generatingCount) generatingCount.textContent = inProgressCount;
+    if (completedCount) completedCount.textContent = sessionCompletedCount;
+
+    if (!data.columns || data.columns.length === 0) {
+      generationList.innerHTML = '<div class="no-generation">現在生成中の記事はありません</div>';
+      return;
+    }
+
+    generationList.innerHTML = data.columns.map(renderGenerationItem).join('');
+  }
+
+  function syncGenerationPanelFromServer() {
+    return fetch('/dashboard/columns/generation_status', {
+      headers: { 'Accept': 'application/json' }
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data) return;
+        renderGenerationPanel(data);
+        configureGenerationPolling((data.queued_count || 0) + (data.generating_count || 0) > 0);
+      })
+      .catch(() => {});
+  }
+
+  function configureGenerationPolling(shouldPoll) {
+    if (generationPollTimer) {
+      clearInterval(generationPollTimer);
+      generationPollTimer = null;
+    }
+    if (!shouldPoll) return;
+
+    generationPollTimer = setInterval(syncGenerationPanelFromServer, 3000);
+  }
+
+  function initGenerationTracking() {
+    if (window.__generationCableSubscription) {
+      window.__generationCableSubscription.unsubscribe();
+      window.__generationCableSubscription = null;
+    }
+
+    syncGenerationPanelFromServer();
+
+    if (typeof ActionCable === 'undefined') return;
+
+    const cable = (window.App && App.cable) ? App.cable : ActionCable.createConsumer('/cable');
+    window.__generationCableSubscription = cable.subscriptions.create('GenerationChannel', {
+      received(data) { updateGenerationStatus(data); },
+      connected() { syncGenerationPanelFromServer(); },
+      disconnected() { configureGenerationPolling(true); }
+    });
+  }
+
   (function() {
     const initAll = () => {
-      // 言語ドロップダウン
       const btn  = document.getElementById('languageDropdownBtn');
       const menu = document.getElementById('languageMenu');
       if (btn && menu) {
@@ -385,21 +470,16 @@ javascript:
         });
       }
 
-      // ActionCable
-      if (typeof ActionCable !== 'undefined') {
-        if (window.__generationCableSubscription) {
-          window.__generationCableSubscription.unsubscribe();
-        }
-        const cable = ActionCable.createConsumer('/cable');
-        window.__generationCableSubscription = cable.subscriptions.create('GenerationChannel', {
-          received(data) { updateGenerationStatus(data); },
-          connected()    { console.log('Connected to GenerationChannel'); },
-          disconnected() { console.log('Disconnected from GenerationChannel'); }
-        });
-      }
+      initGenerationTracking();
     };
 
-    document.addEventListener('turbo:load', initAll);
+    document.addEventListener('turbolinks:load', initAll);
+    document.addEventListener('turbolinks:before-cache', () => {
+      if (generationPollTimer) {
+        clearInterval(generationPollTimer);
+        generationPollTimer = null;
+      }
+    });
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initAll);
     } else {
@@ -413,81 +493,14 @@ javascript:
   }
 
   function updateGenerationStatus(data) {
-    const generatingCount = document.getElementById('generating-count');
-    const completedCount  = document.getElementById('completed-count');
-    const generationList  = document.getElementById('generation-list');
+    if (data.status === 'completed') {
+      sessionCompletedCount += 1;
+    }
 
-    if (data.status === 'generating') {
-      if (generatingCount) {
-        generatingCount.textContent = parseInt(generatingCount.textContent || 0) + 1;
-      }
-      if (generationList && !document.getElementById(`generation-item-${data.column_id}`)) {
-        const noGen = generationList.querySelector('.no-generation');
-        if (noGen) noGen.remove();
+    syncGenerationPanelFromServer();
 
-        const item = document.createElement('div');
-        item.id             = `generation-item-${data.column_id}`;
-        item.className      = 'generation-item';
-        item.dataset.status = 'generating';
-        item.innerHTML      = `
-          <div class="generation-spinner">
-            <svg class="spinner-icon" viewBox="0 0 50 50">
-              <circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"></circle>
-            </svg>
-          </div>
-          <div class="generation-info">
-            <div class="generation-title">${data.title || ''}</div>
-            <div class="generation-status">生成中...</div>
-          </div>
-          <button class="generation-stop-btn" style="margin-left:auto;background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;" onclick="stopGeneration(${data.column_id})">
-            <span>停止</span>
-          </button>`;
-        generationList.insertBefore(item, generationList.firstChild);
-      }
-
-    } else if (data.status === 'completed') {
-      if (generatingCount) {
-        generatingCount.textContent = Math.max(0, parseInt(generatingCount.textContent || 0) - 1);
-      }
-      if (completedCount) {
-        completedCount.textContent = parseInt(completedCount.textContent || 0) + 1;
-      }
-      const item = document.getElementById(`generation-item-${data.column_id}`);
-      if (item) {
-        item.dataset.status = 'completed';
-        const spinner = item.querySelector('.generation-spinner');
-        if (spinner) {
-          spinner.innerHTML = `
-            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>`;
-        }
-        const statusEl = item.querySelector('.generation-status');
-        if (statusEl) {
-          statusEl.textContent = '完了';
-          statusEl.style.color = '#10b981';
-        }
-      }
-      if (data.quality_score) {
-        updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
-      }
-
-    } else if (data.status === 'evaluated') {
+    if (data.status === 'evaluated' && data.quality_score) {
       updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
-
-    } else if (data.status === 'failed') {
-      if (generatingCount) {
-        generatingCount.textContent = Math.max(0, parseInt(generatingCount.textContent || 0) - 1);
-      }
-      const item = document.getElementById(`generation-item-${data.column_id}`);
-      if (item) {
-        item.dataset.status = 'failed';
-        const statusEl = item.querySelector('.generation-status');
-        if (statusEl) {
-          statusEl.textContent = 'エラー';
-          statusEl.style.color = '#ef4444';
-        }
-      }
     }
   }
 
