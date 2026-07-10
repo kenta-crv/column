@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_03_120000) do
+ActiveRecord::Schema.define(version: 2026_07_10_120000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -24,6 +24,25 @@ ActiveRecord::Schema.define(version: 2026_07_03_120000) do
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
   end
 
+  create_table "autonomous_content_runs", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.integer "pillar_column_id"
+    t.string "title", null: false
+    t.string "genre", null: false
+    t.integer "cluster_limit", default: 15, null: false
+    t.string "status", default: "queued", null: false
+    t.string "pause_for_approval_at"
+    t.json "notify_on"
+    t.json "next_pillar_titles"
+    t.text "error_message"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["client_id", "status"], name: "index_autonomous_content_runs_on_client_id_and_status"
+    t.index ["client_id"], name: "index_autonomous_content_runs_on_client_id"
+    t.index ["pillar_column_id"], name: "index_autonomous_content_runs_on_pillar_column_id"
+    t.index ["status"], name: "index_autonomous_content_runs_on_status"
+  end
+
   create_table "client_usage_logs", force: :cascade do |t|
     t.integer "client_id", null: false
     t.string "period", null: false
@@ -31,6 +50,8 @@ ActiveRecord::Schema.define(version: 2026_07_03_120000) do
     t.integer "image_generation_count", default: 0, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "pillar_created_count", default: 0, null: false
+    t.integer "child_created_count", default: 0, null: false
     t.index ["client_id", "period"], name: "index_client_usage_logs_on_client_id_and_period", unique: true
     t.index ["client_id"], name: "index_client_usage_logs_on_client_id"
   end
@@ -57,6 +78,7 @@ ActiveRecord::Schema.define(version: 2026_07_03_120000) do
     t.string "webhook_url"
     t.json "allowed_genres"
     t.json "embed_settings"
+    t.json "autonomous_settings"
     t.index ["email"], name: "index_clients_on_email", unique: true
     t.index ["reset_password_token"], name: "index_clients_on_reset_password_token", unique: true
     t.index ["stripe_customer_id"], name: "index_clients_on_stripe_customer_id", unique: true
@@ -149,8 +171,8 @@ ActiveRecord::Schema.define(version: 2026_07_03_120000) do
     t.json "sub_categories", default: {}
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["client_id", "key"], name: "index_service_genres_on_client_id_and_key", unique: true
     t.index ["client_id"], name: "index_service_genres_on_client_id"
+    t.index ["key"], name: "index_service_genres_on_key", unique: true
   end
 
   create_table "sites", force: :cascade do |t|
@@ -177,6 +199,8 @@ ActiveRecord::Schema.define(version: 2026_07_03_120000) do
     t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
   end
 
+  add_foreign_key "autonomous_content_runs", "clients"
+  add_foreign_key "autonomous_content_runs", "columns", column: "pillar_column_id"
   add_foreign_key "client_usage_logs", "clients"
   add_foreign_key "columns", "clients"
   add_foreign_key "payments", "clients"

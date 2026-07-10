@@ -432,6 +432,19 @@ body.admin-body {
     border-radius: 999px;
   }
 
+  .image-generation-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .image-generation-selected-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+  }
+
   .image-generation-table {
     .article-link {
       display: -webkit-box;

@@ -101,13 +101,13 @@ class GptPillarGenerator
     # 中間保存
     # ----------------------------------------------------------
     column.update!(
-      code: clean_code,
       description: meta_data["description"],
       keyword: meta_data["keyword"],
       choice: target_category,
       genre: current_genre,
       status: "creating",
-      article_type: "pillar"
+      article_type: "pillar",
+      **(column.code.present? ? {} : { code: clean_code })
     )
 
     # ----------------------------------------------------------
@@ -189,26 +189,15 @@ class GptPillarGenerator
       status: "completed"
     )
 
-    # ----------------------------------------------------------
-    # 画像生成
-    # ----------------------------------------------------------
-    begin
-      FluxImageGeneratorService.generate!(column)
-    rescue => e
-      Rails.logger.error "[FluxImageGeneration] #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-    end
-
     puts "✅ 生成完了: #{clean_code}"
 
     true
   end
 
   def self.ensure_not_cancelled!(column)
-    column.reload
-    if column.generation_status == "cancelled" || GenerateColumnBodyJob.cancelled?(column.id)
-      raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
-    end
+    return unless GenerateColumnBodyJob.cancelled?(column.id)
+
+    raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
   end
 
   private

@@ -61,11 +61,41 @@ class Client < ApplicationRecord
   end
 
   def pillar_usage_count
-    usage_columns_scope.where(article_type: "pillar").count
+    reconcile_article_creation_usage_if_drifted!
+    current_usage_log.pillar_created_count
   end
 
   def child_usage_count
-    usage_columns_scope.where(article_type: CHILD_ARTICLE_TYPES).count
+    reconcile_article_creation_usage_if_drifted!
+    current_usage_log.child_created_count
+  end
+
+  def actual_pillar_count_in_period
+    usage_columns_scope.where(article_type: "pillar").count
+  end
+
+  def actual_child_count_in_period
+    usage_columns_scope.where.not(article_type: "pillar").count
+  end
+
+  def reconcile_article_creation_usage_if_drifted!
+    actual_pillar = actual_pillar_count_in_period
+    actual_child = actual_child_count_in_period
+    log = current_usage_log
+    return if log.pillar_created_count >= actual_pillar && log.child_created_count >= actual_child
+
+    log.update_columns(
+      pillar_created_count: [log.pillar_created_count, actual_pillar].max,
+      child_created_count: [log.child_created_count, actual_child].max
+    )
+  end
+
+  def record_pillar_creation!(count: 1)
+    current_usage_log.increment!(:pillar_created_count, count)
+  end
+
+  def record_child_creation!(count: 1)
+    current_usage_log.increment!(:child_created_count, count)
   end
 
   def current_usage_log
@@ -77,7 +107,24 @@ class Client < ApplicationRecord
   end
 
   def image_generation_usage_count
+    reconcile_image_generation_usage_if_drifted!
     current_usage_log.image_generation_count
+  end
+
+  def actual_image_generation_count
+    columns.where.not(file: [nil, ""]).count
+  end
+
+  def reconcile_image_generation_usage_if_drifted!
+    actual = actual_image_generation_count
+    log = current_usage_log
+    return if log.image_generation_count <= actual
+
+    Rails.logger.warn(
+      "[Client #{id}] image_generation_count drift detected: " \
+      "logged=#{log.image_generation_count}, actual=#{actual}. correcting."
+    )
+    log.update_column(:image_generation_count, actual)
   end
 
   def can_use_api?
@@ -113,6 +160,7 @@ class Client < ApplicationRecord
   end
 
   def record_image_generation!(count: 1)
+    reconcile_image_generation_usage_if_drifted!
     current_usage_log.increment!(:image_generation_count, count)
   end
 

@@ -9,23 +9,18 @@ class GenerateColumnBodyJob < ApplicationJob
     column = Column.find_by(id: column_id)
     return unless column
     return if column.generated_body?
-    return if GenerateColumnBodyJob.cancelled?(column_id)
 
-    column.with_lock do
-      column.reload
-      return if column.generated_body?
-      return if GenerateColumnBodyJob.cancelled?(column_id)
-      if column.generation_status == "generating"
-        return
-      end
-      unless %w[queued idle].include?(column.generation_status)
-        return
-      end
-      column.update!(generation_status: "generating")
+    if duplicate_generation_running?(column_id)
+      Rails.logger.info("[GenerateColumnBodyJob] column #{column_id} is already generating, skip duplicate run")
+      return
     end
 
+    GenerateColumnBodyJob.clear_cancellation!(column_id)
+
     runtime_mutex.synchronize { runtime_threads[column_id] = Thread.current }
-    broadcast_generation_status(column.reload)
+
+    column.update!(generation_status: "generating")
+    broadcast_generation_status(column)
 
     begin
       if column.article_type == "pillar"
@@ -82,18 +77,28 @@ class GenerateColumnBodyJob < ApplicationJob
     runtime_mutex.synchronize { runtime_cancelled_ids.include?(column_id) }
   end
 
+  def self.clear_cancellation!(column_id)
+    runtime_mutex.synchronize { runtime_cancelled_ids.delete(column_id) }
+  end
+
   def self.request_stop!(column_id)
     runtime_mutex.synchronize { runtime_cancelled_ids.add(column_id) }
 
     thread = runtime_mutex.synchronize { runtime_threads[column_id] }
-    return false unless thread&.alive?
+    return true unless thread&.alive?
 
     thread.raise(StopRequested)
-    thread.kill if thread.alive?
     true
   end
 
   private
+
+  def duplicate_generation_running?(column_id)
+    runtime_mutex.synchronize do
+      existing = runtime_threads[column_id]
+      existing&.alive? && existing != Thread.current
+    end
+  end
 
   def self.runtime_threads
     GenerationRuntime.running_threads

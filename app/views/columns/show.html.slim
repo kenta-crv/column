@@ -8,6 +8,8 @@
     - if @column.file.present?
       .column-image-wrapper
         = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title
+        - if admin_signed_in? || (client_signed_in? && @column.client_id == current_client&.id)
+          = link_to '×', remove_image_column_path(@column), method: :patch, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'column-image-remove-btn', title: '画像を削除'
 
     / 目次
     - if @headings.any?

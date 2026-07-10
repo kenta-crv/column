@@ -121,25 +121,23 @@ end
         )
       end
 
-      targets = scope.merge(Column.without_generated_body)
-      target_ids = targets.pluck(:id)
+      target_ids = scope.pluck(:id)
       if target_ids.blank?
         return redirect_to(dashboard_root_path, alert: "対象の記事が見つかりませんでした")
       end
 
-      Column.where(id: target_ids).update_all(
-        status: "approved",
-        generation_status: "queued",
-        updated_at: Time.current
-      )
-
       Thread.new do
-        ActiveRecord::Base.connection_pool.with_connection do
-          target_ids.each do |column_id|
-            begin
-              GenerateColumnBodyJob.perform_later(column_id)
-            rescue => e
-              Rails.logger.error("[BulkGenerate] enqueue column_id=#{column_id} #{e.class}: #{e.message}")
+        Rails.application.executor.wrap do
+          ActiveRecord::Base.connection_pool.with_connection do
+            Column.where(id: target_ids).find_each do |column|
+              begin
+                next if column.generated_body?
+                column.update_columns(status: "approved", generation_status: "idle")
+                GenerateColumnBodyJob.clear_cancellation!(column.id)
+                GenerateColumnBodyJob.perform_now(column.id)
+              rescue => e
+                Rails.logger.error("[BulkGenerate] column_id=#{column.id} #{e.class}: #{e.message}")
+              end
             end
           end
         end
@@ -147,7 +145,7 @@ end
         Rails.logger.error("[BulkGenerate] thread error #{e.class}: #{e.message}")
       end
 
-      return redirect_to(dashboard_root_path, notice: "#{target_ids.size}件の本文生成をキューに追加しました")
+      return redirect_to(dashboard_root_path, notice: "#{target_ids.size}件の本文生成を開始しました")
 
     when "delete_bulk"
       deleted_count = scope.delete_all
@@ -209,24 +207,20 @@ end
   # ======================
   
   def remove_image
-    if @column.respond_to?(:file) && @column.file.respond_to?(:purge)
-      @column.file.purge
-    else
-      @column.update_column(:file, nil)
-    end
-    redirect_back fallback_location: columns_path, notice: "画像を削除しました。"
+    @column.update_column(:file, nil)
+    redirect_back fallback_location: column_path(@column), notice: "画像を削除しました。"
   end
 
   def check_bulk_image_count
     genre        = params[:bulk_genre]
     article_type = params[:bulk_article_type]
 
-    query = dashboard_columns_base_scope
-              .where("body IS NOT NULL AND TRIM(body) != ''")
-              .where(file: nil)
+    base_scope = dashboard_columns_base_scope
+    Column.reconcile_broken_image_file_refs!(base_scope)
 
-    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
-    query = query.where(article_type: article_type) if article_type.present?
+    query = base_scope.merge(Column.missing_generated_image)
+    query = query.where(genre: genre) if genre.present? && admin_or_allowed_genre?(genre)
+    query = query.merge(Column.with_article_type_filter(article_type)) if article_type.present?
 
     render json: { count: query.count, is_running: @@bulk_image_generating }
   end
@@ -236,17 +230,18 @@ end
       return redirect_to columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
     end
 
-    genre        = params[:bulk_genre]
-    article_type = params[:bulk_article_type]
+    column_ids = Array(params[:column_ids]).map(&:to_i).uniq
+    if column_ids.blank?
+      return redirect_to columns_path, alert: "画像を生成する記事を選択してください。"
+    end
 
-    query = dashboard_columns_base_scope
-              .where("body IS NOT NULL AND TRIM(body) != ''")
-              .where(file: nil)
+    base_scope = dashboard_columns_base_scope
+    Column.reconcile_broken_image_file_refs!(base_scope)
 
-    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
-    query = query.where(article_type: article_type) if article_type.present?
-
-    target_ids = query.pluck(:id)
+    target_ids = base_scope.merge(Column.missing_generated_image).where(id: column_ids).pluck(:id)
+    if target_ids.size < column_ids.size
+      return redirect_to columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
+    end
 
     if client_signed_in?
       remaining = current_client.plan_limits[:image_generations] - current_client.image_generation_usage_count
@@ -258,24 +253,29 @@ end
 
     if target_ids.any?
       @@bulk_image_generating = true
+      truncated = client_signed_in? && column_ids.size > target_ids.size
 
       Thread.new do
-        begin
-          ActiveRecord::Base.connection_pool.with_connection do
-            Column.where(id: target_ids, file: nil).find_each do |column|
-              begin
-                FluxImageGeneratorService.generate!(column)
-              rescue => e
-                Rails.logger.error "[Thread Image Gen Error] ID: #{column.id} - #{e.message}"
+        Rails.application.executor.wrap do
+          begin
+            ActiveRecord::Base.connection_pool.with_connection do
+              Column.where(id: target_ids).merge(Column.without_image_file).find_each do |column|
+                begin
+                  FluxImageGeneratorService.generate!(column)
+                rescue => e
+                  Rails.logger.error "[Thread Image Gen Error] ID: #{column.id} - #{e.message}"
+                end
               end
             end
+          ensure
+            @@bulk_image_generating = false
           end
-        ensure
-          @@bulk_image_generating = false
         end
       end
 
-      redirect_to columns_path, notice: "#{target_ids.size}件の画像自動生成処理をバックグラウンドで開始しました。"
+      notice = "#{target_ids.size}件の画像自動生成処理をバックグラウンドで開始しました。"
+      notice += "（プラン上限のため選択分の一部のみ処理）" if truncated
+      redirect_to columns_path, notice: notice
     else
       redirect_to columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
     end
@@ -295,11 +295,14 @@ end
       return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
     end
 
-    @column.update!(status: "approved", generation_status: "queued")
+    @column.update!(status: "approved", generation_status: "idle")
+    GenerateColumnBodyJob.clear_cancellation!(@column.id)
 
     Thread.new do
-      ActiveRecord::Base.connection_pool.with_connection do
-        GenerateColumnBodyJob.perform_later(@column.id)
+      Rails.application.executor.wrap do
+        ActiveRecord::Base.connection_pool.with_connection do
+          GenerateColumnBodyJob.perform_now(@column.id)
+        end
       end
     rescue => e
       Rails.logger.error("[ApproveGenerate] column_id=#{@column.id} #{e.class}: #{e.message}")
@@ -328,6 +331,9 @@ end
 
     scope.find_each do |c|
       next if c.generated_body?
+
+      c.update_columns(status: "approved", generation_status: "idle")
+      GenerateColumnBodyJob.clear_cancellation!(c.id)
       GenerateColumnBodyJob.perform_later(c.id)
     end
 

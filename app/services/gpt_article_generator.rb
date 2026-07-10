@@ -55,20 +55,16 @@ class GptArticleGenerator
     if meta_data
       clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
       clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
-      
-      column.update!(
+
+      update_attrs = {
         genre: genre_code,
         sub_genre: sub_genre_code,
-        code: clean_code,
         description: meta_data["description"],
         keyword: meta_data["keyword"]
-      )
-      begin
-        FluxImageGeneratorService.generate!(column)
-      rescue => e
-        Rails.logger.error "[FluxImageGeneration] #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
-      end
+      }
+      update_attrs[:code] = clean_code if column.code.blank?
+
+      column.update!(update_attrs)
     end
 
     # ==============================
@@ -151,10 +147,9 @@ class GptArticleGenerator
   end
 
   def self.ensure_not_cancelled!(column)
-    column.reload
-    if column.generation_status == "cancelled" || GenerateColumnBodyJob.cancelled?(column.id)
-      raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
-    end
+    return unless GenerateColumnBodyJob.cancelled?(column.id)
+
+    raise GenerationCancelledError, "記事生成がユーザー操作で停止されました"
   end
 
   def self.detect_genre_code(keyword)

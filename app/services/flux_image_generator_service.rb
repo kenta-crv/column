@@ -10,15 +10,18 @@ class FluxImageGeneratorService
   def self.generate!(column)
     raise 'Column not found' if column.nil?
 
-    if column.client_id.present?
-      client = column.client
-      unless client.can_generate_images?
-        raise StandardError, client.plan_limit_message(:image_generation)
-      end
+    if column.file.present?
+      Rails.logger.info "[FluxImageGeneration] column #{column.id}: image already exists, skip"
+      return false
+    end
+
+    unless ENV['FAL_API_KEY'].present?
+      raise "FAL_API_KEY is not configured"
     end
 
     prompt = build_prompt(column)
 
+    Rails.logger.info "[FluxImageGeneration] column #{column.id}: requesting image"
     puts "================ IMAGE PROMPT ================"
     puts prompt
     puts "============================================="
@@ -28,6 +31,7 @@ class FluxImageGeneratorService
     raise 'Image URL not returned' if image_url.blank?
 
     save_image(column, image_url)
+    true
   end
 
   private

@@ -10,28 +10,40 @@ class Column < ApplicationRecord
   scope :missing_generated_image, -> {
     where("body IS NOT NULL AND TRIM(body) != ''").merge(without_image_file)
   }
+  scope :with_article_type_filter, ->(article_type) {
+    case article_type.to_s
+    when "pillar"
+      where(article_type: "pillar")
+    when "child"
+      where(article_type: %w[child cluster])
+    when ""
+      all
+    else
+      where(article_type: article_type)
+    end
+  }
+
+  def self.reconcile_broken_image_file_refs!(scope)
+    scope.where.not(file: [nil, ""]).find_each do |column|
+      next if column.image_file_stored?
+
+      Rails.logger.warn "[Column #{column.id}] clearing broken image file reference"
+      column.update_column(:file, nil)
+    end
+  end
+
+  def image_file_stored?
+    return false if self[:file].blank?
+
+    path = file.path
+    path.present? && File.exist?(path)
+  rescue StandardError
+    false
+  end
   scope :without_generated_body, -> { where("body IS NULL OR TRIM(body) = ''") }
   scope :with_generated_body, -> { where("body IS NOT NULL AND TRIM(body) != ''") }
-  scope :generation_active, -> { where(generation_status: %w[queued generating]) }
-  scope :generation_queued, -> { where(generation_status: "queued") }
-  scope :generation_running, -> { where(generation_status: "generating") }
 
   ALREADY_GENERATED_NOTICE = "すでに記事が作成されています。再実行する場合、記事本文を削除してください".freeze
-
-  def self.recover_stale_generations!(scope)
-    stale_generating_cutoff = 2.hours.ago
-
-    scope.merge(without_generated_body).generation_running
-      .where("updated_at < ?", stale_generating_cutoff)
-      .find_each do |column|
-        column.update_columns(
-          generation_status: "failed",
-          status: "error",
-          body: "❌ 生成がタイムアウトしました。再度実行してください。",
-          updated_at: Time.current
-        )
-      end
-  end
 
   def generated_body?
     body.to_s.strip.present?
@@ -59,6 +71,7 @@ class Column < ApplicationRecord
   friendly_id :code, use: :slugged, slug_column: :code
 
   validate :within_client_plan_limits, on: :create
+  after_create :record_client_article_creation!
 
   def should_generate_new_friendly_id?
     code_changed? || super
@@ -98,10 +111,20 @@ class Column < ApplicationRecord
     owner = client
     return unless owner
 
-    if pillar? && !owner.can_create_pillar?
-      errors.add(:base, owner.plan_limit_message(:pillar))
-    elsif child? && !owner.can_create_child?
-      errors.add(:base, owner.plan_limit_message(:child))
+    if pillar?
+      errors.add(:base, owner.plan_limit_message(:pillar)) unless owner.can_create_pillar?
+    else
+      errors.add(:base, owner.plan_limit_message(:child)) unless owner.can_create_child?
+    end
+  end
+
+  def record_client_article_creation!
+    return if client_id.blank?
+
+    if pillar?
+      client.record_pillar_creation!
+    else
+      client.record_child_creation!
     end
   end
 

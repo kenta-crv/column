@@ -34,7 +34,6 @@ Rails.application.routes.draw do
         
         post :create_from_suggestion
         post :bulk_create_from_suggestions
-        get :generation_status
       end
 
       member do

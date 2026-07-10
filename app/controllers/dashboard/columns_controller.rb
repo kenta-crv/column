@@ -11,10 +11,9 @@ class Dashboard::ColumnsController < ApplicationController
 
   def index
     base_scope = dashboard_columns_base_scope
-    Column.recover_stale_generations!(base_scope)
     assign_dashboard_tab_counts(base_scope)
 
-    @kpi_published_count = base_scope.where.not(body: [nil, ""]).where(status: "approved").count
+    @kpi_published_count = base_scope.merge(Column.with_generated_body).count
     @kpi_draft_count = base_scope.where("body IS NULL OR TRIM(body) = ''").count
     @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
     @kpi_completed_generation_count = base_scope.where(generation_status: "completed").count
@@ -27,7 +26,7 @@ class Dashboard::ColumnsController < ApplicationController
     @draft_count     = filtered_base.where(body: [nil, ""]).count
     @pillar_count    = filtered_base.where(article_type: "pillar").count
     @cluster_count   = filtered_base.where(article_type: %w[cluster child]).count
-    @published_count = filtered_base.where.not(body: [nil, ""]).where(status: "approved").count
+    @published_count = filtered_base.merge(Column.with_generated_body).count
     @error_count     = filtered_base.where(status: "error").count
     @reserved_count  = filtered_base.where(status: "reserved").count
     @no_image_count  = filtered_base.merge(Column.missing_generated_image).count
@@ -48,7 +47,7 @@ class Dashboard::ColumnsController < ApplicationController
       when "cluster"
         scope = scope.where(article_type: %w[cluster child])
       when "published"
-        scope = scope.where.not(body: [nil, ""]).where(status: "approved")
+        scope = scope.merge(Column.with_generated_body)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -78,44 +77,16 @@ class Dashboard::ColumnsController < ApplicationController
     @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
 
     # リアルタイム生成中の記事を取得
-    @active_generation_columns = filtered_base.generation_active.order(updated_at: :desc).limit(20)
-    @queued_count = filtered_base.generation_queued.count
-    @generating_count = filtered_base.generation_running.count
-    @active_generation_count = @queued_count + @generating_count
-    @generating_columns = @active_generation_columns
-  end
-
-  def generation_status
-    base_scope = dashboard_columns_base_scope
-    Column.recover_stale_generations!(base_scope)
-
-    active_scope = base_scope.generation_active.order(updated_at: :desc).limit(50)
-    queued_count = base_scope.generation_queued.count
-    generating_count = base_scope.generation_running.count
-    completed_count = base_scope.where(generation_status: "completed").count
-
-    render json: {
-      queued_count: queued_count,
-      generating_count: generating_count,
-      active_count: queued_count + generating_count,
-      completed_count: completed_count,
-      items: active_scope.map do |column|
-        {
-          id: column.id,
-          title: column.title,
-          status: column.generation_status,
-          status_label: generation_status_label(column.generation_status)
-        }
-      end
-    }
+    @generating_columns = filtered_base.where(generation_status: 'generating').limit(10)
+    @generating_count = filtered_base.where(generation_status: 'generating').count
   end
   
   
   def image_generation
-    @all_genres = dashboard_columns_base_scope.distinct.pluck(:genre).compact
-    scope = dashboard_columns_base_scope.merge(Column.missing_generated_image).order(updated_at: :desc)
-    scope = scope.where(genre: params[:filter_genre]) if params[:filter_genre].present? && admin_or_allowed_genre?(params[:filter_genre])
-    scope = scope.where(article_type: params[:filter_article_type]) if params[:filter_article_type].present?
+    base_scope = dashboard_columns_base_scope
+    Column.reconcile_broken_image_file_refs!(base_scope)
+
+    scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
     @columns = scope.page(params[:page]).per(30)
   end
@@ -125,14 +96,18 @@ class Dashboard::ColumnsController < ApplicationController
       return redirect_to image_generation_dashboard_columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
     end
 
-    genre        = params[:bulk_genre]
-    article_type = params[:bulk_article_type]
+    column_ids = Array(params[:column_ids]).map(&:to_i).uniq
+    if column_ids.blank?
+      return redirect_to image_generation_dashboard_columns_path, alert: "画像を生成する記事を選択してください。"
+    end
 
-    query = dashboard_columns_base_scope.merge(Column.missing_generated_image)
-    query = query.where(genre: genre)               if genre.present? && admin_or_allowed_genre?(genre)
-    query = query.where(article_type: article_type) if article_type.present?
+    base_scope = dashboard_columns_base_scope
+    Column.reconcile_broken_image_file_refs!(base_scope)
 
-    target_ids = query.pluck(:id)
+    target_ids = image_generation_target_scope(base_scope).where(id: column_ids).pluck(:id)
+    if target_ids.size < column_ids.size
+      return redirect_to image_generation_dashboard_columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
+    end
 
     if client_signed_in?
       remaining = current_client.plan_limits[:image_generations] - current_client.image_generation_usage_count
@@ -147,31 +122,36 @@ class Dashboard::ColumnsController < ApplicationController
       @@bulk_image_generating = true
 
       Thread.new do
-        begin
-          ActiveRecord::Base.connection_pool.with_connection do
-            Column.where(id: target_ids).merge(Column.without_image_file).find_each do |column|
-              begin
-                FluxImageGeneratorService.generate!(column)
-              rescue => e
-                Rails.logger.error "[Thread Image Gen Error] ID: #{column.id} - #{e.message}"
+        Rails.application.executor.wrap do
+          begin
+            ActiveRecord::Base.connection_pool.with_connection do
+              Column.where(id: target_ids).merge(Column.without_image_file).find_each do |column|
+                begin
+                  FluxImageGeneratorService.generate!(column)
+                rescue => e
+                  Rails.logger.error "[Thread Image Gen Error] ID: #{column.id} - #{e.message}"
+                end
               end
             end
+          ensure
+            @@bulk_image_generating = false
           end
-        ensure
-          @@bulk_image_generating = false
         end
       end
 
-      redirect_to image_generation_dashboard_columns_path, notice: "#{target_ids.size}件の画像自動生成処理をバックグラウンドで開始しました。"
+      redirect_to dashboard_columns_path, notice: "画像の生成を開始しました。"
     else
       redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
     end
   end
 
   def check_bulk_image_count
-    query = dashboard_columns_base_scope.merge(Column.missing_generated_image)
-    query = query.where(genre: params[:bulk_genre])               if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
-    query = query.where(article_type: params[:bulk_article_type]) if params[:bulk_article_type].present?
+    base_scope = dashboard_columns_base_scope
+    Column.reconcile_broken_image_file_refs!(base_scope)
+
+    query = image_generation_target_scope(base_scope)
+    query = query.where(genre: params[:bulk_genre]) if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
+    query = query.merge(Column.with_article_type_filter(params[:bulk_article_type])) if params[:bulk_article_type].present?
 
     render json: {
       count: query.count,
@@ -193,9 +173,9 @@ class Dashboard::ColumnsController < ApplicationController
       when "pillar"
         scope = scope.where(article_type: "pillar")
       when "cluster"
-        scope = scope.where(article_type: "cluster")
+        scope = scope.where(article_type: %w[cluster child])
       when "published"
-        scope = scope.where.not(body: [nil, ""])
+        scope = scope.merge(Column.with_generated_body)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -260,11 +240,11 @@ class Dashboard::ColumnsController < ApplicationController
     column = dashboard_columns_base_scope.find(params[:id])
     Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
-    unless %w[generating queued].include?(column.generation_status)
-      return redirect_to dashboard_columns_path, alert: "生成中または待機中の記事のみ停止できます"
+    unless column.generation_status == "generating"
+      return redirect_to dashboard_columns_path, alert: "生成中の記事のみ停止できます"
     end
 
-    GenerateColumnBodyJob.request_stop!(column.id) if column.generation_status == "generating"
+    GenerateColumnBodyJob.request_stop!(column.id)
     column.update!(generation_status: "cancelled")
     redirect_to dashboard_columns_path, notice: "生成を停止しました"
   rescue ActiveRecord::RecordNotFound
@@ -383,12 +363,16 @@ class Dashboard::ColumnsController < ApplicationController
     @dashboard_genre_options = dashboard_genre_registry_options
   end
 
+  def image_generation_target_scope(base_scope)
+    base_scope.merge(Column.missing_generated_image)
+  end
+
   def assign_dashboard_tab_counts(scope)
     @tab_count_all       = scope.count
     @tab_count_draft     = scope.where("body IS NULL OR TRIM(body) = ''").count
     @tab_count_pillar    = scope.where(article_type: "pillar").count
-    @tab_count_cluster   = scope.where(article_type: "cluster").count
-    @tab_count_published = scope.where("body IS NOT NULL AND TRIM(body) != ''").count
+    @tab_count_cluster   = scope.where(article_type: %w[cluster child]).count
+    @tab_count_published = scope.merge(Column.with_generated_body).count
     @tab_count_error     = scope.where(status: "error").count
     @tab_count_no_image  = scope.merge(Column.missing_generated_image).count
   end
@@ -406,16 +390,5 @@ class Dashboard::ColumnsController < ApplicationController
     Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
   rescue StandardError => e
     Rails.logger.error("[GenerationChannel] broadcast failed: #{e.class} - #{e.message}")
-  end
-
-  def generation_status_label(status)
-    case status
-    when "queued" then "待機中"
-    when "generating" then "生成中"
-    when "completed" then "完了"
-    when "failed" then "エラー"
-    when "cancelled" then "停止"
-    else status
-    end
   end
 end
