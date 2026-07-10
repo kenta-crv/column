@@ -157,7 +157,7 @@ end
     end
 
     if @column.save
-      redirect_to columns_path, notice: "作成しました"
+      redirect_to dashboard_root_path, notice: "作成しました"
     else
       render :new, status: :unprocessable_entity
     end

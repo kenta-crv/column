@@ -5,8 +5,27 @@ require "openssl"
 class GptPillarGenerator
   class GenerationCancelledError < StandardError; end
 
-  MODEL_NAME = "gpt-4.1-mini"
+  MODEL_NAME = "gpt-5.4-nano"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
+
+  # 公開前に人によるレビューを挟みたい場合は true にする。
+  # true の場合、生成完了後のステータスは "completed" ではなく
+  # "review_pending" になり、画像生成などの後続処理はスキップされる。
+  # （既存の運用を壊さないよう、デフォルトは false = 従来どおり即公開）
+  REQUIRE_HUMAN_REVIEW = false
+
+  # 記事内で同じ「論理パターン」が繰り返されるのを防ぐための
+  # 検出用正規表現。マッチした場合、そのカテゴリを次のセクション
+  # プロンプトに「既出」として渡し、別の説明方法を使わせる。
+  REPEATED_ARGUMENT_PATTERNS = {
+    single_metric_warning: /だけ.{0,12}(追う|見る|管理|判断).{0,20}(落ち|歪|下が|崩れ|見えにく|ズレ)/,
+    kpi_breakdown_generic: /(架電数|接続率|商談化率).{0,10}(だけでなく|のみならず)/,
+    definition_ambiguous_warning: /(定義|基準).{0,10}(曖昧|揃って).{0,15}(ズレ|崩れ|混乱)/
+  }.freeze
+
+  # H2セクションごとに異なる「構造スタイル」を巡回させ、
+  # 全セクションが同じベタ書き構成にならないようにする。
+  SECTION_STYLES = [:comparison_table, :ordered_list, :mini_scenario, :plain].freeze
 
   # ==========================================================
   # メイン生成ロジック
@@ -114,6 +133,8 @@ class GptPillarGenerator
     # 本文生成
     # ----------------------------------------------------------
     body_content = ""
+    covered_points = []       # ← 既出セクションの要旨（重複防止用）
+    used_argument_types = []  # ← 既出セクションで使われた「論理パターン」の種類
 
     # 導入文
     ensure_not_cancelled!(column)
@@ -139,12 +160,16 @@ class GptPillarGenerator
 
     body_content += "\n"
 
+    total_sections = structure_data["structure"].size
+
     # H2セクション
-    structure_data["structure"].each do |section|
+    structure_data["structure"].each_with_index do |section, index|
       ensure_not_cancelled!(column)
       h2_title = section["h2_title"]
 
       body_content += "## #{h2_title}\n\n"
+
+      style = SECTION_STYLES[index % SECTION_STYLES.size]
 
       section_body = call_text_section(
         h2_content_prompt(
@@ -153,7 +178,10 @@ class GptPillarGenerator
           section,
           genre_data,
           sub_data,
-          eeat_context
+          eeat_context,
+          covered_points,
+          used_argument_types,
+          style
         )
       )
 
@@ -162,6 +190,15 @@ class GptPillarGenerator
 
       body_content += section_body
       body_content += "\n\n"
+
+      # このセクションの要旨を記録し、次のセクション生成時に「既出」として渡す
+      covered_points << {
+        title: h2_title,
+        gist: extract_gist(section_body)
+      }
+
+      # このセクションで使われた論理パターンを記録
+      used_argument_types |= detect_argument_types(section_body)
 
       sleep(1.2)
     end
@@ -174,7 +211,8 @@ class GptPillarGenerator
         target_category,
         genre_data,
         sub_data,
-        eeat_context
+        eeat_context,
+        covered_points
       )
     )
 
@@ -184,19 +222,26 @@ class GptPillarGenerator
     # 保存
     # ----------------------------------------------------------
     ensure_not_cancelled!(column)
+
+    final_status = REQUIRE_HUMAN_REVIEW ? "review_pending" : "completed"
+
     column.update!(
       body: body_content,
-      status: "completed"
+      status: final_status
     )
 
-    begin
-      FluxImageGeneratorService.generate!(column)
-    rescue => e
-      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
+    if final_status == "completed"
+      begin
+        FluxImageGeneratorService.generate!(column)
+      rescue => e
+        Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
+        Rails.logger.error e.backtrace.first(5).join("\n")
+      end
+    else
+      puts "⏸ レビュー待ちのため画像生成はスキップしました: #{clean_code}"
     end
 
-    puts "✅ 生成完了: #{clean_code}"
+    puts "✅ 生成完了 (status=#{final_status}): #{clean_code}"
 
     true
   end
@@ -342,7 +387,8 @@ class GptPillarGenerator
     JSON.parse(
       res.dig("choices", 0, "message", "content")
     )
-  rescue
+  rescue => e
+    puts "❌ generate_meta_info parse error: #{e.message}"
     nil
   end
 
@@ -380,6 +426,10 @@ class GptPillarGenerator
       - 「おすすめ」「ランキング」禁止
       - ノウハウ型記事にする
       - 業界理解が深まる構成にする
+      - 各H2は異なる論点・異なる結論を扱うこと（同じ主張の言い換え禁止）
+      - 各H2は「何を比較・判断する軸なのか」が一目でわかるタイトルにすること
+      - 少なくとも1つのH2は、複数の選択肢を横並びで整理できる論点にすること
+        （例: 運用モデル別、料金体系別、業種別など。比較表を作りやすい構成にする）
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -410,7 +460,8 @@ class GptPillarGenerator
     JSON.parse(
       res.dig("choices", 0, "message", "content")
     )
-  rescue
+  rescue => e
+    puts "❌ generate_structure parse error: #{e.message}"
     nil
   end
 
@@ -436,7 +487,7 @@ class GptPillarGenerator
       retries += 1
 
       if retries < max_retries
-        puts "⚠️ 本文生成失敗 再試行中... (#{retries}/#{max_retries})"
+        puts "⚠️ 本文生成失敗 再試行中... (#{retries}/#{max_retries}) #{e.message}"
         sleep(2)
         retry
       end
@@ -477,6 +528,12 @@ class GptPillarGenerator
       - 業界メディア品質で書く
       - 専門性と網羅性を重視
       - Google EEATを意識
+      - 他セクションで述べた結論・ロジックの再掲禁止（新しい論点・情報を追加すること）
+      - 「〜が重要です」「〜が欠かせません」「〜が必要です」等の結び表現を
+        同一セクション内で2回以上使わない。表現にバリエーションを持たせる
+      - 具体的な統計や金額を書く場合、断定的な事実であるかのように書かない。
+        「一般的な目安として」「現場でよく見られる例として」等でヘッジする。
+        実在しない出典を捏造しない
     SYSTEM
 
     if json_mode
@@ -564,7 +621,7 @@ class GptPillarGenerator
   # ==========================================================
   # H2本文
   # ==========================================================
-  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context)
+  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context, covered_points = [], used_argument_types = [], style = :plain)
     <<~PROMPT
       以下H2見出しの本文を執筆してください。
 
@@ -573,6 +630,12 @@ class GptPillarGenerator
 
       【見出し】
       #{section["h2_title"]}
+
+      #{build_covered_points_block(covered_points)}
+
+      #{build_argument_avoidance_block(used_argument_types)}
+
+      #{build_style_instruction(style)}
 
       【条件】
       - 日本語
@@ -591,6 +654,10 @@ class GptPillarGenerator
       - 業界背景まで掘り下げる
       - EEATを意識する
       - 現場理解が伝わる文章にする
+      - 上記【既出セクションの要旨】と同じ主張・結論・具体例を繰り返さない
+      - この見出し特有の新しい論点・視点・情報を中心に書く
+      - 【既出の論理パターン】に挙げたものと同じ「警告の型」を再利用しない。
+        使うなら、具体例・数値レンジ・ミニケースなど別の説明方法に置き換える
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -606,9 +673,11 @@ class GptPillarGenerator
   # ==========================================================
   # まとめ
   # ==========================================================
-  def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context)
+  def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context, covered_points = [])
     <<~PROMPT
       「#{column.title}」の記事まとめを執筆してください。
+
+      #{build_covered_points_block(covered_points)}
 
       【条件】
       - 「## まとめ」から開始
@@ -620,6 +689,7 @@ class GptPillarGenerator
       - 業界全体の視点で締める
       - SEO記事として自然に終える
       - 汎用記事として成立させる
+      - 上記【既出セクションの要旨】を踏まえ、各セクションの言い換えではなく統合的な総括にする
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -630,6 +700,110 @@ class GptPillarGenerator
       【追加指示】
       #{column.prompt}
     PROMPT
+  end
+
+  # ==========================================================
+  # セクション構造スタイルの指示ブロック
+  # ==========================================================
+  def self.build_style_instruction(style)
+    case style
+    when :comparison_table
+      <<~TEXT
+        【この見出しの構成指示】
+        本文中に、Markdown形式の比較表を1つ含めること。
+        例: | 項目 | パターンA | パターンB |
+        表の前後に地の文で解説を加え、表だけで終わらせない。
+        表の数値・分類は断定的な統計として書かず、
+        整理・分類のための一般的な目安として提示すること。
+      TEXT
+    when :ordered_list
+      <<~TEXT
+        【この見出しの構成指示】
+        判断基準または確認事項を、番号付きリスト（1. 2. 3.）で
+        3〜5項目に整理する部分を本文中に含めること。
+        リストの前後に地の文の解説を加え、リストだけで終わらせない。
+      TEXT
+    when :mini_scenario
+      <<~TEXT
+        【この見出しの構成指示】
+        「たとえば〜のようなケースでは」という形で、
+        具体的な業務シーン（架空の一般化された例でよい）を
+        1つ挙げて説明すること。実在の企業名は使わない。
+      TEXT
+    else
+      <<~TEXT
+        【この見出しの構成指示】
+        通常の説明文で構成してよいが、他の見出しと
+        同じ文章パターン（導入→定義→注意点→まとめ、等）を
+        繰り返さないこと。
+      TEXT
+    end
+  end
+
+  # ==========================================================
+  # 既出セクション要旨ブロック生成
+  # ==========================================================
+  def self.build_covered_points_block(covered_points)
+    return "" if covered_points.blank?
+
+    lines = covered_points.map do |cp|
+      "- #{cp[:title]}: #{cp[:gist]}"
+    end
+
+    <<~TEXT
+      【既出セクションの要旨（重複禁止）】
+      #{lines.join("\n")}
+    TEXT
+  end
+
+  # ==========================================================
+  # 既出の論理パターン回避ブロック生成
+  # ==========================================================
+  def self.build_argument_avoidance_block(used_argument_types)
+    return "" if used_argument_types.blank?
+
+    labels = used_argument_types.map { |t| argument_type_label(t) }
+
+    <<~TEXT
+      【既出の論理パターン（同じ型を再利用しない）】
+      #{labels.map { |l| "- #{l}" }.join("\n")}
+    TEXT
+  end
+
+  def self.argument_type_label(type)
+    {
+      single_metric_warning: "単一指標だけで判断すると危険、という警告構文",
+      kpi_breakdown_generic: "複数KPIを並べて「これだけでなく」と注意喚起する構文",
+      definition_ambiguous_warning: "定義や基準の曖昧さがズレを生む、という警告構文"
+    }[type] || type.to_s
+  end
+
+  # ==========================================================
+  # セクション要旨の抽出（次セクションへの重複防止用）
+  # ==========================================================
+  def self.extract_gist(section_body)
+    return "" if section_body.blank?
+
+    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
+    return "" if sentences.empty?
+
+    # 冒頭2文（何を論じ始めたか）+ 末尾1文（結論・要旨）を要旨として使う。
+    # 追加API呼び出しを避けつつ、中盤〜終盤の結論も拾えるようにする簡易実装。
+    lead = sentences.first(2)
+    tail = sentences.length > 2 ? [sentences.last] : []
+
+    (lead + tail).uniq.join("").truncate(220)
+  end
+
+  # ==========================================================
+  # セクション内の「論理パターン」を検出
+  # ==========================================================
+  def self.detect_argument_types(section_body)
+    return [] if section_body.blank?
+
+    REPEATED_ARGUMENT_PATTERNS.each_with_object([]) do |(type, pattern), found|
+      found << type if section_body.match?(pattern)
+    end
   end
 
   # ==========================================================
