@@ -122,22 +122,14 @@ end
       end
 
       target_ids = scope.pluck(:id)
-      if target_ids.blank?
+      pending_ids = prepare_columns_for_generation!(target_ids)
+      if pending_ids.blank?
         return redirect_to(dashboard_root_path, alert: "対象の記事が見つかりませんでした")
       end
 
-      enqueued = 0
-      Column.where(id: target_ids).find_each do |column|
-        next if column.generated_body?
-
-        column.update_columns(status: "approved", generation_status: "queued")
-        GenerateColumnBodyJob.clear_cancellation!(column.id)
-        GenerateColumnBodyJob.perform_later(column.id)
-        enqueued += 1
-      end
-
-      Rails.logger.info("[BulkGenerate] enqueued #{enqueued} columns (ids=#{target_ids.join(',')})")
-      return redirect_to(dashboard_root_path, notice: "#{enqueued}件の本文生成を開始しました")
+      spawn_sequential_body_generation!(pending_ids)
+      Rails.logger.info("[BulkGenerate] started #{pending_ids.size} columns (ids=#{pending_ids.join(',')})")
+      return redirect_to(dashboard_root_path, notice: "#{pending_ids.size}件の本文生成を開始しました")
 
     when "delete_bulk"
       deleted_count = scope.delete_all
@@ -287,10 +279,13 @@ end
       return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
     end
 
-    @column.update!(status: "approved", generation_status: "queued")
-    GenerateColumnBodyJob.clear_cancellation!(@column.id)
-    GenerateColumnBodyJob.perform_later(@column.id)
-    Rails.logger.info("[ApproveGenerate] enqueued column_id=#{@column.id}")
+    pending_ids = prepare_columns_for_generation!(@column.id)
+    if pending_ids.blank?
+      return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
+    end
+
+    spawn_sequential_body_generation!(pending_ids)
+    Rails.logger.info("[ApproveGenerate] started column_id=#{@column.id}")
 
     redirect_to dashboard_root_path, notice: "本文生成を開始しました"
   end
@@ -314,21 +309,13 @@ end
     end
 
     target_ids = scope.pluck(:id)
-    if target_ids.blank?
+    pending_ids = prepare_columns_for_generation!(target_ids)
+    if pending_ids.blank?
       return redirect_to(draft_columns_path, alert: "対象の記事が見つかりませんでした")
     end
 
-    enqueued = 0
-    Column.where(id: target_ids).find_each do |column|
-      next if column.generated_body?
-
-      column.update_columns(status: "approved", generation_status: "queued")
-      GenerateColumnBodyJob.clear_cancellation!(column.id)
-      GenerateColumnBodyJob.perform_later(column.id)
-      enqueued += 1
-    end
-
-    Rails.logger.info("[GenerateFromSelected] enqueued #{enqueued} columns (ids=#{target_ids.join(',')})")
+    spawn_sequential_body_generation!(pending_ids)
+    Rails.logger.info("[GenerateFromSelected] started #{pending_ids.size} columns (ids=#{pending_ids.join(',')})")
     redirect_to draft_columns_path, notice: "生成開始"
   end
 
@@ -453,5 +440,45 @@ end
     return draft_columns_path if params[:redirect_context] == "draft"
 
     dashboard_root_path
+  end
+
+  def prepare_columns_for_generation!(column_ids)
+    ids = Array(column_ids).map(&:to_i).uniq
+    return [] if ids.blank?
+
+    pending_ids = Column.where(id: ids).merge(Column.without_generated_body).pluck(:id)
+    return [] if pending_ids.blank?
+
+    Column.where(id: pending_ids).update_all(
+      status: "approved",
+      generation_status: "queued",
+      updated_at: Time.current
+    )
+    pending_ids
+  end
+
+  def spawn_sequential_body_generation!(column_ids)
+    ids = Array(column_ids).map(&:to_i).uniq
+    return if ids.blank?
+
+    Thread.new do
+      Rails.application.executor.wrap do
+        ActiveRecord::Base.connection_pool.with_connection do
+          ids.each do |column_id|
+            begin
+              column = Column.find_by(id: column_id)
+              next if column.nil? || column.generated_body?
+
+              GenerateColumnBodyJob.clear_cancellation!(column_id)
+              GenerateColumnBodyJob.perform_now(column_id)
+            rescue => e
+              Rails.logger.error("[BodyGeneration] column_id=#{column_id} #{e.class}: #{e.message}")
+            end
+          end
+        end
+      end
+    rescue => e
+      Rails.logger.error("[BodyGeneration] thread error #{e.class}: #{e.message}")
+    end
   end
 end

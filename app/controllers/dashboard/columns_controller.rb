@@ -396,15 +396,6 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def broadcast_generation_status(column)
-    ActionCable.server.broadcast(
-      "GenerationChannel",
-      {
-        column_id: column.id,
-        status: column.generation_status,
-        title: column.title
-      }
-    )
-  rescue => e
-    Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
+    GenerationChannelBroadcaster.broadcast(column)
   end
 end

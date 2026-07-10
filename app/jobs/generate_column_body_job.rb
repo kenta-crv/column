@@ -17,10 +17,10 @@ class GenerateColumnBodyJob < ApplicationJob
     GenerateColumnBodyJob.clear_cancellation!(column_id)
     runtime_mutex.synchronize { runtime_threads[column_id] = Thread.current }
 
-    column.update!(generation_status: "generating")
-    broadcast_generation_status(column)
-
     begin
+      column.update!(generation_status: "generating")
+      broadcast_generation_status(column)
+
       if column.article_type == "pillar"
         GptPillarGenerator.generate_full_from_existing_column!(column)
         column.reload
@@ -117,11 +117,6 @@ class GenerateColumnBodyJob < ApplicationJob
   end
 
   def broadcast_generation_status(column)
-    ActionCable.server.broadcast(
-      "GenerationChannel",
-      { column_id: column.id, status: column.generation_status, title: column.title }
-    )
-  rescue => e
-    Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
+    GenerationChannelBroadcaster.broadcast(column)
   end
 end

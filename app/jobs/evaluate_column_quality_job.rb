@@ -15,12 +15,12 @@ class EvaluateColumnQualityJob < ApplicationJob
       )
 
       # ✅ 評価完了をActionCableでブロードキャスト（リアルタイム反映用）
-      ActionCable.server.broadcast('GenerationChannel', {
-        status:             'evaluated',
-        column_id:          column.id,
-        quality_score:      evaluation[:overall_score],
+      GenerationChannelBroadcaster.broadcast(
+        status: "evaluated",
+        column_id: column.id,
+        quality_score: evaluation[:overall_score],
         evaluation_metrics: evaluation[:metrics]
-      })
+      )
 
       Rails.logger.info("✅ Article evaluation completed: #{column.id} - Score: #{evaluation[:overall_score]}")
     rescue => e

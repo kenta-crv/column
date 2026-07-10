@@ -8,8 +8,8 @@ default: &default
   adapter: sqlite3
   # スレッド数に合わせてプールを確保（ENVがなければ15程度がおすすめ）
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 15 } %>
-  # 10秒に延長
-  timeout: 10000
+  # 30秒までロック待ち（一括生成時の競合対策）
+  timeout: 30000
   # WALモードと同期設定をデフォルトに含める（パフォーマンス向上）
   variables:
     journal_mode: WAL
