@@ -121,7 +121,7 @@ class GenerateColumnBodyJob < ApplicationJob
       "GenerationChannel",
       { column_id: column.id, status: column.generation_status, title: column.title }
     )
-  rescue StandardError => e
-    Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.message}")
+  rescue => e
+    Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
   end
 end

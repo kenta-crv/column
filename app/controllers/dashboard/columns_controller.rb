@@ -404,9 +404,7 @@ class Dashboard::ColumnsController < ApplicationController
         title: column.title
       }
     )
-  rescue LoadError, NameError => e
+  rescue => e
     Rails.logger.warn("[GenerationChannel] broadcast skipped: #{e.class} - #{e.message}")
-  rescue StandardError => e
-    Rails.logger.error("[GenerationChannel] broadcast failed: #{e.class} - #{e.message}")
   end
 end
