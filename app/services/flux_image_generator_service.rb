@@ -6,6 +6,17 @@ require 'fileutils'
 
 class FluxImageGeneratorService
   API_URL = 'https://fal.run/fal-ai/flux/schnell'
+  GPT_API_URL = 'https://api.openai.com/v1/chat/completions'
+
+  # Flux は negative prompt 非対応のため、文字なしを positive 表現で強調する
+  TEXT_FREE_REQUIREMENTS = <<~TEXT.squish
+    Pure photography with absolutely no readable content anywhere in the frame.
+    No text, no letters, no numbers, no logos, no captions, no subtitles,
+    no signage, no labels, no watermarks, no UI elements, no screens showing words,
+    no books or documents with visible writing, no banners, no typography of any kind,
+    no Chinese characters, no Japanese characters, no alphabet characters.
+    Blank surfaces, plain walls, and unmarked objects only.
+  TEXT
 
   def self.generate!(column)
     raise 'Column not found' if column.nil?
@@ -94,62 +105,83 @@ class FluxImageGeneratorService
   end
 
   def self.build_prompt(column)
-    genre_info = GenreRegistry::GENRES[column.genre.to_sym] rescue nil
-
-    genre_name = genre_info&.dig(:ja).to_s
-    service_name = genre_info&.dig(:service_name).to_s
-    strong_points = genre_info&.dig(:strong_points).to_s
-
-    body_text = column.body.to_s
-                      .gsub(/[#*\n\r]/, ' ')
-                      .squish
-                      .slice(0, 1500)
-
-    description = column.description.to_s
-
-    genre_prompt = genre_specific_prompt(column.genre)
+    scene = visual_scene_description(column)
 
     <<~PROMPT.squish
-      Create a realistic modern Japanese business website hero image.
-
-      Article title:
-      #{column.title}
-
-      Article description:
-      #{description}
-
-      Article content summary:
-      #{body_text}
-
-      Industry:
-      #{genre_name}
-
-      Service:
-      #{service_name}
-
-      Service strengths:
-      #{strong_points}
-
-      Visual direction:
-      #{genre_prompt}
-
-      Requirements:
-      - realistic photo style
-      - cinematic lighting
-      - Japanese environment
-      - professional business atmosphere
-      - modern composition
-      - highly detailed
-      - clean design
-      - no text
-      - no letters
-      - no watermark
-      - suitable for blog thumbnail
-      - suitable for hero section
-      - natural colors
-      - high quality
-      - 16:9 composition
+      Photorealistic hero image for a Japanese business blog article.
+      Scene: #{scene}
+      Style: cinematic natural lighting, professional atmosphere, modern composition,
+      highly detailed, clean design, natural colors, high quality, 16:9 landscape.
+      #{TEXT_FREE_REQUIREMENTS}
     PROMPT
+  end
+
+  def self.visual_scene_description(column)
+    gpt_scene = request_visual_scene_from_gpt(column)
+    return gpt_scene if gpt_scene.present?
+
+    genre_specific_prompt(column.genre).squish
+  end
+
+  def self.request_visual_scene_from_gpt(column)
+    api_key = ENV['GPT_API_KEY']
+    return nil unless api_key.present?
+
+    genre_info = GenreRegistry::GENRES[column.genre.to_sym] rescue nil
+    industry = genre_info&.dig(:ja).to_s
+
+    instruction = <<~PROMPT
+      記事テーマに合った「写真の被写体・構図・雰囲気」だけを英語1段落で出力してください。
+
+      【記事の参考情報（画像内に表示してはいけない）】
+      タイトル: #{column.title}
+      キーワード: #{column.keyword}
+      業種: #{industry}
+
+      【厳守ルール】
+      - 出力は英語の視覚描写のみ（1段落、120語以内）
+      - 画像内に表示する文字・単語・看板・UIテキストは一切含めない
+      - dashboard, screen, monitor, sign, banner, label, document, book など文字が写りやすい被写体は使わない
+      - 人物・建物・道具・風景など、文字のないリアルなシーンを描写する
+      - 説明文や箇条書きは禁止。描写文のみ出力
+    PROMPT
+
+    response = call_gpt_api(api_key, instruction)
+    content = response&.dig('choices', 0, 'message', 'content')&.strip
+    content.presence
+  rescue => e
+    Rails.logger.warn "[FluxImageGeneration] visual scene GPT fallback: #{e.message}"
+    nil
+  end
+
+  def self.call_gpt_api(api_key, prompt)
+    uri = URI(GPT_API_URL)
+    req = Net::HTTP::Post.new(uri)
+    req['Content-Type'] = 'application/json'
+    req['Authorization'] = "Bearer #{api_key}"
+    req.body = {
+      model: 'gpt-5.4-nano',
+      messages: [
+        {
+          role: 'system',
+          content: 'You write image-generation prompts describing scenes only. Never include any words that should appear inside the image.'
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.4
+    }.to_json
+
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60) do |http|
+      http.request(req)
+    end
+
+    return JSON.parse(res.body) if res.is_a?(Net::HTTPSuccess)
+
+    Rails.logger.warn "[FluxImageGeneration] GPT error: #{res.code} #{res.body}"
+    nil
+  rescue => e
+    Rails.logger.warn "[FluxImageGeneration] GPT exception: #{e.message}"
+    nil
   end
 
   def self.genre_specific_prompt(genre)
@@ -212,22 +244,17 @@ class FluxImageGeneratorService
 
     when 'app'
       <<~TEXT
-        Modern SaaS dashboard.
-        AI sales automation.
-        Business analytics.
-        Professional office environment.
-        Digital transformation concept.
-        Blue technology atmosphere.
+        Professional team collaborating in a bright modern office.
+        Laptop lids closed or angled away from camera.
+        Minimalist workspace with plain walls and soft blue ambient light.
+        Business technology atmosphere without visible screens or devices showing content.
       TEXT
 
     when 'meetia'
       <<~TEXT
-        Futuristic AI meeting.
-        AI avatar assistant.
-        Online business negotiation.
-        Modern digital interface.
-        Advanced technology atmosphere.
-        Blue neon lighting.
+        Two business professionals in a sleek conference room with frosted glass walls.
+        Soft blue ambient lighting, empty whiteboard, no visible screens.
+        Professional negotiation atmosphere in a clean futuristic interior.
       TEXT
 
     when 'housekeeping'
