@@ -8,16 +8,12 @@ class ColumnsController < ApplicationController
   @@bulk_image_generating = false
 
 def index
-  effective_genre = resolve_public_genre_filter
-
-  columns = Column
-              .where("body IS NOT NULL AND TRIM(body) != ''")
-              .select(
-                :id, :title, :description, :body,
-                :genre, :article_type, :updated_at,
-                :file, :code, :parent_id, :status,
-                :sub_genre
-              )
+  columns = public_readable_columns_scope.select(
+    :id, :title, :description, :body,
+    :genre, :article_type, :updated_at,
+    :file, :code, :parent_id, :status,
+    :sub_genre
+  )
 
   if params[:q].present?
     columns = columns.where(
@@ -26,6 +22,7 @@ def index
     )
   end
 
+  effective_genre = resolve_public_genre_filter unless client_signed_in?
   columns = columns.where(genre: effective_genre)                if effective_genre.present?
   columns = columns.where(article_type: params[:article_type])  if params[:article_type].present?
   columns = columns.where(genre: params[:selected_genre])       if params[:selected_genre].present?
@@ -38,16 +35,11 @@ def index
   if params[:article_type] == "pillar"
     @grouped_columns = @columns.group_by(&:genre)
 
-    @all_genres = Column
-                    .where("body IS NOT NULL AND TRIM(body) != ''")
-                    .distinct
-                    .pluck(:genre)
-                    .compact
+    @all_genres = public_readable_columns_scope.distinct.pluck(:genre).compact
   end
 
   if @columns.present?
-    @child_counts = Column
-                      .where("body IS NOT NULL AND TRIM(body) != ''")
+    @child_counts = public_readable_columns_scope
                       .where(parent_id: @columns.map(&:id))
                       .group(:parent_id)
                       .count
@@ -55,7 +47,7 @@ def index
     @child_counts = {}
   end
 
-  base_count_query = Column.where("body IS NOT NULL AND TRIM(body) != ''")
+  base_count_query = public_readable_columns_scope
 
   if params[:q].present?
     base_count_query = base_count_query.where(
@@ -70,7 +62,7 @@ def index
   @genre_pillar_counts = base_count_query.where(article_type: "pillar").group(:genre).count
   @genre_child_counts  = base_count_query.where(article_type: "child").group(:genre).count
 
-  @current_genre_key = effective_genre  # ビュー側でタイトル生成に使う
+  @current_genre_key = effective_genre
 end
 
   def show
@@ -401,6 +393,13 @@ end
     return nil if main_platform_host?(request.host)
 
     GenreRegistry.allowed_hosts(request.host)&.to_s
+  end
+
+  def public_readable_columns_scope
+    scope = Column.where("body IS NOT NULL AND TRIM(body) != ''")
+    return scope.where(client_id: current_client.id) if client_signed_in?
+
+    scope
   end
 
   def main_platform_host?(host)

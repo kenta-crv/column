@@ -50,7 +50,11 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :service_genres, except: [:show]
+    resources :service_genres, except: [:show] do
+      collection do
+        post :suggest_sub_categories
+      end
+    end
 
     root to: "columns#index"
 

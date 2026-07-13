@@ -1,3 +1,5 @@
+= render "workflow_flow"
+
 .admin-content-header.dashboard-toolbar
   .dashboard-toolbar__main
     = form_tag export_dashboard_columns_path, method: :get, data: { turbo: false }, class: "dashboard-toolbar__export-form" do

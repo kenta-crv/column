@@ -2,6 +2,8 @@ class Dashboard::ServiceGenresController < ApplicationController
   before_action :authenticate_admin_or_client!
   before_action :set_service_genre, only: [:edit, :update, :destroy]
   before_action :authorize_service_genre!, only: [:edit, :update, :destroy]
+  before_action :assign_fallback_templates, only: [:new, :create, :edit, :update]
+  before_action :authorize_fallback_template!, only: [:new]
 
   layout "admin"
 
@@ -16,16 +18,17 @@ class Dashboard::ServiceGenresController < ApplicationController
                        ServiceGenre.new
                      end
     @service_genre.client = current_client if client_signed_in? && !admin_signed_in?
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
   end
 
   def create
     attrs, sub_category_error = service_genre_attributes
     @service_genre = ServiceGenre.new(attrs)
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
+      render :new, status: :unprocessable_entity
+    elsif unauthorized_genre_key?(@service_genre.key)
+      @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
       render :new, status: :unprocessable_entity
     elsif @service_genre.save
       redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを作成しました"
@@ -35,15 +38,16 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def edit
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
   end
 
   def update
     attrs, sub_category_error = service_genre_attributes
-    @fallback_templates = GenreRegistry::FALLBACK_GENRES
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
+      render :edit, status: :unprocessable_entity
+    elsif unauthorized_genre_key?(attrs[:key], except: @service_genre.key)
+      @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
       render :edit, status: :unprocessable_entity
     elsif @service_genre.update(attrs)
       redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを更新しました"
@@ -57,7 +61,48 @@ class Dashboard::ServiceGenresController < ApplicationController
     redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを削除しました"
   end
 
+  def suggest_sub_categories
+    result = SubCategorySuggestionService.call(
+      key: params[:key],
+      ja: params[:ja],
+      service_name: params[:service_name],
+      strong_points: params[:strong_points],
+      keywords: params[:keywords],
+      suggestion_count: params[:suggestion_count]
+    )
+
+    if result[:success]
+      render json: { success: true, sub_categories: result[:sub_categories] }
+    else
+      render json: { success: false, error: result[:error] }, status: :unprocessable_entity
+    end
+  end
+
   private
+
+  def assign_fallback_templates
+    @fallback_templates = if admin_signed_in?
+                            GenreRegistry.fallback_templates_for
+                          else
+                            GenreRegistry.fallback_templates_for(client: current_client, host: request.host)
+                          end
+  end
+
+  def authorize_fallback_template!
+    return if params[:template].blank?
+    return if admin_signed_in?
+    return if @fallback_templates.key?(params[:template].to_sym)
+
+    redirect_to new_dashboard_service_genre_path, alert: "このテンプレートは利用できません。"
+  end
+
+  def unauthorized_genre_key?(key, except: nil)
+    return false if admin_signed_in?
+    return false if key.blank?
+    return false if except.present? && key.to_s == except.to_s
+
+    !GenreRegistry.template_allowed_for_client?(key, client: current_client, host: request.host)
+  end
 
   def service_genres_scope
     if admin_signed_in?
@@ -81,7 +126,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   def service_genre_attributes
     permitted = params.require(:service_genre).permit(
       :key, :ja, :service_name, :strong_points, :client_id,
-      :hosts_text, :keywords_text, :images_text,
+      :hosts_text, :keywords_text,
       sub_categories_items: [
         :key, :name, :target, :description,
         :features_text, :keywords_text, :price_hint, :area,
@@ -98,7 +143,6 @@ class Dashboard::ServiceGenresController < ApplicationController
       strong_points: permitted[:strong_points],
       hosts: split_list(permitted[:hosts_text]),
       keywords: split_list(permitted[:keywords_text]),
-      images: split_list(permitted[:images_text]),
       sub_categories: sub_categories
     }
 

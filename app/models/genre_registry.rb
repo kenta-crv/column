@@ -407,6 +407,71 @@ module GenreRegistry
   }.freeze
 
   class << self
+    def fallback_templates_for(client: nil, host: nil)
+      return FALLBACK_GENRES.deep_dup if client.nil?
+
+      permitted_template_keys_for(client, host).each_with_object({}) do |key, result|
+        sym = key.to_sym
+        result[sym] = FALLBACK_GENRES[sym] if FALLBACK_GENRES.key?(sym)
+      end
+    end
+
+    def template_allowed_for_client?(template_key, client:, host: nil)
+      return true if client.nil?
+
+      permitted_template_keys_for(client, host).include?(template_key.to_s)
+    end
+
+    def permitted_template_keys_for(client, host)
+      allowed = Array(client.allowed_genres).map(&:to_s).reject(&:blank?)
+      fallback_keys = FALLBACK_GENRES.keys.map(&:to_s)
+      return allowed & fallback_keys if allowed.present?
+
+      platform = resolve_platform_host(host, client)
+      return [] if platform.blank?
+
+      FALLBACK_GENRES.filter_map do |key, data|
+        key.to_s if template_hosts(data).include?(platform)
+      end
+    end
+
+    def resolve_platform_host(request_host, client)
+      normalized = normalize_host(request_host)
+
+      if client&.domain.present?
+        domain_host = normalize_host(client.domain)
+        return domain_host if known_platform_host?(domain_host)
+      end
+
+      return normalized if known_platform_host?(normalized)
+
+      if Rails.env.development? && localhost_host?(normalized)
+        allowed = Array(client&.allowed_genres).map(&:to_s)
+        drafity_keys = %w[ai_article ai_article_generation]
+        return "drafity.pro" if allowed.blank? || (allowed & drafity_keys).any?
+      end
+
+      nil
+    end
+
+    def template_hosts(data)
+      Array(data[:host]).map { |host| normalize_host(host) }.reject(&:blank?)
+    end
+
+    def known_platform_host?(host)
+      return false if host.blank?
+
+      FALLBACK_GENRES.values.any? { |data| template_hosts(data).include?(host) }
+    end
+
+    def normalize_host(host)
+      host.to_s.downcase.sub(/\Awww\./, "").split(":").first
+    end
+
+    def localhost_host?(host)
+      host.in?(%w[localhost 127.0.0.1 0.0.0.0])
+    end
+
     def genres(client: nil)
       cache = (@genres_cache ||= {})
       cache_key = client&.id || :global

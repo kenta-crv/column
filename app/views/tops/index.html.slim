@@ -648,7 +648,6 @@
                   = plan[:note]
                 - else
                   | ¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月（月額払い）
-              = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{cta_class}"
               hr.plan-divider
               ul.plan-features
                 - plan[:features].each do |feature|
@@ -656,6 +655,7 @@
                     svg viewBox="0 0 16 16" fill="none"
                       path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                     = feature
+              = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{cta_class}"
         button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" onclick="scrollPricing(1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

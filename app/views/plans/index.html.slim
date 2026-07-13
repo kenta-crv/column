@@ -1,105 +1,134 @@
-.sc-detect.container
-  .text-center.mb-5
-    h1.sc-detect__title style="border-bottom: none; margin-bottom: 10px;" プラン選択
-    p.lead style="color: rgba(229, 231, 235, 0.7);" あなたにぴったりのプランをお選びください
+.drafify-lp.plans-page
+  section.pricing-section
+    .pricing-inner
+      .plans-top
+        .section-header
+          h2.section-title プランをお選びください
+          - if @is_new_account
+            p.section-sub
+              | 新規アカウントは
+              strong = "#{Subscription::TRIAL_DAYS}日間の無料トライアル"
+              | が利用できます。
+        .toggle-wrap
+          button.toggle-btn.active type="button" onclick="setPlansToggle(false, this)" 月額払い
+          button.toggle-btn type="button" onclick="setPlansToggle(true, this)"
+            | 年額払い
+            span.toggle-save 20%お得
 
-  - subscription = @subscription
+      - if @subscription&.active?
+        - usage = current_client.usage_summary
+        .plans-usage
+          h3.plans-usage__title 今月の利用状況
+          .plans-usage__grid
+            .plans-usage__item
+              span.plans-usage__label 親記事
+              span.plans-usage__value = "#{usage[:pillar][:used]} / #{usage[:pillar][:limit]}"
+            .plans-usage__item
+              span.plans-usage__label 子記事
+              span.plans-usage__value = "#{usage[:child][:used]} / #{usage[:child][:limit]}"
+            .plans-usage__item
+              span.plans-usage__label AIタイトル提案
+              span.plans-usage__value = "#{usage[:title_suggestions][:used]} / #{usage[:title_suggestions][:limit]}"
+            .plans-usage__item
+              span.plans-usage__label 画像生成
+              span.plans-usage__value = "#{usage[:image_generations][:used]} / #{usage[:image_generations][:limit]}"
+            .plans-usage__item
+              span.plans-usage__label ジャンル
+              span.plans-usage__value = "#{usage[:genres][:used]} / #{usage[:genres][:limit]}"
+            .plans-usage__item
+              span.plans-usage__label API
+              span.plans-usage__value = usage[:api_enabled] ? "利用可" : "利用不可"
 
-  - if client_signed_in?
-    - usage = current_client.usage_summary
-    .sc-detect__card.mb-4
-      .sc-detect__card-header
-        h5.mb-0 今月の利用状況
-      .sc-detect__card-body
-        .row.g-3
-          .col-md-4
-            small.text-muted 親記事
-            div = "#{usage[:pillar][:used]} / #{usage[:pillar][:limit]}"
-          .col-md-4
-            small.text-muted 子記事
-            div = "#{usage[:child][:used]} / #{usage[:child][:limit]}"
-          .col-md-4
-            small.text-muted AIタイトル提案
-            div = "#{usage[:title_suggestions][:used]} / #{usage[:title_suggestions][:limit]}"
-          .col-md-4
-            small.text-muted 画像生成
-            div = "#{usage[:image_generations][:used]} / #{usage[:image_generations][:limit]}"
-          .col-md-4
-            small.text-muted ジャンル
-            div = "#{usage[:genres][:used]} / #{usage[:genres][:limit]}"
-          .col-md-4
-            small.text-muted API
-            div = usage[:api_enabled] ? "利用可" : "利用不可"
+      .pricing-scroll-wrap
+        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" onclick="scrollPlansPricing(-1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .pricing-grid#plans-pricing-grid
+          - current_plan = @subscription&.plan_type || current_client.subscription_plan
+          - trial_used = current_client.subscriptions.exists?(plan_type: :trial)
 
-  - if @is_new_account
-    .sc-detect__alert.sc-detect__alert--info.mb-5 style="justify-content: center; padding: 1.5rem 0;"
-      div
-        i.fas.fa-info-circle.me-2
-        | 新規アカウントは
-        strong style="color: #38bdf8; margin: 0 5px;" = "#{Subscription::TRIAL_DAYS}日間の無料トライアル"
-        | が利用できます。
+          - Subscription.lp_plans.each do |plan|
+            - card_classes = []
+            - card_classes << "popular" if plan[:popular]
+            - card_classes << "featured" if plan[:featured]
+            - is_current = current_plan == plan[:key].to_s && @subscription&.active?
+            - card_classes << "current-plan" if is_current
+            - cta_class = plan[:popular] ? "filled" : (plan[:featured] ? "featured-cta" : "outline")
+            - trial_selectable = plan[:key] == :trial && @is_new_account && !trial_used
 
-  .row.row-cols-1.row-cols-md-2.row-cols-xl-3.g-4
+            .plan-card class=card_classes.join(" ") data-plan-key=plan[:key] data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
+              - if plan[:popular]
+                .popular-badge 人気 No.1
+              - elsif plan[:featured]
+                .featured-badge イチオシ
+              - elsif is_current
+                .popular-badge.current-badge 現在のプラン
 
-    - if @is_new_account
-      - is_trial_active = subscription&.trial_active?
-      - trial = Subscription.new(plan_type: :trial)
+              .plan-name class=(plan[:popular] ? "accent" : (plan[:featured] ? "featured-name" : "")) = plan[:name]
+              .plan-desc = plan[:description]
+              .plan-price
+                - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
+                  .plan-price-orig id="plans-#{plan[:key]}-orig" style="display:none" = "¥#{number_with_delimiter(plan[:monthly_price])}/月"
+                .plan-price-main
+                  span.price-yen ¥
+                  span.price-num id="plans-#{plan[:key]}-price" = number_with_delimiter(plan[:monthly_price])
+                  - if plan[:key] != :trial
+                    span.price-unit "/ 月"
+              .plan-price-note id="plans-#{plan[:key]}-note"
+                - if plan[:key] == :trial
+                  = plan[:note]
+                - else
+                  | ¥#{number_with_delimiter(plan[:monthly_price])}/月（月額払い）
 
-      .col
-        .sc-detect__card.h-100 style=(is_trial_active ? "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);" : "")
-          .sc-detect__card-header
-            h5.text-center = trial.plan_name
+              hr.plan-divider
+              ul.plan-features
+                - plan[:features].each do |feature|
+                  li
+                    svg viewBox="0 0 16 16" fill="none"
+                      path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    = feature
 
-          .sc-detect__card-body.d-flex.flex-column.text-center
-            .mb-4
-              span.display-5.fw-bold style="color: #ffffff;" = "¥#{trial.price}"
-              span style="color: rgba(229, 231, 235, 0.5); font-size: 0.9rem;"
-                |  / #{Subscription::TRIAL_DAYS}日間
-
-            ul.list-unstyled.mb-4.text-start style="display: inline-block; margin: 0 auto;"
-              - trial.feature_list.each do |feature|
-                li.mb-2
-                  i.fas.fa-check-circle.me-2 style="color: #10b981;"
-                  = feature
-
-            .mt-auto
-              - if is_trial_active
-                button.sc-detect__btn.w-100 disabled="disabled" style="background: rgba(148, 163, 184, 0.2); color: rgba(229, 231, 235, 0.5); cursor: default; justify-content: center;"
-                  | 現在のプラン
-              - else
-                = link_to checkout_confirmation_path(plan_type: "trial"), class: "sc-detect__btn sc-detect__btn--warning w-100", style: "justify-content: center; text-decoration: none;"
-                  | このプランを選択
-
-    - current_plan = subscription&.plan_type || current_client.subscription_plan
-
-    - Subscription.checkout_plans.each do |plan_key|
-      - plan = Subscription.new(plan_type: plan_key)
-      - is_current = current_plan == plan_key.to_s && subscription&.active?
-
-      .col
-        .sc-detect__card.h-100 style=(is_current ? "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);" : "")
-          .sc-detect__card-header
-            h5.text-center
-              = plan.plan_name
-              - if Subscription.config_for(plan_key)[:lp_popular]
-                span.badge.bg-info.ms-2 人気
-
-          .sc-detect__card-body.d-flex.flex-column.text-center
-            .mb-4
-              span.display-5.fw-bold style="color: #ffffff;" = "¥#{number_with_delimiter(plan.price)}"
-              span style="color: rgba(229, 231, 235, 0.5); font-size: 0.9rem;"
-                |  / 月
-
-            ul.list-unstyled.mb-4.text-start style="display: inline-block; margin: 0 auto;"
-              - plan.feature_list.each do |feature|
-                li.mb-2
-                  i.fas.fa-check-circle.me-2 style="color: #10b981;"
-                  = feature
-
-            .mt-auto
               - if is_current
-                button.sc-detect__btn.w-100 disabled="disabled" style="background: rgba(148, 163, 184, 0.2); color: rgba(229, 231, 235, 0.5); cursor: default; justify-content: center;"
-                  | 現在のプラン
+                span.plan-cta.is-disabled 現在のプラン
+              - elsif plan[:key] == :trial && !trial_selectable
+                span.plan-cta.is-disabled 利用不可
               - else
-                = link_to checkout_confirmation_path(plan_type: plan_key), class: "sc-detect__btn sc-detect__btn--primary w-100", style: "justify-content: center; text-decoration: none;"
-                  | このプランを選択
+                = link_to "このプランを選択 →", checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
+
+        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" onclick="scrollPlansPricing(1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+
+javascript:
+  | function setPlansToggle(isYearly, btn) {
+  |   document.querySelectorAll('.plans-page .toggle-btn').forEach(b => b.classList.remove('active'));
+  |   btn.classList.add('active');
+  |   document.querySelectorAll('.plans-page .plan-card').forEach(card => {
+  |     const key     = card.dataset.planKey;
+  |     const monthly = parseInt(card.dataset.monthly, 10);
+  |     const yearly  = parseInt(card.dataset.yearly,  10);
+  |     if (!key || isNaN(monthly)) return;
+  |     const price   = isYearly ? yearly : monthly;
+  |     const priceEl = card.querySelector('#plans-' + key + '-price');
+  |     const origEl  = card.querySelector('#plans-' + key + '-orig');
+  |     const noteEl  = card.querySelector('#plans-' + key + '-note');
+  |     if (priceEl) priceEl.textContent = price.toLocaleString('ja-JP');
+  |     if (origEl) {
+  |       origEl.style.display = (isYearly && monthly > yearly) ? '' : 'none';
+  |     }
+  |     if (noteEl) {
+  |       if (isYearly) {
+  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '年額払いで20%お得';
+  |       } else {
+  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
+  |       }
+  |     }
+  |   });
+  | }
+  | function scrollPlansPricing(direction) {
+  |   const grid = document.getElementById('plans-pricing-grid');
+  |   if (!grid) return;
+  |   const card = grid.querySelector('.plan-card');
+  |   const step = card ? card.offsetWidth + 20 : 280;
+  |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
+  | }

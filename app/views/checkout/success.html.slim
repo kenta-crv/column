@@ -1,40 +1,45 @@
-.sc-detect.container.py-5.mt-md-5
-  .row.justify-content-center
-    .col-md-8.col-lg-6.text-center
-      .sc-detect__card.p-4.p-md-5
-        .mb-4
-          .d-inline-flex.align-items-center.justify-content-center.rounded-circle.sc-detect__success-icon-wrap
-            i.fas.fa-check
-
-        h1.sc-detect__title
-          | 決済が完了しました！
-
-        p.sc-detect__success-text
+.drafify-lp.checkout-success-page
+  .checkout-success
+    .checkout-success__card
+      .checkout-success__hero
+        .checkout-success__icon-ring
+          .checkout-success__icon
+            svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+              path d="M6 12.5l3.5 3.5L18 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+        h1.checkout-success__title 決済が完了しました
+        p.checkout-success__lead
           | お手続きありがとうございます。
           br
           | プランの適用が完了いたしました。
 
-        .sc-detect__table-wrapper.sc-detect__table-wrapper--success.my-4
-          table.sc-detect__table
-            tbody
-              -# コントローラでStripeから直接取得した確定データを安全に出力
-              tr
-                th.cell-label style="width: 40%;" 選択プラン
-                td.fw-bold.cell-value = @plan_name
+      .checkout-success__details
+        .checkout-success__detail
+          .checkout-success__detail-icon
+            svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+              path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          .checkout-success__detail-body
+            span.checkout-success__detail-label 選択プラン
+            strong.checkout-success__detail-value = @plan_name
 
-              - if @amount.present? && @amount > 0
-                tr
-                  th.cell-label 支払い金額
-                  td.fw-bold.cell-value == "¥#{number_with_delimiter(@amount)}"
-              
-              - if @invoice_id.present?
-                tr
-                  th.cell-label 決済ID
-                  td.small.cell-value-id = @invoice_id
+        - if @amount.present? && @amount.to_i > 0
+          .checkout-success__detail
+            .checkout-success__detail-icon
+              svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            .checkout-success__detail-body
+              span.checkout-success__detail-label 支払い金額
+              strong.checkout-success__detail-value = "¥#{number_with_delimiter(@amount)}"
 
-        .mt-5
-          -# 確実に今回のサブスクリプションまたはcurrent_clientからIDを引っ張るようにガード
-          = link_to dashboard_root_path(client_id: current_client.id),
-            class: "sc-detect__btn sc-detect__btn--primary" do
-            | マイページへ進む
-            i.fas.fa-arrow-right.ms-2
+        - if @invoice_id.present?
+          .checkout-success__detail.checkout-success__detail--wide
+            .checkout-success__detail-icon
+              svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                path d="M9 12h6m-6 4h6M7 4h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            .checkout-success__detail-body
+              span.checkout-success__detail-label 決済ID
+              strong.checkout-success__detail-value.checkout-success__detail-value--mono = @invoice_id
+
+      = link_to dashboard_root_path(client_id: current_client.id), class: "checkout-success__btn" do
+        span マイページへ進む
+        svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

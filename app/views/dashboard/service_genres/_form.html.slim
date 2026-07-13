@@ -47,15 +47,22 @@
       = f.label :keywords_text, "キーワード"
       = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: "1行1件、またはカンマ区切り"
 
-    .form-group
-      = f.label :images_text, "画像ファイル名"
-      = f.text_area :images_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :images_text).presence || Array(service_genre.images).join("\n"), placeholder: "例: app1.jpg"
-
   .form-section
     h3.form-section-title 中分類
     p.sub-categories-intro
       | 記事作成時の中分類プルダウンと、親記事・子記事の生成内容の参考情報として使われます。
       | 中分類を選んで記事を生成すると、各項目の内容が AI への指示文に含まれます。
+
+    .sub-categories-toolbar
+      button#suggest-sub-categories.btn.btn-title-suggest type="button"
+        | AIで中分類を提案
+      label.sub-categories-toolbar__count
+        span 提案数
+        input#sub-category-suggestion-count type="number" value="5" min="1" max="10"
+      small.form-text.sub-categories-toolbar__hint
+        | キー・表示名・訴求ポイント（＋キーワード）から中分類を自動生成します。実行すると既存の中分類は置き換わります。
+
+    #sub-category-suggest-status.sub-category-suggest-status hidden=true
 
     #sub-categories-list.sub-categories-list
       - service_genre_sub_category_items(service_genre).each do |item|
@@ -72,10 +79,15 @@
 
 javascript:
   (function() {
+    const suggestUrl = "#{suggest_sub_categories_dashboard_service_genres_path}";
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
     const initSubCategories = () => {
       const list = document.getElementById('sub-categories-list');
       const addBtn = document.getElementById('add-sub-category');
       const template = document.getElementById('sub-category-template');
+      const suggestBtn = document.getElementById('suggest-sub-categories');
+      const suggestStatus = document.getElementById('sub-category-suggest-status');
       if (!list || !addBtn || !template) return;
 
       if (list.dataset.initialized === 'true') return;
@@ -101,13 +113,119 @@ javascript:
         });
       };
 
-      addBtn.addEventListener('click', () => {
+      const setFieldValue = (item, selector, value) => {
+        const field = item.querySelector(selector);
+        if (!field) return;
+        field.value = value || '';
+      };
+
+      const appendSubCategoryItem = (data, open = true) => {
         const node = template.content.cloneNode(true);
         list.appendChild(node);
         const item = list.lastElementChild;
-        if (item) setOpen(item, true);
+        if (!item) return;
+
+        setFieldValue(item, 'input[name*="[key]"]', data.key);
+        setFieldValue(item, 'input[name*="[name]"]', data.name);
+        setFieldValue(item, 'input[name*="[target]"]', data.target);
+        setFieldValue(item, 'textarea[name*="[description]"]', data.description);
+        setFieldValue(item, 'textarea[name*="[features_text]"]', data.features_text);
+        setFieldValue(item, 'textarea[name*="[keywords_text]"]', data.keywords_text);
+        setFieldValue(item, 'input[name*="[price_hint]"]', data.price_hint);
+        setFieldValue(item, 'input[name*="[area]"]', data.area);
+        setFieldValue(item, 'textarea[name*="[strengths]"]', data.strengths);
+        setFieldValue(item, 'textarea[name*="[industry_weakness]"]', data.industry_weakness);
+
+        setOpen(item, open);
+      };
+
+      const showSuggestStatus = (message, type = 'info') => {
+        if (!suggestStatus) return;
+        suggestStatus.hidden = false;
+        suggestStatus.textContent = message;
+        suggestStatus.className = `sub-category-suggest-status sub-category-suggest-status--${type}`;
+      };
+
+      const hideSuggestStatus = () => {
+        if (!suggestStatus) return;
+        suggestStatus.hidden = true;
+        suggestStatus.textContent = '';
+      };
+
+      const readFormValue = (name) => {
+        const field = document.querySelector(`[name="service_genre[${name}]"]`);
+        return field ? field.value.trim() : '';
+      };
+
+      addBtn.addEventListener('click', () => {
+        appendSubCategoryItem({}, true);
         updateTitles();
       });
+
+      if (suggestBtn) {
+        suggestBtn.addEventListener('click', async () => {
+          const key = readFormValue('key');
+          const ja = readFormValue('ja');
+          const serviceName = readFormValue('service_name');
+          const strongPoints = readFormValue('strong_points');
+          const keywords = readFormValue('keywords_text');
+          const suggestionCount = document.getElementById('sub-category-suggestion-count')?.value || '5';
+
+          if (!key) {
+            showSuggestStatus('ジャンルキーを入力してください。', 'error');
+            return;
+          }
+
+          if (!strongPoints && !ja && !serviceName) {
+            showSuggestStatus('表示名・サービス名・訴求ポイントのいずれかを入力してください。', 'error');
+            return;
+          }
+
+          const hasExisting = list.querySelectorAll('.sub-category-item').length > 0;
+          if (hasExisting && !window.confirm('既存の中分類をAI提案で置き換えます。よろしいですか？')) {
+            return;
+          }
+
+          suggestBtn.disabled = true;
+          showSuggestStatus('AIが中分類を生成しています…', 'loading');
+
+          try {
+            const response = await fetch(suggestUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                key,
+                ja,
+                service_name: serviceName,
+                strong_points: strongPoints,
+                keywords,
+                suggestion_count: suggestionCount
+              })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+              showSuggestStatus(result.error || '中分類の生成に失敗しました。', 'error');
+              return;
+            }
+
+            list.innerHTML = '';
+            result.sub_categories.forEach((item, index) => {
+              appendSubCategoryItem(item, index === 0);
+            });
+            updateTitles();
+            showSuggestStatus(`${result.sub_categories.length}件の中分類を提案しました。内容を確認して保存してください。`, 'success');
+          } catch (error) {
+            showSuggestStatus('通信エラーが発生しました。時間をおいて再度お試しください。', 'error');
+          } finally {
+            suggestBtn.disabled = false;
+          }
+        });
+      }
 
       list.addEventListener('click', (event) => {
         const removeBtn = event.target.closest('.sub-category-remove');

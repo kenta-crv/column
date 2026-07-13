@@ -1,0 +1,31 @@
+.dashboard-flow
+  .dashboard-flow__header 記事作成フロー
+  .dashboard-flow__track
+    .dashboard-flow__item
+      = link_to dashboard_service_genres_path, class: "dashboard-flow__step is-link" do
+        span.dashboard-flow__num ①
+        span.dashboard-flow__label ジャンル・サービス管理
+    span.dashboard-flow__connector −
+
+    .dashboard-flow__item
+      button.dashboard-flow__step.is-link type="button" onclick="openTitleSuggestionModal()"
+        span.dashboard-flow__num ②
+        span.dashboard-flow__label AIタイトル提案
+    span.dashboard-flow__connector −
+
+    .dashboard-flow__item
+      span.dashboard-flow__step.is-static title="下の一覧から親記事の本文生成を行います"
+        span.dashboard-flow__num ③
+        span.dashboard-flow__label 親記事本文作成
+    span.dashboard-flow__connector −
+
+    .dashboard-flow__item
+      span.dashboard-flow__step.is-static title="子記事タイトルはAI提案または一覧から登録します"
+        span.dashboard-flow__num ④
+        span.dashboard-flow__label 子記事タイトル作成
+    span.dashboard-flow__connector −
+
+    .dashboard-flow__item
+      span.dashboard-flow__step.is-static title="下の一覧から子記事の本文生成を行います"
+        span.dashboard-flow__num ⑤
+        span.dashboard-flow__label 子記事本文作成
