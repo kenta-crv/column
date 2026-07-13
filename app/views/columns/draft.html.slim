@@ -35,11 +35,17 @@
                 td = column.genre
                 td
                   - if column.status == "draft"
-                    span.badge.bg-secondary 未承認
+                    span.draft-status-pill.draft-status-pill--pending
+                      span.draft-status-pill__dot
+                      | 未承認
                   - elsif column.body.blank?
-                    span.badge.bg-danger 本文なし(要再生成)
+                    span.draft-status-pill.draft-status-pill--missing
+                      span.draft-status-pill__dot
+                      | 本文なし(要再生成)
                   - else
-                    span.badge.bg-info 生成中/その他
+                    span.draft-status-pill.draft-status-pill--processing
+                      span.draft-status-pill__dot
+                      | 生成中/その他
                 td = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
                 td 
                   .d-flex.gap-1

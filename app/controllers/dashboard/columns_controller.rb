@@ -157,7 +157,7 @@ class Dashboard::ColumnsController < ApplicationController
         end
       end
 
-      redirect_to dashboard_columns_path, notice: "画像の生成を開始しました。"
+      redirect_to dashboard_root_path, notice: "画像生成を開始しました"
     else
       redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
     end
@@ -269,13 +269,13 @@ class Dashboard::ColumnsController < ApplicationController
     redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
   end
 
-  private
-
   def setting; end
 
   def management
     @clients = Client.includes(:subscriptions).order(created_at: :desc)
   end
+
+  private
 
   def suggest_titles
     unless admin_or_allowed_genre?(params[:genre])

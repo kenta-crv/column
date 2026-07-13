@@ -153,6 +153,10 @@ html
               .usage-progress-fill style=("width: #{usage_progress_width};")
 
       main.admin-main
+        - flash.each do |type, message|
+          - next if message.blank?
+          .admin-flash-message class="admin-flash-message--#{type == 'notice' ? 'success' : 'danger'}" role="alert"
+            = message
         = yield
 
   javascript:

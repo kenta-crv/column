@@ -760,8 +760,8 @@ body.admin-body {
   line-height: 1;
 }
 .count-badge.bg-primary {
-  background-color: #eff6ff;
-  color: #3b82f6;
+  background-color: #3b82f6;
+  color: #ffffff;
 }
 
 .dropdowns-group {
@@ -2481,3 +2481,21 @@ a:-webkit-any-link {
     }
   }
 }
+
+/* Dashboard flash message */
+.admin-flash-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  min-width: 260px;
+  max-width: 420px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+.admin-flash-message--success { background-color: #10b981; }
+.admin-flash-message--danger { background-color: #ef4444; }
