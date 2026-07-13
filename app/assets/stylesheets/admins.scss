@@ -455,6 +455,41 @@ body.admin-body {
       font-weight: 600;
       color: #0f172a;
     }
+
+    // ページ内限定のジャンルボタン（バッジ）スタイル
+    .img-gen-badge-genre {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.08);
+      color: #7c3aed;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      white-space: nowrap;
+    }
+
+    // ページ内限定のタイプボタン（バッジ）スタイル
+    .img-gen-badge-type {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+
+      &--pillar {
+        background: rgba(16, 185, 129, 0.08);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+
+      &--child {
+        background: rgba(14, 165, 233, 0.08);
+        color: #0ea5e9;
+        border: 1px solid rgba(14, 165, 233, 0.2);
+      }
+    }
   }
 
   .image-generation-empty {
@@ -465,6 +500,7 @@ body.admin-body {
     font-size: 14px;
   }
 }
+
 
 .genre-summary-section {
   background: #ffffff;

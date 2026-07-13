@@ -8,25 +8,6 @@ class GptPillarGenerator
   MODEL_NAME = "gpt-5.4-nano"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
-  # 公開前に人によるレビューを挟みたい場合は true にする。
-  # true の場合、生成完了後のステータスは "completed" ではなく
-  # "review_pending" になり、画像生成などの後続処理はスキップされる。
-  # （既存の運用を壊さないよう、デフォルトは false = 従来どおり即公開）
-  REQUIRE_HUMAN_REVIEW = false
-
-  # 記事内で同じ「論理パターン」が繰り返されるのを防ぐための
-  # 検出用正規表現。マッチした場合、そのカテゴリを次のセクション
-  # プロンプトに「既出」として渡し、別の説明方法を使わせる。
-  REPEATED_ARGUMENT_PATTERNS = {
-    single_metric_warning: /だけ.{0,12}(追う|見る|管理|判断).{0,20}(落ち|歪|下が|崩れ|見えにく|ズレ)/,
-    kpi_breakdown_generic: /(架電数|接続率|商談化率).{0,10}(だけでなく|のみならず)/,
-    definition_ambiguous_warning: /(定義|基準).{0,10}(曖昧|揃って).{0,15}(ズレ|崩れ|混乱)/
-  }.freeze
-
-  # H2セクションごとに異なる「構造スタイル」を巡回させ、
-  # 全セクションが同じベタ書き構成にならないようにする。
-  SECTION_STYLES = [:comparison_table, :ordered_list, :mini_scenario, :plain].freeze
-
   # ==========================================================
   # メイン生成ロジック
   # ==========================================================
@@ -133,8 +114,7 @@ class GptPillarGenerator
     # 本文生成
     # ----------------------------------------------------------
     body_content = ""
-    covered_points = []       # ← 既出セクションの要旨（重複防止用）
-    used_argument_types = []  # ← 既出セクションで使われた「論理パターン」の種類
+    covered_points = [] # ← 既出セクションの要旨を蓄積し、重複を防ぐ
 
     # 導入文
     ensure_not_cancelled!(column)
@@ -160,16 +140,12 @@ class GptPillarGenerator
 
     body_content += "\n"
 
-    total_sections = structure_data["structure"].size
-
     # H2セクション
-    structure_data["structure"].each_with_index do |section, index|
+    structure_data["structure"].each do |section|
       ensure_not_cancelled!(column)
       h2_title = section["h2_title"]
 
       body_content += "## #{h2_title}\n\n"
-
-      style = SECTION_STYLES[index % SECTION_STYLES.size]
 
       section_body = call_text_section(
         h2_content_prompt(
@@ -179,14 +155,15 @@ class GptPillarGenerator
           genre_data,
           sub_data,
           eeat_context,
-          covered_points,
-          used_argument_types,
-          style
+          covered_points
         )
       )
 
       section_body.gsub!(/\A\s*#+\s+#{Regexp.escape(h2_title)}\s*\n+/i, "")
       section_body.gsub!(/\A\s*#{Regexp.escape(h2_title)}\s*\n+/i, "")
+
+      # 表・チェックリストの構文バリデーション（列崩れ対策）
+      section_body = sanitize_markdown_table(section_body)
 
       body_content += section_body
       body_content += "\n\n"
@@ -196,9 +173,6 @@ class GptPillarGenerator
         title: h2_title,
         gist: extract_gist(section_body)
       }
-
-      # このセクションで使われた論理パターンを記録
-      used_argument_types |= detect_argument_types(section_body)
 
       sleep(1.2)
     end
@@ -222,26 +196,19 @@ class GptPillarGenerator
     # 保存
     # ----------------------------------------------------------
     ensure_not_cancelled!(column)
-
-    final_status = REQUIRE_HUMAN_REVIEW ? "review_pending" : "completed"
-
     column.update!(
       body: body_content,
-      status: final_status
+      status: "completed"
     )
 
-    if final_status == "completed"
-      begin
-        FluxImageGeneratorService.generate!(column)
-      rescue => e
-        Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-        Rails.logger.error e.backtrace.first(5).join("\n")
-      end
-    else
-      puts "⏸ レビュー待ちのため画像生成はスキップしました: #{clean_code}"
+    begin
+      FluxImageGeneratorService.generate!(column)
+    rescue => e
+      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
     end
 
-    puts "✅ 生成完了 (status=#{final_status}): #{clean_code}"
+    puts "✅ 生成完了: #{clean_code}"
 
     true
   end
@@ -393,7 +360,7 @@ class GptPillarGenerator
   end
 
   # ==========================================================
-  # 構成生成
+  # 構成生成（H2ごとに表・チェックリストの適性フラグを付与）
   # ==========================================================
   def self.generate_structure(column, category, genre_data, sub_data, eeat_context)
     child_columns = Column.where(
@@ -427,9 +394,6 @@ class GptPillarGenerator
       - ノウハウ型記事にする
       - 業界理解が深まる構成にする
       - 各H2は異なる論点・異なる結論を扱うこと（同じ主張の言い換え禁止）
-      - 各H2は「何を比較・判断する軸なのか」が一目でわかるタイトルにすること
-      - 少なくとも1つのH2は、複数の選択肢を横並びで整理できる論点にすること
-        （例: 運用モデル別、料金体系別、業種別など。比較表を作りやすい構成にする）
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -443,12 +407,16 @@ class GptPillarGenerator
       - 見出しのみ
       - SEOワードを自然に含める
       - 汎用的な構成にする
+      - 各H2について、以下のいずれかに該当する場合は has_table を true にしてよい（無理な絞り込みは不要）
+        (a) 複数の項目を軸で比較する内容 → 本文側で表として表現される
+        (b) 確認すべき項目・実施すべき手順・揃えるべき条件のように、Yes/No的にチェックできる内容 → 本文側でチェックリストとして表現される
+      - 判断軸や心構え・注意点の解説など、文章のみで十分伝わる見出しは無理に true にせず false のままにする
       - JSON以外禁止
 
       出力形式:
       {
         "structure": [
-          { "h2_title": "見出し" }
+          { "h2_title": "見出し", "has_table": false }
         ]
       }
     PROMPT
@@ -529,11 +497,7 @@ class GptPillarGenerator
       - 専門性と網羅性を重視
       - Google EEATを意識
       - 他セクションで述べた結論・ロジックの再掲禁止（新しい論点・情報を追加すること）
-      - 「〜が重要です」「〜が欠かせません」「〜が必要です」等の結び表現を
-        同一セクション内で2回以上使わない。表現にバリエーションを持たせる
-      - 具体的な統計や金額を書く場合、断定的な事実であるかのように書かない。
-        「一般的な目安として」「現場でよく見られる例として」等でヘッジする。
-        実在しない出典を捏造しない
+      - 表・チェックリストの指示がある場合のみMarkdown記法を使用し、それ以外では表記法を使わない
     SYSTEM
 
     if json_mode
@@ -619,9 +583,9 @@ class GptPillarGenerator
   end
 
   # ==========================================================
-  # H2本文
+  # H2本文（has_table対応）
   # ==========================================================
-  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context, covered_points = [], used_argument_types = [], style = :plain)
+  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context, covered_points = [])
     <<~PROMPT
       以下H2見出しの本文を執筆してください。
 
@@ -633,13 +597,11 @@ class GptPillarGenerator
 
       #{build_covered_points_block(covered_points)}
 
-      #{build_argument_avoidance_block(used_argument_types)}
-
-      #{build_style_instruction(style)}
+      #{build_table_instruction(section)}
 
       【条件】
       - 日本語
-      - 1200〜1800文字
+      - 1200〜1800文字（表やチェックリストを入れる場合、その文字数も含めてよい）
       - 専門性を持たせる
       - 実務視点で解説
       - 中立的に解説
@@ -656,8 +618,6 @@ class GptPillarGenerator
       - 現場理解が伝わる文章にする
       - 上記【既出セクションの要旨】と同じ主張・結論・具体例を繰り返さない
       - この見出し特有の新しい論点・視点・情報を中心に書く
-      - 【既出の論理パターン】に挙げたものと同じ「警告の型」を再利用しない。
-        使うなら、具体例・数値レンジ・ミニケースなど別の説明方法に置き換える
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -668,6 +628,36 @@ class GptPillarGenerator
       【追加指示】
       #{column.prompt}
     PROMPT
+  end
+
+  # ==========================================================
+  # 表・チェックリスト生成指示ブロック
+  # ==========================================================
+  def self.build_table_instruction(section)
+    if section["has_table"]
+      <<~TEXT
+        【表・チェックリストの挿入(必須・どちらか1つを選ぶ)】
+        この見出しの内容に応じて、以下のどちらかを1つだけ選んで本文中の適切な位置に挿入してください。両方入れない。
+
+        ■ 表(Markdownテーブル)を選ぶ基準:
+          - 複数の項目を「軸」で比較・分類する内容(例: 判断基準の一覧、選択肢ごとの特徴、条件と目安の対応表)
+          - `| 項目 | 内容 |` のようなパイプ区切りのMarkdownテーブル形式を使用
+          - ヘッダー行の直下に `|---|---|` の区切り行を必ず入れる
+          - 各行の列数(パイプの数)は必ず揃える
+
+        ■ チェックリストを選ぶ基準:
+          - 「確認すべき項目」「作業前に揃えるべき条件」「実施すべき手順」など、Yes/No的に確認・実施できる内容
+          - この基準に該当する場合は、通常の箇条書き `- 項目` ではなく、必ず `- [ ] 項目` の形式を使用する
+
+        - 表・チェックリストは3〜6行程度に収め、情報を詰め込みすぎない
+        - 表やチェックリストだけで終わらせず、その前後に必ず文章での解説を入れる
+      TEXT
+    else
+      <<~TEXT
+        【表・チェックリストについて】
+        - この見出しでは表やチェックリストを無理に挿入しない。通常の文章のみで解説する
+      TEXT
+    end
   end
 
   # ==========================================================
@@ -690,6 +680,7 @@ class GptPillarGenerator
       - SEO記事として自然に終える
       - 汎用記事として成立させる
       - 上記【既出セクションの要旨】を踏まえ、各セクションの言い換えではなく統合的な総括にする
+      - まとめでは表・チェックリストは使用しない(通常の文章のみ)
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -700,44 +691,6 @@ class GptPillarGenerator
       【追加指示】
       #{column.prompt}
     PROMPT
-  end
-
-  # ==========================================================
-  # セクション構造スタイルの指示ブロック
-  # ==========================================================
-  def self.build_style_instruction(style)
-    case style
-    when :comparison_table
-      <<~TEXT
-        【この見出しの構成指示】
-        本文中に、Markdown形式の比較表を1つ含めること。
-        例: | 項目 | パターンA | パターンB |
-        表の前後に地の文で解説を加え、表だけで終わらせない。
-        表の数値・分類は断定的な統計として書かず、
-        整理・分類のための一般的な目安として提示すること。
-      TEXT
-    when :ordered_list
-      <<~TEXT
-        【この見出しの構成指示】
-        判断基準または確認事項を、番号付きリスト（1. 2. 3.）で
-        3〜5項目に整理する部分を本文中に含めること。
-        リストの前後に地の文の解説を加え、リストだけで終わらせない。
-      TEXT
-    when :mini_scenario
-      <<~TEXT
-        【この見出しの構成指示】
-        「たとえば〜のようなケースでは」という形で、
-        具体的な業務シーン（架空の一般化された例でよい）を
-        1つ挙げて説明すること。実在の企業名は使わない。
-      TEXT
-    else
-      <<~TEXT
-        【この見出しの構成指示】
-        通常の説明文で構成してよいが、他の見出しと
-        同じ文章パターン（導入→定義→注意点→まとめ、等）を
-        繰り返さないこと。
-      TEXT
-    end
   end
 
   # ==========================================================
@@ -757,53 +710,71 @@ class GptPillarGenerator
   end
 
   # ==========================================================
-  # 既出の論理パターン回避ブロック生成
-  # ==========================================================
-  def self.build_argument_avoidance_block(used_argument_types)
-    return "" if used_argument_types.blank?
-
-    labels = used_argument_types.map { |t| argument_type_label(t) }
-
-    <<~TEXT
-      【既出の論理パターン（同じ型を再利用しない）】
-      #{labels.map { |l| "- #{l}" }.join("\n")}
-    TEXT
-  end
-
-  def self.argument_type_label(type)
-    {
-      single_metric_warning: "単一指標だけで判断すると危険、という警告構文",
-      kpi_breakdown_generic: "複数KPIを並べて「これだけでなく」と注意喚起する構文",
-      definition_ambiguous_warning: "定義や基準の曖昧さがズレを生む、という警告構文"
-    }[type] || type.to_s
-  end
-
-  # ==========================================================
   # セクション要旨の抽出（次セクションへの重複防止用）
   # ==========================================================
   def self.extract_gist(section_body)
     return "" if section_body.blank?
 
+    # 先頭2文程度を要旨として使う（追加API呼び出しを避けるための簡易実装）
     sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
-    return "" if sentences.empty?
-
-    # 冒頭2文（何を論じ始めたか）+ 末尾1文（結論・要旨）を要旨として使う。
-    # 追加API呼び出しを避けつつ、中盤〜終盤の結論も拾えるようにする簡易実装。
-    lead = sentences.first(2)
-    tail = sentences.length > 2 ? [sentences.last] : []
-
-    (lead + tail).uniq.join("").truncate(220)
+    sentences.first(2).join("").truncate(180)
   end
 
   # ==========================================================
-  # セクション内の「論理パターン」を検出
+  # Markdown表の簡易バリデーション
+  # 列数が揃っていない、区切り行がないなど崩れた表は、事故を避けるため
+  # テーブル記法を通常の箇条書き風テキストに変換して救済する
   # ==========================================================
-  def self.detect_argument_types(section_body)
-    return [] if section_body.blank?
+  def self.sanitize_markdown_table(text)
+    return text if text.blank?
 
-    REPEATED_ARGUMENT_PATTERNS.each_with_object([]) do |(type, pattern), found|
-      found << type if section_body.match?(pattern)
+    lines = text.split("\n")
+    result = []
+    i = 0
+
+    while i < lines.length
+      line = lines[i]
+
+      if table_row?(line)
+        table_block = []
+        while i < lines.length && (table_row?(lines[i]) || separator_row?(lines[i]))
+          table_block << lines[i]
+          i += 1
+        end
+
+        if valid_table?(table_block)
+          result.concat(table_block)
+        else
+          puts "⚠️ 崩れたMarkdown表を検出したため、テキスト形式に変換しました"
+          table_block.each do |row|
+            next if separator_row?(row)
+            cells = row.split("|").map(&:strip).reject(&:blank?)
+            result << "- #{cells.join(' / ')}" if cells.present?
+          end
+        end
+      else
+        result << line
+        i += 1
+      end
     end
+
+    result.join("\n")
+  end
+
+  def self.table_row?(line)
+    line.strip.start_with?("|") && line.strip.end_with?("|")
+  end
+
+  def self.separator_row?(line)
+    line.strip =~ /\A\|?[\s:\-|]+\|?\z/ && line.include?("-")
+  end
+
+  def self.valid_table?(table_block)
+    rows = table_block.reject { |r| separator_row?(r) }
+    return false if rows.length < 2
+
+    col_counts = rows.map { |r| r.split("|").length }
+    col_counts.uniq.length == 1 && table_block.any? { |r| separator_row?(r) }
   end
 
   # ==========================================================

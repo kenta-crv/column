@@ -13,7 +13,7 @@
       .nav-cta
         button.btn-login ログイン
         = link_to "無料で始める →", "/clients/sign_up", class: "btn-primary"
-
+ 
   /-- HERO --
   section.hero
     .hero-inner
@@ -32,12 +32,12 @@
           br
           | 読者の心に響く高品質な記事を自動生成。
           br
-          | あなたのメディアの成長を加速させます。
+          | あなたのメディアの成長を急速に加速させます。
         .hero-checks
           span.check-pill
             svg viewBox="0 0 14 14" fill="none"
               path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-            | SEOに強い構成を自動提案
+            | SEOに強い構成を自動作成
           span.check-pill
             svg viewBox="0 0 14 14" fill="none"
               path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
@@ -49,11 +49,6 @@
         .hero-actions
           = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
           a.btn-ghost href="#features" デモを見る →
-        .hero-social
-          .hero-avatars
-            span U
-            span K
-            span T
       .hero-right
         .pc-wrap
           .float-card.fc-time
@@ -85,7 +80,7 @@
                 span 字
 
   /-- TRUST --
-  .trust-bar
+  /.trust-bar
     .trust-inner
       p.trust-label 多くの企業・個人に選ばれています
       .trust-logos
@@ -96,90 +91,594 @@
         span.trust-logo Lancers
         span.trust-logo excite.
 
-  /-- PROBLEM --
-  section.problem-section
-    .problem-inner
-      .section-header
-        span.overline NEED SOLUTIONS?
-        h2.section-title こんなお悩みありませんか？
-      .problem-grid
-        .problem-card-item
-          .pci-icon ！
-          p.pci-text AIで記事を生成依頼しても精度が低い
-        .problem-card-item
-          .pci-icon ！
-          p.pci-text Googleに最適な記事構成がわからない
-        .problem-card-item
-          .pci-icon ！
-          p.pci-text 最適な記事構成の文章の難易度が高い
-        .problem-card-item
-          .pci-icon ！
-          p.pci-text ライターに任せているが、納品が遅い
-        .problem-card-item
-          .pci-icon ！
-          p.pci-text AIに自動で高品質な記事を作ってもらいたい
 
-  /-- CONCEPT --
+  section.whats-section
+   .whats-inner
+    .section-header
+      span.overline What’s Drafity?
+      h2.section-title
+        | 次世代のAI記事生成・運用支援ツール『Drafity』
+
+    .whats-intro-block
+      .whats-intro-left
+        p.whats-lead-text
+          | SEOに強い構成案の作成から、本文の自動生成、画像生成、
+          br
+          | リライト、効果測定まで、メディア運営に必要なすべてを
+          br
+          | 一つのプラットフォームで完結。
+        
+        .whats-features-row
+          .whats-feature-pill
+            .wfp-icon.icon-lightning
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+                polygon(points="13 2 3 14 12 14 11 22 21 10 12 10 13 2")
+            .wfp-body
+              h4.wfp-title 圧倒的に速い
+              p.wfp-desc 最短数分で記事完成
+          .whats-feature-pill
+            .wfp-icon.icon-shield
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z")
+            .wfp-body
+              h4.wfp-title SEOに強い
+              p.wfp-desc 上位表示をサポート
+          .whats-feature-pill
+            .wfp-icon.icon-growth
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+                line(x1="18" y1="20" x2="18" y2="10")
+                line(x1="12" y1="20" x2="12" y2="4")
+                line(x1="6" y1="20" x2="6" y2="14")
+            .wfp-body
+              h4.wfp-title 成果につながる
+              p.wfp-desc 分析・改善まで支援
+
+      .whats-intro-right
+        .whats-mockup-container
+          .whats-laptop-img
+            = image_tag "whats.png"
+
+              
+  section.problem-section
+   .problem-inner
+    .section-header
+      span.overline こんなお悩みありませんか？
+      h2.section-title
+        | メディア運営で、こんな
+        span.text-highlight-blue 壁
+        | にぶつかっていませんか？
+      .section-dots
+        span
+        span
+        span
+
+    .problem-grid
+      /-- Card 1 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-clock
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              circle(cx="12" cy="12" r="10")
+              polyline(points="12 6 12 12 16 14")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | 記事制作に時間がかかり、
+              br
+              | 本来の業務に集中できない
+          p.pci-description 企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。
+
+      /-- Card 2 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-search
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              circle(cx="11" cy="11" r="8")
+              line(x1="21" y1="21" x2="16.65" y2="16.65")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | SEOを意識した記事が
+              br
+              | うまく書けない
+          p.pci-description 検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。
+
+      /-- Card 3 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-chart
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              line(x1="18" y1="20" x2="18" y2="10")
+              line(x1="12" y1="20" x2="12" y2="4")
+              line(x1="6" y1="20" x2="6" y2="14")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | 記事の品質にばらつきがあり、
+              br
+              | 読者の満足度が上がらない
+          p.pci-description ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。
+
+      /-- Card 4 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-analytics
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              rect(x="3" y="3" width="18" height="18" rx="2" ry="2")
+              path(d="M7 11l3-3 4 4 3-3")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | アクセスや成果が伸び悩み、
+              br
+              | 改善の打ち手が見えない
+          p.pci-description データ分析や改善施策に時間が取れず、PDCAが回せていない。
+
+      /-- Card 5 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-calc
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              rect(x="5" y="2" width="14" height="20" rx="2" ry="2")
+              line(x1="8" y1="6" x2="16" y2="6")
+              line(x1="16" y1="10" x2="16" y2="18")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | 外注コストがかさみ、
+              br
+              | 運営コストが増大している
+          p.pci-description ライターや編集者への依頼コストが積み重なり、利益を圧迫している。
+
+      /-- Card 6 --
+      .problem-card-item
+        .pci-meta
+          .pci-visual-icon.icon-bell
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              path(d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9")
+              path(d="M13.73 21a2 2 0 0 1-3.46 0")
+        .pci-content
+          .pci-check-line
+            span.pci-check-box
+            p.pci-check-text
+              | 最新情報のキャッチアップや
+              br
+              | 記事更新が追いつかない
+          p.pci-description 情報の鮮度を保つのが難しく、競合メディアに差をつけられてしまう。
+
+    .solution-arrow
+      svg(viewBox="0 0 24 24" fill="currentColor")
+        path(d="M12 21l-12-18h24z")
+
+    /-- Solution Banner Box --
+    .solution-banner-box
+      .sb-content-left
+        .sb-headline-row
+          span.sb-lead-text そのお悩み、
+          span.sb-badge-tag AI×SEOに強い
+        .sb-brand-row
+          .sb-logo-mark
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+              path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")
+              polyline(points="14 2 14 8 20 8")
+              line(x1="16" y1="13" x2="8" y2="13")
+              line(x1="16" y1="17" x2="8" y2="17")
+              polyline(points="10 9 9 9 8 9")
+          h3.sb-brand-name Drafity
+          span.sb-suffix-text がすべて
+          span.sb-gradient-action 解決
+          span.sb-suffix-text します。
+      .sb-mockup-right
+        .sb-dashboard-wrapper
+          /img.sb-dashboard-img src=image_path('dashboard-preview.png') alt="Drafity Dashboard"
+        .sb-deco-icon.deco-sparkle
+          svg(viewBox="0 0 24 24" fill="currentColor")
+            path(d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z")
+        .sb-deco-icon.deco-chat
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            path(d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z")
+        .sb-deco-icon.deco-chart
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+            line(x1="18" y1="20" x2="18" y2="10")
+            line(x1="12" y1="20" x2="12" y2="4")
+            line(x1="6" y1="20" x2="6" y2="14")
+
+
   section.concept-section
+    //- 背景の巨大な青・紫グラデーション帯
+    .concept-ambient-background
     .concept-inner
       .concept-md
-        h3.concept-sub-title 現在のGoogleで上位表示されやすい「最適な記事構成」とは？
+        h3.concept-sub-title
+          | 現在のGoogleで上位表示されやすい
+          br.sp-only
+          | 「
+          span.text-gradient 最適な記事構成
+          | 」とは？
+        
         .concept-grid
+          // 01
           .concept-card
-            .cc-num 01
-            h4.cc-title ピラー・クラスター構造
-            p.cc-desc ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。
+            .cc-header
+              .cc-num-badge 01
+              h4.cc-title ピラー・クラスター構造
+            .cc-body
+              p.cc-desc ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。
+            .cc-illustration
+              = image_tag "icon1.png", alt: "ピラー・クラスター構造のイメージ", class: "cc-img"
+          
+          // 02
           .concept-card
-            .cc-num 02
-            h4.cc-title E-E-A-Tへの適応
-            p.cc-desc 経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。
+            .cc-header
+              .cc-num-badge 02
+              h4.cc-title E-E-A-Tへの適応
+            .cc-body
+              p.cc-desc 経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。
+            .cc-illustration
+              = image_tag "icon2.png", alt: "E-E-A-Tへの適応のイメージ", class: "cc-img"
+          
+          // 03
           .concept-card
-            .cc-num 03
-            h4.cc-title ユーザーファースト
-            p.cc-desc 単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。
+            .cc-header
+              .cc-num-badge 03
+              h4.cc-title ユーザーファースト
+            .cc-body
+              p.cc-desc 単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。
+            .cc-illustration
+              = image_tag "icon3.png", alt: "ユーザーファーストのイメージ", class: "cc-img"
 
-  /-- WHAT WE GENERATE & FEATURES --
+
   section.features-strip#features
     .features-inner
       .section-header
-        span.overline FEATURES & OUTPUTS
-        h2.section-title Drafityで生成・実現できること
-        p.section-sub
-          | タイトル、キーワード選定、説明文、画像、本文、さらに子記事・親記事の自動設計まで網羅。
-          br
-          | 記事生成中は画面を閉じてもバックグラウンドで自動処理されます。
+        span.overline 機能一覧
+        h2.section-title 
+          | 記事制作のすべてを、
+          span.text-brand Drafity
+          | ひとつで。
+        p.section-sub SEOに強い記事制作から運用・改善まで、必要な機能をすべて搭載。
+      
       .features-grid
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="currentColor" stroke-width="1.5"
-          .fi-title テーマ条件の自動提案
-          .fi-desc 検索需要を捉えた最適なテーマをAIが提案
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              path d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10" stroke="currentColor" stroke-width="1.5"
-          .fi-title 親子記事の自動連携
-          .fi-desc ピラー記事とそれを補完するクラスター記事を自動生成
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              path d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-          .fi-title 画像AI自動生成
-          .fi-desc 文脈に適したアイキャッチや挿入画像をAIが描画
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"
-              path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          .fi-title 記事ランク自動査定
-          .fi-desc 生成された記事の品質やSEOスコアを瞬時に可視化
-        .feature-item
-          .fi-icon
-            svg viewBox="0 0 24 24" fill="none"
-              path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-          .fi-title APIによる自動同期
-          .fi-desc 外部サイトやCMSへ生成した最適記事をシームレスに出力
+        // 01: キーワード調査
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 01
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  circle(cx="11" cy="11" r="8")
+                  line(x1="21" y1="21" x2="16.65" y2="16.65")
+              h3.fc-title キーワード調査
+            p.fc-desc 検索ボリュームや競合性を分析し、成果につながるキーワードを提案。
+          .fc-mockup
+            .mock-window
+              .mw-header キーワード候補
+              .mw-table
+                .mt-row.mt-head
+                  span キーワード
+                  span 競合性
+                .mt-row
+                  span AI 記事生成
+                  span 12,100
+                  span.badge.low 低
+                .mt-row
+                  span SEO対策
+                  span 8,900
+                  span.badge.mid 中
+                .mt-row
+                  span コンテンツマーケティング
+                  span 6,600
+                  span.badge.low 低
+
+        // 02: 構成案の自動生成
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 02
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")
+                  polyline(points="14 2 14 8 20 8")
+                  line(x1="16" y1="13" x2="8" y2="13")
+                  line(x1="16" y1="17" x2="8" y2="17")
+                  polyline(points="10 9 9 9 8 9")
+              h3.fc-title 構成案の自動生成
+            p.fc-desc SEOに強い構成をAIが自動で作成。見出し構成や流れまで最適化。
+          .fc-mockup
+            .mock-window
+              .mw-header 構成案
+              .mw-list
+                .ml-item
+                  span.h2-tag H2
+                  span.ml-text AI記事生成ツールとは？
+                .ml-item
+                  span.h2-tag H2
+                  span.ml-text AI記事生成ツールを使うメリット
+                .ml-item
+                  span.h2-tag H2
+                  span.ml-text おすすめのAI記事生成ツール
+                .ml-item
+                  span.h2-tag H2
+                  span.ml-text 選び方のポイント
+                .ml-item
+                  span.h2-tag H2
+                  span.ml-text まとめ
+
+        // 03: 本文の自動生成
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 03
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  path(d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z")
+              h3.fc-title 本文の自動生成
+            p.fc-desc 自然な文章をAIが生成。高品質な記事を短時間で作成。
+          .fc-mockup
+            .mock-window
+              .mw-toolbar
+                span B
+                span I
+                span U
+                span.divider
+                span 
+                  svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12")
+                    rect(x="3" y="3" width="18" height="18" rx="2" ry="2")
+                    circle(cx="8.5" cy="8.5" r="1.5")
+                    polyline(points="21 15 16 10 5 21")
+              .mw-editor-content
+                p AI記事生成ツールは、記事制作の工数を大幅に削減し、高品質なコンテンツを効率的に作成できるツールです。
+                p 本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。
+
+        // 04: 画像の自動生成
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 04
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  rect(x="3" y="3" width="18" height="18" rx="2" ry="2")
+                  circle(cx="8.5" cy="8.5" r="1.5")
+                  polyline(points="21 15 16 10 5 21")
+              h3.fc-title 画像の自動生成
+            p.fc-desc 記事内容に合った画像やアイキャッチをAIが自動で生成・提案。
+          .fc-mockup
+            .mock-images
+              .mi-main
+                .mi-placeholder.ai-bg
+                  span.ai-text AI
+              .mi-side
+                .mi-placeholder.ai-bg-small
+                .mi-placeholder.ai-bg-small
+                .mi-btn この画像を使う
+
+        // 05: リライト・改善提案
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 05
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  path(d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7")
+                  path(d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z")
+              h3.fc-title リライト・改善提案
+            p.fc-desc 記事のリライトやSEO改善提案で、より成果の出る記事にブラッシュアップ。
+          .fc-mockup
+            .mock-window
+              .mw-header 改善提案
+              .mw-check-list
+                .mc-item
+                  svg(viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3")
+                    polyline(points="20 6 9 17 4 12")
+                  span 見出しにキーワードを含めると効果的です
+                .mc-item
+                  svg(viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3")
+                    polyline(points="20 6 9 17 4 12")
+                  span 導入文をより具体的にすると離脱率が下がります
+                .mc-item
+                  svg(viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3")
+                    polyline(points="20 6 9 17 4 12")
+                  span 内部リンクの追加をおすすめします
+
+        // 06: 効果測定・分析
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 06
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  line(x1="18" y1="20" x2="18" y2="10")
+                  line(x1="12" y1="20" x2="12" y2="4")
+                  line(x1="6" y1="20" x2="6" y2="14")
+              h3.fc-title 効果測定・分析
+            p.fc-desc 検索順位や流入数などを可視化し、改善につなげます。
+          .fc-mockup
+            .mock-window
+              .mw-header パフォーマンス推移
+              .mw-stats
+                .ms-item
+                  span.ms-label 表示回数
+                  span.ms-val 25,410
+                  span.ms-diff.up + 18.5%
+                .ms-item
+                  span.ms-label クリック数
+                  span.ms-val 1,234
+                  span.ms-diff.up + 22.1%
+                .ms-item
+                  span.ms-label 平均掲載順位
+                  span.ms-val 12.4
+                  span.ms-diff.down + 2.1
+              .mw-chart
+                svg(viewBox="0 0 200 40" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round")
+                  path(d="M5,35 L40,25 L80,30 L120,15 L160,20 L195,5")
+
+        // 07: 公開・連携
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 07
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  path(d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4")
+                  polyline(points="17 8 12 3 7 8")
+                  line(x1="12" y1="3" x2="12" y2="15")
+              h3.fc-title 公開・連携
+            p.fc-desc WordPress連携でワンクリック公開。スムーズに入稿・運用が可能。
+          .fc-mockup
+            .mock-window.mw-center
+              .wp-logo
+                svg(viewBox="0 0 24 24" fill="#3B82F6")
+                  path(d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-6.42l-3.32-9.143a8.03 8.03 0 0 0-2.613 6.643c.48-1.573 2.05-4.8 2.05-4.8l3.883 7.3zm4.567-7.834c0-.987-.354-1.68-.787-2.18-.55-.634-1.26-.954-2.008-.954-1.143 0-1.93.854-1.93 1.93 0 .987.354 1.68.787 2.18.55.634 1.26.954 2.008.954 1.14 0 1.93-.854 1.93-1.93zm-1.614 7.69l2.7-7.55c.34-.954.21-1.666-.35-2.227a7.996 7.996 0 0 0-3.38-1.523l-3.353 9.4 4.383 1.9zm4.61-4.3c0-1.78-.58-3.415-1.554-4.733l-2.793 7.72c1.97-1.127 4.347-1.794 4.347-2.987z")
+              .mw-text WordPressに接続中...
+              .mw-progress
+                .mp-bar
+                span 100%
+
+        // 08: チーム管理・権限設定
+        .feature-card
+          .fc-top
+            .fc-head-row
+              .fc-num 08
+              .fc-icon
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round")
+                  path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
+                  circle(cx="9" cy="7" r="4")
+                  path(d="M23 21v-2a4 4 0 0 0-3-3.87")
+                  path(d="M16 3.13a4 4 0 0 1 0 7.75")
+              h3.fc-title チーム管理・権限設定
+            p.fc-desc 複数メンバーでの運用をサポート。権限設定で安全なチーム運用を実現。
+          .fc-mockup
+            .mock-window
+              .mw-table
+                .mt-row.mt-head
+                  span メンバー
+                  span 権限
+                .mt-row
+                  .mt-user
+                    .mu-avatar
+                    span 山田 太郎
+                  span 管理者
+                .mt-row
+                  .mt-user
+                    .mu-avatar
+                    span 鈴木 花子
+                  span 編集者
+                .mt-row
+                  .mt-user
+                    .mu-avatar
+                    span 田中 一郎
+                  span ライター
+
+
+      // 下部サマリーバナー
+      .features-summary-banner
+        .fsb-left
+          p.fsb-lead
+            span.text-brand Drafity
+            | が、記事制作のあらゆる工程を効率化し、成果につながるメディア運営を支援します。
+        .fsb-right
+          .fsb-point-item
+            .fsb-point-icon
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round")
+                circle(cx="12" cy="12" r="10")
+                polyline(points="12 6 12 12 16 14")
+            .fsb-point-text 制作時間を大幅カット
+          .fsb-point-item
+            .fsb-point-icon
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round")
+                polyline(points="23 6 13.5 15.5 8.5 10.5 1 18")
+                polyline(points="17 6 23 6 23 12")
+            .fsb-point-text SEO成果を最大化
+          .fsb-point-item
+            .fsb-point-icon
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round")
+                path(d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z")
+                polyline(points="9 12 11 14 15 10")
+            .fsb-point-text 品質を保ちながら安定運用
+          .fsb-point-item
+            .fsb-point-icon
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round")
+                path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
+                circle(cx="9" cy="7" r="4")
+                path(d="M23 21v-2a4 4 0 0 0-3-3.87")
+                path(d="M16 3.13a4 4 0 0 1 0 7.75")
+            .fsb-point-text チームでの共同運用も安心
+
+
+
+  section.dashboard-section#dashboard
+    .dashboard-inner
+      .section-header
+        h2.section-title 
+          | すべてが
+          span.text-blue 一目でわかる
+          | 、シンプルなダッシュボード
+        p.section-sub 記事生成から公開、成果の確認まで。必要な情報をリアルタイムで可視化します。
+
+      .dashboard-grid
+        // 左カラム: 4つの特徴リスト
+        .dashboard-left-features
+          // 01
+          .df-item
+            .df-icon-wrap.icon-blue
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M21.21 15.89A10 10 0 1 1 8 2.83")
+                path(d="M22 12A10 10 0 0 0 12 2v10z")
+            .df-content
+              h3.df-label 重要指標をリアルタイムで把握
+              p.df-desc 総生成数・公開済・下書き・成功率など、主要な指標をひと目で確認できます。
+          
+          // 02
+          .df-item
+            .df-icon-wrap.icon-amber
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z")
+            .df-content
+              h3.df-label ジャンルごとの記事状況を可視化
+              p.df-desc ジャンル別の記事総数と、Pillar / Clusterの内訳を確認。コンテンツ戦略の最適化に役立ちます。
+          
+          // 03
+          .df-item
+            .df-icon-wrap.icon-indigo
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                polygon(points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3")
+            .df-content
+              h3.df-label ステータスごとに簡単フィルタ
+              p.df-desc すべてのステータスをワンクリックで切り替え、必要な記事をすぐに検索・管理できます。
+          
+          // 04
+          .df-item
+            .df-icon-wrap.icon-purple
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                circle(cx="12" cy="12" r="10")
+                polyline(points="12 6 12 12 16 14")
+            .df-content
+              h3.df-label リアルタイム生成状況を確認
+              p.df-desc AI生成の進行状況をリアルタイムで確認。完了数や進捗をすぐに把握できます。
+
+        // 右カラム: ダッシュボード画像 (Rails image_tag対応)
+        .dashboard-right-mockup
+          .mockup-container
+            = image_tag "img_dashboard.png", alt: "Drafity ダッシュボード画面", class: "dashboard-img"
+
+      // 下部サマリーバナー
+      .dashboard-summary-banner
+        .dsb-icon-wrap
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+            polygon(points="12 2 2 7 12 12 22 7 12 2 12 2")
+            polyline(points="2 17 12 22 22 17")
+            polyline(points="2 12 12 17 22 12")
+        p.dsb-text
+          | 迷わず使える、直感的なUI/UXで日々の運用をもっと快適に。
+          span Drafityのダッシュボードが、コンテンツ運用のすべてをサポートします。
+
+
+
 
   /-- ENTERPRISE AGENT --
   section.enterprise-agent-section
@@ -248,225 +747,269 @@
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
-      /-- shared features --
-      .shared-features
-        .shared-title すべてのプランに共通の安心機能
-        .shared-grid
-          .shared-item
-            .shared-icon
-              svg viewBox="0 0 24 24" fill="none"
-                path d="M12 3l7 4v5c0 4.4-3 8.5-7 9.5C8 20.5 5 16.4 5 12V7l7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
-            .shared-item-title セキュリティ対策
-            .shared-item-desc データは暗号化され安全に保護されます
-          .shared-item
-            .shared-icon
-              svg viewBox="0 0 24 24" fill="none"
-                circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"
-                path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-            .shared-item-title 商用利用OK
-            .shared-item-desc 作成した記事は自由に商用利用できます
-          .shared-item
-            .shared-icon
-              svg viewBox="0 0 24 24" fill="none"
-                path d="M8 7H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3M8 7V5a4 4 0 0 1 8 0v2M8 7h8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
-            .shared-item-title 自動保存
-            .shared-item-desc 編集内容は自動で保存されます
-          .shared-item
-            .shared-icon
-              svg viewBox="0 0 24 24" fill="none"
-                path d="M4 4v16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                path d="M4 16l4-4 4 4 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-            .shared-item-title アップデート無償提供
-            .shared-item-desc 新機能・改善はすべて無償でご利用可能
 
-  /-- VOICES (TESTIMONIALS) --
   section.voices-section#cases
     .voices-inner
       .section-header
-        span.overline CASE STUDIES
-        h2.section-title お客様の声
-        p.section-sub 導入後にメディア運用が劇的に変化した、驚きと喜びの声が届いています。
-      .voices-grid
-        .voice-card
-          .voice-rating ★★★★★
-          h4.voice-title 「月間100本の記事生成が1人で可能になりました」
-          p.voice-text 以前は外注ライターのディレクションと進捗管理に追われていましたが、Drafifyを導入してからはテーマ設定からクラスター記事構築まで完全に自社で完結。画像も同時に生成されるため作業コストが大幅に削れました。
-          .voice-meta
-            .voice-user 広告代理店 メディア運用担当者様
-        .voice-card
-          .voice-rating ★★★★★
-          h4.voice-title 「狙った複合キーワードで上位表示を連発」
-          p.voice-text Googleの最新志向を反映したピラー・クラスターの連携設計が素晴らしく、自動生成された記事にもかかわらず、E-E-A-Tを意識した深みのあるコンテンツが届きます。分析査定機能のスコアを信頼してそのまま公開しています。
-          .voice-meta
-            .voice-user ITベンチャー SEO責任者様
-        .voice-card
-          .voice-rating ★★★★★
-          h4.voice-title 「Enterpriseプランの自律稼動には驚かされました」
-          p.voice-text キーワードを最小限セットして放置するだけで、AIが自律して次々と親子記事を書き進めてくれます。進捗がSMSやメールで通知されるため、本当にPCを閉じて待つだけ。メディア量産のゲームチェンジャーです。
-          .voice-meta
-            .voice-user メディア運営会社 経営者様
+        span.overline USER REVIEW
+        h2.section-title 
+          | 多くのメディア運営者に選ばれ、
+          span.text-accent 成果を実感
+          | いただいています
+        p.section-sub Drafityを導入した方々のリアルな声をご紹介します。
+      
+      // スライダー全体を包むコンテナ（PC以外で機能します）
+      .voices-slider-container
+        // カルーセル操作用のナビゲーション矢印
+        button.slider-arrow.arrow-prev(type="button" aria-label="前へ")
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+            polyline(points="15 18 9 12 15 6")
+        button.slider-arrow.arrow-next(type="button" aria-label="次へ")
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+            polyline(points="9 18 15 12 9 6")
 
-  /-- FREE TRIAL --
-  section.trial-section
-    .trial-inner
-      .trial-header
-        .trial-badge
-          svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-            path d="M7 1l1.5 3.5H12l-2.8 2 1.1 3.5L7 8l-3.3 2 1.1-3.5L2 5.5h3.5L7 1z" fill="currentColor"
-          | 7日間無料トライアル
-        h2.trial-title
-          | 今すぐ
-          span.free 無料
-          | でお試しください
-        p.trial-sub
-          | クレジットカード登録不要。いつでも解約OK。
-          br
-          | すべての機能を7日間たっぷりお試しいただけます。
-      .trial-card
-        .trial-card-inner
-          /-- LEFT --
-          .trial-left
-            div
-              .trial-left-title 今すぐ始められる無料トライアル
-              ul.trial-check-list
-                li
-                  svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
-                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-                  | クレジットカードの登録は不要です
-                li
-                  svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
-                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-                  | すべての有料機能を7日間ご利用いただけます
-                li
-                  svg viewBox="0 0 18 18" fill="none"
-                    circle cx="9" cy="9" r="8" fill="#EFF6FF"
-                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-                  | トライアル期間中の解約もワンクリックで簡単
-            div
-              = link_to "無料で始める →", "/clients/sign_up", class: "trial-btn"
-              p.trial-cancel-note 解約はいつでも可能です。トライアル終了後は自動で課金されません。
-          /-- CENTER mock --
-          .trial-center
-            .trial-center-mock
-              .mock-header
-                .mock-logo-dot
-                .mock-logo-text Drafify
-              .mock-field-label キーワードを入力してください
-              .mock-field AI記事作成ツール おすすめ
-              button style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#60A5FA);color:white;font-size:13px;font-weight:600;border:none;cursor:pointer" 記事を生成する
-              .mock-score-row
-                div
-                  .mock-score-label SEOスコア
-                  div style="display:flex;align-items:baseline;gap:3px"
-                    span.mock-score-val 92
-                    span.mock-score-max "/100"
-                .mock-checks
-                  .mock-check-item
-                    svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                    | 見出し構成
-                  .mock-check-item
-                    svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                    | キーワード最適化
-                  .mock-check-item
-                    svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                    | 読みやすさ
-                  .mock-check-item
-                    svg viewBox="0 0 12 12" fill="none"
-                      path d="M2 6l2.5.5 5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                    | 独自性
-          /-- RIGHT --
-          .trial-right
-            .trial-right-title トライアルでできること
-            ul.trial-feature-list
-              li.trial-feature-item
-                .trial-fi-icon
-                  svg viewBox="0 0 18 18" fill="none"
-                    path d="M14 4H4v10h10V4z" stroke="currentColor" stroke-width="1.5"
-                    path d="M6 8h6M6 11h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
-                div
-                  .trial-fi-title AI記事の自動生成
-                  .trial-fi-desc SEOに強く、読者に響く記事を10秒で作成
-              li.trial-feature-item
-                .trial-fi-icon
-                  svg viewBox="0 0 18 18" fill="none"
-                    path d="M9 3a6 6 0 1 0 0 12A6 6 0 0 0 9 3z" stroke="currentColor" stroke-width="1.5"
-                    path d="M9 6v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                div
-                  .trial-fi-title 高品質な文章を生成
-                  .trial-fi-desc 最新情報をもとに、信頼性の高い文章を自動生成
-              li.trial-feature-item
-                .trial-fi-icon
-                  svg viewBox="0 0 18 18" fill="none"
-                    path d="M3 3h12v12H3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
-                    path d="M3 9h12M9 3v12" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
-                div
-                  .trial-fi-title SEO分析・最適化
-                  .trial-fi-desc SEOスコア分析で、検索上位を狙える記事に
-              li.trial-feature-item
-                .trial-fi-icon
-                  svg viewBox="0 0 18 18" fill="none"
-                    path d="M5 9l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                    rect x="3" y="3" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.5"
-                div
-                  .trial-fi-title コピー＆チェック機能
-                  .trial-fi-desc コピペチェックやオリジナル性の確認も簡単
+        // スクロールを発火させるビューポート
+        .voices-slider-viewport
+          .voices-grid
+            // レビュー 01: 副業ブロガー
+            .voice-card
+              .vc-user-profile
+                .vu-avatar-wrap
+                  .vu-avatar.avatar-blogger
+                .vu-info
+                  span.vu-badge.badge-blue ブログ運営
+                  h4.vu-name 副業ブロガー
+                  p.vu-meta 30代・男性
+              
+              .vc-rating-row
+                .vc-stars ★★★★★
+                span.vc-rating-num 5.0
+              
+              .vc-quote-box
+                p.vc-quote-text 「記事作成の時間が半分以下になりました！」
+              
+              p.vc-body-text キーワード調査から構成案、本文まで一気通貫で作成できるので、記事制作の時間が大幅に短縮。記事の質も上がり、アクセス数も右肩上がりです。
+              
+              .vc-metrics-row
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      circle(cx="12" cy="12" r="10")
+                      polyline(points="12 6 12 12 16 14")
+                  .vm-data
+                    span.vm-label 作業時間
+                    span.vm-val.val-down -60%
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      polyline(points="23 6 13.5 15.5 8.5 10.5 1 18")
+                      polyline(points="17 6 23 6 23 12")
+                  .vm-data
+                    span.vm-label 月間PV
+                    span.vm-val.val-up +210%
+              
+              .vc-footer-note 導入から3ヶ月の変化
 
-  /-- 3 STEPS --
+            // レビュー 02: Webメディア編集長
+            .voice-card
+              .vc-user-profile
+                .vu-avatar-wrap
+                  .vu-avatar.avatar-editor
+                .vu-info
+                  span.vu-badge.badge-cyan メディア編集長
+                  h4.vu-name Webメディア編集長
+                  p.vu-meta 40代・女性
+              
+              .vc-rating-row
+                .vc-stars ★★★★★
+                span.vc-rating-num 5.0
+              
+              .vc-quote-box
+                p.vc-quote-text 「品質の高い記事を安定して量産できるように。」
+              
+              p.vc-body-text ライターごとに品質のばらつきが課題でしたが、Drafityの構成案とリライト提案のおかげで、チーム全体の品質が安定しました。
+              
+              .vc-metrics-row
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      path(d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z")
+                  .vm-data
+                    span.vm-label 記事品質
+                    span.vm-val 安定化
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      line(x1="18" y1="20" x2="18" y2="10")
+                      line(x1="12" y1="20" x2="12" y2="4")
+                      line(x1="6" y1="20" x2="6" y2="14")
+                  .vm-data
+                    span.vm-label 制作本数
+                    span.vm-val.val-up +180%
+              
+              .vc-footer-note 導入から6ヶ月の変化
+
+            // レビュー 03: メディア運営責任者
+            .voice-card
+              .vc-user-profile
+                .vu-avatar-wrap
+                  .vu-avatar.avatar-manager
+                .vu-info
+                  span.vu-badge.badge-indigo メディア運営会社
+                  h4.vu-name メディア運営責任者
+                  p.vu-meta 30代・男性
+              
+              .vc-rating-row
+                .vc-stars ★★★★★
+                span.vc-rating-num 5.0
+              
+              .vc-quote-box
+                p.vc-quote-text 「SEOの成果が明確に出て、検索流入が大きく増加！」
+              
+              p.vc-body-text 競合分析やSEOスコア機能が優秀で、狙ったキーワードで上位表示が増えました。収益にも直結しています。
+              
+              .vc-metrics-row
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
+                      circle(cx="9" cy="7" r="4")
+                  .vm-data
+                    span.vm-label 検索流入
+                    span.vm-val.val-up +250%
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      circle(cx="11" cy="11" r="8")
+                      line(x1="21" y1="21" x2="16.65" y2="16.65")
+                  .vm-data
+                    span.vm-label 上位表示KW
+                    span.vm-val.val-up +145%
+              
+              .vc-footer-note 導入から4ヶ月の変化
+
+            // レビュー 04: マーケティング担当
+            .voice-card
+              .vc-user-profile
+                .vu-avatar-wrap
+                  .vu-avatar.avatar-marketer
+                .vu-info
+                  span.vu-badge.badge-orange 企業オウンドメディア
+                  h4.vu-name マーケティング担当
+                  p.vu-meta 20代・女性
+              
+              .vc-rating-row
+                .vc-stars ★★★★★
+                span.vc-rating-num 5.0
+              
+              .vc-quote-box
+                p.vc-quote-text 「専門知識がなくてもプロ品質の記事が作れます！」
+              
+              p.vc-body-text AIが丁寧にサポートしてくれるので、初心者でも迷わず高品質な記事が作れます。社内の運用もスムーズになりました。
+              
+              .vc-metrics-row
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      path(d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z")
+                  .vm-data
+                    span.vm-label 運用工数
+                    span.vm-val.val-down -50%
+                .vm-item
+                  .vm-icon-wrap
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5")
+                      path(d="M12 20h9")
+                      path(d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z")
+                  .vm-data
+                    span.vm-label 記事公開数
+                    span.vm-val.val-up +160%
+              
+              .vc-footer-note 導入から5ヶ月の変化
+
+      // 下部サマリー・満足度バナー
+      .voices-summary-banner
+        .vsb-satisfaction
+          .vsb-sat-title 導入企業・個人の満足度
+          .vsb-sat-num 98%
+          .vsb-sat-stars ★★★★★
+          .vsb-sat-note ※2024年12月時点 自社調べ
+        
+        .vsb-divider
+        
+        .vsb-industries
+          h3.vsb-ind-title Drafityは、さまざまなメディア・業種でご活用いただいています
+          .vsb-ind-grid
+            .ind-tag
+              span.ind-icon 📝
+              span ブログ・アフィリエイト
+            .ind-tag
+              span.ind-icon 📰
+              span ニュースメディア
+            .ind-tag
+              span.ind-icon 💻
+              span オウンドメディア
+            .ind-tag
+              span.ind-icon 🛒
+              span EC・比較メディア
+            .ind-tag
+              span.ind-icon 📈
+              span 金融・不動産メディア
+            .ind-tag
+              span.ind-icon 🔍
+              span SaaS・ITメディア
+            span.ind-more など多数
+      
+      p.voices-disclaimer ※個人の感想であり、効果を保証するものではありません。
+
   section.steps-section
     .steps-inner
-      h2.steps-title
-        | トライアル開始までの
-        strong 3
-        | ステップ
-      .steps-row
-        .step-item
-          .step-num-icon
-            .step-circle
-              svg viewBox="0 0 28 28" fill="none"
-                rect x="4" y="5" width="20" height="17" rx="3" stroke="currentColor" stroke-width="1.75"
-                path d="M9 10h10M9 14h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-            .step-num-badge 01
-          .step-label メールアドレスを入力
-          .step-desc メールアドレスを入力して「無料で始める」をクリック
-        .step-arrow
-          svg viewBox="0 0 24 24" fill="none"
-            path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-        .step-item
-          .step-num-icon
-            .step-circle
-              svg viewBox="0 0 28 28" fill="none"
-                circle cx="14" cy="10" r="5" stroke="currentColor" stroke-width="1.75"
-                path d="M5 23c0-5 4-8 9-8s9 3 9 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-            .step-num-badge 02
-          .step-label すぐに利用開始
-          .step-desc 登録完了後、すぐにすべての機能をご利用いただけます
-        .step-arrow
-          svg viewBox="0 0 24 24" fill="none"
-            path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-        .step-item
-          .step-num-icon
-            .step-circle
-              svg viewBox="0 0 28 28" fill="none"
-                rect x="4" y="6" width="20" height="18" rx="3" stroke="currentColor" stroke-width="1.75"
-                path d="M9 3v5M19 3v5M4 13h20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-            .step-num-badge 03
-          .step-label 7日間たっぷりお試し
-          .step-desc 7日間すべての機能をお試しいただき、継続するかご判断ください
-      .price-zero-row
-        div
-          .price-zero-label すべての機能が
-          div style="display:flex;align-items:baseline;gap:4px"
-            span.price-zero-yen ¥
-            span.price-zero-num 0
-        div
-          span.price-zero-tag 7日間
-        .price-zero-cta
-          = link_to "無料トライアルを始める →", "/clients/sign_up", class: "btn-trial"
+      .trial-card-box
+        .tc-header
+          span.trial-badge ⚡ TRIAL
+          h2.trial-title 14日間の無料トライアルを今すぐ体験
+          p.trial-sub クレジットカードの登録不要。すべての機能を制限なくお試しいただけます。
+        
+        .trial-features-grid
+          // 01
+          .tf-item
+            .tf-icon-wrap
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
+                polyline(points="20 6 9 17 4 12")
+            h3.tf-label すべての機能が使い放題
+            p.tf-desc 記事生成・SEO分析・画像生成など全機能をお試しいただけます
+          
+          // 02
+          .tf-item
+            .tf-icon-wrap
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                rect(x="1" y="4" width="22" height="16" rx="2" ry="2")
+                line(x1="1" y1="10" x2="23" y2="10")
+            h3.tf-label クレジットカード登録不要
+            p.tf-desc メールアドレスだけでワンクリックですぐに始められます
+          
+          // 03
+          .tf-item
+            .tf-icon-wrap
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                rect(x="3" y="4" width="18" height="18" rx="2" ry="2")
+                line(x1="16" y1="2" x2="16" y2="6")
+                line(x1="8" y1="2" x2="8" y2="6")
+                line(x1="3" y1="10" x2="21" y2="10")
+            h3.tf-label 14日後の自動課金なし
+            p.tf-desc トライアル期間終了後の自動課金は一切ありません
+          
+          // 04
+          .tf-item
+            .tf-icon-wrap
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                path(d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z")
+            h3.tf-label いつでも解約可能
+            p.tf-desc トライアル期間中に解約すれば料金は一切かかりません
+
+        .trial-cta-area
+          = link_to "無料で14日間試す →", "/clients/sign_up", class: "btn-gradient-cta"
+          p.trial-cta-sub メールアドレスを入力するだけで、すぐに始められます
+
 
   /-- FAQ --
   section.faq-section#faq
@@ -505,16 +1048,116 @@
               path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
           p.faq-answer ビジネスプラン以上で複数人共有（最大5名）が可能です。Enterpriseプランでは制限が無制限となり、AIエージェントによる完全自動運用やカスタム機能開発も個別に応相談で対応いたします。
 
-  /-- CTA BANNER --
-  section.cta-banner
-    .cta-inner
-      span.cta-badge2 今なら7日間の無料トライアル
-      h2.cta-title
+
+
+  section.about-section#about
+    //- 右上のグラデーション円形装飾
+    .about-deco-circle
+    
+    .about-inner
+      .section-header
+        h2.section-title 会社概要
+        p.section-sub AIでメディアの可能性を広げ、ビジネスの成長を支援します。
+      
+      .about-grid
+        // 左カラム: ビジョン＆ハイライト実績
+        .about-left-content
+          h3.about-catch
+            | AIの力で、
+            br
+            | 情報とビジネスの
+            span.text-accent 未来を創る。
+          
+          p.about-text
+            | Drafityは、AI技術を活用して記事作成を自動化し、
+            | メディア運営やコンテンツマーケティングの効率化を実現する
+            | SaaSプロダクトです。
+            | すべてのビジネスが、質の高い情報発信をもっと簡単に、
+            | もっと効果的に行える世界を目指しています。
+          
+          // 下部実績ハイライト（3列）
+          .about-stats-row
+            .stat-box
+              .stat-icon-wrap
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                  path(d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z")
+                  line(x1="3" y1="6" x2="21" y2="6")
+                  path(d="M16 10a4 4 0 0 1-8 0")
+              span.stat-label サービス開始
+              .stat-number-wrap
+                span.stat-num 2024
+                span.stat-unit 年
+            
+            .stat-box
+              .stat-icon-wrap
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                  path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
+                  circle(cx="9" cy="7" r="4")
+                  path(d="M23 21v-2a4 4 0 0 0-3-3.87")
+                  path(d="M16 3.13a4 4 0 0 1 0 7.75")
+              span.stat-label 導入企業数
+              .stat-number-wrap
+                span.stat-num 300
+                span.stat-unit +社
+            
+            .stat-box
+              .stat-icon-wrap
+                svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+                  path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")
+                  polyline(points="14 2 14 8 20 8")
+                  line(x1="16" y1="13" x2="8" y2="13")
+                  line(x1="16" y1="17" x2="8" y2="17")
+              span.stat-label 累計生成記事数
+              .stat-number-wrap
+                span.stat-num 50
+                span.stat-unit 万記事+
+
+        // 右カラム: 会社概要テーブル
+        .about-right-table
+          .profile-table
+            .pt-row
+              .pt-th 会社名
+              .pt-td 株式会社Drafity
+            .pt-row
+              .pt-th 所在地
+              .pt-td
+                | 〒150-0002
+                br
+                | 東京都渋谷区渋谷1-2-3 渋谷スクエアビル 8F
+            .pt-row
+              .pt-th 設立
+              .pt-td 2024年1月
+            .pt-row
+              .pt-th 代表者
+              .pt-td 山田 太郎
+            .pt-row
+              .pt-th 事業内容
+              .pt-td
+                | AI記事生成SaaS「Drafity」の開発・提供
+                br
+                | メディア支援・コンテンツマーケティング支援
+            .pt-row
+              .pt-th 資本金
+              .pt-td 1,000万円
+            .pt-row
+              .pt-th お問い合わせ
+              .pt-td
+                = link_to "https://drafity.ai/contact", "https://drafity.ai/contact", class: "pt-link"
+
+
+
+  section.enterprise-agent-section
+    .ea-inner
+      span.ea-badge 今なら7日間の無料トライアル
+      h2.ea-title
         | まずは
         span.free2 無料
         | で、AIの力を体験してください
       .cta-actions style="margin-top: 32px"
         = link_to "無料アカウント作成", "/clients/sign_up", class: "btn-white"
+
+
+
 
 script
   | function setToggle(isYearly, btn) {

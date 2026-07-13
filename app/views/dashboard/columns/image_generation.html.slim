@@ -36,8 +36,13 @@
                   td
                     - link_target = column.code.presence || column.id
                     = link_to column.title, column_path(link_target), class: "article-link"
-                  td = column.genre.presence || "—"
-                  td = column.article_type == "pillar" ? "親記事" : "子記事"
+                  td
+                    span.img-gen-badge-genre = column.genre.presence || "—"
+                  td
+                    - if column.article_type == "pillar"
+                      span.img-gen-badge-type.img-gen-badge-type--pillar 親記事
+                    - else
+                      span.img-gen-badge-type.img-gen-badge-type--child 子記事
                   td.date-text = column.updated_at.strftime("%Y/%m/%d %H:%M")
 
         .table-footer-pagination

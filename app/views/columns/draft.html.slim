@@ -4,55 +4,59 @@
     h1.section-title ドラフト・未完了記事一覧
 
     - if @columns.empty?
-      p 対象の記事はありません
+      .knowhow-empty-wrapper
+        p 対象の記事はありません
     - else
       = form_with(url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbolinks: false }) do |form|
         = hidden_field_tag :redirect_context, "draft"
-        .d-flex.justify-content-start.mb-3 
-          = form.button "選択をChat GPTに依頼", name: "action_type", value: "approve_bulk", class: "btn btn-dark me-2", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
-          = form.button "選択を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", data: { confirm: "選択された記事を一括削除しますか？" }
+        
+        .knowhow-action-bar
+          = form.button name: "action_type", value: "approve_bulk", class: "btn-knowhow-bulk-gpt", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" } do
+            span ⚡
+            span 選択をChat GPTに依頼
+          = form.button name: "action_type", value: "delete_bulk", class: "btn-knowhow-bulk-delete", data: { confirm: "選択された記事を一括削除しますか？" } do
+            span 選択を削除
 
-        table.table
-          thead
-            tr
-              th.text-center
-                = check_box_tag "select_all", "1", false, class: "form-check-input", onclick: "toggleAll(this)"
-              th id
-              th parent
-              th タイトル
-              th ジャンル
-              th 状態
-              th 更新日
-              th 操作
-          tbody
-            - @columns.each do |column|
+        .knowhow-table-wrap
+          table.knowhow-management-table
+            thead
               tr
-                td.text-center
-                  = check_box_tag "column_ids[]", column.id, false, class: "form-check-input column-checkbox"
-                td = column.id
-                td = column.parent_id
-                td = column.title
-                td = column.genre
-                td
-                  - if column.status == "draft"
-                    span.draft-status-pill.draft-status-pill--pending
-                      span.draft-status-pill__dot
-                      | 未承認
-                  - elsif column.body.blank?
-                    span.draft-status-pill.draft-status-pill--missing
-                      span.draft-status-pill__dot
-                      | 本文なし(要再生成)
-                  - else
-                    span.draft-status-pill.draft-status-pill--processing
-                      span.draft-status-pill__dot
-                      | 生成中/その他
-                td = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
-                td 
-                  .d-flex.gap-1
-                    / 本文がない場合は「再生成」として機能するように
-                    = link_to "ChatGPT", approve_column_path(column), method: :patch, data: { turbolinks: false }, class: "btn btn-dark btn-sm"
-                    = link_to 'Edit', edit_column_path(column), class: 'btn btn-success', data: { turbo: false }                
-                    = link_to "Delete", column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "btn btn-danger btn-sm"
+                th.text-center width="50"
+                  = check_box_tag "select_all", "1", false, class: "knowhow-custom-checkbox", onclick: "toggleAll(this)"
+                th width="60" id
+                th width="80" parent
+                th タイトル
+                th ジャンル
+                th 状態
+                th 更新日
+                th 操作
+            tbody
+              - @columns.each do |column|
+                tr
+                  td.text-center
+                    = check_box_tag "column_ids[]", column.id, false, class: "knowhow-custom-checkbox column-checkbox"
+                  td.knowhow-id-text = column.id
+                  td.knowhow-id-text = column.parent_id.presence || "—"
+                  td
+                    strong.knowhow-article-title = column.title
+                  td
+                    span.knowhow-badge-genre = column.genre.presence || "—"
+                  td
+                    - if column.status == "draft"
+                      span.knowhow-status-badge.knowhow-status-badge--pending 未承認
+                    - elsif column.body.blank?
+                      span.knowhow-status-badge.knowhow-status-badge--missing 本文なし
+                    - else
+                      span.knowhow-status-badge.knowhow-status-badge--processing 生成中
+                  td.knowhow-date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
+                  td 
+                    .knowhow-row-actions
+                      = link_to approve_column_path(column), method: :patch, data: { turbolinks: false }, class: "knowhow-action-btn knowhow-action-btn--gpt", title: "ChatGPT依頼" do
+                        span ⚡ GPT
+                      = link_to edit_column_path(column), class: 'knowhow-action-btn knowhow-action-btn--edit', data: { turbo: false }, title: "編集" do
+                        span 編集
+                      = link_to column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "knowhow-action-btn knowhow-action-btn--delete", title: "削除" do
+                        span 削除
 
     javascript:
       function toggleAll(source) {

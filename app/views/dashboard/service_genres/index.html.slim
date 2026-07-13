@@ -36,8 +36,8 @@
                         - else
                           span.empty-text システム
                     td = "#{genre.sub_categories_count}件"
-                    td
-                      .form-actions.service-genres-actions.d-flex.align-items-center.gap-2
+                    td style="white-space: nowrap; width: 1%;"
+                      .service-genres-actions
                         = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: "編集" do
                           svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"

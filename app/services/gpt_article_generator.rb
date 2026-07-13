@@ -6,7 +6,7 @@ require "openai"
 class GptArticleGenerator
   class GenerationCancelledError < StandardError; end
 
-  MODEL_NAME = "gpt-4o-mini"
+  MODEL_NAME = "gpt-5.4-nano"
   MAX_RETRIES = 3 # 本文が抽出されない、または文字数が足りない場合のリトライ回数
 
   GPT_API_KEY = ENV["GPT_API_KEY"]
@@ -81,40 +81,50 @@ class GptArticleGenerator
     # STEP 2: 本文生成（リトライ機能付き）
     # ==============================
     full_article = ""
+    covered_points = [] # ← 既出セクションの要旨を蓄積し、H2間の重複を防ぐ
 
     # 導入文の生成（想定: 700〜1100文字）
     ensure_not_cancelled!(column)
     intro_prompt_text = introduction_prompt(column, category, genre_data, sub_data, eeat_context)
-    full_article += generate_section_content_with_retry(
+    intro_content = generate_section_content_with_retry(
       "導入",
       intro_prompt_text,
       column,
       min_length: 600,
       json_mode: false
-    ) + "\n\n"
+    )
+    full_article += intro_content + "\n\n"
+    covered_points << { title: "導入", gist: extract_gist(intro_content) }
 
     # 各H2見出しの本文生成（想定: 1200〜1800文字）
     structure.each do |h2|
       ensure_not_cancelled!(column)
       next if h2["h2_title"].blank?
-      
+
       full_article += "## #{h2['h2_title']}\n\n"
 
-      h2_prompt_text = h2_content_prompt(column, category, h2, genre_data, sub_data, eeat_context)
-      full_article += generate_section_content_with_retry(
+      h2_prompt_text = h2_content_prompt(column, category, h2, genre_data, sub_data, eeat_context, covered_points)
+      section_content = generate_section_content_with_retry(
         h2["h2_title"],
         h2_prompt_text,
         column,
         min_length: 1000,
         json_mode: false
-      ) + "\n\n"
+      )
 
-      sleep(0.5) 
+      # 表・チェックリストの構文バリデーション（列崩れ検知→崩れていれば表記法を除去）
+      section_content = sanitize_markdown_table(section_content)
+
+      full_article += section_content + "\n\n"
+
+      covered_points << { title: h2["h2_title"], gist: extract_gist(section_content) }
+
+      sleep(0.5)
     end
 
     # まとめ文の生成（プロンプト側で「## まとめ」を出力させるため、ここでは見出しを結合しない）
     ensure_not_cancelled!(column)
-    conclusion_prompt_text = conclusion_prompt(column, category, genre_data, sub_data, eeat_context)
+    conclusion_prompt_text = conclusion_prompt(column, category, genre_data, sub_data, eeat_context, covered_points)
     full_article += generate_section_content_with_retry(
       "まとめ",
       conclusion_prompt_text,
@@ -292,7 +302,7 @@ class GptArticleGenerator
   end
 
   # ==========================================================
-  # 構成生成
+  # 構成生成（H2ごとに表・チェックリストの適性フラグを付与）
   # ==========================================================
   def self.generate_structure(column, category, genre_data, sub_data, eeat_context)
     child_columns = Column.where(
@@ -325,6 +335,7 @@ class GptArticleGenerator
       - 「おすすめ」「ランキング」禁止
       - ノウハウ型記事にする
       - 業界理解が深まる構成にする
+      - 各H2は異なる論点・異なる結論を扱うこと（同じ主張の言い換え禁止）
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -338,12 +349,15 @@ class GptArticleGenerator
       - 見出しのみ
       - SEOワードを自然に含める
       - 汎用的な構成にする
+      - 各H2について、内容が「比較」「優先順位付け」「手順」「チェック項目」「複数条件の整理」に該当する場合は、
+        積極的に has_table を true にしてよい（無理な絞り込みは不要）
+      - ただし、判断軸や心構え・注意点の解説など、文章のみで十分伝わる見出しは無理に true にせず false のままにする
       - JSON以外禁止
 
       出力形式:
       {
         "structure": [
-          { "h2_title": "見出し" }
+          { "h2_title": "見出し", "has_table": false }
         ]
       }
     PROMPT
@@ -392,9 +406,9 @@ class GptArticleGenerator
   end
 
   # ==========================================================
-  # H2本文
+  # H2本文（has_table対応）
   # ==========================================================
-  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context)
+  def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context, covered_points = [])
     <<~PROMPT
       以下H2見出しの本文を執筆してください。
 
@@ -404,12 +418,17 @@ class GptArticleGenerator
       【対象見出し】
       #{section["h2_title"]}
 
+      #{build_covered_points_block(covered_points)}
+
+      #{build_table_instruction(section)}
+
       【禁止ルール（厳守）】
       - 書き出しの一言目に「#{section["h2_title"]}は、」や「#{section["h2_title"]}において、」など、見出しの言葉をそのまま主語としてオウム返しする不自然な解説開始文を「絶対に禁止」します。文脈から自然に書き出してください。
+      - 上記【既出セクションの要旨】に記載された主張・結論・具体例と同じ内容を繰り返すことを「絶対に禁止」します。この見出し特有の新しい論点・視点・情報を中心に書いてください。
 
       【条件】
       - 日本語のみで出力
-      - 1200〜1800文字を厳守（具体例や現場の課題、実務背景を多角的に掘り下げて分量を満たすこと）
+      - 1200〜1800文字を厳守（具体例や現場の課題、実務背景を多角的に掘り下げて分量を満たすこと。表やチェックリストを入れる場合、その文字数も含めてよい）
       - 専門性を持たせる
       - 実務視点で解説
       - 中立的に解説
@@ -437,11 +456,35 @@ class GptArticleGenerator
   end
 
   # ==========================================================
+  # 表・チェックリスト生成指示ブロック
+  # ==========================================================
+  def self.build_table_instruction(section)
+    if section["has_table"]
+      <<~TEXT
+        【表・チェックリストの挿入（必須）】
+        - この見出しは比較・優先順位・手順・チェック項目のいずれかに該当するため、本文中の適切な位置にMarkdown形式の表またはチェックリストを1つ挿入してください
+        - 表の場合: `| 項目 | 内容 |` のようなパイプ区切りのMarkdownテーブル形式を使用し、ヘッダー行の直下に `|---|---|` の区切り行を必ず入れる
+        - チェックリストの場合: `- [ ] 項目` の形式を使用する
+        - 表・チェックリストは3〜6行程度に収め、情報を詰め込みすぎない
+        - 表やチェックリストだけで終わらせず、その前後に必ず文章での解説を入れる
+        - 各行の列数（パイプの数）は必ず揃える
+      TEXT
+    else
+      <<~TEXT
+        【表・チェックリストについて】
+        - この見出しでは表やチェックリストを無理に挿入しない。通常の文章のみで解説する
+      TEXT
+    end
+  end
+
+  # ==========================================================
   # まとめ
   # ==========================================================
-  def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context)
+  def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context, covered_points = [])
     <<~PROMPT
       「#{column.title}」の記事まとめを執筆してください。
+
+      #{build_covered_points_block(covered_points)}
 
       【条件】
       - 必ず「## まとめ」という見出し文字列から開始してください。
@@ -454,6 +497,8 @@ class GptArticleGenerator
       - 業界全体の視点で締める
       - SEO記事として自然に終える
       - 汎用記事として成立させる
+      - 上記【既出セクションの要旨】の言い換えではなく、全体を統合した総括にすること
+      - まとめでは表・チェックリストは使用しない（通常の文章のみ）
 
       【業界背景】
       #{build_industry_context(genre_data, sub_data)}
@@ -464,6 +509,89 @@ class GptArticleGenerator
       【追加指示】
       #{column.prompt}
     PROMPT
+  end
+
+  # ==========================================================
+  # 既出セクション要旨ブロック生成
+  # ==========================================================
+  def self.build_covered_points_block(covered_points)
+    return "" if covered_points.blank?
+
+    lines = covered_points.map do |cp|
+      "- #{cp[:title]}: #{cp[:gist]}"
+    end
+
+    <<~TEXT
+      【既出セクションの要旨（重複禁止）】
+      #{lines.join("\n")}
+    TEXT
+  end
+
+  # ==========================================================
+  # セクション要旨の抽出（次セクションへの重複防止用・API呼び出しなしの簡易実装）
+  # ==========================================================
+  def self.extract_gist(section_body)
+    return "" if section_body.blank?
+
+    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
+    sentences.first(2).join("").truncate(180)
+  end
+
+  # ==========================================================
+  # Markdown表の簡易バリデーション
+  # 列数が揃っていない、区切り行がないなど崩れた表は、事故を避けるため
+  # テーブル記法を通常の箇条書き風テキストに変換して救済する
+  # ==========================================================
+  def self.sanitize_markdown_table(text)
+    return text if text.blank?
+
+    lines = text.split("\n")
+    result = []
+    i = 0
+
+    while i < lines.length
+      line = lines[i]
+
+      if table_row?(line)
+        table_block = []
+        while i < lines.length && (table_row?(lines[i]) || separator_row?(lines[i]))
+          table_block << lines[i]
+          i += 1
+        end
+
+        if valid_table?(table_block)
+          result.concat(table_block)
+        else
+          Rails.logger.warn("崩れたMarkdown表を検出したため、テキスト形式に変換しました")
+          table_block.each do |row|
+            next if separator_row?(row)
+            cells = row.split("|").map(&:strip).reject(&:blank?)
+            result << "- #{cells.join(' / ')}" if cells.present?
+          end
+        end
+      else
+        result << line
+        i += 1
+      end
+    end
+
+    result.join("\n")
+  end
+
+  def self.table_row?(line)
+    line.strip.start_with?("|") && line.strip.end_with?("|")
+  end
+
+  def self.separator_row?(line)
+    line.strip =~ /\A\|?[\s:\-|]+\|?\z/ && line.include?("-")
+  end
+
+  def self.valid_table?(table_block)
+    rows = table_block.reject { |r| separator_row?(r) }
+    return false if rows.length < 2
+
+    col_counts = rows.map { |r| r.split("|").length }
+    col_counts.uniq.length == 1 && table_block.any? { |r| separator_row?(r) }
   end
 
   # ==========================================================
@@ -527,6 +655,8 @@ class GptArticleGenerator
       - 業界メディア品質で書く
       - 専門性と網羅性を重視
       - Google EEATを意識
+      - 他セクションで述べた結論・ロジックの再掲禁止（新しい論点・情報を追加すること）
+      - 表・チェックリストの指示がある場合のみMarkdown記法を使用し、それ以外では表記法を使わない
     SYSTEM
 
     if json_mode
