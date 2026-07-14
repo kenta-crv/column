@@ -1,0 +1,107 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title AI主導生成
+      p.api-settings-subtitle 自律型コンテンツ生成の履歴と進行状況
+
+    - if client_signed_in? && current_client.ai_autonomous_enabled?
+      .api-settings-card style="margin-bottom: 20px;"
+        .api-settings-card__body
+          = form_with url: update_settings_dashboard_autonomous_runs_path, method: :patch, local: true do
+            .form-section
+              h3.form-section-title デフォルト設定
+
+              .form-group
+                label
+                  = check_box_tag :notify_cycle_complete, "1", @settings["notify_on"].include?("cycle_complete")
+                  |  サイクル完了時にメール通知
+
+              .form-group
+                label
+                  = check_box_tag :pause_for_child_titles, "1", @settings["pause_for_approval_at"] == "child_titles"
+                  |  子タイトル生成後に承認してから本文生成（許可ON時は承認メールを送信）
+
+              .form-group
+                = label_tag :default_cluster_limit, "デフォルトの子記事数"
+                .suggestion-count-control
+                  = range_field_tag :default_cluster_limit, @settings["default_cluster_limit"], min: 1, max: 25, class: "form-control-range", id: "defaultClusterLimitRange"
+                  .suggestion-count-scale#defaultClusterLimitScale
+                    - [1, 5, 10, 15, 20, 25].each do |n|
+                      span class=("is-available #{'is-active' if n == @settings["default_cluster_limit"].to_i}") data-value=n = n
+                  .suggestion-count-display
+                    span#defaultClusterLimitValue = @settings["default_cluster_limit"]
+                    span.suggestion-count-unit 本
+
+            .form-actions
+              = submit_tag "設定を保存", class: "btn btn-primary"
+
+    .api-settings-card
+      .api-settings-card__body
+        .form-actions style="margin-bottom: 20px;"
+          - if admin_signed_in? || (client_signed_in? && current_client.ai_autonomous_enabled?)
+            = link_to "新しいサイクルを開始", new_dashboard_autonomous_run_path, class: "btn btn-primary"
+          - elsif client_signed_in?
+            p.form-text = current_client.plan_limit_message(:ai_autonomous)
+
+        - if @runs.present?
+          table.rich-dashboard-table
+            thead
+              tr
+                - if admin_signed_in?
+                  th クライアント
+                th 親タイトル
+                th ステータス
+                th 子記事
+                th 開始日時
+                th 操作
+            tbody
+              - @runs.each do |run|
+                tr
+                  - if admin_signed_in?
+                    td = run.admin_run? ? "管理者" : (run.client&.email || "-")
+                  td = run.title
+                  td
+                    span.status-badge class=run.status = run.status_label
+                  td
+                    - if run.pillar_column
+                      = "#{run.completed_child_count} / #{run.child_columns.count}"
+                    - else
+                      | -
+                  td = run.created_at.strftime("%Y/%m/%d %H:%M")
+                  td
+                    = link_to "詳細", dashboard_autonomous_run_path(run), class: "btn btn-sm btn-outline-primary"
+                    - if admin_signed_in? || (client_signed_in? && run.client_id == current_client.id)
+                      = link_to "削除", dashboard_autonomous_run_path(run), method: :delete, class: "btn btn-sm btn-danger", style: "margin-left: 4px;", data: { confirm: "このサイクルと関連する下書き記事を削除します。よろしいですか？" }
+        - else
+          p.form-text まだ自律生成の履歴がありません。
+
+javascript:
+  (function() {
+    const bindDefaultClusterLimitRange = () => {
+      const range = document.getElementById('defaultClusterLimitRange');
+      const label = document.getElementById('defaultClusterLimitValue');
+      const scale = document.getElementById('defaultClusterLimitScale');
+      if (!range || !label) return;
+      if (range.dataset.initialized === 'true') return;
+      range.dataset.initialized = 'true';
+
+      const sync = () => {
+        const value = parseInt(range.value, 10);
+        label.textContent = value;
+        if (scale) {
+          scale.querySelectorAll('span').forEach((span) => {
+            const active = parseInt(span.dataset.value, 10) === value;
+            span.classList.toggle('is-active', active);
+          });
+        }
+      };
+
+      range.addEventListener('input', sync);
+      range.addEventListener('change', sync);
+      sync();
+    };
+
+    document.addEventListener('turbolinks:load', bindDefaultClusterLimitRange);
+    document.addEventListener('DOMContentLoaded', bindDefaultClusterLimitRange);
+    bindDefaultClusterLimitRange();
+  })();

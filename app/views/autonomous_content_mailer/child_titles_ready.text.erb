@@ -1,0 +1,14 @@
+<%= @client.name.presence || @client.email %> 様
+
+自律生成サイクル「<%= @run.title %>」の子タイトル生成が完了しました。
+
+親記事: <%= @pillar&.title %>
+子タイトル数: <%= @run.child_columns.count %>件
+
+子タイトルの確認と本文生成の開始は以下のURLから行えます。
+<%= @approval_url %>
+
+※ 不要なタイトルは削除してから「本文生成を開始」を押してください。
+
+--
+Drafity
