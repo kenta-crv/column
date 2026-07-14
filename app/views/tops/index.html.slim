@@ -11,7 +11,7 @@
         a href="#cases" 導入事例
         a href="#faq" よくある質問
       .nav-cta
-        button.btn-login ログイン
+        = link_to "ログイン", new_client_session_path, class: "btn-login"
         = link_to "無料で始める →", "/clients/sign_up", class: "btn-primary"
  
   /-- HERO --
@@ -46,36 +46,7 @@
               = check
         .hero-actions
           = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
-          a.btn-ghost href="#features" デモを見る →
-      .hero-right
-        .pc-wrap
-          .float-card.fc-time
-            .float-icon
-              svg viewBox="0 0 16 16" fill="none"
-                circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"
-                path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-            div
-              .float-label 生成時間
-              .float-value 平均40秒
-          .float-card.fc-score
-            .score-circle
-              svg viewBox="0 0 44 44"
-                circle class="score-bg" cx="22" cy="22" r="18"
-                circle class="score-fill" cx="22" cy="22" r="18"
-              .score-num 92
-            div
-              .float-label クラスター記事
-              .float-value 15記事〜
-          .float-card.fc-words
-            .float-icon
-              svg viewBox="0 0 16 16" fill="none"
-                rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"
-                path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
-            div
-              .float-label 文字数
-              .float-value
-                | 約6,000-8,000
-                span 字
+          a.btn-ghost href="#features" AI商談を開始
 
   /-- TRUST --
   /.trust-bar
@@ -106,8 +77,8 @@
         .whats-features-row
           - whats_features = [ \
               { icon: "polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"", title: "圧倒的に速い", desc: "最短数分で記事完成", class: "icon-lightning" }, \
-              { icon: "path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"", title: "SEOに強い", desc: "上位表示をサポート", class: "icon-shield" }, \
-              { icon: "line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"\nline x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"\nline x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"", title: "成果につながる", desc: "分析・改善まで支援", class: "icon-growth" } \
+              { icon: "path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"", title: "SEOに強い", desc: "Googleに準ずる設計", class: "icon-shield" }, \
+              { icon: "line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"\nline x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"\nline x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"", title: "資産コンテンツ化", desc: "企業のWeb資産へ", class: "icon-growth" } \
             ]
           - whats_features.each do |wf|
             .whats-feature-pill
@@ -150,36 +121,36 @@
             icon_class: "icon-clock", \
             icon_type: "clock", \
             text: "記事制作に時間がかかり、<br>本来の業務に集中できない", \
-            desc: "企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。" \
+            desc: "企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。", \
           }, \
           { \
             icon_class: "icon-search", \
             icon_type: "search", \
             text: "SEOを意識した記事が<br>うまく書けない", \
-            desc: "検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。" \
+            desc: "検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。", \
           }, \
           { \
             icon_class: "icon-chart", \
             icon_type: "chart", \
             text: "記事の品質にばらつきがあり、<br>読者の満足度が上がらない", \
-            desc: "ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。" \
+            desc: "ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。", \
           }, \
           { \
             icon_class: "icon-analytics", \
             icon_type: "analytics", \
             text: "アクセスや成果が伸び悩み、<br>改善の打ち手が見えない", \
-            desc: "データ分析や改善施策に時間が取れず、PDCAが回せていない。" \
+            desc: "データ分析や改善施策に時間が取れず、PDCAが回せていない。", \
           }, \
           { \
             icon_class: "icon-calc", \
             icon_type: "calc", \
             text: "外注コストがかさみ、<br>運営コストが増大している", \
-            desc: "ライターや編集者への依頼コストが積み重なり、利益を圧迫している。" \
+            desc: "ライターや編集者への依頼コストが積み重なり、利益を圧迫している。", \
           }, \
           { \
             icon_class: "icon-bell", \
             icon_type: "bell", \
-            text: "最新情報のキャッチアップや<br>記事更新が追いつかない", \
+            text: "GoogleのSEO構成を正しく把握できない",\
             desc: "情報の鮮度を保つのが難しく、競合メディアに差をつけられてしまう。" \
           } \
         ]
@@ -223,7 +194,7 @@
       .sb-content-left
         .sb-headline-row
           span.sb-lead-text そのお悩み、
-          span.sb-badge-tag AI×SEOに強い
+          span.sb-badge-tag AI×コンテンツ資産力の高さ
         .sb-brand-row
           .sb-logo-mark
             svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -302,8 +273,8 @@
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   circle cx="11" cy="11" r="8"
                   line x1="21" y1="21" x2="16.65" y2="16.65"
-              h3.fc-title キーワード調査
-            p.fc-desc 検索ボリュームや競合性を分析し、成果につながるキーワードを提案。
+              h3.fc-title AIターゲット定義
+            p.fc-desc AIがあなたの希望のターゲット選定を詳細化するので、手軽に的確な定義設計ができます。
           .fc-mockup
             .mock-window
               .mw-header キーワード候補
@@ -334,8 +305,8 @@
                   line x1="16" y1="13" x2="8" y2="13"
                   line x1="16" y1="17" x2="8" y2="17"
                   polyline points="10 9 9 9 8 9"
-              h3.fc-title 構成案の自動生成
-            p.fc-desc SEOに強い構成をAIが自動で作成。見出し構成や流れまで最適化。
+              h3.fc-title ピラータイトルの自動提案
+            p.fc-desc SEOに強くユーザービューイングの高いタイトル構成をAIが自動で作成。
           .fc-mockup
             .mock-window
               .mw-header 構成案
@@ -392,7 +363,7 @@
               .mi-side
                 .mi-placeholder.ai-bg-small
                 .mi-placeholder.ai-bg-small
-                .mi-btn この画像を使う
+                .mi-placeholder.ai-bg-small
 
         /-- 05: リライト・改善提案 --
         .feature-card
@@ -403,8 +374,8 @@
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                   path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-              h3.fc-title リライト・改善提案
-            p.fc-desc 記事のリライトやSEO改善提案で、より成果の出る記事にブラッシュアップ。
+              h3.fc-title クラスタータイトル・記事の自動提案・作成
+            p.fc-desc 親タイトル・記事から最適な構成になる子タイトルを平均15個自動で提案します。
           .fc-mockup
             .mock-window
               .mw-header 改善提案
@@ -416,43 +387,11 @@
                       polyline points="20 6 9 17 4 12"
                     span = s
 
-        /-- 06: 効果測定・分析 --
+        /-- 06: 公開・連携 --
         .feature-card
           .fc-top
             .fc-head-row
               .fc-num 06
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  line x1="18" y1="20" x2="18" y2="10"
-                  line x1="12" y1="20" x2="12" y2="4"
-                  line x1="6" y1="20" x2="6" y2="14"
-              h3.fc-title 効果測定・分析
-            p.fc-desc 検索順位や流入数などを可視化し、改善につなげます。
-          .fc-mockup
-            .mock-window
-              .mw-header パフォーマンス推移
-              .mw-stats
-                .ms-item
-                  span.ms-label 表示回数
-                  span.ms-val 25,410
-                  span.ms-diff.up + 18.5%
-                .ms-item
-                  span.ms-label クリック数
-                  span.ms-val 1,234
-                  span.ms-diff.up + 22.1%
-                .ms-item
-                  span.ms-label 平均掲載順位
-                  span.ms-val 12.4
-                  span.ms-diff.down + 2.1
-              .mw-chart
-                svg viewBox="0 0 200 40" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round"
-                  path d="M5,35 L40,25 L80,30 L120,15 L160,20 L195,5"
-
-        /-- 07: 公開・連携 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 07
               .fc-icon
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
@@ -470,37 +409,6 @@
                 .mp-bar
                 span 100%
 
-        /-- 08: チーム管理・権限設定 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 08
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                  circle cx="9" cy="7" r="4"
-                  path d="M23 21v-2a4 4 0 0 0-3-3.87"
-                  path d="M16 3.13a4 4 0 0 1 0 7.75"
-              h3.fc-title チーム管理・権限設定
-            p.fc-desc 複数メンバーでの運用をサポート。権限設定で安全なチーム運用を実現。
-          .fc-mockup
-            .mock-window
-              .mw-table
-                .mt-row.mt-head
-                  span メンバー
-                  span 権限
-                - members = [ \
-                    { name: "山田 太郎", role: "管理者" }, \
-                    { name: "鈴木 花子", role: "編集者" }, \
-                    { name: "田中 一郎", role: "ライター" } \
-                  ]
-                - members.each do |m|
-                  .mt-row
-                    .mt-user
-                      .mu-avatar
-                      span = m[:name]
-                    span = m[:role]
-
 
       /-- 下部サマリーバナー --
       .features-summary-banner
@@ -513,7 +421,7 @@
               { icon_type: "clock", text: "制作時間を大幅カット" }, \
               { icon_type: "trend", text: "SEO成果を最大化" }, \
               { icon_type: "shield", text: "品質を保ちながら安定運用" }, \
-              { icon_type: "team", text: "チームでの共同運用も安心" \
+              { icon_type: "Update", text: "常に記事精度を上げる定期更新" \
             } \
           ]
           - fsb_points.each do |pt|
@@ -545,13 +453,13 @@
           | すべてが
           span.text-blue 一目でわかる
           | 、シンプルなダッシュボード
-        p.section-sub 記事生成から公開、成果の確認まで。必要な情報をリアルタイムで可視化します。
+        p.section-sub 記事生成から公開の確認まで。必要な情報をリアルタイムで可視化します。
 
       .dashboard-grid
         /-- 左カラム: 4つの特徴リスト --
         .dashboard-left-features
           - db_features = [ \
-              { class: "icon-blue", type: "pie", label: "重要指標をリアルタイムで把握", desc: "総生成数・公開済・下書き・成功率など、主要な指標をひと目で確認できます。" }, \
+              { class: "icon-blue", type: "pie", label: "重要指標をリアルタイムで把握", desc: "総生成数・公開済・下書き・成功率など、主要な情報をひと目で確認できます。" }, \
               { class: "icon-amber", type: "folder", label: "ジャンルごとの記事状況を可視化", desc: "ジャンル別の記事総数と、Pillar / Clusterの内訳を確認。コンテンツ戦略の最適化に役立ちます。" }, \
               { class: "icon-indigo", type: "filter", label: "ステータスごとに簡単フィルタ", desc: "すべてのステータスをワンクリックで切り替え、必要な記事をすぐに検索・管理できます。" }, \
               { class: "icon-purple", type: "clock", label: "リアルタイム生成状況を確認", desc: "AI生成の進行状況をリアルタイムで確認。完了数や進捗をすぐに把握できます。" } \
@@ -602,9 +510,7 @@
         br
         | 「AIが主体的に動く」次の時代へ。
       p.ea-desc
-        | Enterpriseプランでは、AIが自律的にピラータイトル・本文、そして関連するクラスタータイトル・本文までを思考し一連の流れを完全自動生成。
-        br
-        | PCやブラウザを閉じている間も裏側でタスクが進行し、完了状況はメールやSMSでリアルタイムに通知されます。
+        | Business/Enterpriseプランでは、AIが自律的にピラータイトル・本文、そして関連するクラスタータイトル・本文までを思考し一連の流れを完全自動生成し、PCやブラウザを閉じている間も裏側でタスクが進行し、完了状況はメールやSMSでリアルタイムに通知されます。
 
   /-- PRICING --
   section.pricing-section#pricing
@@ -674,82 +580,78 @@
       /-- スライダー全体を包むコンテナ（PC以外で機能します） --
       .voices-slider-container
         /-- カルーセル操作用のナビゲーション矢印 --
-        button.slider-arrow.arrow-prev type="button" aria-label="前へ"
+        button.slider-arrow.arrow-prev type="button" aria-label="前へ" onclick="scrollVoices(-1)"
           svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             polyline points="15 18 9 12 15 6"
-        button.slider-arrow.arrow-next type="button" aria-label="次へ"
+        button.slider-arrow.arrow-next type="button" aria-label="次へ" onclick="scrollVoices(1)"
           svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             polyline points="9 18 15 12 9 6"
 
         /-- スクロールを発火させるビューポート --
-        .voices-slider-viewport
-          .voices-grid
+        .voices-slider-viewport#voices-viewport
+          .voices-grid#voices-grid
             - voices = [ \
                 { \
                   avatar_class: "avatar-blogger", \
                   badge_class: "badge-blue", \
-                  badge_text: "ブログ運営", \
-                  name: "副業ブロガー", \
-                  meta: "30代・男性", \
+                  badge_text: "インハウスSEO", \
+                  name: "事業会社 マーケティング担当者", \
                   stars: "★★★★★", \
                   rating: "5.0", \
-                  quote: "「記事作成の時間が半分以下になりました！」", \
-                  body: "キーワード調査から構成案、本文まで一気通貫で作成できるので、記事制作の時間が大幅に短縮。記事の質も上がり、アクセス数も右肩上がりです。", \
+                  quote: "「インハウスでの記事作成時間が半分以下になりました！」", \
+                  body: "キーワード調査から構成案、本文作成まで一気通貫で内製化できるため、記事制作の時間が大幅に短縮。社内調整もスムーズになり、検証スピードが向上しました。", \
                   metrics: [ \
-                    { type: "clock", label: "作業時間", val_class: "val-down", val: "-60%" }, \
-                    { type: "trend", label: "月間PV", val_class: "val-up", val: "+210%" } \
+                    { type: "clock", label: "作成工数", val_class: "val-down", val: "-60%" }, \
+                    { type: "trend", label: "自然検索流入", val_class: "val-up", val: "+210%" } \
                   ], \
                   footer: "導入から3ヶ月の変化" \
                 }, \
                 { \
                   avatar_class: "avatar-editor", \
                   badge_class: "badge-cyan", \
-                  badge_text: "メディア編集長", \
-                  name: "Webメディア編集長", \
-                  meta: "40代・女性", \
+                  badge_text: "編集プロダクション", \
+                  name: "受託制作 ディレクター", \
                   stars: "★★★★★", \
                   rating: "5.0", \
-                  quote: "「品質の高い記事を安定して量産できるように。」", \
-                  body: "ライターごとに品質のばらつきが課題でしたが、Drafityの構成案とリライト提案のおかげで、チーム全体の品質が安定しました。", \
+                  quote: "「外注ライターの品質管理とリライトが極めてスムーズに。」", \
+                  body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と校正・リライト提案機能により、均一で高品質なコンテンツを安定量産できています。", \
                   metrics: [ \
-                    { type: "shield", label: "記事品質", val_class: "", val: "安定化" }, \
-                    { type: "chart", label: "制作本数", val_class: "val-up", val: "+180%" } \
+                    { type: "shield", label: "編集・校正時間", val_class: "val-down", val: "-45%" }, \
+                    { type: "chart", label: "月間納品本数", val_class: "val-up", val: "+180%" } \
                   ], \
                   footer: "導入から6ヶ月の変化" \
                 }, \
                 { \
                   avatar_class: "avatar-manager", \
                   badge_class: "badge-indigo", \
-                  badge_text: "メディア運営会社", \
-                  name: "メディア運営責任者", \
-                  meta: "30代・男性", \
+                  badge_text: "B2Bマーケティング", \
+                  name: "オウンドメディア運営責任者", \
                   stars: "★★★★★", \
                   rating: "5.0", \
-                  quote: "「SEOの成果が明確に出て、検索流入が大きく増加！」", \
-                  body: "競合分析やSEOスコア機能が優秀で、狙ったキーワードで上位表示が増えました。収益にも直結しています。", \
+                  quote: "「狙った重点キーワードで上位獲得。CV増加に直結！」", \
+                  body: "競合分析やリアルタイムのSEOスコア機能が極めて優秀です。狙いすました戦略的キーワードで検索上位表示が増え、質の高いホワイトペーパーDLや問い合わせに繋がっています。", \
                   metrics: [ \
-                    { type: "team", label: "検索流入", val_class: "val-up", val: "+250%" }, \
-                    { type: "search", label: "上位表示KW", val_class: "val-up", val: "+145%" } \
+                    { type: "team", label: "獲得リード数", val_class: "val-up", val: "+250%" }, \
+                    { type: "search", label: "上位表示KW数", val_class: "val-up", val: "+145%" } \
                   ], \
                   footer: "導入から4ヶ月の変化" \
                 }, \
                 { \
                   avatar_class: "avatar-marketer", \
                   badge_class: "badge-orange", \
-                  badge_text: "企業オウンドメディア", \
-                  name: "マーケティング担当", \
-                  meta: "20代・女性", \
+                  badge_text: "SaaS運営企業", \
+                  name: "コンテンツマーケ責任者（CMO）", \
                   stars: "★★★★★", \
                   rating: "5.0", \
-                  quote: "「専門知識がなくてもプロ品質の記事が作れます！」", \
-                  body: "AIが丁寧にサポートしてくれるので、初心者でも迷わず高品質な記事が作れます。社内の運用もスムーズになりました。", \
+                  quote: "「外部の執筆外注コストを大幅に削減できました！」", \
+                  body: "AIアシスタントのサポートにより、専門知識のドキュメント化がチーム内で完結。外部のライティング外注費用を大きく抑えつつ、より専門性の高い独自性の強い一次情報記事を発信できています。", \
                   metrics: [ \
-                    { type: "tool", label: "運用工数", val_class: "val-down", val: "-50%" }, \
-                    { type: "write", label: "記事公開数", val_class: "val-up", val: "+160%" } \
+                    { type: "tool", label: "外注コスト", val_class: "val-down", val: "-50%" }, \
+                    { type: "write", label: "公開記事本数", val_class: "val-up", val: "+160%" } \
                   ], \
                   footer: "導入から5ヶ月の変化" \
                 } \
-              ]
+              ]      
             - voices.each do |v|
               .voice-card
                 .vc-user-profile
@@ -837,14 +739,13 @@
       .trial-card-box
         .tc-header
           span.trial-badge ⚡ TRIAL
-          h2.trial-title 14日間の無料トライアルを今すぐ体験
+          h2.trial-title 10日間の無料トライアルを今すぐ体験
           p.trial-sub クレジットカードの登録不要。すべての機能を制限なくお試しいただけます。
         
         .trial-features-grid
           - trial_features = [ \
-              { icon: "polyline", label: "すべての機能が使い放題", desc: "記事生成・SEO分析・画像生成など全機能をお試しいただけます" }, \
-              { icon: "card", label: "クレジットカード登録不要", desc: "メールアドレスだけでワンクリックですぐに始められます" }, \
-              { icon: "calendar", label: "14日後の自動課金なし", desc: "トライアル期間終了後の自動課金は一切ありません" }, \
+              { icon: "polyline", label: "まずは無料体験", desc: "記事生成・SEO分析・画像生成など主要機能をお試しいただけます" }, \
+              { icon: "calendar", label: "商用利用OK", desc: "トライアル期間でも作成いただいた記事はそのままご利用いただけます" }, \
               { icon: "shield", label: "いつでも解約可能", desc: "トライアル期間中に解約すれば料金は一切かかりません" } \
             ]
           - trial_features.each do |tf|
@@ -867,8 +768,7 @@
               p.tf-desc = tf[:desc]
 
         .trial-cta-area
-          = link_to "無料で14日間試す →", "/clients/sign_up", class: "btn-gradient-cta"
-          p.trial-cta-sub メールアドレスを入力するだけで、すぐに始められます
+          = link_to "無料で10日間試す →", "/clients/sign_up", class: "btn-gradient-cta"
 
 
   /-- FAQ --
@@ -878,12 +778,10 @@
         h2.section-title よくある質問
       .faq-grid
         - faqs = [ \
-            { q: "無料プランは本当に無料ですか？", a: "はい。クレジットカードの登録不要で、月間3記事まで無料でずっとご利用いただけます。" }, \
+            { q: "無料プランは本当に無料ですか？", a: "はい。親記事1記事・子記事3記事まで無料でずっとご利用いただけます。" }, \
             { q: "SEOスコアはどのように計測されますか？", a: "Googleの上位表示アルゴリズムの傾向をAIが独自に多角分析し、見出し構成やキーワード比率などから100点満点で客観的に自動査定します。" }, \
             { q: "記事生成中にブラウザを閉じても大丈夫ですか？", a: "はい、完全に問題ありません。バックグラウンドのサーバーサイドですべて自動進行・生成されるため、画面を閉じた状態でも処理は継続されます。" }, \
             { q: "他のツールやWordPressとの連携はできますか？", a: "はい、API連携やCMS向けのエクスポート機能を備えており、生成した最適記事をスムーズに構築サイトへ反映させることができます。" }, \
-            { q: "チームでの利用やEnterpriseプランのカスタマイズは可能ですか？", a: "ビジネスプラン以上で複数人共有（最大5名）が可能です。Enterpriseプランでは制限が無制限となり、AIエージェントによる完全自動運用やカスタム機能開発も個別に応相談で対応いたします。" \
-            } \
           ]
         - faqs.each do |faq|
           details.faq-item
@@ -924,8 +822,8 @@
           .about-stats-row
             - about_stats = [ \
                 { type: "shop", label: "サービス開始", num: "2024", unit: "年" }, \
-                { type: "team", label: "導入企業数", num: "300", unit: "+社" }, \
-                { type: "doc", label: "累計生成記事数", num: "50", unit: "万記事+" } \
+                { type: "team", label: "導入企業数", num: "100", unit: "+社" }, \
+                { type: "doc", label: "累計生成記事数", num: "1", unit: "万記事+" } \
               ]
             - about_stats.each do |stat|
               .stat-box
@@ -955,16 +853,16 @@
           .profile-table
             .pt-row
               .pt-th 会社名
-              .pt-td 株式会社Drafity
+              .pt-td 株式会社J Work
             .pt-row
               .pt-th 所在地
               .pt-td
-                | 〒150-0002
+                | 〒105-0013
                 br
-                | 東京都渋谷区渋谷1-2-3 渋谷スクエアビル 8F
+                | 東京都港区浜松町２丁目２番１５号２Ｆ
             .pt-row
               .pt-th 設立
-              .pt-td 2024年1月
+              .pt-td 2024年8月
             .pt-row
               .pt-th 代表者
               .pt-td 山田 太郎
@@ -976,17 +874,12 @@
                 | メディア支援・コンテンツマーケティング支援
             .pt-row
               .pt-th 資本金
-              .pt-td 1,000万円
-            .pt-row
-              .pt-th お問い合わせ
-              .pt-td
-                = link_to "https://drafity.ai/contact", "https://drafity.ai/contact", class: "pt-link"
-
+              .pt-td 500万円
 
 
   section.enterprise-agent-section
     .ea-inner
-      span.ea-badge 今なら7日間の無料トライアル
+      span.ea-badge 今なら10日間の無料トライアル
       h2.ea-title
         | まずは
         span.free2 無料
@@ -1029,4 +922,13 @@ script
   |   const card = grid.querySelector('.plan-card');
   |   const step = card ? card.offsetWidth + 20 : 280;
   |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
+  | }
+  | function scrollVoices(direction) {
+  |   const viewport = document.getElementById('voices-viewport');
+  |   if (!viewport) return;
+  |   const grid = document.getElementById('voices-grid');
+  |   const card = grid?.querySelector('.voice-card');
+  |   const gap = parseFloat(getComputedStyle(grid || viewport).columnGap || getComputedStyle(grid || viewport).gap) || 20;
+  |   const step = card ? card.offsetWidth + gap : 360;
+  |   viewport.scrollBy({ left: direction * step, behavior: 'smooth' });
   | }
