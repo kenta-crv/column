@@ -1,6 +1,8 @@
 class ServiceGenre < ApplicationRecord
   belongs_to :client, optional: true
 
+  attr_accessor :admin_override
+
   validates :key, presence: true,
                   format: { with: /\A[a-z0-9_]+\z/, message: "は英小文字・数字・アンダースコアのみ使用できます" },
                   uniqueness: { scope: :client_id }
@@ -8,6 +10,7 @@ class ServiceGenre < ApplicationRecord
 
   before_validation :normalize_key
   validate :within_client_genre_limit, on: :create
+  validate :within_client_sub_category_limit, if: -> { client_id? && !admin_override }
   after_save :sync_client_allowed_genres, if: :client_id?
   after_destroy :sync_client_allowed_genres_on_destroy, if: :client_id?
   after_commit :reset_genre_registry_cache
@@ -26,6 +29,30 @@ class ServiceGenre < ApplicationRecord
 
   def sub_categories_count
     (sub_categories || {}).size
+  end
+
+  def self.owner_client_id_for(key, host: nil, client: nil)
+    return client.id if client&.id.present?
+    return nil if key.blank?
+
+    candidates = where(key: key.to_s).where.not(client_id: nil)
+    return candidates.first.client_id if candidates.one?
+
+    if host.present?
+      normalized = host.to_s.downcase.sub(/\Awww\./, "").sub(/:\d+\z/, "")
+      match = candidates.find do |record|
+        Array(record.hosts).any? do |entry|
+          entry.to_s.downcase.sub(/\Awww\./, "").sub(/:\d+\z/, "") == normalized
+        end
+      end
+      return match.client_id if match
+    end
+
+    nil
+  end
+
+  def self.registered_key?(key)
+    key.present? && exists?(key: key.to_s)
   end
 
   def sub_categories_for_form
@@ -82,6 +109,17 @@ class ServiceGenre < ApplicationRecord
 
   def normalize_key
     self.key = key.to_s.strip.downcase if key.present?
+  end
+
+  def within_client_sub_category_limit
+    owner = client
+    return unless owner
+
+    limit = owner.max_sub_category_count
+    count = sub_categories_count
+    return if count <= limit
+
+    errors.add(:base, owner.plan_limit_message(:sub_category))
   end
 
   def within_client_genre_limit

@@ -1,69 +1,70 @@
 class ColumnsController < ApplicationController
+  layout :resolve_columns_layout
+
   before_action :authenticate_admin_or_client!, except: [:index, :show]
-  before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image]
-  before_action :require_column_access!, only: [:edit, :update, :destroy, :approve, :generate_title, :remove_image]
+  before_action :authenticate_admin_or_client!, only: [:bulk_update_drafts]
+  before_action :redirect_legacy_columns_index!, only: [:index]
+  before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
+  before_action :require_readable_column!, only: [:show]
+  before_action :require_column_access!, only: [:edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
   before_action :set_breadcrumbs
   before_action :assign_column_form_genre_options, only: [:new, :create, :edit, :update]
   
   @@bulk_image_generating = false
 
-def index
-  columns = public_readable_columns_scope.select(
-    :id, :title, :description, :body,
-    :genre, :article_type, :updated_at,
-    :file, :code, :parent_id, :status,
-    :sub_genre
-  )
-
-  if params[:q].present?
-    columns = columns.where(
-      "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
-      "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
+  def index
+    columns = columns_list_scope.select(
+      :id, :title, :description, :body,
+      :genre, :article_type, :updated_at,
+      :file, :code, :parent_id, :status,
+      :sub_genre, :client_id
     )
+
+    if params[:q].present?
+      columns = columns.where(
+        "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
+        "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
+      )
+    end
+
+    columns = columns.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+    columns = columns.order(updated_at: :desc)
+
+    @paginated_columns = columns.page(params[:page]).per(30)
+    @columns = @paginated_columns.to_a
+
+    stats_scope = columns_manage_view? ? dashboard_columns_base_scope : columns_list_scope
+    genre_key = current_public_genre_key.presence || default_public_genre_key
+    genre_values = public_genre_filter_values(genre_key, client: client_signed_in? ? current_client : nil)
+    stats_scope = stats_scope.where(genre: genre_values) if genre_values.present?
+
+    if params[:article_type] == "pillar"
+      @grouped_columns = @columns.group_by(&:genre)
+      @all_genres = stats_scope.where(article_type: "pillar").distinct.pluck(:genre).compact
+    end
+
+    if @columns.present?
+      column_ids = @columns.map(&:id)
+      @child_counts = stats_scope.where(parent_id: column_ids).group(:parent_id).count
+    else
+      @child_counts = {}
+    end
+
+    base_count_query = stats_scope
+    if params[:q].present?
+      base_count_query = base_count_query.where(
+        "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
+        "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
+      )
+    end
+    base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+
+    @genre_pillar_counts = base_count_query.where(article_type: "pillar").group(:genre).count
+    @genre_child_counts  = base_count_query.where(article_type: %w[child cluster]).group(:genre).count
+
+    @current_genre_key = genre_key
+    @columns_manage_view = columns_manage_view?
   end
-
-  effective_genre = resolve_public_genre_filter unless client_signed_in?
-  columns = columns.where(genre: effective_genre)                if effective_genre.present?
-  columns = columns.where(article_type: params[:article_type])  if params[:article_type].present?
-  columns = columns.where(genre: params[:selected_genre])       if params[:selected_genre].present?
-
-  columns = columns.order(updated_at: :desc)
-
-  @paginated_columns = columns.page(params[:page]).per(30)
-  @columns = @paginated_columns.to_a
-
-  if params[:article_type] == "pillar"
-    @grouped_columns = @columns.group_by(&:genre)
-
-    @all_genres = public_readable_columns_scope.distinct.pluck(:genre).compact
-  end
-
-  if @columns.present?
-    @child_counts = public_readable_columns_scope
-                      .where(parent_id: @columns.map(&:id))
-                      .group(:parent_id)
-                      .count
-  else
-    @child_counts = {}
-  end
-
-  base_count_query = public_readable_columns_scope
-
-  if params[:q].present?
-    base_count_query = base_count_query.where(
-      "title LIKE ? OR keyword LIKE ? OR description LIKE ?",
-      "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
-    )
-  end
-
-  base_count_query = base_count_query.where(genre: effective_genre)          if effective_genre.present?
-  base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
-
-  @genre_pillar_counts = base_count_query.where(article_type: "pillar").group(:genre).count
-  @genre_child_counts  = base_count_query.where(article_type: "child").group(:genre).count
-
-  @current_genre_key = effective_genre
-end
 
   def show
     current_genre_key = if defined?(GenreRegistry) && GenreRegistry.respond_to?(:from_ja)
@@ -72,10 +73,11 @@ end
     current_genre_key ||= @column.genre.to_s.strip.downcase
 
     if @column.article_type == "pillar"
-      if admin_signed_in?
+      if can_manage_column?(@column)
         @children = @column.children.order(updated_at: :desc)
+        @child_article_quota = child_article_quota_for(@column)
       else
-        @children = @column.children.where("body IS NOT NULL AND TRIM(body) != ''").order(updated_at: :desc)
+        @children = @column.children.merge(Column.published).order(updated_at: :desc)
       end
     else
       @children = []
@@ -141,6 +143,10 @@ end
   def create
     @column = Column.new(column_params)
     assign_column_client!(@column)
+
+    if client_signed_in? && @column.parent_id.blank? && @column.article_type.blank?
+      @column.article_type = "pillar"
+    end
 
     unless admin_or_allowed_genre?(@column.genre)
       @column.errors.add(:genre, "は利用できません")
@@ -282,6 +288,22 @@ end
     redirect_to dashboard_root_path, notice: "本文生成を開始しました"
   end
 
+  def publish
+    unless @column.generated_body?
+      return redirect_back fallback_location: dashboard_root_path, alert: "本文が生成されていないため公開できません"
+    end
+
+    @column.publish!
+    Rails.logger.info("[Publish] column_id=#{@column.id}")
+    redirect_back fallback_location: dashboard_root_path, notice: "記事を公開しました"
+  end
+
+  def unpublish
+    @column.unpublish!
+    Rails.logger.info("[Unpublish] column_id=#{@column.id}")
+    redirect_back fallback_location: dashboard_root_path, notice: "記事を下書き（レビュー待ち）に戻しました"
+  end
+
   def generate_pillar
     if params[:title].present?
       GptPillarGenerator.generate_full_article(params[:title], params[:genre], params[:choice])
@@ -312,35 +334,81 @@ end
   end
 
   def generate_title
+    unless @column.article_type == "pillar"
+      redirect_back fallback_location: pillar_manage_path(@column), alert: "親記事でのみ子タイトルを生成できます"
+      return
+    end
+
+    return_path = pillar_manage_path(@column)
+    remaining = remaining_child_slots_for(@column)
+
+    if remaining <= 0
+      message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
+      redirect_back fallback_location: return_path, alert: message
+      return
+    end
+
     topic_plans = GptTitleGenerator.generate_titles(@column)
-    return_path = public_column_show_path(@column)
 
-    if topic_plans.any?
-      if @column.client_id.present?
-        owner = @column.client
-        unless owner.can_create_child?(count: topic_plans.size)
-          redirect_back fallback_location: return_path, alert: owner.plan_limit_message(:child)
-          return
-        end
+    if topic_plans.blank?
+      redirect_back fallback_location: return_path, alert: "子タイトルの生成に失敗しました"
+      return
+    end
+
+    topic_plans = topic_plans.first(remaining)
+
+    ActiveRecord::Base.transaction do
+      topic_plans.each do |plan|
+        Column.create!(
+          parent_id: @column.id,
+          title: plan["title"],
+          article_type: "child",
+          status: "draft",
+          genre: @column.genre,
+          choice: @column.choice,
+          client_id: @column.client_id
+        )
       end
+    end
 
-      ActiveRecord::Base.transaction do
-        topic_plans.each do |plan|
-          Column.create!(
-            parent_id: @column.id,
-            title: plan["title"],
-            article_type: "child",
-            status: "draft",
-            genre: @column.genre,
-            choice: @column.choice,
-            client_id: @column.client_id
-          )
-        end
-      end
+    redirect_back fallback_location: return_path, notice: "#{topic_plans.size}件の子タイトルを作成しました（残り #{remaining - topic_plans.size} 件）"
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_back fallback_location: return_path, alert: e.record.errors.full_messages.join(", ")
+  end
 
-      redirect_back fallback_location: return_path, notice: "#{topic_plans.size}件生成しました"
+  def create_child_title
+    unless @column.article_type == "pillar"
+      redirect_back fallback_location: pillar_manage_path(@column), alert: "親記事でのみ子タイトルを作成できます"
+      return
+    end
+
+    title = params[:child_title].to_s.strip
+    if title.blank?
+      redirect_back fallback_location: pillar_manage_path(@column), alert: "子記事タイトルを入力してください"
+      return
+    end
+
+    remaining = remaining_child_slots_for(@column)
+    if remaining <= 0
+      message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
+      redirect_back fallback_location: pillar_manage_path(@column), alert: message
+      return
+    end
+
+    child = Column.new(
+      parent_id: @column.id,
+      title: title,
+      article_type: "child",
+      status: "draft",
+      genre: @column.genre,
+      choice: @column.choice,
+      client_id: @column.client_id
+    )
+
+    if child.save
+      redirect_back fallback_location: pillar_manage_path(@column), notice: "子記事タイトルを追加しました"
     else
-      redirect_back fallback_location: return_path, alert: "生成失敗"
+      redirect_back fallback_location: pillar_manage_path(@column), alert: child.errors.full_messages.join(", ")
     end
   end
 
@@ -348,6 +416,24 @@ end
   # PRIVATE
   # ======================
   private
+
+  def redirect_legacy_columns_index!
+    return if current_public_genre_key.present?
+
+    genre_key = default_public_genre_key
+    if genre_key.blank?
+      return if columns_manage_view?
+      raise ActiveRecord::RecordNotFound, "公開ジャンルが見つかりません"
+    end
+
+    redirect_to columns_index_path(request.query_parameters.symbolize_keys.merge(genre: genre_key))
+  end
+
+  def resolve_columns_layout
+    return "admin" if columns_manage_view? && %w[index show].include?(action_name)
+
+    "application"
+  end
 
   def set_column
     @column = Column.find_by(code: params[:id]) || Column.find_by(id: params[:id])
@@ -362,6 +448,12 @@ end
     redirect_to root_path
   end
 
+  def require_readable_column!
+    return if readable_column?(@column)
+
+    raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}"
+  end
+
   def render_404
     render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false
   end
@@ -373,7 +465,7 @@ end
 
     if defined?(LpDefinition)
       label = LpDefinition.label(genre_key)
-      add_breadcrumb label, "/#{genre_key}" if label
+      add_breadcrumb label, columns_index_path(genre: genre_key) if label && genre_key.present?
     end
 
     add_breadcrumb @column.title if action_name == 'show' && @column
@@ -384,26 +476,6 @@ end
       :title, :file, :choice, :keyword, :description, :genre, :code,
       :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre
     )
-  end
-
-  def resolve_public_genre_filter
-    return params[:genre].to_s if params[:genre].present?
-
-    # drafity.pro はメインプラットフォーム。/columns では全ジャンルを表示する
-    return nil if main_platform_host?(request.host)
-
-    GenreRegistry.allowed_hosts(request.host)&.to_s
-  end
-
-  def public_readable_columns_scope
-    scope = Column.where("body IS NOT NULL AND TRIM(body) != ''")
-    return scope.where(client_id: current_client.id) if client_signed_in?
-
-    scope
-  end
-
-  def main_platform_host?(host)
-    host.to_s.downcase.sub(/\Awww\./, "") == "drafity.pro"
   end
 
   def assign_column_form_genre_options
@@ -424,16 +496,15 @@ end
     end
   end
 
-  def public_column_show_path(column)
-    genre_key = GenreRegistry.resolve_key(column.genre)
-    columns_show_path(genre: genre_key, id: column.code)
-  end
-  helper_method :public_column_show_path
-
   def delete_bulk_fallback_path
     if params[:return_pillar_code].present?
       pillar = Column.find_by(code: params[:return_pillar_code])
-      return public_column_show_path(pillar) if pillar
+      return pillar_manage_path(pillar) if pillar
+    end
+
+    if params[:return_pillar_id].present?
+      pillar = Column.find_by(id: params[:return_pillar_id])
+      return pillar_manage_path(pillar) if pillar
     end
 
     return draft_columns_path if params[:redirect_context] == "draft"

@@ -20,6 +20,18 @@ Rails.application.routes.draw do
     
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'
+    post 'api_settings/regenerate_api_key', to: 'clients#regenerate_my_api_key'
+
+    resources :autonomous_runs, only: [:index, :new, :create, :show, :destroy] do
+      member do
+        post :approve_child_titles
+        post :retry
+        delete "children/:child_id", action: :destroy_child, as: :destroy_child
+      end
+      collection do
+        patch :update_settings
+      end
+    end
 
     resources :columns do
       collection do
@@ -47,12 +59,15 @@ Rails.application.routes.draw do
       member do
         get :api_settings
         patch :update_api_settings
+        post :regenerate_api_key
       end
     end
 
     resources :service_genres, except: [:show] do
       collection do
         post :suggest_sub_categories
+        post :quick_setup
+        post :quick_create
       end
     end
 
@@ -95,7 +110,10 @@ Rails.application.routes.draw do
     member do
       patch :remove_image
       post :generate_title
+      post :create_child_title
       patch :approve
+      patch :publish
+      patch :unpublish
     end
   end
 

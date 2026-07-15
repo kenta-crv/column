@@ -5,6 +5,7 @@ class Client < ApplicationRecord
   has_many :client_usage_logs, dependent: :destroy
   has_many :columns, dependent: :nullify
   has_many :service_genres, dependent: :destroy
+  has_many :autonomous_content_runs, dependent: :destroy
 
   has_one :plan
   has_many :subscriptions, dependent: :destroy
@@ -71,11 +72,26 @@ class Client < ApplicationRecord
   end
 
   def actual_pillar_count_in_period
-    usage_columns_scope.where(article_type: "pillar").count
+    pillar_slots_used
   end
 
   def actual_child_count_in_period
-    usage_columns_scope.where.not(article_type: "pillar").count
+    child_slots_used
+  end
+
+  def pillar_slots_used(excluding: nil)
+    scope = usage_columns_scope.where(parent_id: nil).where.not(article_type: CHILD_ARTICLE_TYPES)
+    scope = scope.where.not(id: excluding.id) if excluding&.persisted?
+    scope.count
+  end
+
+  def child_slots_used(excluding: nil)
+    scope = usage_columns_scope.where(
+      "article_type IN (:types) OR parent_id IS NOT NULL",
+      types: CHILD_ARTICLE_TYPES
+    ).where.not(article_type: "pillar")
+    scope = scope.where.not(id: excluding.id) if excluding&.persisted?
+    scope.count
   end
 
   def reconcile_article_creation_usage_if_drifted!
@@ -131,16 +147,26 @@ class Client < ApplicationRecord
     plan_limits[:api_enabled]
   end
 
-  def can_create_pillar?(count: 1)
-    pillar_usage_count + count <= plan_limits[:pillar_articles]
+  def regenerate_api_key!
+    update!(api_key: SecureRandom.hex(32))
   end
 
-  def can_create_child?(count: 1)
-    child_usage_count + count <= plan_limits[:child_articles]
+  def can_create_pillar?(count: 1, excluding: nil)
+    pillar_slots_used(excluding: excluding) + count <= plan_limits[:pillar_articles]
+  end
+
+  def can_create_child?(count: 1, excluding: nil)
+    child_slots_used(excluding: excluding) + count <= plan_limits[:child_articles]
   end
 
   def can_suggest_titles?
     title_suggestion_usage_count < plan_limits[:title_suggestions]
+  end
+
+  def max_title_suggestion_count
+    (plan_limits[:title_suggestion_max_per_use] || Subscription::TITLE_SUGGESTION_BAR_MAX)
+      .to_i
+      .clamp(1, Subscription::TITLE_SUGGESTION_BAR_MAX)
   end
 
   def can_generate_images?(count: 1)
@@ -151,8 +177,52 @@ class Client < ApplicationRecord
     service_genres.count < plan_limits[:genre_count]
   end
 
+  def max_sub_category_count
+    plan_limits[:sub_category_count].to_i
+  end
+
+  def sub_categories_allowed?
+    max_sub_category_count.positive?
+  end
+
   def ai_autonomous_enabled?
     plan_limits[:ai_autonomous]
+  end
+
+  DEFAULT_AUTONOMOUS_SETTINGS = {
+    "notify_on" => ["cycle_complete"],
+    "pause_for_approval_at" => nil,
+    "default_cluster_limit" => 15
+  }.freeze
+
+  def autonomous_settings_with_defaults
+    DEFAULT_AUTONOMOUS_SETTINGS.merge(autonomous_settings.is_a?(Hash) ? autonomous_settings : {})
+  end
+
+  def pause_for_child_title_approval?
+    autonomous_settings_with_defaults["pause_for_approval_at"] == "child_titles"
+  end
+
+  def autonomous_notify_on
+    Array(autonomous_settings_with_defaults["notify_on"])
+  end
+
+  def default_cluster_limit
+    autonomous_settings_with_defaults["default_cluster_limit"].to_i.clamp(
+      AutonomousContentRun::MIN_CLUSTER_LIMIT,
+      AutonomousContentRun::MAX_CLUSTER_LIMIT
+    )
+  end
+
+  def update_autonomous_settings!(notify_on:, pause_for_child_titles:, default_cluster_limit:)
+    settings = autonomous_settings_with_defaults.dup
+    settings["notify_on"] = notify_on
+    settings["pause_for_approval_at"] = pause_for_child_titles ? "child_titles" : nil
+    settings["default_cluster_limit"] = default_cluster_limit.to_i.clamp(
+      AutonomousContentRun::MIN_CLUSTER_LIMIT,
+      AutonomousContentRun::MAX_CLUSTER_LIMIT
+    )
+    update!(autonomous_settings: settings)
   end
 
   def record_title_suggestion!
@@ -177,6 +247,12 @@ class Client < ApplicationRecord
       "画像生成の上限（#{limits[:image_generations]}回）に達しています。プランのアップグレードをご検討ください。"
     when :genre
       "ジャンル数の上限（#{limits[:genre_count]}個）に達しています。プランのアップグレードをご検討ください。"
+    when :sub_category
+      if limits[:sub_category_count].to_i <= 0
+        "お使いのプランでは中分類を利用できません。スタンダードプラン以上でご利用いただけます。"
+      else
+        "中分類の上限（#{limits[:sub_category_count]}件）に達しています。プランのアップグレードをご検討ください。"
+      end
     when :api
       "現在のプランではAPIを利用できません。プランのアップグレードをご検討ください。"
     when :ai_autonomous
@@ -188,12 +264,14 @@ class Client < ApplicationRecord
 
   def usage_summary
     limits = plan_limits
+    reconcile_article_creation_usage_if_drifted!
     {
-      pillar: { used: pillar_usage_count, limit: limits[:pillar_articles] },
-      child: { used: child_usage_count, limit: limits[:child_articles] },
+      pillar: { used: pillar_slots_used, limit: limits[:pillar_articles] },
+      child: { used: child_slots_used, limit: limits[:child_articles] },
       title_suggestions: { used: title_suggestion_usage_count, limit: limits[:title_suggestions] },
       image_generations: { used: image_generation_usage_count, limit: limits[:image_generations] },
       genres: { used: service_genres.count, limit: limits[:genre_count] },
+      sub_categories: { limit: limits[:sub_category_count] },
       api_enabled: limits[:api_enabled],
       ai_autonomous: limits[:ai_autonomous]
     }

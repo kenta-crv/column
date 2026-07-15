@@ -1,22 +1,26 @@
-.auth-wrapper
+.auth-wrapper.auth-wrapper--signup
   .auth-forms
-    .auth-card
-      h2 Log in
-      = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
-        .field
-          = f.label :email
-          = f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field"
+    .auth-card.auth-card--signup.auth-card--login
+      .auth-card__header
+        h2.auth-card__title ログイン
 
-        .field
-          = f.label :password
-          = f.password_field :password, autocomplete: "current-password", class: "input-field"
+      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-signup-form" }) do |f|
+        .auth-form-section
+          .field
+            = f.label :email, "メールアドレス"
+            = f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field", placeholder: "you@example.com", required: true
 
-        - if devise_mapping.rememberable?
-          .field.remember
-            = f.check_box :remember_me
-            = f.label :remember_me
+          .field
+            = f.label :password, "パスワード"
+            = f.password_field :password, autocomplete: "current-password", class: "input-field", required: true
+
+          - if devise_mapping.rememberable?
+            .field.remember
+              = f.check_box :remember_me
+              = f.label :remember_me, "ログイン状態を保持する"
 
         .actions
-          = f.submit "Log in", class: "btn btn-primary"
+          = f.submit "ログイン", class: "btn-signup"
 
-      /= render "clients/shared/links"
+      .auth-card__footer
+        = render "clients/shared/links"

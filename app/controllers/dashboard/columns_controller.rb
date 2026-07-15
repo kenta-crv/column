@@ -1,4 +1,6 @@
 class Dashboard::ColumnsController < ApplicationController
+  helper ColumnsHelper
+
   before_action :authenticate_admin_or_client!
   before_action :require_admin!, only: [:management]
   before_action :enforce_client_genre_param!, only: [:index, :export]
@@ -13,27 +15,28 @@ class Dashboard::ColumnsController < ApplicationController
     base_scope = dashboard_columns_base_scope
     assign_dashboard_tab_counts(base_scope)
 
-    @kpi_published_count = base_scope.merge(Column.with_generated_body).count
+    @kpi_published_count = base_scope.merge(Column.published).count
     @kpi_draft_count = base_scope.where("body IS NULL OR TRIM(body) = ''").count
     @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
     @kpi_completed_generation_count = base_scope.where(generation_status: "completed").count
-    @kpi_reserved_count = base_scope.where(status: "reserved").count
+    @kpi_pending_review_count = base_scope.merge(Column.pending_review).count
 
     filtered_base = base_scope
     filtered_base = filtered_base.where(genre: params[:genre]) if params[:genre].present?
     filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
-    @total_count     = filtered_base.count
-    @draft_count     = filtered_base.where(body: [nil, ""]).count
-    @pillar_count    = filtered_base.where(article_type: "pillar").count
-    @cluster_count   = filtered_base.where(article_type: %w[cluster child]).count
-    @published_count = filtered_base.merge(Column.with_generated_body).count
-    @error_count     = filtered_base.where(status: "error").count
-    @reserved_count  = filtered_base.where(status: "reserved").count
-    @no_image_count  = filtered_base.merge(Column.missing_generated_image).count
+    @total_count        = filtered_base.count
+    @draft_count        = filtered_base.where(body: [nil, ""]).count
+    @pillar_count       = filtered_base.where(article_type: "pillar").count
+    @cluster_count      = filtered_base.where(article_type: %w[cluster child]).count
+    @published_count    = filtered_base.merge(Column.published).count
+    @pending_review_count = filtered_base.merge(Column.pending_review).count
+    @error_count        = filtered_base.where(status: "error").count
+    @no_image_count     = filtered_base.merge(Column.missing_generated_image).count
 
-    # 成功率とクオリティ平均の計算（実態ベースでの算出。データがない場合は固定フォールバック）
-    total_processed = @published_count + @error_count
-    @success_rate = total_processed.positive? ? ((@published_count.to_f / total_processed) * 100).round : 92
+    # 成功率とクオリティ平均の計算（本文生成の成功率。データがない場合は固定フォールバック）
+    generated_count = filtered_base.merge(Column.with_generated_body).count
+    total_processed = generated_count + @error_count
+    @success_rate = total_processed.positive? ? ((generated_count.to_f / total_processed) * 100).round : 92
     @avg_quality_score = "4.6" # ロジックが存在する場合はここで `filtered_base.average(:quality_score)` 等を計算
 
     # 2. メイン一覧用のスコープを params[:scope] に応じて条件分岐
@@ -46,8 +49,10 @@ class Dashboard::ColumnsController < ApplicationController
         scope = scope.where(article_type: "pillar")
       when "cluster"
         scope = scope.where(article_type: %w[cluster child])
+      when "pending_review"
+        scope = scope.merge(Column.pending_review)
       when "published"
-        scope = scope.merge(Column.with_generated_body)
+        scope = scope.merge(Column.published)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -83,6 +88,8 @@ class Dashboard::ColumnsController < ApplicationController
                             .where(generation_status: %w[queued generating])
                             .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
                             .limit(30)
+
+    @title_suggestion_config = title_suggestion_ui_config
   end
 
   def generation_status
@@ -192,8 +199,10 @@ class Dashboard::ColumnsController < ApplicationController
         scope = scope.where(article_type: "pillar")
       when "cluster"
         scope = scope.where(article_type: %w[cluster child])
+      when "pending_review"
+        scope = scope.merge(Column.pending_review)
       when "published"
-        scope = scope.merge(Column.with_generated_body)
+        scope = scope.merge(Column.published)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -275,8 +284,6 @@ class Dashboard::ColumnsController < ApplicationController
     @clients = Client.includes(:subscriptions).order(created_at: :desc)
   end
 
-  private
-
   def suggest_titles
     unless admin_or_allowed_genre?(params[:genre])
       return render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
@@ -286,6 +293,12 @@ class Dashboard::ColumnsController < ApplicationController
       return render json: { success: false, error: current_client.plan_limit_message(:title_suggestion) }
     end
 
+    max_per_use = if client_signed_in?
+                    current_client.max_title_suggestion_count
+                  else
+                    Subscription::TITLE_SUGGESTION_BAR_MAX
+                  end
+
     result = PillarTitleSuggestionService.call(
       keyword1: params[:keyword1],
       keyword2: params[:keyword2],
@@ -293,6 +306,7 @@ class Dashboard::ColumnsController < ApplicationController
       genre: params[:genre],
       custom_prompt: params[:custom_prompt],
       suggestion_count: params[:suggestion_count],
+      max_suggestion_count: max_per_use,
       client: (client_signed_in? ? current_client : nil)
     )
 
@@ -305,6 +319,10 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def create_from_suggestion
+    if client_signed_in? && !current_client.can_create_pillar?
+      return render json: { success: false, error: current_client.plan_limit_message(:pillar) }
+    end
+
     @column = Column.new(
       title: params[:title],
       article_type: "pillar",
@@ -337,7 +355,7 @@ class Dashboard::ColumnsController < ApplicationController
     created_count = 0
     errors = []
     remaining_slots = if client_signed_in?
-                        current_client.plan_limits[:pillar_articles] - current_client.pillar_usage_count
+                        [current_client.plan_limits[:pillar_articles] - current_client.pillar_slots_used, 0].max
                       else
                         titles.size
                       end
@@ -369,6 +387,28 @@ class Dashboard::ColumnsController < ApplicationController
 
   private
 
+  def title_suggestion_ui_config
+    bar_max = Subscription::TITLE_SUGGESTION_BAR_MAX
+
+    if client_signed_in?
+      plan_max = current_client.max_title_suggestion_count
+      {
+        default: 1,
+        max: plan_max,
+        bar_max: bar_max,
+        remaining: [current_client.plan_limits[:title_suggestions] - current_client.title_suggestion_usage_count, 0].max,
+        monthly_limit: current_client.plan_limits[:title_suggestions]
+      }
+    else
+      {
+        default: 1,
+        max: bar_max,
+        bar_max: bar_max,
+        remaining: nil
+      }
+    end
+  end
+
   def enforce_client_genre_param!
     return unless client_signed_in?
     return if params[:genre].blank?
@@ -379,6 +419,8 @@ class Dashboard::ColumnsController < ApplicationController
 
   def assign_dashboard_genre_options
     @dashboard_genre_options = dashboard_genre_registry_options
+    @sub_category_config = sub_category_ui_config
+    @needs_genre_setup = client_signed_in? && !admin_signed_in? && @dashboard_genre_options.blank?
   end
 
   def image_generation_target_scope(base_scope)
@@ -386,13 +428,14 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    @tab_count_all       = scope.count
-    @tab_count_draft     = scope.where("body IS NULL OR TRIM(body) = ''").count
-    @tab_count_pillar    = scope.where(article_type: "pillar").count
-    @tab_count_cluster   = scope.where(article_type: %w[cluster child]).count
-    @tab_count_published = scope.merge(Column.with_generated_body).count
-    @tab_count_error     = scope.where(status: "error").count
-    @tab_count_no_image  = scope.merge(Column.missing_generated_image).count
+    @tab_count_all           = scope.count
+    @tab_count_draft         = scope.where("body IS NULL OR TRIM(body) = ''").count
+    @tab_count_pillar        = scope.where(article_type: "pillar").count
+    @tab_count_cluster       = scope.where(article_type: %w[cluster child]).count
+    @tab_count_pending_review = scope.merge(Column.pending_review).count
+    @tab_count_published     = scope.merge(Column.published).count
+    @tab_count_error         = scope.where(status: "error").count
+    @tab_count_no_image      = scope.merge(Column.missing_generated_image).count
   end
 
   def broadcast_generation_status(column)

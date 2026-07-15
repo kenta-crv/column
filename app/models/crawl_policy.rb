@@ -10,7 +10,7 @@ module CrawlPolicy
   end
 
   def crawlable_columns
-    Column.where(genre: GENRE_KEY).where("body IS NOT NULL AND TRIM(body) != ''")
+    Column.where(genre: GENRE_KEY).merge(Column.published).merge(Column.with_generated_body)
   end
 
   def column_path(column)

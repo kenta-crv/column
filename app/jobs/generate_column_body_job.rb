@@ -1,13 +1,29 @@
 class GenerateColumnBodyJob < ApplicationJob
   queue_as :article_generation
 
+  def self.perform_later_for_autonomous(column_id, autonomous_run_id:)
+    set(queue_adapter: :sidekiq, queue_name: "autonomous")
+      .perform_later(column_id, autonomous_run_id: autonomous_run_id)
+  end
+
   retry_on Net::ReadTimeout, wait: :exponentially_longer, attempts: 3
 
   class StopRequested < StandardError; end
 
-  def perform(column_id)
+  def perform(column_id, autonomous_run_id: nil)
+    AutonomousContentRun.recover_stale_runs! if autonomous_run_id.present?
+
     column = Column.find_by(id: column_id)
     return unless column
+
+    if column.article_type == "pillar" && column.body.present?
+      run_quality_evaluation!(column.id) unless quality_score_present?(column)
+      if autonomous_run_id.present?
+        AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
+      end
+      return
+    end
+
     return if column.generated_body?
 
     return if GenerateColumnBodyJob.cancelled?(column_id)
@@ -37,13 +53,11 @@ class GenerateColumnBodyJob < ApplicationJob
       broadcast_generation_status(column)
       Rails.logger.info("[GenerateColumnBodyJob] completed column_id=#{column_id}")
 
-      Thread.new do
-        ActiveRecord::Base.connection_pool.with_connection do
-          EvaluateColumnQualityJob.perform_now(column.id)
-        end
-      rescue => e
-        Rails.logger.error("❌ Evaluation thread error: #{e.message}")
+      if autonomous_run_id.present?
+        AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
       end
+
+      run_quality_evaluation!(column.id)
 
     rescue StopRequested
       column.reload
@@ -62,6 +76,12 @@ class GenerateColumnBodyJob < ApplicationJob
       column.update_columns(status: "error", body: error_info, generation_status: "failed")
       broadcast_generation_status(column)
       Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
+
+      if autonomous_run_id.present?
+        run = AutonomousContentRun.find_by(id: autonomous_run_id)
+        run&.mark_failed!(error_info)
+      end
+
       raise e
 
     ensure
@@ -118,5 +138,15 @@ class GenerateColumnBodyJob < ApplicationJob
 
   def broadcast_generation_status(column)
     GenerationChannelBroadcaster.broadcast(column)
+  end
+
+  def quality_score_present?(column)
+    column.quality_score.present? && column.quality_score.to_f.positive?
+  end
+
+  def run_quality_evaluation!(column_id)
+    EvaluateColumnQualityJob.perform_now(column_id)
+  rescue => e
+    Rails.logger.error("❌ Evaluation error for column #{column_id}: #{e.message}")
   end
 end

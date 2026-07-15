@@ -1,4 +1,27 @@
 module ApplicationHelper
+  ADMIN_PAGE_TITLES = {
+    ["dashboard/columns", "index"] => "記事管理",
+    ["dashboard/columns", "image_generation"] => "画像一括生成",
+    ["dashboard/columns", "management"] => "クライアント管理",
+    ["dashboard/columns", "setting"] => "設定",
+    ["dashboard/service_genres", "index"] => "サービス・ジャンル管理",
+    ["dashboard/service_genres", "new"] => "サービス・ジャンル作成",
+    ["dashboard/service_genres", "edit"] => "サービス・ジャンル編集",
+    ["dashboard/clients", "api_settings"] => "API設定",
+    ["dashboard/clients", "my_api_settings"] => "API設定",
+    ["dashboard/autonomous_runs", "index"] => "AI主導生成",
+    ["dashboard/autonomous_runs", "new"] => "AI主導生成を開始",
+    ["dashboard/autonomous_runs", "show"] => "AI主導生成詳細",
+    ["dashboard/subscriptions", "show"] => "サブスクリプション管理",
+    ["dashboard/subscriptions", "cancel_confirm"] => "サブスクリプション解約",
+    ["admins/sessions", "new"] => "管理者ログイン",
+    ["admins/registrations", "new"] => "管理者アカウント登録",
+    ["admins/passwords", "new"] => "パスワード再設定",
+    ["admins/passwords", "edit"] => "新しいパスワード",
+    ["clients/sessions", "new"] => "ログイン",
+    ["clients/registrations", "new"] => "アカウント登録"
+  }.freeze
+
   def default_meta_tags
     {
       site: "豊富な人材集客力で企業の人材不足を解消|『J Work』",
@@ -13,6 +36,41 @@ module ApplicationHelper
       ],
 
     }
+  end
+
+  def admin_page_title
+    return content_for(:title).presence if content_for?(:title)
+
+    key = [controller_path, action_name]
+
+    case key
+    when ["dashboard/clients", "api_settings"], ["dashboard/clients", "my_api_settings"]
+      if defined?(@client) && @client&.email.present?
+        "#{@client.email} - API設定"
+      else
+        ADMIN_PAGE_TITLES.fetch(key)
+      end
+    when ["dashboard/service_genres", "edit"]
+      if defined?(@service_genre) && @service_genre&.ja.present?
+        "#{@service_genre.ja} - サービス・ジャンル編集"
+      else
+        ADMIN_PAGE_TITLES.fetch(key)
+      end
+    when ["dashboard/autonomous_runs", "show"]
+      if defined?(@run) && @run&.title.present?
+        "#{@run.title} - AI主導生成詳細"
+      else
+        ADMIN_PAGE_TITLES.fetch(key)
+      end
+    when ["dashboard/subscriptions", "show"], ["dashboard/subscriptions", "cancel_confirm"]
+      if defined?(@target_client) && @target_client&.email.present?
+        "#{@target_client.email} - #{ADMIN_PAGE_TITLES.fetch(key)}"
+      else
+        ADMIN_PAGE_TITLES.fetch(key)
+      end
+    else
+      ADMIN_PAGE_TITLES.fetch(key, "Drafity Admin")
+    end
   end
 
   def service_genre_sub_category_items(service_genre)

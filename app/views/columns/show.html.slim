@@ -4,12 +4,24 @@
 .blog-container
   .container
     h1.column-title = @column.title
-    
+
+    - if can_manage_column?(@column) && @column.generated_body?
+      .publish-status-panel style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; #{@column.published? ? 'background: #e6f4ea; border: 1px solid #a7e0bd;' : 'background: #dbeafe; border: 1px solid #93c5fd;'}"
+        .publish-status-text style="font-weight: 600; #{@column.published? ? 'color: #0f7a4d;' : 'color: #1d4ed8;'}"
+          - if @column.published?
+            | ✅ この記事は公開済みです（公開日時: #{@column.published_at.strftime('%Y/%m/%d %H:%M')}）
+          - else
+            | 📝 この記事はレビュー待ちです（AIが生成した本文をチェックしてから公開してください）
+        - if @column.published?
+          = link_to '下書きに戻す（非公開化）', unpublish_column_path(@column), method: :patch, data: { confirm: 'この記事を非公開に戻しますか？公開サイトから見えなくなります。', turbo: false }, class: 'btn btn-secondary'
+        - else
+          = link_to 'レビュー完了・公開する', publish_column_path(@column), method: :patch, data: { confirm: '内容を確認済みとして公開しますか？', turbo: false }, class: 'btn btn-primary'
+
     - if @column.file.present?
-      .column-image-wrapper
+      .column-image-wrapper style="position: relative; display: inline-block; max-width: 100%;"
         = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title
-        - if admin_signed_in? || (client_signed_in? && @column.client_id == current_client&.id)
-          = link_to '×', remove_image_column_path(@column), method: :patch, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'column-image-remove-btn', title: '画像を削除'
+        - if can_manage_column?(@column)
+          = link_to '× 画像削除', remove_image_column_path(@column), method: :patch, data: { confirm: 'この画像のみを削除しますか？', turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
 
     / 目次
     - if @headings.any?
@@ -24,48 +36,118 @@
     .column-body
       == raw(@column_body_with_ids)
 
-    / ===== 管理者用：子記事生成 & 管理一覧 =====
-    - if admin_signed_in? && @column.article_type == "pillar"
-      .admin-generation-panel style="margin: 40px 0; padding: 25px; border: 2px dashed #f0ad4e; background-color: #fcf8e3; border-radius: 8px; text-align: center;"
-        h3 style="color: #8a6d3b; margin-top: 0; font-size: 1.3rem;" 
-          | 管理者メニュー：クラスター記事（子記事）戦略
-        p style="font-size: 0.9rem; color: #666;"
-          | この親記事に基づき、OpenAIで魅力的な子記事タイトル（15〜25件）を自動生成します。
-        = button_to "この記事の子記事タイトルを生成する", generate_title_column_path(@column.code), method: :post, class: "btn btn-warning btn-lg", data: { confirm: "クラスター記事案を生成します。よろしいですか？", turbo: false }
+    / ===== 子記事生成 & 管理（記事オーナー / Admin） =====
+    - if can_manage_column?(@column) && @column.article_type == "pillar"
+      - pillar_param = @column.code.presence || @column.id
+      - quota = @child_article_quota
+      - can_add_child = quota.nil? || quota[:remaining] > 0
+      style
+        | .pillar-children-panel{margin:40px 0;padding:28px;border:1px solid rgba(139,92,246,.18);border-radius:18px;background:linear-gradient(180deg,#faf5ff 0%,#fff 100%);box-shadow:0 10px 28px rgba(124,58,237,.08);}
+        | .pillar-children-panel__header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(196,181,253,.55);}
+        | .pillar-children-panel__title{margin:0;font-size:1.25rem;font-weight:800;color:#5b21b6;letter-spacing:-.02em;}
+        | .pillar-children-panel__quota{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(196,181,253,.55);color:#4c1d95;font-size:.92rem;font-weight:600;}
+        | .pillar-children-panel__quota-limit{color:#b91c1c;}
+        | .pillar-children-panel__quota-remaining{color:#6d28d9;}
+        | .child-title-step,.pillar-children-list{padding:22px;border-radius:14px;background:rgba(255,255,255,.78);border:1px solid rgba(221,214,254,.9);}
+        | .child-title-step{margin-bottom:18px;}
+        | .pillar-children-list{margin-top:18px;}
+        | .pillar-children-step__title{margin:0 0 8px;font-size:1rem;font-weight:800;color:#5b21b6;}
+        | .pillar-children-step__lead{margin:0 0 14px;color:#6b7280;font-size:.92rem;line-height:1.7;}
+        | .pillar-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:42px;padding:.72rem 1.2rem;border:1px solid transparent;border-radius:12px;font-size:.92rem;font-weight:700;text-decoration:none;cursor:pointer;transition:all .2s ease;box-sizing:border-box;white-space:nowrap;}
+        | .pillar-btn:hover{transform:translateY(-1px);}
+        | .pillar-btn--primary{color:#fff;background:linear-gradient(135deg,#6d28d9 0%,#7c3aed 45%,#8b5cf6 100%);box-shadow:0 8px 18px rgba(124,58,237,.22);}
+        | .pillar-btn--primary:hover{color:#fff;box-shadow:0 10px 24px rgba(124,58,237,.28);}
+        | .pillar-btn--secondary{color:#5b21b6;background:#fff;border-color:rgba(139,92,246,.28);box-shadow:0 4px 12px rgba(139,92,246,.08);}
+        | .pillar-btn--secondary:hover{color:#4c1d95;background:rgba(139,92,246,.06);border-color:rgba(124,58,237,.38);}
+        | .pillar-btn--danger{color:#b91c1c;background:#fff;border-color:rgba(239,68,68,.26);}
+        | .pillar-btn--danger:hover{color:#991b1b;background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.42);}
+        | .pillar-btn--disabled{color:#94a3b8;background:#f8fafc;border-color:#e2e8f0;box-shadow:none;cursor:not-allowed;opacity:.75;transform:none;}
+        | .pillar-child-title-form{margin-top:14px;}
+        | .pillar-child-title-form__row,.pillar-children-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+        | .pillar-child-title-form__row{margin-top:12px;}
+        | .pillar-child-title-form__input.form-control{min-width:260px;flex:1 1 320px;border-radius:12px;border:1px solid rgba(196,181,253,.85);background:#fff;box-shadow:inset 0 1px 2px rgba(15,23,42,.03);}
+        | .pillar-child-title-form__input.form-control:focus{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.12);}
+        | .pillar-children-actions{margin-bottom:16px;}
+        | .pillar-children-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(221,214,254,.95);background:#fff;}
+        | .pillar-children-table{width:100%;border-collapse:collapse;font-size:.92rem;}
+        | .pillar-children-table thead th{padding:14px 16px;background:linear-gradient(180deg,#faf5ff 0%,#f5f3ff 100%);border-bottom:1px solid rgba(221,214,254,.95);color:#5b21b6;font-size:.82rem;font-weight:700;letter-spacing:.02em;text-align:left;white-space:nowrap;}
+        | .pillar-children-table tbody td{padding:14px 16px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top;}
+        | .pillar-children-table tbody tr:hover{background:rgba(139,92,246,.03);}
+        | .pillar-children-table tbody tr:last-child td{border-bottom:none;}
+        | .pillar-children-table__check{width:44px;text-align:center;white-space:nowrap;}
+        | .child-check{width:16px;height:16px;accent-color:#7c3aed;cursor:pointer;}
+        | .pillar-badge{display:inline-flex;align-items:center;padding:.28rem .72rem;border-radius:999px;font-size:.78rem;font-weight:700;border:1px solid transparent;white-space:nowrap;}
+        | .pillar-badge--success{color:#0f766e;background:rgba(20,184,166,.1);border-color:rgba(20,184,166,.18);}
+        | .pillar-badge--muted{color:#64748b;background:#f8fafc;border-color:#e2e8f0;}
+        | .pillar-children-empty{padding:26px 20px;text-align:center;color:#64748b;border-radius:14px;border:1px dashed rgba(196,181,253,.95);background:rgba(250,245,255,.62);}
+        | .pillar-children-empty p{margin:0;line-height:1.7;}
+      .pillar-children-panel
+        .pillar-children-panel__header
+          h3.pillar-children-panel__title 子記事の作成・管理
+          - if quota
+            .pillar-children-panel__quota
+              | プラン上限: 子記事 #{quota[:used]} / #{quota[:limit]} 件
+              - if quota[:remaining] > 0
+                span.pillar-children-panel__quota-remaining 　｜　この親記事であと #{quota[:remaining]} 件作成可能
+              - else
+                strong.pillar-children-panel__quota-limit 　｜　子記事の作成上限に達しています
 
-      .admin-children-list style="margin-top: 30px; text-align: left; background: #fff; padding: 20px; border-radius: 5px; border: 1px solid #ddd;"
-        h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px;" 生成された子記事タイトル（一括生成実行）
-        
-        / 一括生成・削除用フォーム
-        = @column.title
-        = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbolinks: false } do
-          / JavaScriptでアクションタイプを動的に書き換えるための hidden_field
+        .child-title-step
+          h4.pillar-children-step__title Step 1: 子記事タイトルを作る
+          p.pillar-children-step__lead
+            | AIで一括生成するか、1件ずつ手動で追加できます。
+          - if can_add_child
+            = button_to "AIで子記事タイトルを生成", generate_title_column_path(pillar_param), method: :post, class: "btn pillar-btn pillar-btn--primary", data: { confirm: "子記事タイトル案を生成します。よろしいですか？", turbo: false }
+            = form_with url: create_child_title_column_path(pillar_param), method: :post, local: true, class: "pillar-child-title-form" do |f|
+              .pillar-child-title-form__row
+                = text_field_tag :child_title, nil, class: "form-control pillar-child-title-form__input", placeholder: "手動追加: 例 ○○の料金相場と選び方", required: true
+                = f.submit "手動で追加", class: "btn pillar-btn pillar-btn--secondary"
+          - else
+            button.btn.pillar-btn.pillar-btn--disabled type="button" disabled="disabled" 子記事タイトルの追加上限に達しています
+
+      .pillar-children-list
+        h4.pillar-children-step__title Step 2: 子記事本文を生成する（クラスター作成）
+        p.pillar-children-step__lead
+          | 下の一覧から子記事を選び、本文生成を開始してください。
+        = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbo: false } do
           = hidden_field_tag :action_type, "approve_bulk"
           = hidden_field_tag :return_pillar_code, @column.code
-          
-          .admin-actions style="margin-bottom: 15px; display: flex; gap: 10px;"
-            = submit_tag "選択したタイトルの本文を一括生成する", class: "btn btn-primary", data: { confirm: "生成を開始しますか？" }
-            = submit_tag "選択した子記事を一括削除する", class: "btn btn-danger", data: { confirm: "選択された子記事を一括削除しますか？" }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
-          
-          table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;"
-            thead
-              tr style="background: #f9f9f9;"
-                th style="padding: 8px; border-bottom: 2px solid #eee; width: 30px;"
-                  input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
-                th style="padding: 8px; border-bottom: 2px solid #eee;" タイトル
-                th style="padding: 8px; border-bottom: 2px solid #eee;" ステータス
-            tbody
-              - @children.each do |child|
-                tr
-                  td style="padding: 8px; border-bottom: 1px solid #eee;"
-                    = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
-                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.title
-                  td style="padding: 8px; border-bottom: 1px solid #eee;" = child.status
+          = hidden_field_tag :return_pillar_id, @column.id
+
+          .pillar-children-actions
+            = submit_tag "選択した子記事本文を生成する", class: "btn pillar-btn pillar-btn--primary", data: { confirm: "生成を開始しますか？" }
+            = submit_tag "選択した子記事を一括削除する", class: "btn pillar-btn pillar-btn--danger", data: { confirm: "選択された子記事を一括削除しますか？" }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
+
+          - if @children.any?
+            .pillar-children-table-wrap
+              table.pillar-children-table
+                thead
+                  tr
+                    th.pillar-children-table__check
+                      input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
+                    th タイトル
+                    th ステータス
+                    th 本文
+                tbody
+                  - @children.each do |child|
+                    tr
+                      td.pillar-children-table__check
+                        = check_box_tag "column_ids[]", child.id, false, class: 'child-check'
+                      td= child.title
+                      td= child.status
+                      td
+                        - if child.body.present?
+                          span.pillar-badge.pillar-badge--success あり
+                        - else
+                          span.pillar-badge.pillar-badge--muted 未生成
+          - else
+            .pillar-children-empty
+              p まだ子記事がありません。上の Step 1 からタイトルを追加してください。
 
     / ===== 関連記事一覧（一般公開用：本文があるもののみ） =====
     - if @column.article_type == "pillar"
-      - public_children = @children.select { |c| c.body.present? && c.code.present? }
-      - if public_children.any?
+      - public_children = @children.select { |c| c.publicly_visible? && c.code.present? }
+      - if public_children.any? && !can_manage_column?(@column)
         .related-articles style="margin: 50px 0; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"
           h2 style="font-size: 1.5rem; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px;"
             | 関連記事一覧
@@ -76,4 +158,7 @@
                 = link_to child.title, public_column_show_path(child), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
-      = link_to '一覧へ戻る', columns_path, class: 'btn btn-default'
+      - if client_signed_in?
+        = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
+      - else
+        = link_to '一覧へ戻る', public_columns_index_path(genre: @column.genre), class: 'btn btn-default'

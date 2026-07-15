@@ -3,6 +3,7 @@
     .pricing-inner
       .plans-top
         .section-header
+          span.overline 料金プラン
           h2.section-title プランをお選びください
           - if @is_new_account
             p.section-sub
@@ -10,8 +11,8 @@
               strong = "#{Subscription::TRIAL_DAYS}日間の無料トライアル"
               | が利用できます。
         .toggle-wrap
-          button.toggle-btn.active type="button" onclick="setPlansToggle(false, this)" 月額払い
-          button.toggle-btn type="button" onclick="setPlansToggle(true, this)"
+          button.toggle-btn.active type="button" data-plans-toggle="monthly" 月額払い
+          button.toggle-btn type="button" data-plans-toggle="yearly"
             | 年額払い
             span.toggle-save 20%お得
 
@@ -40,7 +41,7 @@
               span.plans-usage__value = usage[:api_enabled] ? "利用可" : "利用不可"
 
       .pricing-scroll-wrap
-        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" onclick="scrollPlansPricing(-1)"
+        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" data-plans-scroll="-1" disabled=true
           svg viewBox="0 0 24 24" fill="none"
             path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .pricing-grid#plans-pricing-grid
@@ -95,40 +96,78 @@
               - else
                 = link_to "このプランを選択 →", checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
 
-        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" onclick="scrollPlansPricing(1)"
+        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" data-plans-scroll="1"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
-javascript:
-  | function setPlansToggle(isYearly, btn) {
-  |   document.querySelectorAll('.plans-page .toggle-btn').forEach(b => b.classList.remove('active'));
-  |   btn.classList.add('active');
-  |   document.querySelectorAll('.plans-page .plan-card').forEach(card => {
-  |     const key     = card.dataset.planKey;
-  |     const monthly = parseInt(card.dataset.monthly, 10);
-  |     const yearly  = parseInt(card.dataset.yearly,  10);
-  |     if (!key || isNaN(monthly)) return;
-  |     const price   = isYearly ? yearly : monthly;
-  |     const priceEl = card.querySelector('#plans-' + key + '-price');
-  |     const origEl  = card.querySelector('#plans-' + key + '-orig');
-  |     const noteEl  = card.querySelector('#plans-' + key + '-note');
-  |     if (priceEl) priceEl.textContent = price.toLocaleString('ja-JP');
-  |     if (origEl) {
-  |       origEl.style.display = (isYearly && monthly > yearly) ? '' : 'none';
+script
+  | (function() {
+  |   const initPlansPage = () => {
+  |     const page = document.querySelector('.plans-page');
+  |     if (!page || page.dataset.plansReady === 'true') return;
+  |     page.dataset.plansReady = 'true';
+  |
+  |     const grid = document.getElementById('plans-pricing-grid');
+  |     const prevBtn = page.querySelector('[data-plans-scroll="-1"]');
+  |     const nextBtn = page.querySelector('[data-plans-scroll="1"]');
+  |
+  |     const syncToggle = (isYearly, btn) => {
+  |       page.querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
+  |       btn.classList.add('active');
+  |       page.querySelectorAll('.plan-card').forEach((card) => {
+  |         const key = card.dataset.planKey;
+  |         const monthly = parseInt(card.dataset.monthly, 10);
+  |         const yearly = parseInt(card.dataset.yearly, 10);
+  |         if (!key || Number.isNaN(monthly)) return;
+  |         const price = isYearly ? yearly : monthly;
+  |         const priceEl = card.querySelector('#plans-' + key + '-price');
+  |         const origEl = card.querySelector('#plans-' + key + '-orig');
+  |         const noteEl = card.querySelector('#plans-' + key + '-note');
+  |         if (priceEl) priceEl.textContent = price.toLocaleString('ja-JP');
+  |         if (origEl) origEl.style.display = (isYearly && monthly > yearly) ? '' : 'none';
+  |         if (noteEl) {
+  |           noteEl.textContent = (key === 'trial')
+  |             ? 'クレジットカード登録不要'
+  |             : (isYearly ? '年額払いで20%お得' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）');
+  |         }
+  |       });
+  |     };
+  |
+  |     const scrollStep = () => {
+  |       const card = grid?.querySelector('.plan-card');
+  |       if (!card || !grid) return 280;
+  |       const gap = parseFloat(getComputedStyle(grid).columnGap || getComputedStyle(grid).gap) || 20;
+  |       return card.offsetWidth + gap;
+  |     };
+  |
+  |     const updateScrollButtons = () => {
+  |       if (!grid || !prevBtn || !nextBtn) return;
+  |       const maxScroll = grid.scrollWidth - grid.clientWidth;
+  |       prevBtn.disabled = grid.scrollLeft <= 1;
+  |       nextBtn.disabled = maxScroll <= 1 || grid.scrollLeft >= maxScroll - 1;
+  |     };
+  |
+  |     const scrollPlans = (direction) => {
+  |       if (!grid) return;
+  |       grid.scrollBy({ left: direction * scrollStep(), behavior: 'smooth' });
+  |     };
+  |
+  |     page.querySelectorAll('[data-plans-toggle]').forEach((btn) => {
+  |       btn.addEventListener('click', () => syncToggle(btn.dataset.plansToggle === 'yearly', btn));
+  |     });
+  |
+  |     page.querySelectorAll('[data-plans-scroll]').forEach((btn) => {
+  |       btn.addEventListener('click', () => scrollPlans(parseInt(btn.dataset.plansScroll, 10)));
+  |     });
+  |
+  |     if (grid) {
+  |       grid.addEventListener('scroll', updateScrollButtons, { passive: true });
+  |       window.addEventListener('resize', updateScrollButtons);
+  |       updateScrollButtons();
   |     }
-  |     if (noteEl) {
-  |       if (isYearly) {
-  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '年額払いで20%お得';
-  |       } else {
-  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
-  |       }
-  |     }
-  |   });
-  | }
-  | function scrollPlansPricing(direction) {
-  |   const grid = document.getElementById('plans-pricing-grid');
-  |   if (!grid) return;
-  |   const card = grid.querySelector('.plan-card');
-  |   const step = card ? card.offsetWidth + 20 : 280;
-  |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
-  | }
+  |   };
+  |
+  |   document.addEventListener('DOMContentLoaded', initPlansPage);
+  |   document.addEventListener('turbolinks:load', initPlansPage);
+  |   initPlansPage();
+  | })();

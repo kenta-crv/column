@@ -1,3 +1,6 @@
+- set_meta_tags title: 'AI記事生成・運用支援なら「Drafity」'
+- set_meta_tags description: 'SEOに強い記事生成、画像生成、運用支援まで一気通貫で行えるAIコンテンツプラットフォームです。'
+
 .drafify-lp
   /-- NAV  --
   nav.nav
@@ -17,22 +20,25 @@
   /-- HERO --
   section.hero
     .hero-inner
-      .hero-left
+      .hero-copy
         .hero-eyebrow
           span.eyebrow-badge 2026年 最新AI
-          | で、記事作成をもっと速く、もっと高品質に。
+          span.eyebrow-text で、記事作成をもっと速く、もっと高品質に。
         h1.hero-title
           | 本格メディアを、
-          br
+          br.pc-only
           span.num AIで量産
-          br
           | する時代へ。
         p.hero-desc
           | 最新のAIがGoogle志向を分析しSEOに強く、
-          br
+          br.pc-only
           | 読者の心に響く高品質な記事を自動生成。
-          br
           | あなたのメディアの成長を急速に加速させます。
+
+      .hero-visual
+        = image_tag "hero-bg.webp", alt: "Drafityのダッシュボード画面", class: "hero-img"
+
+      .hero-cards
         .hero-checks
           - hero_checks = [ \
               "SEOに強い構成を自動作成", \
@@ -44,9 +50,10 @@
               svg viewBox="0 0 14 14" fill="none"
                 path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
               = check
-        .hero-actions
-          = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
-          a.btn-ghost href="#features" AI商談を開始
+
+      .hero-actions
+        = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
+        a.btn-ghost.btn-purple href="#features" AI商談を開始
 
   /-- TRUST --
   /.trust-bar
@@ -68,11 +75,9 @@
     .whats-intro-block
       .whats-intro-left
         p.whats-lead-text
-          | SEOに強い構成案の作成から、本文の自動生成、画像生成、
-          br
-          | リライト、効果測定まで、メディア運営に必要なすべてを
-          br
-          | 一つのプラットフォームで完結。
+          | SEOに強い構成案の作成から、本文の自動生成、画像生成、リライト、効果測定まで、
+          br.pc-only
+          | メディア運営に必要なすべてを一つのプラットフォームで完結。
         
         .whats-features-row
           - whats_features = [ \
@@ -115,75 +120,82 @@
         span
         span
 
-    .problem-grid
-      - problems = [ \
-          { \
-            icon_class: "icon-clock", \
-            icon_type: "clock", \
-            text: "記事制作に時間がかかり、<br>本来の業務に集中できない", \
-            desc: "企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。", \
-          }, \
-          { \
-            icon_class: "icon-search", \
-            icon_type: "search", \
-            text: "SEOを意識した記事が<br>うまく書けない", \
-            desc: "検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。", \
-          }, \
-          { \
-            icon_class: "icon-chart", \
-            icon_type: "chart", \
-            text: "記事の品質にばらつきがあり、<br>読者の満足度が上がらない", \
-            desc: "ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。", \
-          }, \
-          { \
-            icon_class: "icon-analytics", \
-            icon_type: "analytics", \
-            text: "アクセスや成果が伸び悩み、<br>改善の打ち手が見えない", \
-            desc: "データ分析や改善施策に時間が取れず、PDCAが回せていない。", \
-          }, \
-          { \
-            icon_class: "icon-calc", \
-            icon_type: "calc", \
-            text: "外注コストがかさみ、<br>運営コストが増大している", \
-            desc: "ライターや編集者への依頼コストが積み重なり、利益を圧迫している。", \
-          }, \
-          { \
-            icon_class: "icon-bell", \
-            icon_type: "bell", \
-            text: "GoogleのSEO構成を正しく把握できない",\
-            desc: "情報の鮮度を保つのが難しく、競合メディアに差をつけられてしまう。" \
-          } \
-        ]
-      - problems.each do |p|
-        .problem-card-item
-          .pci-meta
-            .pci-visual-icon class=p[:icon_class]
-              svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                - if p[:icon_type] == "clock"
-                  circle cx="12" cy="12" r="10"
-                  polyline points="12 6 12 12 16 14"
-                - elsif p[:icon_type] == "search"
-                  circle cx="11" cy="11" r="8"
-                  line x1="21" y1="21" x2="16.65" y2="16.65"
-                - elsif p[:icon_type] == "chart"
-                  line x1="18" y1="20" x2="18" y2="10"
-                  line x1="12" y1="20" x2="12" y2="4"
-                  line x1="6" y1="20" x2="6" y2="14"
-                - elsif p[:icon_type] == "analytics"
-                  rect x="3" y="3" width="18" height="18" rx="2" ry="2"
-                  path d="M7 11l3-3 4 4 3-3"
-                - elsif p[:icon_type] == "calc"
-                  rect x="5" y="2" width="14" height="20" rx="2" ry="2"
-                  line x1="8" y1="6" x2="16" y2="6"
-                  line x1="16" y1="10" x2="16" y2="18"
-                - elsif p[:icon_type] == "bell"
-                  path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-                  path d="M13.73 21a2 2 0 0 1-3.46 0"
-          .pci-content
-            .pci-check-line
-              span.pci-check-box
-              p.pci-check-text == p[:text]
-            p.pci-description = p[:desc]
+    .problem-scroll-wrap
+      button.problem-scroll-btn.problem-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.problem-grid', -1)"
+        svg viewBox="0 0 24 24" fill="none"
+          path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      .problem-grid
+        - problems = [ \
+            { \
+              icon_class: "icon-clock", \
+              icon_type: "clock", \
+              text: "記事制作に時間がかかり、<br>本来の業務に集中できない", \
+              desc: "企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。", \
+            }, \
+            { \
+              icon_class: "icon-search", \
+              icon_type: "search", \
+              text: "SEOを意識した記事が<br>うまく書けない", \
+              desc: "検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。", \
+            }, \
+            { \
+              icon_class: "icon-chart", \
+              icon_type: "chart", \
+              text: "記事の品質にばらつきがあり、<br>読者の満足度が上がらない", \
+              desc: "ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。", \
+            }, \
+            { \
+              icon_class: "icon-analytics", \
+              icon_type: "analytics", \
+              text: "アクセスや成果が伸び悩み、<br>改善の打ち手が見えない", \
+              desc: "データ分析や改善施策に時間が取れず、PDCAが回せていない。", \
+            }, \
+            { \
+              icon_class: "icon-calc", \
+              icon_type: "calc", \
+              text: "外注コストがかさみ、<br>運営コストが増大している", \
+              desc: "ライターや編集者への依頼コストが積み重なり、利益を圧迫している。", \
+            }, \
+            { \
+              icon_class: "icon-bell", \
+              icon_type: "bell", \
+              text: "GoogleのSEO構成を正しく把握できない",\
+              desc: "情報の鮮度を保つのが難しく、競合メディアに差をつけられてしまう。" \
+            } \
+          ]
+        - problems.each do |p|
+          .problem-card-item
+            .pci-meta
+              .pci-visual-icon class=p[:icon_class]
+                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  - if p[:icon_type] == "clock"
+                    circle cx="12" cy="12" r="10"
+                    polyline points="12 6 12 12 16 14"
+                  - elsif p[:icon_type] == "search"
+                    circle cx="11" cy="11" r="8"
+                    line x1="21" y1="21" x2="16.65" y2="16.65"
+                  - elsif p[:icon_type] == "chart"
+                    line x1="18" y1="20" x2="18" y2="10"
+                    line x1="12" y1="20" x2="12" y2="4"
+                    line x1="6" y1="20" x2="6" y2="14"
+                  - elsif p[:icon_type] == "analytics"
+                    rect x="3" y="3" width="18" height="18" rx="2" ry="2"
+                    path d="M7 11l3-3 4 4 3-3"
+                  - elsif p[:icon_type] == "calc"
+                    rect x="5" y="2" width="14" height="20" rx="2" ry="2"
+                    line x1="8" y1="6" x2="16" y2="6"
+                    line x1="16" y1="10" x2="16" y2="18"
+                  - elsif p[:icon_type] == "bell"
+                    path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                    path d="M13.73 21a2 2 0 0 1-3.46 0"
+            .pci-content
+              .pci-check-line
+                span.pci-check-box
+                p.pci-check-text == p[:text]
+              p.pci-description = p[:desc]
+      button.problem-scroll-btn.problem-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.problem-grid', 1)"
+        svg viewBox="0 0 24 24" fill="none"
+          path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
     .solution-arrow
       svg viewBox="0 0 24 24" fill="currentColor"
@@ -228,6 +240,8 @@
     .concept-ambient-background
     .concept-inner
       .concept-md
+        .section-header
+          span.overline 記事構成
         h3.concept-sub-title
           | 現在のGoogleで上位表示されやすい
           br.sp-only
@@ -235,22 +249,29 @@
           span.text-gradient 最適な記事構成
           | 」とは？
         
-        .concept-grid
-          - concepts = [ \
-              { num: "01", title: "ピラー・クラスター構造", desc: "ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。", img: "icon1.png" }, \
-              { num: "02", title: "E-E-A-Tへの適応", desc: "経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。", img: "icon2.png" }, \
-              { num: "03", title: "ユーザーファースト", desc: "単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。", img: "icon3.png" \
-            } \
-          ]
-          - concepts.each do |c|
-            .concept-card
-              .cc-header
-                .cc-num-badge = c[:num]
-                h4.cc-title = c[:title]
-              .cc-body
-                p.cc-desc = c[:desc]
-              .cc-illustration
-                = image_tag c[:img], alt: "#{c[:title]}のイメージ", class: "cc-img"
+        .concept-scroll-wrap
+          button.concept-scroll-btn.concept-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.concept-grid', -1)"
+            svg viewBox="0 0 24 24" fill="none"
+              path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          .concept-grid
+            - concepts = [ \
+                { num: "01", title: "ピラー・クラスター構造", desc: "ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。", img: "icon1.png" }, \
+                { num: "02", title: "E-E-A-Tへの適応", desc: "経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。", img: "icon2.png" }, \
+                { num: "03", title: "ユーザーファースト", desc: "単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。", img: "icon3.png" \
+              } \
+            ]
+            - concepts.each do |c|
+              .concept-card
+                .cc-header
+                  .cc-num-badge = c[:num]
+                  h4.cc-title = c[:title]
+                .cc-body
+                  p.cc-desc = c[:desc]
+                .cc-illustration
+                  = image_tag c[:img], alt: "#{c[:title]}のイメージ", class: "cc-img"
+          button.concept-scroll-btn.concept-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.concept-grid', 1)"
+            svg viewBox="0 0 24 24" fill="none"
+              path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
 
   section.features-strip#features
@@ -263,151 +284,158 @@
           | ひとつで。
         p.section-sub SEOに強い記事制作から運用・改善まで、必要な機能をすべて搭載。
       
-      .features-grid
-        /-- 01: キーワード調査 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 01
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  circle cx="11" cy="11" r="8"
-                  line x1="21" y1="21" x2="16.65" y2="16.65"
-              h3.fc-title AIターゲット定義
-            p.fc-desc AIがあなたの希望のターゲット選定を詳細化するので、手軽に的確な定義設計ができます。
-          .fc-mockup
-            .mock-window
-              .mw-header キーワード候補
-              .mw-table
-                .mt-row.mt-head
-                  span キーワード
-                  span 競合性
-                - kw_rows = [ \
-                    { kw: "AI 記事生成", vol: "12,100", b_class: "low", b_text: "低" }, \
-                    { kw: "SEO対策", vol: "8,900", b_class: "mid", b_text: "中" }, \
-                    { kw: "コンテンツマーケティング", vol: "6,600", b_class: "low", b_text: "低" } \
-                  ]
-                - kw_rows.each do |row|
-                  .mt-row
-                    span = row[:kw]
-                    span = row[:vol]
-                    span.badge class=row[:b_class] = row[:b_text]
+      .features-scroll-wrap
+        button.features-scroll-btn.features-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.features-grid', -1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .features-grid
+          /-- 01: キーワード調査 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 01
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    circle cx="11" cy="11" r="8"
+                    line x1="21" y1="21" x2="16.65" y2="16.65"
+                h3.fc-title AIターゲット定義
+              p.fc-desc AIがあなたの希望のターゲット選定を詳細化するので、手軽に的確な定義設計ができます。
+            .fc-mockup
+              .mock-window
+                .mw-header キーワード候補
+                .mw-table
+                  .mt-row.mt-head
+                    span キーワード
+                    span 競合性
+                  - kw_rows = [ \
+                      { kw: "AI 記事生成", vol: "12,100", b_class: "low", b_text: "低" }, \
+                      { kw: "SEO対策", vol: "8,900", b_class: "mid", b_text: "中" }, \
+                      { kw: "コンテンツマーケティング", vol: "6,600", b_class: "low", b_text: "低" } \
+                    ]
+                  - kw_rows.each do |row|
+                    .mt-row
+                      span = row[:kw]
+                      span = row[:vol]
+                      span.badge class=row[:b_class] = row[:b_text]
 
-        /-- 02: 構成案の自動生成 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 02
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                  polyline points="14 2 14 8 20 8"
-                  line x1="16" y1="13" x2="8" y2="13"
-                  line x1="16" y1="17" x2="8" y2="17"
-                  polyline points="10 9 9 9 8 9"
-              h3.fc-title ピラータイトルの自動提案
-            p.fc-desc SEOに強くユーザービューイングの高いタイトル構成をAIが自動で作成。
-          .fc-mockup
-            .mock-window
-              .mw-header 構成案
-              .mw-list
-                - headings = ["AI記事生成ツールとは？", "AI記事生成ツールを使うメリット", "おすすめのAI記事生成ツール", "選び方のポイント", "まとめ"]
-                - headings.each do |h|
-                  .ml-item
-                    span.h2-tag H2
-                    span.ml-text = h
+          /-- 02: 構成案の自動生成 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 02
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    polyline points="14 2 14 8 20 8"
+                    line x1="16" y1="13" x2="8" y2="13"
+                    line x1="16" y1="17" x2="8" y2="17"
+                    polyline points="10 9 9 9 8 9"
+                h3.fc-title ピラータイトルの自動提案
+              p.fc-desc SEOに強くユーザービューイングの高いタイトル構成をAIが自動で作成。
+            .fc-mockup
+              .mock-window
+                .mw-header 構成案
+                .mw-list
+                  - headings = ["AI記事生成ツールとは？", "AI記事生成ツールを使うメリット", "おすすめのAI記事生成ツール", "選び方のポイント", "まとめ"]
+                  - headings.each do |h|
+                    .ml-item
+                      span.h2-tag H2
+                      span.ml-text = h
 
-        /-- 03: 本文の自動生成 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 03
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-              h3.fc-title 本文の自動生成
-            p.fc-desc 自然な文章をAIが生成。高品質な記事を短時間で作成。
-          .fc-mockup
-            .mock-window
-              .mw-toolbar
-                span B
-                span I
-                span U
-                span.divider
-                span 
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"
+          /-- 03: 本文の自動生成 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 03
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+                h3.fc-title 本文の自動生成
+              p.fc-desc 自然な文章をAIが生成。高品質な記事を短時間で作成。
+            .fc-mockup
+              .mock-window
+                .mw-toolbar
+                  span B
+                  span I
+                  span U
+                  span.divider
+                  span 
+                    svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"
+                      rect x="3" y="3" width="18" height="18" rx="2" ry="2"
+                      circle cx="8.5" cy="8.5" r="1.5"
+                      polyline points="21 15 16 10 5 21"
+                .mw-editor-content
+                  p AI記事生成ツールは、記事制作の工数を大幅に削減し、高品質なコンテンツを効率的に作成できるツールです。
+                  p 本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。
+
+          /-- 04: 画像の自動生成 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 04
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     rect x="3" y="3" width="18" height="18" rx="2" ry="2"
                     circle cx="8.5" cy="8.5" r="1.5"
                     polyline points="21 15 16 10 5 21"
-              .mw-editor-content
-                p AI記事生成ツールは、記事制作の工数を大幅に削減し、高品質なコンテンツを効率的に作成できるツールです。
-                p 本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。
+                h3.fc-title 画像の自動生成
+              p.fc-desc 記事内容に合った画像やアイキャッチをAIが自動で生成・提案。
+            .fc-mockup
+              .mock-images
+                .mi-main
+                  .mi-placeholder.ai-bg
+                    span.ai-text AI
+                .mi-side
+                  .mi-placeholder.ai-bg-small
+                  .mi-placeholder.ai-bg-small
+                  .mi-placeholder.ai-bg-small
 
-        /-- 04: 画像の自動生成 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 04
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  rect x="3" y="3" width="18" height="18" rx="2" ry="2"
-                  circle cx="8.5" cy="8.5" r="1.5"
-                  polyline points="21 15 16 10 5 21"
-              h3.fc-title 画像の自動生成
-            p.fc-desc 記事内容に合った画像やアイキャッチをAIが自動で生成・提案。
-          .fc-mockup
-            .mock-images
-              .mi-main
-                .mi-placeholder.ai-bg
-                  span.ai-text AI
-              .mi-side
-                .mi-placeholder.ai-bg-small
-                .mi-placeholder.ai-bg-small
-                .mi-placeholder.ai-bg-small
+          /-- 05: リライト・改善提案 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 05
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                    path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                h3.fc-title クラスタータイトル・記事の自動提案・作成
+              p.fc-desc 親タイトル・記事から最適な構成になる子タイトルを平均15個自動で提案します。
+            .fc-mockup
+              .mock-window
+                .mw-header 改善提案
+                .mw-check-list
+                  - suggestions = ["見出しにキーワードを含めると効果的です", "導入文をより具体的にすると離脱率が下がります", "内部リンクの追加をおすすめします"]
+                  - suggestions.each do |s|
+                    .mc-item
+                      svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3"
+                        polyline points="20 6 9 17 4 12"
+                      span = s
 
-        /-- 05: リライト・改善提案 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 05
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-              h3.fc-title クラスタータイトル・記事の自動提案・作成
-            p.fc-desc 親タイトル・記事から最適な構成になる子タイトルを平均15個自動で提案します。
-          .fc-mockup
-            .mock-window
-              .mw-header 改善提案
-              .mw-check-list
-                - suggestions = ["見出しにキーワードを含めると効果的です", "導入文をより具体的にすると離脱率が下がります", "内部リンクの追加をおすすめします"]
-                - suggestions.each do |s|
-                  .mc-item
-                    svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3"
-                      polyline points="20 6 9 17 4 12"
-                    span = s
-
-        /-- 06: 公開・連携 --
-        .feature-card
-          .fc-top
-            .fc-head-row
-              .fc-num 06
-              .fc-icon
-                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                  polyline points="17 8 12 3 7 8"
-                  line x1="12" y1="3" x2="12" y2="15"
-              h3.fc-title 公開・連携
-            p.fc-desc WordPress連携でワンクリック公開。スムーズに入稿・運用が可能。
-          .fc-mockup
-            .mock-window.mw-center
-              .wp-logo
-                svg viewBox="0 0 24 24" fill="#3B82F6"
-                  path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-6.42l-3.32-9.143a8.03 8.03 0 0 0-2.613 6.643c.48-1.573 2.05-4.8 2.05-4.8l3.883 7.3zm4.567-7.834c0-.987-.354-1.68-.787-2.18-.55-.634-1.26-.954-2.008-.954-1.143 0-1.93.854-1.93 1.93 0 .987.354 1.68.787 2.18.55.634 1.26.954 2.008.954 1.14 0 1.93-.854 1.93-1.93zm-1.614 7.69l2.7-7.55c.34-.954.21-1.666-.35-2.227a7.996 7.996 0 0 0-3.38-1.523l-3.353 9.4 4.383 1.9zm4.61-4.3c0-1.78-.58-3.415-1.554-4.733l-2.793 7.72c1.97-1.127 4.347-1.794 4.347-2.987z"
-              .mw-text WordPressに接続中...
-              .mw-progress
-                .mp-bar
-                span 100%
+          /-- 06: 公開・連携 --
+          .feature-card
+            .fc-top
+              .fc-head-row
+                .fc-num 06
+                .fc-icon
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                    polyline points="17 8 12 3 7 8"
+                    line x1="12" y1="3" x2="12" y2="15"
+                h3.fc-title 公開・連携
+              p.fc-desc WordPress連携でワンクリック公開。スムーズに入稿・運用が可能。
+            .fc-mockup
+              .mock-window.mw-center
+                .wp-logo
+                  svg viewBox="0 0 24 24" fill="#3B82F6"
+                    path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-6.42l-3.32-9.143a8.03 8.03 0 0 0-2.613 6.643c.48-1.573 2.05-4.8 2.05-4.8l3.883 7.3zm4.567-7.834c0-.987-.354-1.68-.787-2.18-.55-.634-1.26-.954-2.008-.954-1.143 0-1.93.854-1.93 1.93 0 .987.354 1.68.787 2.18.55.634 1.26.954 2.008.954 1.14 0 1.93-.854 1.93-1.93zm-1.614 7.69l2.7-7.55c.34-.954.21-1.666-.35-2.227a7.996 7.996 0 0 0-3.38-1.523l-3.353 9.4 4.383 1.9zm4.61-4.3c0-1.78-.58-3.415-1.554-4.733l-2.793 7.72c1.97-1.127 4.347-1.794 4.347-2.987z"
+                .mw-text WordPressに接続中...
+                .mw-progress
+                  .mp-bar
+                  span 100%
+        button.features-scroll-btn.features-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.features-grid', 1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
 
       /-- 下部サマリーバナー --
@@ -449,6 +477,7 @@
   section.dashboard-section#dashboard
     .dashboard-inner
       .section-header
+        span.overline ダッシュボード
         h2.section-title 
           | すべてが
           span.text-blue 一目でわかる
@@ -775,6 +804,7 @@
   section.faq-section#faq
     .faq-inner
       .section-header
+        span.overline FAQ
         h2.section-title よくある質問
       .faq-grid
         - faqs = [ \
@@ -799,6 +829,7 @@
     
     .about-inner
       .section-header
+        span.overline ABOUT US
         h2.section-title 会社概要
         p.section-sub AIでメディアの可能性を広げ、ビジネスの成長を支援します。
       
@@ -921,6 +952,14 @@ script
   |   if (!grid) return;
   |   const card = grid.querySelector('.plan-card');
   |   const step = card ? card.offsetWidth + 20 : 280;
+  |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
+  | }
+  | function scrollLpCards(selector, direction) {
+  |   const grid = document.querySelector(selector);
+  |   if (!grid) return;
+  |   const card = grid.querySelector('.problem-card-item, .feature-card, .concept-card');
+  |   const gap = parseFloat(getComputedStyle(grid).gap) || 20;
+  |   const step = card ? card.offsetWidth + gap : 280;
   |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
   | }
   | function scrollVoices(direction) {

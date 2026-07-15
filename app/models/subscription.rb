@@ -18,6 +18,7 @@ class Subscription < ApplicationRecord
   TRIAL_DAYS = 10
   YEARLY_DISCOUNT_RATE = 0.8
   POST_TRIAL_PLAN = :standard
+  TITLE_SUGGESTION_BAR_MAX = 5
 
   # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
   PLANS = {
@@ -28,9 +29,11 @@ class Subscription < ApplicationRecord
       price: 0,
       pillar_articles: 1,
       child_articles: 3,
-      title_suggestions: 3,
+      title_suggestions: 1,
+      title_suggestion_max_per_use: 1,
       image_generations: 5,
       genre_count: 1,
+      sub_category_count: 0,
       api_enabled: false,
       ai_autonomous: false,
       lp_popular: false,
@@ -47,9 +50,11 @@ class Subscription < ApplicationRecord
       price: 29_800,
       pillar_articles: 3,
       child_articles: 45,
-      title_suggestions: 5,
+      title_suggestions: 3,
+      title_suggestion_max_per_use: 3,
       image_generations: 60,
       genre_count: 1,
+      sub_category_count: 0,
       api_enabled: true,
       ai_autonomous: false,
       lp_popular: false,
@@ -66,9 +71,11 @@ class Subscription < ApplicationRecord
       price: 49_800,
       pillar_articles: 5,
       child_articles: 75,
-      title_suggestions: 10,
+      title_suggestions: 5,
+      title_suggestion_max_per_use: 5,
       image_generations: 125,
       genre_count: 3,
+      sub_category_count: 3,
       api_enabled: true,
       ai_autonomous: false,
       lp_popular: true,
@@ -86,8 +93,10 @@ class Subscription < ApplicationRecord
       pillar_articles: 15,
       child_articles: 225,
       title_suggestions: 30,
+      title_suggestion_max_per_use: 5,
       image_generations: 250,
       genre_count: 10,
+      sub_category_count: 10,
       api_enabled: true,
       ai_autonomous: true,
       lp_popular: false,
@@ -105,8 +114,10 @@ class Subscription < ApplicationRecord
       pillar_articles: 50,
       child_articles: 750,
       title_suggestions: 100,
+      title_suggestion_max_per_use: 5,
       image_generations: 1000,
       genre_count: 20,
+      sub_category_count: 10,
       api_enabled: true,
       ai_autonomous: true,
       lp_popular: false,
@@ -168,6 +179,7 @@ class Subscription < ApplicationRecord
         "ジャンル #{config[:genre_count]}個まで"
       ]
 
+      features << sub_category_feature_for(plan_key)
       features << (config[:api_enabled] ? "API利用可" : "API利用不可")
       features << "AI主導生成（自律型エージェント）" if config[:ai_autonomous]
       features
@@ -187,14 +199,25 @@ class Subscription < ApplicationRecord
       ENV[stripe_price_env_key(plan_key)]
     end
 
+    def sub_category_feature_for(plan_key)
+      count = config_for(plan_key)[:sub_category_count].to_i
+      if count <= 0
+        "中分類なし"
+      else
+        "中分類 #{count}件まで"
+      end
+    end
+
     def limits_for(plan_key)
       config = config_for(plan_key)
       config.slice(
         :pillar_articles,
         :child_articles,
         :title_suggestions,
+        :title_suggestion_max_per_use,
         :image_generations,
         :genre_count,
+        :sub_category_count,
         :api_enabled,
         :ai_autonomous
       )

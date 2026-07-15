@@ -1,26 +1,50 @@
-.auth-wrapper
+.auth-wrapper.auth-wrapper--signup
   .auth-forms
-    / Sign Up Form
-    .auth-card
-      h2 Sign up
-      = form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
+    .auth-card.auth-card--signup
+      .auth-card__header
+        h2.auth-card__title アカウント登録
+
+      = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-signup-form" }) do |f|
         = render "clients/shared/error_messages", resource: resource
 
-        .field
-          = f.label :email
-          = f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field"
+        .auth-form-section
+          .auth-form-row.auth-form-row--pair
+            .field
+              = f.label :company, "会社名"
+              = f.text_field :company, autofocus: true, autocomplete: "organization", class: "input-field", placeholder: "株式会社サンプル", required: true
+            .field
+              = f.label :name, "担当者名"
+              = f.text_field :name, autocomplete: "name", class: "input-field", placeholder: "山田 太郎", required: true
 
-        .field
-          = f.label :password
-          - if @minimum_password_length
-            em= "(#{@minimum_password_length} characters minimum)"
-          = f.password_field :password, autocomplete: "new-password", class: "input-field"
+          .field
+            = f.label :address, "住所"
+            = f.text_field :address, autocomplete: "street-address", class: "input-field", placeholder: "東京都渋谷区...", required: true
 
-        .field
-          = f.label :password_confirmation
-          = f.password_field :password_confirmation, autocomplete: "new-password", class: "input-field"
+          .auth-form-row.auth-form-row--pair
+            .field
+              = f.label :tel, "電話番号"
+              = f.telephone_field :tel, autocomplete: "tel", class: "input-field", placeholder: "03-1234-5678", required: true
+            .field
+              = f.label :url, "URL"
+              = f.url_field :url, autocomplete: "url", class: "input-field", placeholder: "https://example.com", required: true
+
+        .auth-form-section
+          .field
+            = f.label :email, "メールアドレス"
+            = f.email_field :email, autocomplete: "email", class: "input-field", placeholder: "you@example.com", required: true
+
+          .field
+            = f.label :password, "パスワード"
+            - if @minimum_password_length
+              em= "（#{@minimum_password_length}文字以上）"
+            = f.password_field :password, autocomplete: "new-password", class: "input-field", required: true
+
+          .field
+            = f.label :password_confirmation, "パスワード（確認）"
+            = f.password_field :password_confirmation, autocomplete: "new-password", class: "input-field", required: true
 
         .actions
-          = f.submit "Sign up", class: "btn btn-primary"
+          = f.submit "登録してプラン選択へ", class: "btn-signup"
 
-      = render "clients/shared/links"
+      .auth-card__footer
+        = render "clients/shared/links"

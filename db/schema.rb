@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_10_120000) do
+ActiveRecord::Schema.define(version: 2026_07_14_120000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -25,7 +25,7 @@ ActiveRecord::Schema.define(version: 2026_07_10_120000) do
   end
 
   create_table "autonomous_content_runs", force: :cascade do |t|
-    t.integer "client_id", null: false
+    t.integer "client_id"
     t.integer "pillar_column_id"
     t.string "title", null: false
     t.string "genre", null: false
@@ -108,11 +108,13 @@ ActiveRecord::Schema.define(version: 2026_07_10_120000) do
     t.float "quality_score", default: 0.0
     t.json "evaluation_metrics", default: "\"{}\""
     t.integer "client_id"
+    t.datetime "published_at"
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["client_id"], name: "index_columns_on_client_id"
     t.index ["code"], name: "index_columns_on_code", unique: true
     t.index ["generation_status"], name: "index_columns_on_generation_status"
     t.index ["parent_id"], name: "index_columns_on_parent_id"
+    t.index ["published_at"], name: "index_columns_on_published_at"
     t.index ["service_type"], name: "index_columns_on_service_type"
   end
 
@@ -171,8 +173,8 @@ ActiveRecord::Schema.define(version: 2026_07_10_120000) do
     t.json "sub_categories", default: {}
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["client_id", "key"], name: "index_service_genres_on_client_id_and_key", unique: true
     t.index ["client_id"], name: "index_service_genres_on_client_id"
-    t.index ["key"], name: "index_service_genres_on_key", unique: true
   end
 
   create_table "sites", force: :cascade do |t|

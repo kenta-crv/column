@@ -419,20 +419,26 @@ module GenreRegistry
     def template_allowed_for_client?(template_key, client:, host: nil)
       return true if client.nil?
 
-      permitted_template_keys_for(client, host).include?(template_key.to_s)
+      key = template_key.to_s
+      return true unless FALLBACK_GENRES.key?(key.to_sym)
+
+      permitted_template_keys_for(client, host).include?(key)
+    end
+
+    def custom_genre_key_allowed_for_client?(key, client:)
+      return true if client.nil?
+      return false if key.blank?
+
+      !FALLBACK_GENRES.key?(key.to_sym)
     end
 
     def permitted_template_keys_for(client, host)
       allowed = Array(client.allowed_genres).map(&:to_s).reject(&:blank?)
+      return [] if allowed.blank?
+
       fallback_keys = FALLBACK_GENRES.keys.map(&:to_s)
-      return allowed & fallback_keys if allowed.present?
-
-      platform = resolve_platform_host(host, client)
-      return [] if platform.blank?
-
-      FALLBACK_GENRES.filter_map do |key, data|
-        key.to_s if template_hosts(data).include?(platform)
-      end
+      existing = client.service_genres.pluck(:key).map(&:to_s)
+      (allowed & fallback_keys) - existing
     end
 
     def resolve_platform_host(request_host, client)
@@ -446,9 +452,8 @@ module GenreRegistry
       return normalized if known_platform_host?(normalized)
 
       if Rails.env.development? && localhost_host?(normalized)
-        allowed = Array(client&.allowed_genres).map(&:to_s)
-        drafity_keys = %w[ai_article ai_article_generation]
-        return "drafity.pro" if allowed.blank? || (allowed & drafity_keys).any?
+        allowed = Array(client&.allowed_genres).map(&:to_s).reject(&:blank?)
+        return "drafity.pro" if (allowed & %w[ai_article ai_article_generation]).any?
       end
 
       nil
@@ -508,7 +513,7 @@ module GenreRegistry
         result = FALLBACK_GENRES.deep_dup
         return result unless service_genres_table_ready?
 
-        ServiceGenre.find_each do |record|
+        ServiceGenre.where(client_id: nil).find_each do |record|
           result[record.key.to_sym] = record.to_registry_hash
         end
         result

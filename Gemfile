@@ -93,3 +93,4 @@ gem 'timeout', '< 0.6'
 gem 'stripe'
 
 gem 'rack-cors'
+gem 'rack-attack'

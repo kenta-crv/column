@@ -1,7 +1,8 @@
 doctype html
 html
   head
-    title Drafity Admin
+    - page_title = admin_page_title
+    title = [page_title, "Drafity Admin"].compact.join(" | ")
     = csrf_meta_tags
     = csp_meta_tag
     = stylesheet_link_tag "application", media: "all"
@@ -37,14 +38,14 @@ html
           line x1="3" y1="6" x2="21" y2="6"
           line x1="3" y1="12" x2="21" y2="12"
           line x1="3" y1="18" x2="21" y2="18"
-      = link_to root_path, class: "admin-mobile-logo" do
+      = link_to dashboard_root_path, class: "admin-mobile-logo" do
         = image_tag "logo.png", alt: "Drafity Logo", height: "28"
 
     .admin-shell
       aside.admin-sidebar#adminSidebar
         .sidebar-top
           .logo
-            = link_to root_path, class: "logo-link" do
+            = link_to dashboard_root_path, class: "logo-link" do
               = image_tag "logo.png", alt: "Drafity Logo", width: "200", style: "filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));"
 
           = link_to new_column_path, class: "btn-create-article" do
@@ -75,7 +76,16 @@ html
                 path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
               | ドラフト一覧
 
-            = link_to "/columns?article_type=pillar" do
+            = link_to dashboard_columns_path(scope: "pending_review"), class: (controller_name == "columns" && params[:scope] == "pending_review" ? "active" : nil) do
+              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                circle cx="12" cy="12" r="10"
+                polyline points="12 6 12 12 16 14"
+              | レビュー待ち
+              - review_count = pending_review_columns_count
+              - if review_count.positive?
+                span.sidebar-nav-badge = review_count
+
+            = link_to columns_path(article_type: "pillar"), class: (controller_name == "columns" && action_name == "index" && params[:article_type] == "pillar" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
                 path d="M12 8V2"
@@ -90,7 +100,7 @@ html
                 polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
               | クラスター記事一括生成
 
-            = link_to columns_path do
+            = link_to columns_path, class: (controller_name == "columns" && action_name == "index" && params[:article_type].blank? ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
                 polyline points="22 4 12 14.01 9 11.01"
@@ -108,6 +118,12 @@ html
                 path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
               | サービス・ジャンル管理
 
+            - if admin_signed_in? || (client_signed_in? && current_client.ai_autonomous_enabled?)
+              = link_to dashboard_autonomous_runs_path, class: (controller_name == "autonomous_runs" ? "active" : nil) do
+                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+                | AI主導生成
+
             - if admin_signed_in?
               = link_to dashboard_management_path, class: (controller_name == "dashboards" && action_name == "management" ? "active" : nil) do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -115,11 +131,28 @@ html
                   path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                 | クライアント管理
             - elsif client_signed_in?
-              = link_to dashboard_api_settings_path, class: (controller_name == "clients" && action_name == "my_api_settings" ? "active" : nil) do
-                svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  circle cx="12" cy="12" r="3"
-                  path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                | API設定
+              - settings_active = (controller_name == "clients" && action_name == "my_api_settings") || (controller_name == "columns" && action_name == "setting")
+              .sidebar-nav-group class=(settings_active ? "is-active" : nil)
+                button.sidebar-nav-group-toggle type="button" aria-haspopup="true" aria-expanded=(settings_active ? "true" : "false")
+                  span.sidebar-nav-group-toggle-label
+                    svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      circle cx="12" cy="12" r="3"
+                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    | 設定
+                  svg.sidebar-nav-group-caret xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    polyline points="6 9 12 15 18 9"
+                .sidebar-submenu
+                  = link_to dashboard_api_settings_path, class: (controller_name == "clients" && action_name == "my_api_settings" ? "active" : nil) do
+                    svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      circle cx="12" cy="12" r="3"
+                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    | API設定
+
+                  = link_to dashboard_setting_path, class: (controller_name == "columns" && action_name == "setting" ? "active" : nil) do
+                    svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      circle cx="12" cy="12" r="3"
+                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    | アカウント設定
 
             - if admin_signed_in?
               = link_to destroy_admin_session_path, method: :delete, class: "logout-link" do
@@ -137,13 +170,6 @@ html
                 | ログアウト
 
         .sidebar-bottom
-          - if client_signed_in?
-            = link_to dashboard_setting_path, class: ["sidebar-account-link", (controller_name == "columns" && action_name == "setting" ? "active" : nil)].compact.join(" ") do
-              svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                circle cx="12" cy="12" r="3"
-                path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-              | アカウント設定
-
           .usage-container
             .usage-header 今月の使用状況
             .usage-stats

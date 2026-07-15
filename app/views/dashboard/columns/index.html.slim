@@ -139,13 +139,13 @@
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               circle cx="12" cy="12" r="10"
               polyline points="12 6 12 12 16 14"
-          span.label 予約中
+          span.label レビュー待ち
       .kpi-body
         .trend.up
           span ↑ 12.1%
         .value-row
-          .value = @kpi_reserved_count
-          .comparison （前月比）
+          .value = @kpi_pending_review_count
+          .comparison （生成済み・未公開）
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
             path d="M0,18 Q20,20 40,12 T80,14 T100,4" fill="none" stroke="#8b5cf6" stroke-width="2"
@@ -160,7 +160,7 @@
     - quality_percent = quality_score.present? ? ((quality_score <= 5.0 ? (quality_score * 20.0) : quality_score).round(1).clamp(0.0, 100.0)) : nil
     .success-left
       .success-title
-        span 成功率
+        span 平均AIスコア
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
       .success-meta 高品質で生成
@@ -202,6 +202,9 @@
     = link_to dashboard_columns_path(scope: "cluster"), class: "tab-btn #{'active' if params[:scope] == 'cluster'}" do
       span.tab-label 子記事
       span.count-badge = @tab_count_cluster
+    = link_to dashboard_columns_path(scope: "pending_review"), class: "tab-btn #{'active' if params[:scope] == 'pending_review'}" do
+      span.tab-label レビュー待ち
+      span.count-badge = @tab_count_pending_review
     = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
       span.tab-label 公開済
       span.count-badge = @tab_count_published
@@ -298,23 +301,34 @@
                       - if c.genre.present?
                         span.tag-item = c.genre
               td
-                - if c.generated_body?
+                - if c.published?
                   span.status-badge.published 公開済
+                - elsif c.generated_body?
+                  span.status-badge.review_pending レビュー待ち
                 - else
                   span.status-badge.draft 下書き
               td.date-text = c.updated_at.strftime("%Y/%m/%d %H:%M")
               td
-                - if c.quality_score.present? && c.quality_score > 0
-                  .quality-score-cell
-                    .quality-score-value = c.quality_score.round(1)
-                - else
-                  .quality-score-pending 評価待ち
+                = quality_score_cell(c)
               td.actions-cell style="display: flex; gap: 5px;"
                 - unless c.generated_body?
                   = link_to approve_column_path(c), method: :patch, data: { turbolinks: false }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: "承認して本文生成" do
                     svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                       polygon points="5 3 19 12 5 21 5 3"
                     | 生成
+                - if c.generated_body? && !c.published?
+                  = link_to publish_column_path(c), method: :patch, data: { turbolinks: false, confirm: "この記事をレビュー済みとして公開しますか？" }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #10b981; border: 1px solid #0ea672; color: #fff;", title: "公開する" do
+                    svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
+                      path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
+                      polyline points="22 4 12 14.01 9 11.01"
+                    | 公開
+                - elsif c.published?
+                  = link_to unpublish_column_path(c), method: :patch, data: { turbolinks: false, confirm: "この記事を下書き（レビュー待ち）に戻しますか？公開サイトから非表示になります。" }, class: "btn-row-action", title: "公開を取り下げる" do
+                    svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      path d="M17 2.1l4 4-4 4"
+                      path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8"
+                      path d="M7 21.9l-4-4 4-4"
+                      path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"
                 = link_to edit_column_path(c), class: "btn-row-action", title: "編集" do
                   svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
@@ -513,10 +527,66 @@ javascript:
     const scoreCell = row.querySelector('.quality-score-cell, .quality-score-pending');
     if (!scoreCell) return;
 
-    scoreCell.outerHTML = `
-      <div class="quality-score-cell">
-        <div class="quality-score-value">${parseFloat(score).toFixed(1)}</div>
+    scoreCell.outerHTML = buildQualityScoreCellHtml(score, metrics);
+  }
+
+  function buildQualityScoreCellHtml(score, metrics) {
+    const value = parseFloat(score);
+    if (!value || value <= 0) {
+      return '<div class="quality-score-pending">評価待ち</div>';
+    }
+
+    const levelClass = value >= 80 ? 'score-high' : (value >= 60 ? 'score-mid' : 'score-low');
+    const lines = buildQualityTooltipLines(value, metrics);
+    const tooltipHtml = lines.length
+      ? `<div class="quality-score-tooltip" role="tooltip">${lines.map(line => {
+          let css = 'tooltip-line';
+          if (line.kind === 'overall') css += ' tooltip-line--overall';
+          if (line.kind === 'axis') css += ' tooltip-line--axis';
+          if (line.kind === 'feedback') css += ' tooltip-line--feedback';
+          return `<div class="${css}">${escapeHtml(line.text)}</div>`;
+        }).join('')}</div>`
+      : '';
+
+    return `
+      <div class="quality-score-cell has-tooltip">
+        <div class="quality-score-value ${levelClass}">${value.toFixed(1)}</div>
+        ${tooltipHtml}
       </div>`;
+  }
+
+  function buildQualityTooltipLines(score, metrics) {
+    const data = metrics || {};
+    const axes = data.axes || {};
+    const axisLabels = {
+      structure: '構成',
+      seo: 'SEO',
+      readability: '読みやすさ',
+      usefulness: '有用性',
+      originality: '独自性'
+    };
+    const lines = [{ kind: 'overall', text: `総合: ${score.toFixed(1)}点` }];
+
+    Object.keys(axisLabels).forEach(key => {
+      const axis = axes[key];
+      if (!axis || axis.score === undefined || axis.score === null) return;
+      const note = (axis.note || '').trim();
+      let text = `${axisLabels[key]}: ${parseInt(axis.score, 10)}/20`;
+      if (note) text += ` — ${note}`;
+      lines.push({ kind: 'axis', text });
+    });
+
+    const feedback = (data.feedback || '').trim();
+    if (feedback) lines.push({ kind: 'feedback', text: feedback });
+    return lines;
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function stopGeneration(columnId) {
@@ -533,7 +603,119 @@ javascript:
     });
   }
 
+  function clampSuggestionCount(value) {
+    const input = document.getElementById('suggestion-count');
+    const planMax = parseInt(input?.dataset.planMax || '5', 10);
+    const parsed = parseInt(value, 10);
+    const count = Number.isNaN(parsed) ? 1 : parsed;
+    return Math.min(planMax, Math.max(1, count));
+  }
+
+  function syncSuggestionCountDisplay() {
+    const input = document.getElementById('suggestion-count');
+    const valueEl = document.getElementById('suggestion-count-value');
+    if (!input || !valueEl) return;
+
+    const clamped = clampSuggestionCount(input.value);
+    if (String(clamped) !== input.value) {
+      input.value = clamped;
+    }
+    valueEl.textContent = clamped;
+  }
+
+  function initSuggestionCountSlider() {
+    const input = document.getElementById('suggestion-count');
+    if (!input || input.dataset.initialized === 'true') return;
+
+    input.dataset.initialized = 'true';
+    input.addEventListener('input', syncSuggestionCountDisplay);
+    input.addEventListener('change', syncSuggestionCountDisplay);
+    syncSuggestionCountDisplay();
+  }
+
+  function initQuickGenreCreate() {
+    const btn = document.getElementById('quick-genre-create-btn');
+    const status = document.getElementById('quick-genre-status');
+    const genreSelect = document.getElementById('genre-select-modal');
+    if (!btn || btn.dataset.initialized === 'true') return;
+
+    btn.dataset.initialized = 'true';
+    btn.addEventListener('click', async () => {
+      const serviceName = document.getElementById('quick-genre-service-name')?.value.trim();
+      const strongPoints = document.getElementById('quick-genre-strong-points')?.value.trim();
+      const keyword1 = document.getElementById('keyword1')?.value.trim();
+      const keyword2 = document.getElementById('keyword2')?.value.trim();
+
+      if (!serviceName && !strongPoints) {
+        if (status) {
+          status.hidden = false;
+          status.textContent = 'サービス名または訴求ポイントを入力してください。';
+          status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
+        }
+        return;
+      }
+
+      btn.disabled = true;
+      if (status) {
+        status.hidden = false;
+        status.textContent = 'AIがジャンルを登録しています…';
+        status.className = 'genre-quick-setup-status genre-quick-setup-status--loading';
+      }
+
+      try {
+        const response = await fetch('#{quick_create_dashboard_service_genres_path}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            service_name: serviceName,
+            strong_points: strongPoints,
+            keyword1,
+            keyword2
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          if (status) {
+            status.textContent = result.error || 'ジャンルの登録に失敗しました。';
+            status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
+          }
+          return;
+        }
+
+        if (genreSelect) {
+          const option = document.createElement('option');
+          option.value = result.genre.key;
+          option.textContent = result.genre.ja;
+          option.selected = true;
+          genreSelect.appendChild(option);
+          genreSelect.disabled = false;
+        }
+
+        const panel = document.getElementById('genre-quick-setup-panel');
+        if (panel) panel.style.display = 'none';
+
+        if (status) {
+          status.textContent = 'ジャンルを登録しました。このままタイトル生成に進めます。';
+          status.className = 'genre-quick-setup-status genre-quick-setup-status--success';
+        }
+      } catch (error) {
+        if (status) {
+          status.textContent = '通信エラーが発生しました。';
+          status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   function openTitleSuggestionModal() {
+    initSuggestionCountSlider();
+    initQuickGenreCreate();
     const modal = document.getElementById('title-suggestion-modal');
     if (modal) modal.style.display = 'flex';
   }
@@ -549,7 +731,7 @@ javascript:
     const targetLayer = document.getElementById('target_layer').value;
     const genre       = document.getElementById('genre-select-modal').value;
     const customPrompt = document.getElementById('custom-prompt').value;
-    const suggestionCount = document.getElementById('suggestion-count').value;
+    const suggestionCount = clampSuggestionCount(document.getElementById('suggestion-count').value);
 
     if (!keyword1 || !keyword2 || !genre) {
       alert('キーワードとジャンルを入力してください');
@@ -573,14 +755,19 @@ javascript:
     fetch(`/dashboard/columns/suggest?${params.toString()}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(async (response) => {
+      const data = await response.json().catch(() => null);
       document.getElementById('title-suggestion-loading').style.display  = 'none';
       document.getElementById('title-suggestion-results').style.display  = 'block';
+
+      if (!data) {
+        document.getElementById('titles-list').innerHTML = '<p style="color: red;">サーバーからの応答を読み取れませんでした。ページを再読み込みして再度お試しください。</p>';
+        return;
+      }
 
       if (data.success) {
         const titlesList = document.getElementById('titles-list');

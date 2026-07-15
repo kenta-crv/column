@@ -12,6 +12,19 @@
         .form-group
           label キーワード2 *
           input type="text" id="keyword2" placeholder="例: 配送" required
+        - if @needs_genre_setup
+          #genre-quick-setup-panel.genre-quick-setup-panel
+            p.genre-quick-setup-panel__lead
+              | ジャンルが未登録です。タイトル提案の前に、サービス情報をAIで登録してください。
+            .form-group
+              label サービス名 *
+              input#quick-genre-service-name type="text" placeholder="例: 株式会社リプラス"
+            .form-group
+              label 自社の強み・訴求ポイント *
+              textarea#quick-genre-strong-points rows="3" placeholder="例: BtoB向けに〇〇を提供。導入実績100社以上。"
+            button#quick-genre-create-btn.btn.btn-secondary type="button" style="width: 100%; margin-bottom: 12px;"
+              | AIでジャンルを登録して続行
+            #quick-genre-status.genre-quick-setup-status hidden=true
         .form-group
           label ターゲット層
           select id="target_layer"
@@ -20,17 +33,31 @@
             option value="small" スモールキーワード（購買意欲の高い層）
         .form-group
           label ジャンル *
-          select id="genre-select-modal"
+          select id="genre-select-modal" required=(!@needs_genre_setup)
             option value="" 選択してください
             - (@dashboard_genre_options || []).each do |label, key|
               option value=key = label
+          - if @needs_genre_setup
+            small.form-text 上の「AIでジャンルを登録」後に選択できます。
         .form-group
           label 自由入力（任意）
           textarea#custom-prompt rows="4" placeholder="例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。"
         .form-group
+          - suggestion_config = @title_suggestion_config || { default: 1, max: 5, bar_max: 5, remaining: nil }
           label 提案数
-          input type="number" id="suggestion-count" value="10" min="1" max="30"
-          small.form-text 1〜30件（デフォルト: 10件）
+          - if suggestion_config[:remaining]
+            small.form-text style="display: block; margin-bottom: 8px;"
+              | 今月の残り回数: #{suggestion_config[:remaining]} / #{suggestion_config[:monthly_limit]}
+          .suggestion-count-control class=("is-plan-capped" if suggestion_config[:max] < suggestion_config[:bar_max]) style="--plan-max: #{suggestion_config[:max]}; --bar-max: #{suggestion_config[:bar_max]};"
+            input type="range" id="suggestion-count" min="1" max=suggestion_config[:bar_max] value=suggestion_config[:default] data-plan-max=suggestion_config[:max] data-bar-max=suggestion_config[:bar_max]
+            .suggestion-count-scale
+              - (1..suggestion_config[:bar_max]).each do |n|
+                span class=("is-available" if n <= suggestion_config[:max]) = n
+            .suggestion-count-display
+              span#suggestion-count-value = suggestion_config[:default]
+              span.suggestion-count-unit 件
+          small.form-text
+            | 1〜#{suggestion_config[:bar_max]}件から選択（お使いのプラン: 最大#{suggestion_config[:max]}件）
         button.btn.btn-primary onclick="generateTitles()" style="width: 100%; margin-top: 16px; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"
           svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"

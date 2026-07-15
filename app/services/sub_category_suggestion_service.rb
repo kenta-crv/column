@@ -4,20 +4,21 @@ require "json"
 class SubCategorySuggestionService
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
-  DEFAULT_SUGGESTION_COUNT = 5
+  DEFAULT_SUGGESTION_COUNT = 1
   MAX_SUGGESTION_COUNT = 10
   MIN_SUGGESTION_COUNT = 1
 
-  def self.call(key:, ja: nil, service_name: nil, strong_points: nil, keywords: nil, suggestion_count: nil)
-    if key.blank?
-      return { success: false, error: "ジャンルキーを入力してください", sub_categories: [] }
+  def self.call(key: nil, ja: nil, service_name: nil, strong_points: nil, keywords: nil, suggestion_count: nil, max_count: nil)
+    if key.blank? && service_name.blank? && ja.blank?
+      return { success: false, error: "サービス名または表示名を入力してください", sub_categories: [] }
     end
 
     if strong_points.blank? && ja.blank? && service_name.blank?
       return { success: false, error: "訴求ポイントまたは表示名・サービス名のいずれかを入力してください", sub_categories: [] }
     end
 
-    count = normalize_suggestion_count(suggestion_count)
+    resolved_key = key.presence || provisional_key_from(service_name, ja)
+    count = normalize_suggestion_count(suggestion_count, max: max_count)
     keyword_list = normalize_keywords(keywords)
 
     prompt = <<~PROMPT
@@ -26,7 +27,7 @@ class SubCategorySuggestionService
       大分類ジャンルの情報から、記事作成・SEOに使える「中分類（サブカテゴリ）」を#{count}件提案してください。
 
       # 大分類の情報
-      - ジャンルキー: #{key}
+      - ジャンルキー: #{resolved_key}
       - 表示名: #{ja.presence || "（未入力）"}
       - サービス名: #{service_name.presence || "（未入力）"}
       - 訴求ポイント:
@@ -81,10 +82,22 @@ class SubCategorySuggestionService
     end
   end
 
-  def self.normalize_suggestion_count(value)
+  def self.normalize_suggestion_count(value, max: nil)
+    ceiling = max.present? ? max.to_i : MAX_SUGGESTION_COUNT
+    ceiling = MAX_SUGGESTION_COUNT if ceiling <= 0
+
     count = value.to_i
     count = DEFAULT_SUGGESTION_COUNT if count <= 0
-    [[count, MIN_SUGGESTION_COUNT].max, MAX_SUGGESTION_COUNT].min
+    [[count, MIN_SUGGESTION_COUNT].max, ceiling].min
+  end
+
+  def self.provisional_key_from(service_name, ja)
+    source = service_name.presence || ja.presence || "service"
+    source.to_s
+      .downcase
+      .gsub(/[^a-z0-9]+/, "_")
+      .gsub(/\A_+|_+\z/, "")
+      .presence || "service"
   end
 
   def self.normalize_keywords(keywords)
@@ -94,6 +107,10 @@ class SubCategorySuggestionService
     else
       keywords.to_s.split(/[\n,、]/).map(&:strip).reject(&:blank?).join("、")
     end
+  end
+
+  def self.format_sub_category_item(item)
+    normalize_item(item)
   end
 
   def self.normalize_item(item)
@@ -112,7 +129,7 @@ class SubCategorySuggestionService
     }
   end
 
-  private_class_method :normalize_suggestion_count, :normalize_keywords, :normalize_item
+  private_class_method :normalize_suggestion_count, :normalize_keywords, :normalize_item, :provisional_key_from
 
   def self.call_gpt_api(prompt)
     uri = URI(GPT_API_URL)

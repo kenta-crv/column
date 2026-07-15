@@ -1,0 +1,26 @@
+.auth-wrapper.auth-wrapper--signup
+  .auth-forms
+    .auth-card.auth-card--signup.auth-card--login
+      .auth-card__header
+        h2.auth-card__title 新しいパスワード
+
+      = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "auth-signup-form" }) do |f|
+        = render "admins/shared/error_messages", resource: resource
+        = f.hidden_field :reset_password_token
+
+        .auth-form-section
+          .field
+            = f.label :password, "新しいパスワード"
+            - if @minimum_password_length
+              em= "（#{@minimum_password_length}文字以上）"
+            = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "input-field", required: true
+
+          .field
+            = f.label :password_confirmation, "新しいパスワード（確認）"
+            = f.password_field :password_confirmation, autocomplete: "new-password", class: "input-field", required: true
+
+        .actions
+          = f.submit "パスワードを変更", class: "btn-signup"
+
+      .auth-card__footer
+        = render "admins/shared/links"

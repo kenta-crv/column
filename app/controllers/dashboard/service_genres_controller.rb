@@ -3,6 +3,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   before_action :set_service_genre, only: [:edit, :update, :destroy]
   before_action :authorize_service_genre!, only: [:edit, :update, :destroy]
   before_action :assign_fallback_templates, only: [:new, :create, :edit, :update]
+  before_action :assign_sub_category_config, only: [:new, :create, :edit, :update]
   before_action :authorize_fallback_template!, only: [:new]
 
   layout "admin"
@@ -17,7 +18,10 @@ class Dashboard::ServiceGenresController < ApplicationController
                      else
                        ServiceGenre.new
                      end
-    @service_genre.client = current_client if client_signed_in? && !admin_signed_in?
+    if client_signed_in? && !admin_signed_in?
+      @service_genre.client = current_client
+      personalize_template_hosts!(@service_genre)
+    end
   end
 
   def create
@@ -30,7 +34,10 @@ class Dashboard::ServiceGenresController < ApplicationController
     elsif unauthorized_genre_key?(@service_genre.key)
       @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
       render :new, status: :unprocessable_entity
-    elsif @service_genre.save
+    elsif (limit_error = sub_category_limit_error(@service_genre.sub_categories, owner_client: @service_genre.client))
+      @service_genre.errors.add(:base, limit_error)
+      render :new, status: :unprocessable_entity
+    elsif apply_service_genre_flags!(@service_genre) && @service_genre.save
       redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを作成しました"
     else
       render :new, status: :unprocessable_entity
@@ -49,7 +56,10 @@ class Dashboard::ServiceGenresController < ApplicationController
     elsif unauthorized_genre_key?(attrs[:key], except: @service_genre.key)
       @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
       render :edit, status: :unprocessable_entity
-    elsif @service_genre.update(attrs)
+    elsif (limit_error = sub_category_limit_error(attrs[:sub_categories], owner_client: @service_genre.client))
+      @service_genre.errors.add(:base, limit_error)
+      render :edit, status: :unprocessable_entity
+    elsif apply_service_genre_flags!(@service_genre) && @service_genre.update(attrs)
       redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを更新しました"
     else
       render :edit, status: :unprocessable_entity
@@ -62,13 +72,18 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def suggest_sub_categories
+    if (limit_error = sub_category_not_allowed_error)
+      return render json: { success: false, error: limit_error }, status: :unprocessable_entity
+    end
+
     result = SubCategorySuggestionService.call(
       key: params[:key],
       ja: params[:ja],
       service_name: params[:service_name],
       strong_points: params[:strong_points],
       keywords: params[:keywords],
-      suggestion_count: params[:suggestion_count]
+      suggestion_count: params[:suggestion_count],
+      max_count: sub_category_limit_for_ai
     )
 
     if result[:success]
@@ -78,7 +93,81 @@ class Dashboard::ServiceGenresController < ApplicationController
     end
   end
 
+  def quick_setup
+    if sub_category_not_allowed_error
+      return render json: { success: false, error: "スタンダードプランからご利用いただけます" }, status: :forbidden
+    end
+
+    result = GenreQuickSetupService.call(
+      service_name: params[:service_name],
+      strong_points: params[:strong_points],
+      keywords: params[:keywords],
+      keyword1: params[:keyword1],
+      keyword2: params[:keyword2],
+      sub_category_limit: sub_category_limit_for_ai
+    )
+
+    if result[:success]
+      render json: { success: true, draft: result[:draft] }
+    else
+      render json: { success: false, error: result[:error] }, status: :unprocessable_entity
+    end
+  end
+
+  def quick_create
+    if client_signed_in? && !current_client.can_add_genre?
+      return render json: { success: false, error: current_client.plan_limit_message(:genre) }, status: :unprocessable_entity
+    end
+
+    result = GenreQuickSetupService.call(
+      service_name: params[:service_name],
+      strong_points: params[:strong_points],
+      keywords: params[:keywords],
+      keyword1: params[:keyword1],
+      keyword2: params[:keyword2],
+      sub_category_limit: sub_category_limit_for_ai
+    )
+    unless result[:success]
+      return render json: { success: false, error: result[:error] }, status: :unprocessable_entity
+    end
+
+    draft = result[:draft]
+    if unauthorized_genre_key?(draft[:key])
+      return render json: { success: false, error: "このジャンルキーは利用できません。" }, status: :unprocessable_entity
+    end
+
+    sub_categories = sub_categories_hash_from_draft(draft[:sub_categories])
+    if (limit_error = sub_category_limit_error(sub_categories, owner_client: quick_create_owner))
+      return render json: { success: false, error: limit_error }, status: :unprocessable_entity
+    end
+
+    @service_genre = ServiceGenre.new(
+      key: draft[:key],
+      ja: draft[:ja],
+      service_name: draft[:service_name],
+      strong_points: draft[:strong_points],
+      keywords: Array(draft[:keywords]),
+      sub_categories: sub_categories,
+      hosts: quick_create_hosts
+    )
+    @service_genre.client = quick_create_owner if quick_create_owner
+
+    if apply_service_genre_flags!(@service_genre) && @service_genre.save
+      render json: {
+        success: true,
+        genre: { key: @service_genre.key, ja: @service_genre.ja },
+        sub_categories_count: @service_genre.sub_categories_count
+      }
+    else
+      render json: { success: false, error: @service_genre.errors.full_messages.join(", ") }, status: :unprocessable_entity
+    end
+  end
+
   private
+
+  def assign_sub_category_config
+    @sub_category_config = sub_category_ui_config
+  end
 
   def assign_fallback_templates
     @fallback_templates = if admin_signed_in?
@@ -100,6 +189,7 @@ class Dashboard::ServiceGenresController < ApplicationController
     return false if admin_signed_in?
     return false if key.blank?
     return false if except.present? && key.to_s == except.to_s
+    return false if GenreRegistry.custom_genre_key_allowed_for_client?(key, client: current_client)
 
     !GenreRegistry.template_allowed_for_client?(key, client: current_client, host: request.host)
   end
@@ -150,6 +240,10 @@ class Dashboard::ServiceGenresController < ApplicationController
       attrs[:client_id] = permitted[:client_id].presence
     elsif client_signed_in?
       attrs[:client_id] = current_client.id
+      hosts = split_list(permitted[:hosts_text])
+      hosts << normalize_host(request.host)
+      hosts << normalize_host(current_client.domain) if current_client.domain.present?
+      attrs[:hosts] = hosts.compact.uniq.reject(&:blank?)
     end
 
     [attrs, sub_category_error]
@@ -203,5 +297,83 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def split_list(text)
     text.to_s.split(/[\n,、]/).map(&:strip).reject(&:blank?)
+  end
+
+  def personalize_template_hosts!(service_genre)
+    hosts = []
+    hosts << normalize_host(current_client.domain) if current_client.domain.present?
+    hosts << normalize_host(request.host)
+    hosts.concat(Array(service_genre.hosts).map { |host| normalize_host(host) })
+    service_genre.hosts = hosts.compact.uniq.reject(&:blank?)
+  end
+
+  def normalize_host(host)
+    host.to_s.downcase.sub(/\Awww\./, "").sub(/:\d+\z/, "")
+  end
+
+  def apply_service_genre_flags!(service_genre)
+    service_genre.admin_override = admin_signed_in?
+    true
+  end
+
+  def sub_category_limit_for_ai
+    return 1_000 if admin_signed_in?
+
+    client_signed_in? ? current_client.max_sub_category_count : 0
+  end
+
+  def sub_category_not_allowed_error
+    return nil if admin_signed_in?
+    return nil unless client_signed_in?
+    return nil if current_client.sub_categories_allowed?
+
+    current_client.plan_limit_message(:sub_category)
+  end
+
+  def sub_category_limit_error(sub_categories, owner_client:)
+    return nil if admin_signed_in?
+    return nil unless owner_client
+
+    categories = sub_categories.is_a?(Hash) ? sub_categories : {}
+    limit = owner_client.max_sub_category_count
+    return owner_client.plan_limit_message(:sub_category) if limit.zero? && categories.present?
+    return owner_client.plan_limit_message(:sub_category) if categories.size > limit
+
+    nil
+  end
+
+  def sub_categories_hash_from_draft(items)
+    Array(items).each_with_object({}) do |item, result|
+      item = item.with_indifferent_access
+      key = item[:key].to_s.strip.downcase
+      next if key.blank? || item[:name].to_s.strip.blank?
+
+      result[key] = {
+        "name" => item[:name].to_s.strip,
+        "target" => item[:target].to_s.strip.presence,
+        "description" => item[:description].to_s.strip.presence,
+        "features" => split_list(item[:features_text]),
+        "keywords" => split_list(item[:keywords_text]),
+        "price_hint" => item[:price_hint].to_s.strip.presence,
+        "area" => item[:area].to_s.strip.presence,
+        "strengths" => item[:strengths].to_s.strip.presence,
+        "industry_weakness" => item[:industry_weakness].to_s.strip.presence
+      }.compact
+    end
+  end
+
+  def quick_create_owner
+    return nil if admin_signed_in?
+
+    current_client if client_signed_in?
+  end
+
+  def quick_create_hosts
+    hosts = []
+    if client_signed_in?
+      hosts << normalize_host(request.host)
+      hosts << normalize_host(current_client.domain) if current_client.domain.present?
+    end
+    hosts.compact.uniq.reject(&:blank?)
   end
 end

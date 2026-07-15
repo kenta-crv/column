@@ -16,9 +16,11 @@
             
             .form-group
               = f.label :api_key, "APIキー"
-              = f.text_field :api_key, class: "form-control", readonly: true
+              .api-key-field
+                = f.text_field :api_key, class: "form-control", readonly: true
+                = button_to "再発行する", (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), method: :post, class: "btn btn-outline-danger", data: { turbo_confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？", confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？" }
               small.form-text
-                | APIキーは自動生成されます。再発行が必要な場合は管理者にお問い合わせください。
+                | APIキーは自動生成されます。再発行すると旧キーはすぐに使えなくなります。
 
             .form-group
               = f.label :webhook_url, "Webhook URL"
