@@ -108,22 +108,42 @@ class ColumnsController < ApplicationController
 
     case action_type
     when "approve_bulk"
-      if scope.with_generated_body.exists?
+      draft_scope = scope.merge(Column.without_generated_body)
+      if draft_scope.none?
         return redirect_to(
-          dashboard_root_path,
-          alert: Column::ALREADY_GENERATED_NOTICE
+          delete_bulk_fallback_path,
+          alert: "本文未生成の記事が選択されていません"
         )
       end
 
-      target_ids = scope.pluck(:id)
+      target_ids = draft_scope.pluck(:id)
       pending_ids = prepare_columns_for_generation!(target_ids)
       if pending_ids.blank?
-        return redirect_to(dashboard_root_path, alert: "対象の記事が見つかりませんでした")
+        return redirect_to(delete_bulk_fallback_path, alert: "対象の記事が見つかりませんでした")
       end
 
       spawn_sequential_body_generation!(pending_ids)
       Rails.logger.info("[BulkGenerate] started #{pending_ids.size} columns (ids=#{pending_ids.join(',')})")
-      return redirect_to(dashboard_root_path, notice: "#{pending_ids.size}件の本文生成を開始しました")
+      return redirect_to(delete_bulk_fallback_path, notice: "#{pending_ids.size}件の本文生成を開始しました")
+
+    when "publish_bulk"
+      publish_scope = scope.merge(Column.pending_review)
+      if publish_scope.none?
+        return redirect_to(
+          delete_bulk_fallback_path,
+          alert: "公開可能な記事（本文あり・未公開）が選択されていません"
+        )
+      end
+
+      published_count = 0
+      publish_scope.find_each do |column|
+        next unless column.publish!
+
+        published_count += 1
+      end
+
+      Rails.logger.info("[BulkPublish] published #{published_count} columns")
+      return redirect_to(delete_bulk_fallback_path, notice: "#{published_count}件の記事を公開しました")
 
     when "delete_bulk"
       deleted_count = scope.delete_all

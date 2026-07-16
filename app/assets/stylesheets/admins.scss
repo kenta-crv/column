@@ -1365,6 +1365,16 @@ body.admin-body {
   border-color: #1d4ed8;
 }
 
+.bulk-action-bar .btn-success {
+  color: #ffffff;
+  background-color: #10b981;
+  border-color: #0ea672;
+}
+.bulk-action-bar .btn-success:hover {
+  background-color: #0ea672;
+  border-color: #059669;
+}
+
 .bulk-action-bar .btn-danger {
   color: #ffffff;
   background-color: #ef4444;

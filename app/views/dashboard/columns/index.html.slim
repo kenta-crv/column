@@ -257,6 +257,7 @@
   = form_with url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbo: false } do |bulk_f|
     .bulk-action-bar
       = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
+      = bulk_f.button "選択項目を公開", name: "action_type", value: "publish_bulk", class: "btn btn-success", type: "submit", data: { confirm: "選択された記事をレビュー済みとして公開しますか？" }
       = bulk_f.button "選択項目を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: "本当に削除しますか？" }
 
     table.rich-dashboard-table
@@ -274,8 +275,8 @@
           - @columns.each do |c|
             tr data-column-id=c.id
               td
-                - if c.generated_body?
-                  input type="checkbox" disabled="disabled" class="table-checkbox column-select-checkbox" title="本文がある記事は一括選択できません"
+                - if c.published?
+                  input type="checkbox" disabled="disabled" class="table-checkbox column-select-checkbox" title="公開済みの記事は一括選択できません"
                 - else
                   input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
               td
