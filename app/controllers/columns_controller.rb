@@ -420,13 +420,17 @@ class ColumnsController < ApplicationController
   def redirect_legacy_columns_index!
     return if current_public_genre_key.present?
 
-    genre_key = default_public_genre_key
-    if genre_key.blank?
-      return if columns_manage_view?
+    # 管理画面は /columns のまま扱う（カスタムジャンルでも公開ルート制約に依存しない）
+    return if columns_manage_view?
+
+    genre_key = default_public_genre_key.to_s
+    if genre_key.blank? || !routable_public_genre_key?(genre_key)
       raise ActiveRecord::RecordNotFound, "公開ジャンルが見つかりません"
     end
 
     redirect_to columns_index_path(request.query_parameters.symbolize_keys.merge(genre: genre_key))
+  rescue ActionController::UrlGenerationError
+    raise ActiveRecord::RecordNotFound, "公開ジャンルが見つかりません"
   end
 
   def resolve_columns_layout
@@ -462,10 +466,12 @@ class ColumnsController < ApplicationController
     add_breadcrumb 'トップ'
 
     genre_key = @column&.genre.present? ? @column.genre : params[:genre]
+    genre_key = genre_key.to_s
 
-    if defined?(LpDefinition)
+    if defined?(LpDefinition) && genre_key.match?(/\A[a-z0-9_]+\z/)
       label = LpDefinition.label(genre_key)
-      add_breadcrumb label, columns_index_path(genre: genre_key) if label && genre_key.present?
+      path = public_columns_index_path(genre: genre_key)
+      add_breadcrumb label, path if label && path.present?
     end
 
     add_breadcrumb @column.title if action_name == 'show' && @column

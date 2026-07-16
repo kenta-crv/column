@@ -2,10 +2,11 @@ module ColumnsHelper
   AXIS_LABELS = QualityScorePresenter::AXIS_LABELS
 
   def columns_index_link(genre_key, label_text = nil)
-    return unless GenreRegistry.genre_keys.include?(genre_key.to_s)
+    key = genre_key.to_s
+    return unless key.match?(/\A[a-z0-9_]+\z/)
 
-    text = label_text || "#{genre_key.titleize} コラム一覧"
-    link_to text, columns_index_path(genre: genre_key), class: "btn btn-primary"
+    text = label_text || "#{key.titleize} コラム一覧"
+    link_to text, columns_index_path(genre: key), class: "btn btn-primary"
   end
 
   def quality_score_cell(column)

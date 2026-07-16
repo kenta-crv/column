@@ -87,9 +87,9 @@ Rails.application.routes.draw do
   end
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
-  scope ':genre/columns', constraints: {
-    genre: Regexp.new(GenreRegistry.genre_keys.join("|"))
-  } do
+  # カスタムサービスジャンル（DB登録）も許可するため、起動時の固定キー一覧ではなくキー形式で制約する。
+  # 実在・アクセス可否の判定はコントローラ側（accessible_public_genre? 等）で行う。
+  scope ':genre/columns', constraints: { genre: /[a-z0-9_]+/ } do
     get '/',    to: 'columns#index', as: :columns_index
     get '/:id', to: 'columns#show',  as: :columns_show
   end

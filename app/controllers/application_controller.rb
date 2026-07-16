@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
-                :pending_review_columns_count
+                :pending_review_columns_count, :routable_public_genre_key?
 
   def check_trial_expiration
     return unless current_client.present?
@@ -84,21 +84,36 @@ class ApplicationController < ActionController::Base
   end
 
   def public_columns_index_path(extra_params = {})
-    genre_key = extra_params[:genre].presence || default_public_genre_key
-    if genre_key.blank?
-      return columns_path(extra_params.except(:genre)) if columns_manage_view?
+    genre_key = (extra_params[:genre].presence || default_public_genre_key).to_s
+    extras = extra_params.except(:genre)
+
+    if genre_key.blank? || !routable_public_genre_key?(genre_key)
+      return columns_path(extras) if columns_manage_view?
 
       return nil
     end
 
-    columns_index_path({ genre: genre_key }.merge(extra_params.except(:genre)))
+    columns_index_path({ genre: genre_key }.merge(extras))
+  rescue ActionController::UrlGenerationError
+    columns_manage_view? ? columns_path(extras) : nil
   end
 
   def public_column_show_path(column)
     return "#" unless column
 
-    genre_key = GenreRegistry.resolve_key(column.genre) || column.genre.to_s
+    # 管理画面では公開用ジャンル制約ルートを使わず、通常の columns リソースへ戻す
+    return column_path(column) if columns_manage_view?
+
+    genre_key = (GenreRegistry.resolve_key(column.genre, client: column.client) || column.genre).to_s
+    return column_path(column) unless routable_public_genre_key?(genre_key)
+
     columns_show_path(genre: genre_key, id: column.code.presence || column.id)
+  rescue ActionController::UrlGenerationError
+    column_path(column)
+  end
+
+  def routable_public_genre_key?(genre_key)
+    genre_key.to_s.match?(/\A[a-z0-9_]+\z/)
   end
 
   def accessible_public_genre?(genre_key)
@@ -268,6 +283,8 @@ class ApplicationController < ActionController::Base
   end
 
   def pillar_manage_path(column)
+    return column_path(column) if columns_manage_view?
+
     public_column_show_path(column)
   end
 

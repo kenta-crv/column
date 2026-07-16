@@ -360,16 +360,22 @@ if (window.Turbo) document.addEventListener('turbo:load', mountDataTargetNav);
 else document.addEventListener('DOMContentLoaded', mountDataTargetNav);
 
 
-document.addEventListener("turbo:load", () => {
-  const flashes = document.querySelectorAll('.flash-message');
+const dismissFlashMessages = () => {
+  const flashes = document.querySelectorAll('.flash-message, .admin-flash-message');
   flashes.forEach((flash) => {
+    if (flash.dataset.dismissScheduled === 'true') return;
+    flash.dataset.dismissScheduled = 'true';
     setTimeout(() => {
-      flash.style.transition = "opacity 0.5s ease";
-      flash.style.opacity = "0";
+      flash.style.transition = 'opacity 0.5s ease';
+      flash.style.opacity = '0';
       setTimeout(() => flash.remove(), 500);
     }, 3000); // 3秒後に消え始める
   });
-});
+};
+
+document.addEventListener('turbolinks:load', dismissFlashMessages);
+document.addEventListener('DOMContentLoaded', dismissFlashMessages);
+document.addEventListener('turbo:load', dismissFlashMessages);
 
 
 
