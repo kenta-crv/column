@@ -47,36 +47,32 @@
         span.image-generation-list-count = "#{@paginated_columns&.total_count || 0}件"
 
       - if @columns.present?
-        - if params[:article_type] == 'pillar' && @grouped_columns.present?
-          - @grouped_columns.each do |genre, columns|
-            .genre-group style="margin-top: 20px;"
-              h4.genre-name = genre.to_s.upcase
-              .columns-list
-                - columns.each do |column|
-                  .pillar-article-item style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;"
-                    = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
-                    span.ms-2 style="color:#64748b; font-size:0.85rem;"
-                      | 子記事 #{@child_counts&.[](column.id) || 0} 件
-        - else
-          .table-wrap
-            table.rich-dashboard-table
-              thead
-                tr
-                  th タイトル
-                  th ジャンル
+        .table-wrap
+          table.rich-dashboard-table
+            thead
+              tr
+                th タイトル
+                th ジャンル
+                - if params[:article_type] == "pillar"
+                  th 子記事
+                - else
                   th タイプ
-                  th 更新日時
-              tbody
-                - @columns.each do |column|
-                  tr
-                    td = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
-                    td = column.genre.presence || "—"
+                th 更新日時
+            tbody
+              - @columns.each do |column|
+                tr
+                  td
+                    = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
+                  td = column.genre.presence || "—"
+                  - if params[:article_type] == "pillar"
+                    td = "#{@child_counts&.[](column.id) || 0} 件"
+                  - else
                     td
                       - if column.article_type == "pillar"
                         | 親記事
                       - else
                         | クラスター
-                    td.date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")
+                  td.date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")
 
         .table-footer-pagination
           .pagination-nav
