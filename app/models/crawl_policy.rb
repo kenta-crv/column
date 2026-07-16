@@ -23,6 +23,7 @@ module CrawlPolicy
       Disallow: /
 
       User-agent: *
+      Allow: /sitemap.xml
       Allow: #{TOPS_PATH}$
       Allow: #{TOPS_PATH}/
       Allow: /#{GENRE_KEY}/columns
@@ -32,3 +33,4 @@ module CrawlPolicy
     ROBOTS
   end
 end
+
