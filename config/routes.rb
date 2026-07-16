@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'
     post 'api_settings/regenerate_api_key', to: 'clients#regenerate_my_api_key'
+    get 'api_guide', to: 'api_guide#show'
 
     resources :autonomous_runs, only: [:index, :new, :create, :show, :destroy] do
       member do

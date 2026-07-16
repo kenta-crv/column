@@ -1,0 +1,216 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title
+        | API連携ガイド
+      p.api-settings-subtitle
+        | 記事データを自社サイトに取り込む方法をまとめています。APIキーの確認・再発行は
+        = link_to "API設定ページ", (admin_signed_in? ? dashboard_management_path : dashboard_api_settings_path)
+        | から行えます。
+
+    .api-settings-card
+      .api-settings-card__body
+        .form-section
+          h3.form-section-title
+            | 方法は3つあります。どれを使えばいいか
+          table.api-guide-table
+            thead
+              tr
+                th 方法
+                th こんな時におすすめ
+                th 必要な技術力
+            tbody
+              tr
+                td
+                  strong 埋め込みタグ（embed.js）
+                td スクリプトを1行貼るだけで、自社サイトに記事一覧・記事を表示したい
+                td ほぼ不要（HTMLに1行追加するだけ）
+              tr
+                td
+                  strong JSON API
+                td 自社のCMSやシステムに記事データを取り込み、自分たちのページとして表示・加工したい
+                td 必要（プログラムでAPIを呼び出せるエンジニアが必要）
+              tr
+                td
+                  strong Webhook通知
+                td 記事が公開・更新されたタイミングを自動で受け取り、自社システム側の処理をトリガーしたい
+                td 必要（受信用のエンドポイントを用意できること）
+
+        .form-section
+          h3.form-section-title
+            | 1. 埋め込みタグを貼るだけの方法（推奨・最も簡単）
+
+          p.api-guide-lead
+            | 表示したい場所にコンテナを置き、スクリプトタグを1つ追加するだけで記事が自動的に表示されます。
+
+          .custom-code-block
+            .code-block-header
+              span.code-lang HTML
+              button.code-copy-btn.js-copy-btn type="button" data-target="embed-code-guide"
+                | コピー
+            .code-block-body
+              pre
+                code#embed-code-guide
+                  - api_key_sample = @client ? @client.api_key : "YOUR_API_KEY"
+                  = "<main class=\"content-area\">\n  <div id=\"articles\"></div>\n</main>\n\n<script src=\"https://drafity.pro/embed.js\" data-api-key=\"#{api_key_sample}\"></script>"
+
+          ul.api-guide-list
+            li
+              | 表示場所を変えたい場合は
+              code data-container-id="my-articles"
+              | を追加し、コンテナの
+              code id
+              | も合わせてください。
+            li 記事タイトル・本文・画像・ジャンル・キーワード・更新日時などが自動的に表示されます。
+            li
+              | 見た目を調整したい場合は
+              code .embedded-article
+              |
+              code .article-title
+              |
+              code .article-body
+              |
+              code .article-meta
+              | などのCSSクラスにスタイルを当ててください。
+
+        .form-section
+          h3.form-section-title
+            | 2. JSON APIで記事データを取得する方法
+
+          p.api-guide-lead
+            | 自社のシステムに記事データを取り込みたい場合は、以下のエンドポイントを使用します。すべてのリクエストに
+            code X-API-Key
+            | ヘッダー（または
+            code api_key
+            | パラメータ）でAPIキーを渡してください。
+
+          h4.api-guide-subtitle 記事一覧取得
+          .custom-code-block
+            .code-block-header
+              span.code-lang bash
+            .code-block-body
+              pre
+                code
+                  = "curl -X GET https://drafity.pro/api/v1/articles \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+
+          table.api-guide-table
+            thead
+              tr
+                th パラメータ
+                th 説明
+            tbody
+              tr
+                td
+                  code genre
+                td ジャンル（key または日本語名）で絞り込み
+              tr
+                td
+                  code article_type
+                td 記事タイプで絞り込み（pillar / child / cluster）
+              tr
+                td
+                  code updated_since
+                td この日時以降に更新された記事のみ取得（差分同期に便利。ISO8601形式）
+              tr
+                td
+                  code page
+                td ページ番号（デフォルト: 1）
+              tr
+                td
+                  code per_page
+                td 1ページあたりの件数（デフォルト: 50、最大: 100）
+
+          h4.api-guide-subtitle 単一記事取得
+          .custom-code-block
+            .code-block-header
+              span.code-lang bash
+            .code-block-body
+              pre
+                code
+                  = "curl -X GET https://drafity.pro/api/v1/articles/:code \\\n  -H \"X-API-Key: YOUR_API_KEY\""
+          p.api-guide-note 記事はIDではなくcode（記事のスラッグ）で指定します。
+
+        .form-section
+          h3.form-section-title
+            | 3. Webhook通知（記事の更新を自動で受け取る）
+
+          p.api-guide-lead
+            | 「API設定」ページでWebhook URLを設定すると、記事が公開・更新・非公開化されたタイミングで、そのURLへ自動的にHTTP POST通知が送信されます。定期的にAPIを取得しに行く必要がなくなります。
+
+          table.api-guide-table
+            thead
+              tr
+                th イベント
+                th 発生する場面
+            tbody
+              tr
+                td
+                  code created
+                td 記事が新しく公開された時
+              tr
+                td
+                  code updated
+                td 公開済みの記事のタイトル・本文などが変更された時
+              tr
+                td
+                  code deleted
+                td 記事が非公開に戻された時、または削除された時
+
+          p.api-guide-note
+            | 送信に失敗した場合は最大3回まで再送されます。確実な同期のために、Webhookと合わせて
+            code updated_since
+            | パラメータでの定期取得も併用することを推奨します。
+
+        .form-section
+          h3.form-section-title
+            | 困ったときは
+
+          table.api-guide-table
+            thead
+              tr
+                th エラー
+                th 意味・対処
+            tbody
+              tr
+                td
+                  code 401 Unauthorized
+                td APIキーが間違っています。「API設定」ページで確認してください。
+              tr
+                td
+                  code 403 Forbidden
+                td 現在のプランではAPIを利用できません。プランのアップグレードが必要です。
+              tr
+                td
+                  code 404 Not Found
+                td 記事が存在しない、または許可されたジャンル・公開範囲外です。
+              tr
+                td
+                  code 429 Too Many Requests
+                td アクセス回数の上限（1分間にAPIキーごと60回）を超えました。レスポンスの
+                  code Retry-After
+                  | ヘッダーに記載の秒数待って再試行してください。
+
+          p.api-guide-note
+            | 記事が表示されない場合は、記事が公開済み（published）になっているか、対象のジャンルが「サービス・ジャンル管理」で許可されているかをご確認ください。
+
+javascript:
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.js-copy-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const codeElement = document.getElementById(targetId);
+        if (!codeElement) return;
+
+        navigator.clipboard.writeText(codeElement.textContent).then(() => {
+          btn.textContent = 'コピー完了';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'コピー';
+            btn.classList.remove('copied');
+          }, 2000);
+        }).catch((err) => {
+          console.error('コピーに失敗しました: ', err);
+        });
+      });
+    });
+  });

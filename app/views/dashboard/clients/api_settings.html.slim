@@ -6,6 +6,8 @@
       
       p.api-settings-subtitle
         = "クライアント: #{@client.email}"
+        span.api-settings-header-sep &middot;
+        = link_to "API連携ガイドを見る", dashboard_api_guide_path, class: "api-settings-header-link"
 
     .api-settings-card
       .api-settings-card__body
@@ -18,7 +20,7 @@
               = f.label :api_key, "APIキー"
               .api-key-field
                 = f.text_field :api_key, class: "form-control", readonly: true
-                = button_to "再発行する", (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), method: :post, class: "btn btn-outline-danger", data: { turbo_confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？", confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？" }
+                = link_to "再発行する", (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), data: { turbo_method: :post, turbo_confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？", confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？" }, class: "btn-gradient"
               small.form-text
                 | APIキーは自動生成されます。再発行すると旧キーはすぐに使えなくなります。
 
@@ -57,8 +59,8 @@
                 | カスタム埋め込み設定（オプション）
 
           .form-actions
-            = f.submit "設定を保存", class: "btn btn-primary"
-            = link_to "キャンセル", (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn btn-secondary"
+            = f.submit "設定を保存", class: "btn-gradient"
+            = link_to "キャンセル", (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn-secondary"
 
     .api-instructions
       h3.api-instructions-title
