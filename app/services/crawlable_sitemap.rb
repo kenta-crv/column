@@ -13,6 +13,7 @@ class CrawlableSitemap
     SitemapGenerator::Sitemap.search_engines.clear
 
     SitemapGenerator::Sitemap.create(filename: "sitemap") do
+      add "/", changefreq: "weekly", priority: 1.0
       add CrawlPolicy::TOPS_PATH, changefreq: "weekly", priority: 1.0
       add "/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.9
 

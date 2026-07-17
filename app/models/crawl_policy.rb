@@ -18,16 +18,17 @@ module CrawlPolicy
   end
 
   def robots_txt_body
+    # Allow を先に書き、同一 User-agent グループにまとめる。
+    # Disallow: / だけでは /sitemap.xml まで塞がり、GSC がサイトマップを読めなくなる。
     <<~ROBOTS
       User-agent: *
-      Disallow: /
-
-      User-agent: *
+      Allow: /$
       Allow: /sitemap.xml
       Allow: #{TOPS_PATH}$
       Allow: #{TOPS_PATH}/
       Allow: /#{GENRE_KEY}/columns
       Allow: /#{GENRE_KEY}/columns/
+      Disallow: /
 
       Sitemap: #{SITEMAP_HOST}/sitemap.xml
     ROBOTS
