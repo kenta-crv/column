@@ -6,6 +6,9 @@ Rails.application.configure do
   config.hosts << ENV.fetch("RAILS_ALLOWED_HOST", "drafity.pro")
   config.hosts << "j-work.jp"
   config.hosts << "okurite.pro"
+  config.hosts << "okey.work"
+  config.hosts << "kurasera.life"
+  config.hosts << "xn--new351c2sh.net" # 自販機.net
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.

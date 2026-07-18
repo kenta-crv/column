@@ -133,11 +133,15 @@ class ApplicationController < ActionController::Base
       return current_client.genre_keys.include?(key)
     end
 
-    if platform_host?(request.host)
-      return key == CrawlPolicy::GENRE_KEY
-    end
+    # 公開SSRはジャンルが実在すれば表示する。
+    # drafity.pro で ai_article 以外をここで落とすと、
+    # 自社ドメインが Host: drafity.pro 経由で来た場合に cleaning 等が 0 件になる。
+    # Google への公開範囲制限は robots.txt / CrawlPolicy 側で行う。
+    return true if key == CrawlPolicy::GENRE_KEY
+    return true if GenreRegistry.genre_keys.include?(key)
+    return true if ServiceGenre.registered_key?(key)
 
-    true
+    false
   end
 
   def columns_manage_view?
