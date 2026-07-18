@@ -206,19 +206,9 @@ class ApplicationController < ActionController::Base
     return Column.none if genre_key.blank?
     return Column.none unless accessible_public_genre?(genre_key)
 
+    # 自社ドメイン公開は Client 無関係。ジャンル + 公開済みのみで出す。
     genre_values = public_genre_filter_values(genre_key)
-    scope = published_columns_scope.where(genre: genre_values.presence || genre_key)
-
-    owner_id = ServiceGenre.owner_client_id_for(genre_key, host: request.host, client: client)
-    if owner_id.present?
-      scope = scope.where(client_id: owner_id)
-    elsif ServiceGenre.where(key: genre_key).where.not(client_id: nil).exists?
-      return Column.none
-    else
-      scope = scope.where(client_id: nil)
-    end
-
-    scope
+    published_columns_scope.where(genre: genre_values.presence || genre_key)
   end
 
   def public_readable_columns_scope
@@ -244,12 +234,9 @@ class ApplicationController < ActionController::Base
     end
 
     return true if admin_signed_in?
-    return false unless column.publicly_visible?
 
-    owner_id = ServiceGenre.owner_client_id_for(genre_key, host: request.host, client: (current_client if client_signed_in?))
-    return false if owner_id.present? && column.client_id != owner_id
-
-    true
+    # 公開詳細も Client 絞り込みしない（自社ドメインの従来仕様）
+    column.publicly_visible?
   end
 
   def platform_host?(host)
