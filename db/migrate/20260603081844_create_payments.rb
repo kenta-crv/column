@@ -1,5 +1,7 @@
 class CreatePayments < ActiveRecord::Migration[6.1]
   def change
+    return if table_exists?(:payments)
+
     create_table :payments do |t|
       t.integer :client_id, null: false
       t.integer :amount, null: false
@@ -13,6 +15,6 @@ class CreatePayments < ActiveRecord::Migration[6.1]
     add_index :payments, :client_id
     add_index :payments, :status
     add_index :payments, :stripe_payment_intent_id, unique: true
-    add_foreign_key :payments, :clients
+    add_foreign_key :payments, :clients if table_exists?(:clients)
   end
 end

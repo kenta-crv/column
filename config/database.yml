@@ -1,32 +1,35 @@
-# SQLite version 3.x
-#   gem install sqlite3
-#
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem 'sqlite3'
-#
+# development/test: SQLite3（既存ローカルデータをそのまま使える）
+# production: PostgreSQL（本番データは別途 SQLite から移行）
+
 default: &default
-  adapter: sqlite3
-  # スレッド数に合わせてプールを確保（ENVがなければ15程度がおすすめ）
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 15 } %>
-  # 30秒までロック待ち（一括生成時の競合対策）
   timeout: 30000
-  # WALモードと同期設定をデフォルトに含める（パフォーマンス向上）
+
+development:
+  <<: *default
+  adapter: sqlite3
+  database: <%= Rails.root.join('db', 'development.sqlite3').to_s %>
   variables:
     journal_mode: WAL
     synchronous: NORMAL
 
-development:
-  <<: *default
-  database: <%= Rails.root.join('db', 'development.sqlite3').to_s %>
-
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
 test:
   <<: *default
+  adapter: sqlite3
   database: db/test.sqlite3
 
+# DATABASE_URL があれば優先。なければ個別設定。
 production:
   <<: *default
-  # 修正案に基づき、developmentと同じDBを参照
-  database: <%= Rails.root.join('db', 'development.sqlite3').to_s %>
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 15 } %>
+  <% if ENV["DATABASE_URL"].present? %>
+  url: <%= ENV["DATABASE_URL"] %>
+  <% else %>
+  host: <%= ENV.fetch("DB_HOST", "127.0.0.1") %>
+  port: <%= ENV.fetch("DB_PORT", "5432") %>
+  database: <%= ENV.fetch("DB_NAME", "drafity_production") %>
+  username: <%= ENV.fetch("DB_USERNAME", "drafity") %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  <% end %>

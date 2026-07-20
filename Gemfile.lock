@@ -240,6 +240,13 @@ GEM
       rack
     openai (0.3.0)
     orm_adapter (0.5.0)
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-arm64-darwin)
+    pg (1.6.3-x86_64-darwin)
+    pg (1.6.3-x86_64-linux)
+    pg (1.6.3-x86_64-linux-musl)
     public_suffix (6.0.2)
     puma (3.12.6)
     raabro (1.4.0)
@@ -419,6 +426,7 @@ DEPENDENCIES
   meta-tags
   omniauth-twitter
   openai
+  pg (~> 1.5)
   puma (~> 3.11)
   rack-attack
   rack-cors
