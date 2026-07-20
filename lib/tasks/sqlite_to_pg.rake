@@ -13,17 +13,19 @@ namespace :db do
     sqlite_path = ENV.fetch("SQLITE_PATH", Rails.root.join("db/development.sqlite3").to_s)
     raise "SQLite file not found: #{sqlite_path}" unless File.exist?(sqlite_path)
 
-    sqlite_cfg = {
+    # ActiveRecord は匿名クラスへの establish_connection を拒否するため名前付きにする
+    unless defined?(SqliteImportRecord)
+      Object.const_set(:SqliteImportRecord, Class.new(ActiveRecord::Base) do
+        self.abstract_class = true
+      end)
+    end
+
+    SqliteImportRecord.establish_connection(
       adapter: "sqlite3",
       database: sqlite_path,
       pool: 5,
       timeout: 5000
-    }
-
-    klass = Class.new(ActiveRecord::Base) do
-      self.abstract_class = true
-    end
-    klass.establish_connection(sqlite_cfg)
+    )
 
     skip = %w[schema_migrations ar_internal_metadata]
     tables = ActiveRecord::Base.connection.tables.sort - skip
@@ -35,14 +37,14 @@ namespace :db do
     end
 
     tables.each do |table|
-      next unless klass.connection.table_exists?(table)
+      next unless SqliteImportRecord.connection.table_exists?(table)
 
-      cols = klass.connection.columns(table).map(&:name) &
+      cols = SqliteImportRecord.connection.columns(table).map(&:name) &
              ActiveRecord::Base.connection.columns(table).map(&:name)
       next if cols.empty?
 
       sql_cols = cols.map { |c| %("#{c}") }.join(", ")
-      rows = klass.connection.exec_query("SELECT #{sql_cols} FROM #{table}")
+      rows = SqliteImportRecord.connection.exec_query("SELECT #{sql_cols} FROM #{table}")
       next if rows.rows.empty?
 
       quoted_cols = cols.map { |c| ActiveRecord::Base.connection.quote_column_name(c) }.join(", ")
@@ -62,9 +64,9 @@ namespace :db do
     puts "DONE"
 
     %w[admins clients columns subscriptions].each do |t|
-      next unless klass.connection.table_exists?(t) && ActiveRecord::Base.connection.table_exists?(t)
+      next unless SqliteImportRecord.connection.table_exists?(t) && ActiveRecord::Base.connection.table_exists?(t)
 
-      s = klass.connection.select_value("SELECT COUNT(*) FROM #{t}")
+      s = SqliteImportRecord.connection.select_value("SELECT COUNT(*) FROM #{t}")
       p = ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM #{t}")
       puts "compare #{t}: sqlite=#{s} pg=#{p}"
     end
