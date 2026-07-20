@@ -10,6 +10,7 @@ class CreateContracts < ActiveRecord::Migration[6.1]
         t.string :service
         t.string :period
         t.string :message
+        t.string :origin
       t.timestamps
     end
   end
