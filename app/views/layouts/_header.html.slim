@@ -5,8 +5,6 @@
             = image_tag "logo-riplus.png", class: "nav-logo me-2", alt: "RI-PLUS"
           - elsif request.host.include?("自販機.net")
             = image_tag "logo-vender.png", class: "nav-logo me-2", alt: "自販機"
-          - elsif request.path.start_with?('/pages/app')
-            = image_tag "logo-okurite.png", class: "nav-logo me-2", alt: "自販機"
           - else
             = image_tag "logo2.png", class: "nav-logo me-2", alt: "Logo"
           span.nav-subtext

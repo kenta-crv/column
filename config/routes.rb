@@ -122,12 +122,6 @@ Rails.application.routes.draw do
 
   get '/tops',    to: 'tops#index'
 
-  get '/pages/cargo',    to: 'pages#cargo'
-  get '/pages/human',    to: 'pages#human'
-  get '/pages/event',    to: 'pages#event'
-  get '/pages/cleaning',    to: 'pages#cleaning'
-  get '/pages/logistic', to: 'pages#logistic'
-
   get 'draft/progress', to: 'draft#progress'
   resources :contracts
 
