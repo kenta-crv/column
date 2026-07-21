@@ -105,21 +105,42 @@
       - if params[:article_type] == 'pillar' && @grouped_columns.present?
         - @grouped_columns.each do |genre, columns|
           .genre-group style="margin-top: 30px;"
-            h2.genre-name = genre.upcase
+            .genre-header
+              h2.genre-name = genre.upcase
             .columns-list
               - columns.each do |column|
                 .row.pillar-article-item
+                  .col-12.col-md-3.thumb-container
+                    - if column.file.present?
+                      = image_tag column.file.to_s, class: 'column-thumb', alt: column.title
+                    - else
+                      .no-image style="background:#eee; aspect-ratio:16/9; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#999;" No Image
                   .col-12.col-md-9.info-container
                     h3.column-title
                       = link_to column.title, public_column_show_path(column), data: { turbo: false }
+                    .column-meta
+                      span.columns-index-meta-badge.columns-index-meta-badge--pillar
+                        | Pillar (#{ @child_counts&.[](column.id) || 0 } 子記事)
+                      span.columns-index-meta-date.update-date
+                        = column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")
 
       - elsif @columns.present?
         .columns-grid
           - @columns.each do |column|
             .column-card
+              .column-image
+                - if column.file.present?
+                  = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
+                - else
+                  .no-image style="background:#eee; aspect-ratio:16/9; border-radius:8px 8px 0 0; display:flex; align-items:center; justify-content:center; color:#999;" No Image
               .column-content
                 h2.column-title
                   = link_to column.title, public_column_show_path(column), data: { turbo: false }
+                .column-description
+                  - if column.description.present?
+                    = truncate(strip_tags(column.description), length: 120)
+                    span.ms-1 style="color:#999; font-size:0.8rem;"
+                      | （#{column.updated_at.in_time_zone.strftime("%Y/%m/%d")}）
       - else
         p.image-generation-empty = empty_message
 
