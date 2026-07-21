@@ -483,18 +483,39 @@ class ColumnsController < ApplicationController
   end
 
   def set_breadcrumbs
-    add_breadcrumb 'トップ'
+    add_breadcrumb "トップ", "/"
 
     genre_key = @column&.genre.present? ? @column.genre : params[:genre]
     genre_key = genre_key.to_s
 
-    if defined?(LpDefinition) && genre_key.match?(/\A[a-z0-9_]+\z/)
-      label = LpDefinition.label(genre_key)
-      path = public_columns_index_path(genre: genre_key)
-      add_breadcrumb label, path if label && path.present?
+    if genre_key.match?(/\A[a-z0-9_]+\z/)
+      label = GenreRegistry.to_ja(genre_key)
+      label ||= (defined?(LpDefinition) ? LpDefinition.label(genre_key) : nil)
+      label ||= "お役立ち記事"
+      path = consumer_columns_index_path(genre_key)
+      add_breadcrumb label, path if path.present?
     end
 
-    add_breadcrumb @column.title if action_name == 'show' && @column
+    if action_name == "show" && @column
+      parent = @column.parent
+      if parent&.publicly_visible? && parent.code.present?
+        add_breadcrumb parent.title, consumer_column_show_path(parent)
+      end
+      add_breadcrumb @column.title
+    end
+  end
+
+  # ブランドドメインでは nginx で /columns にフラット化されるため、パンくずも合わせる
+  def consumer_columns_index_path(genre_key)
+    return "/columns" unless platform_host?(request.host)
+
+    public_columns_index_path(genre: genre_key)
+  end
+
+  def consumer_column_show_path(column)
+    return "/columns/#{column.code}" if !platform_host?(request.host) && column.code.present?
+
+    public_column_show_path(column)
   end
 
   def column_params

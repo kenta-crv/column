@@ -158,7 +158,13 @@
                 = link_to child.title, public_column_show_path(child), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
+      - parent = @column.parent
+      - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
+        p style="margin-bottom: 16px;"
+          - parent_path = platform_host?(request.host) ? public_column_show_path(parent) : "/columns/#{parent.code}"
+          = link_to "親記事: #{parent.title}", parent_path, style: "color: #007bff; text-decoration: none; font-weight: 600;"
       - if client_signed_in?
         = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
       - else
-        = link_to '一覧へ戻る', public_columns_index_path(genre: @column.genre), class: 'btn btn-default'
+        - index_path = platform_host?(request.host) ? public_columns_index_path(genre: @column.genre) : "/columns"
+        = link_to '一覧へ戻る', index_path, class: 'btn btn-default'

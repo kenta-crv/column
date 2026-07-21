@@ -7,7 +7,7 @@ module LpDefinition
     'cleaning'     => '清掃業',
     'event'        => 'イベント',
     'logistics'    => '物流業',
-    'app'          => 'テレアポ代行',
+    'app'          => '営業代行',
     'ads'          => '広告CPA改善'
   }.freeze
 

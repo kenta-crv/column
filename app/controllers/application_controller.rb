@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
-                :pending_review_columns_count, :routable_public_genre_key?
+                :pending_review_columns_count, :routable_public_genre_key?, :platform_host?
 
   def check_trial_expiration
     return unless current_client.present?
