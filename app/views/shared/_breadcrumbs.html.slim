@@ -1,11 +1,9 @@
 nav.breadcrumbs aria-label="パンくず"
   - breadcrumbs.each_with_index do |crumb, i|
-    - if crumb[:path].present? && i < breadcrumbs.size - 1
-      = link_to crumb[:label], crumb[:path]
-    - elsif crumb[:path].present? && i == breadcrumbs.size - 1
-      / 現在ページはリンクにしない（クリック領域の誤認を防ぐ）
-      span.breadcrumbs__current = crumb[:label]
+    - is_last = (i == breadcrumbs.size - 1)
+    - if !is_last && crumb[:path].present?
+      = link_to crumb[:label].to_s, crumb[:path].to_s
     - else
       span.breadcrumbs__current = crumb[:label]
-    - unless i == breadcrumbs.size - 1
+    - unless is_last
       |  /

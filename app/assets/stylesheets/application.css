@@ -876,10 +876,15 @@ small {
 }
 
 
+/* 通常フロー。absolute + top は使わない（ヒーロー等と重なるため） */
 .breadcrumbs {
   position: relative;
+  top: auto;
+  left: auto;
   z-index: 2;
-  padding: 12px 16px;
+  display: block;
+  margin: 0;
+  padding: 10px 16px;
   font-size: 14px;
   line-height: 1.5;
   background: #fff;

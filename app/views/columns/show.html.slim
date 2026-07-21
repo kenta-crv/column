@@ -161,10 +161,10 @@
       - parent = @column.parent
       - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
         p style="margin-bottom: 16px;"
-          - parent_path = platform_host?(request.host) ? public_column_show_path(parent) : "/columns/#{parent.code}"
+          - parent_path = platform_host? ? public_column_show_path(parent) : "/columns/#{parent.code}"
           = link_to "親記事: #{parent.title}", parent_path, style: "color: #007bff; text-decoration: none; font-weight: 600;"
       - if client_signed_in?
         = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
       - else
-        - index_path = platform_host?(request.host) ? public_columns_index_path(genre: @column.genre) : "/columns"
+        - index_path = platform_host? ? public_columns_index_path(genre: @column.genre) : "/columns"
         = link_to '一覧へ戻る', index_path, class: 'btn btn-default'

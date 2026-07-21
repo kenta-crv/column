@@ -483,65 +483,52 @@ class ColumnsController < ApplicationController
   end
 
   def set_breadcrumbs
+    # トップ →（ブランドnginxが渡すLP）→ お役立ち記事 → 記事
     add_breadcrumb "トップ", "/"
 
-    genre_key = @column&.genre.present? ? @column.genre : params[:genre]
-    genre_key = genre_key.to_s
+    genre_key = (@column&.genre.presence || params[:genre]).to_s
 
-    if genre_key.match?(/\A[a-z0-9_]+\z/)
-      if platform_host?(request.host)
-        # drafity.pro 自社: トップ → AI記事 → 記事
-        label = GenreRegistry.to_ja(genre_key)
-        label ||= "お役立ち記事"
-        path = consumer_columns_index_path(genre_key)
-        add_breadcrumb label, path if path.present?
-      else
-        # ブランドドメイン: トップ → LP → お役立ち記事 → 記事
-        # （トップ直下に LP と columns が並列にならないようにする）
-        if (lp = brand_lp_breadcrumb_for(genre_key))
-          add_breadcrumb lp[:label], lp[:path]
-        end
-        add_breadcrumb "お役立ち記事", consumer_columns_index_path(genre_key)
+    if platform_host? && genre_key == CrawlPolicy::GENRE_KEY
+      add_breadcrumb "AI記事", "/ai_article/columns"
+    else
+      # LPは Draftiy が知らない。ブランド側 nginx のヘッダーだけを信じる。
+      if (lp = brand_lp_from_proxy_headers)
+        add_breadcrumb lp[:label], lp[:path]
       end
+      add_breadcrumb "お役立ち記事", "/columns"
     end
 
-    if action_name == "show" && @column
-      parent = @column.parent
-      if parent&.publicly_visible? && parent.code.present?
-        add_breadcrumb parent.title, consumer_column_show_path(parent)
-      end
-      add_breadcrumb @column.title
+    return unless action_name == "show" && @column
+
+    parent = @column.parent
+    if parent&.publicly_visible? && parent.code.present?
+      add_breadcrumb parent.title, consumer_column_show_path(parent)
     end
+    add_breadcrumb @column.title
   end
 
-  # ブランドサイト上の「親LP」。Columns を LP 配下の階層として見せるための対応表。
-  # nginx が /columns → /:genre/columns に振る前提で、公開 Host × genre で決める。
-  def brand_lp_breadcrumb_for(genre_key)
-    host = public_request_host
-    mapping = {
-      ["j-work.jp", "cargo"] => { label: "軽貨物", path: "/pages/cargo" },
-      ["okey.work", "cleaning"] => { label: "日常清掃", path: "/daily" },
-      ["okey.work", "emergency_cleaning"] => { label: "日常清掃", path: "/daily" },
-      ["okey.work", "cargo"] => { label: "軽貨物", path: "/" },
-      ["okurite.pro", "app"] => { label: "Okurite", path: "/okurite" },
-      ["meetia.pro", "meetia"] => { label: "Meetia", path: "/" },
-      ["自販機.net", "vender"] => { label: "自販機ねっと", path: "/" },
-      ["xn--new351c2sh.net", "vender"] => { label: "自販機ねっと", path: "/" },
-      ["kurasera.life", "housekeeping"] => { label: "家事代行", path: "/housekeeping" },
-      ["kurasera.life", "babysitting"] => { label: "ベビーシッター", path: "/babysitter" }
-    }
-    mapping[[host, genre_key.to_s]]
+  # ブランドnginxが渡す親LP。Draftiy側にブランド知識は持たない。
+  #   X-Brand-Lp-Path:  /pages/cargo
+  #   X-Brand-Lp-Label: 軽貨物
+  def brand_lp_from_proxy_headers
+    path = request.headers["X-Brand-Lp-Path"].to_s.strip.presence
+    label = request.headers["X-Brand-Lp-Label"].to_s.strip.presence
+    return nil if path.blank? || label.blank?
+    return nil unless path.match?(%r{\A/[\w\-./%]*\z}) && !path.start_with?("//")
+
+    label = CGI.unescape(label) if label.include?("%")
+    { label: label, path: path }
   end
 
   # ブランドドメインでは nginx で /columns にフラット化されるため、パンくずも合わせる
   def consumer_columns_index_path(genre_key)
-    return "/columns" unless platform_host?(request.host)
+    return "/columns" unless platform_host?
 
     public_columns_index_path(genre: genre_key)
   end
 
   def consumer_column_show_path(column)
-    return "/columns/#{column.code}" if !platform_host?(request.host) && column.code.present?
+    return "/columns/#{column.code}" if !platform_host? && column.code.present?
 
     public_column_show_path(column)
   end
