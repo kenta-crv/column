@@ -435,6 +435,25 @@ body.admin-body {
   flex-shrink: 0;
 }
 
+.btn-title-suggest.btn-ai-suggest {
+  color: #ffffff;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.btn-title-suggest.btn-ai-suggest:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.28);
+}
+
+.btn-title-suggest.btn-ai-suggest svg {
+  stroke: currentColor;
+}
+
 .dashboard-toolbar__search-form {
   flex: 1 1 200px;
   min-width: 180px;
