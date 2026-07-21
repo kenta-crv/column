@@ -406,6 +406,11 @@ module GenreRegistry
     }
   }.freeze
 
+  # 公開URLの genre キーと FALLBACK_GENRES キーが違う場合の別名
+  GENRE_KEY_ALIASES = {
+    ai_sales_agent: :meetia
+  }.freeze
+
   class << self
     def fallback_templates_for(client: nil, host: nil)
       return FALLBACK_GENRES.deep_dup if client.nil?
@@ -549,7 +554,8 @@ module GenreRegistry
   def self.to_ja(key, client: nil)
     return nil if key.blank?
 
-    genres(client: client)[key.to_sym]&.dig(:ja)
+    resolved = GENRE_KEY_ALIASES.fetch(key.to_sym, key.to_sym)
+    genres(client: client)[resolved]&.dig(:ja)
   end
 
   # AI生成用のプロフィール。中分類がある場合はそれを優先する
