@@ -1,50 +1,44 @@
-- set_meta_tags title: 'AI記事生成・運用支援なら「Drafity」'
-- set_meta_tags description: 'SEOに強い記事生成、画像生成、運用支援まで一気通貫で行えるAIコンテンツプラットフォームです。'
+- set_meta_tags title: t("drafity.lp.meta_title")
+- set_meta_tags description: t("drafity.lp.meta_description")
 
 .drafify-lp
   /-- NAV  --
   nav.nav
     .nav-inner
-      = link_to "/"
+      = link_to locale_root_href
         = image_tag "logo2.png", width: "150px"
       .nav-links
-        a href="#features" 特徴
-        a href="#features" 機能
-        a.active href="#pricing" 料金プラン
-        a href="#cases" 導入事例
-        a href="#faq" よくある質問
+        a href="#features" = t("drafity.lp.nav_features")
+        a href="#features" = t("drafity.lp.nav_functions")
+        a.active href="#pricing" = t("drafity.lp.nav_pricing")
+        a href="#cases" = t("drafity.lp.nav_cases")
+        a href="#faq" = t("drafity.lp.nav_faq")
+        = link_to t("drafity.lp.nav_columns"), ai_article_columns_index_path
       .nav-cta
-        = link_to "ログイン", new_client_session_path, class: "btn-login"
-        = link_to "無料で始める →", "/clients/sign_up", class: "btn-primary"
+        = render "shared/lang_switch"
+        = link_to t("drafity.lp.login"), new_client_session_path, class: "btn-login"
+        = link_to t("drafity.lp.cta_start"), "/clients/sign_up", class: "btn-primary"
  
   /-- HERO --
   section.hero
     .hero-inner
       .hero-copy
         .hero-eyebrow
-          span.eyebrow-badge 2026年 最新AI
-          span.eyebrow-text で、記事作成をもっと速く、もっと高品質に。
+          span.eyebrow-badge = t("drafity.lp.hero_badge")
+          span.eyebrow-text = t("drafity.lp.hero_eyebrow")
         h1.hero-title
-          | 本格メディアを、
+          = t("drafity.lp.hero_title_1")
           br.pc-only
-          span.num AIで量産
-          | する時代へ。
-        p.hero-desc
-          | 最新のAIがGoogle志向を分析しSEOに強く、
-          br.pc-only
-          | 読者の心に響く高品質な記事を自動生成。
-          | あなたのメディアの成長を急速に加速させます。
+          span.num = t("drafity.lp.hero_title_2")
+          = t("drafity.lp.hero_title_3")
+        p.hero-desc = t("drafity.lp.hero_desc")
 
       .hero-visual
-        = image_tag "hero-bg.webp", alt: "Drafityのダッシュボード画面", class: "hero-img"
+        = image_tag "hero-bg.webp", alt: t("drafity.lp.hero_image_alt"), class: "hero-img"
 
       .hero-cards
         .hero-checks
-          - hero_checks = [ \
-              "SEOに強い構成を自動作成", \
-              "E-E-A-T対応の高精度記事", \
-              "画像AI自動生成" \
-            ]
+          - hero_checks = [t("drafity.lp.hero_check_1"), t("drafity.lp.hero_check_2"), t("drafity.lp.hero_check_3")]
           - hero_checks.each do |check|
             span.check-pill
               svg viewBox="0 0 14 14" fill="none"
@@ -52,8 +46,8 @@
               = check
 
       .hero-actions
-        = link_to "トライアルを開始する", "/clients/sign_up", class: "btn-primary-lg"
-        a.btn-ghost.btn-purple href="#features" AI商談を開始
+        = link_to t("drafity.lp.hero_cta_trial"), "/clients/sign_up", class: "btn-primary-lg"
+        a.btn-ghost.btn-purple href="#features" = t("drafity.lp.hero_cta_secondary")
 
   /-- TRUST --
   /.trust-bar
@@ -68,24 +62,19 @@
   section.whats-section
    .whats-inner
     .section-header
-      span.overline What’s Drafity?
+      span.overline = t("drafity.lp.whats_overline")
       h2.section-title
-        | 次世代のAI記事生成・運用支援ツール『Drafity』
+        = t("drafity.lp.whats_title")
 
     .whats-intro-block
       .whats-intro-left
         p.whats-lead-text
-          | SEOに強い構成案の作成から、本文の自動生成、画像生成、リライト、効果測定まで、
+          = t("drafity.lp.whats_lead_1")
           br.pc-only
-          | メディア運営に必要なすべてを一つのプラットフォームで完結。
+          = t("drafity.lp.whats_lead_2")
         
         .whats-features-row
-          - whats_features = [ \
-              { icon: "polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"", title: "圧倒的に速い", desc: "最短数分で記事完成", class: "icon-lightning" }, \
-              { icon: "path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"", title: "SEOに強い", desc: "Googleに準ずる設計", class: "icon-shield" }, \
-              { icon: "line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"\nline x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"\nline x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"", title: "資産コンテンツ化", desc: "企業のWeb資産へ", class: "icon-growth" } \
-            ]
-          - whats_features.each do |wf|
+          - lp_whats_features.each do |wf|
             .whats-feature-pill
               .wfp-icon class=wf[:class]
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
@@ -110,60 +99,22 @@
   section.problem-section
    .problem-inner
     .section-header
-      span.overline こんなお悩みありませんか？
+      span.overline = t("drafity.lp.problem_overline")
       h2.section-title
-        | メディア運営で、こんな
-        span.text-highlight-blue 壁
-        | にぶつかっていませんか？
+        = t("drafity.lp.problem_title_1")
+        span.text-highlight-blue = t("drafity.lp.problem_title_2")
+        = t("drafity.lp.problem_title_3")
       .section-dots
         span
         span
         span
 
     .problem-scroll-wrap
-      button.problem-scroll-btn.problem-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.problem-grid', -1)"
+      button.problem-scroll-btn.problem-scroll-prev type="button" aria-label=t("drafity.lp.prev") onclick="scrollLpCards('.problem-grid', -1)"
         svg viewBox="0 0 24 24" fill="none"
           path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
       .problem-grid
-        - problems = [ \
-            { \
-              icon_class: "icon-clock", \
-              icon_type: "clock", \
-              text: "記事制作に時間がかかり、<br>本来の業務に集中できない", \
-              desc: "企画・構成・執筆・編集などの工数が大きく、日々の運営業務を圧迫している。", \
-            }, \
-            { \
-              icon_class: "icon-search", \
-              icon_type: "search", \
-              text: "SEOを意識した記事が<br>うまく書けない", \
-              desc: "検索上位を狙いたいが、キーワード設計や構成づくりが難しく、成果につながらない。", \
-            }, \
-            { \
-              icon_class: "icon-chart", \
-              icon_type: "chart", \
-              text: "記事の品質にばらつきがあり、<br>読者の満足度が上がらない", \
-              desc: "ライターによってクオリティに差が出てしまい、メディア全体の信頼性に影響してしまう。", \
-            }, \
-            { \
-              icon_class: "icon-analytics", \
-              icon_type: "analytics", \
-              text: "アクセスや成果が伸び悩み、<br>改善の打ち手が見えない", \
-              desc: "データ分析や改善施策に時間が取れず、PDCAが回せていない。", \
-            }, \
-            { \
-              icon_class: "icon-calc", \
-              icon_type: "calc", \
-              text: "外注コストがかさみ、<br>運営コストが増大している", \
-              desc: "ライターや編集者への依頼コストが積み重なり、利益を圧迫している。", \
-            }, \
-            { \
-              icon_class: "icon-bell", \
-              icon_type: "bell", \
-              text: "GoogleのSEO構成を正しく把握できない",\
-              desc: "情報の鮮度を保つのが難しく、競合メディアに差をつけられてしまう。" \
-            } \
-          ]
-        - problems.each do |p|
+        - lp_problems.each do |p|
           .problem-card-item
             .pci-meta
               .pci-visual-icon class=p[:icon_class]
@@ -193,7 +144,7 @@
                 span.pci-check-box
                 p.pci-check-text == p[:text]
               p.pci-description = p[:desc]
-      button.problem-scroll-btn.problem-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.problem-grid', 1)"
+      button.problem-scroll-btn.problem-scroll-next type="button" aria-label=t("drafity.lp.next") onclick="scrollLpCards('.problem-grid', 1)"
         svg viewBox="0 0 24 24" fill="none"
           path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
@@ -205,8 +156,8 @@
     .solution-banner-box
       .sb-content-left
         .sb-headline-row
-          span.sb-lead-text そのお悩み、
-          span.sb-badge-tag AI×コンテンツ資産力の高さ
+          span.sb-lead-text = t("drafity.lp.solution_lead")
+          span.sb-badge-tag = t("drafity.lp.solution_badge")
         .sb-brand-row
           .sb-logo-mark
             svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -216,9 +167,9 @@
               line x1="16" y1="17" x2="8" y2="17"
               polyline points="10 9 9 9 8 9"
           h3.sb-brand-name Drafity
-          span.sb-suffix-text がすべて
-          span.sb-gradient-action 解決
-          span.sb-suffix-text します。
+          span.sb-suffix-text = t("drafity.lp.solution_all")
+          span.sb-gradient-action = t("drafity.lp.solution_solve")
+          span.sb-suffix-text = t("drafity.lp.solution_suffix")
       .sb-mockup-right
         .sb-dashboard-wrapper
           /img.sb-dashboard-img src=image_path('dashboard-preview.png') alt="Drafity Dashboard"
@@ -241,26 +192,20 @@
     .concept-inner
       .concept-md
         .section-header
-          span.overline 記事構成
+          span.overline = t("drafity.lp.concept_overline")
         h3.concept-sub-title
-          | 現在のGoogleで上位表示されやすい
+          = t("drafity.lp.concept_title_1")
           br.sp-only
-          | 「
-          span.text-gradient 最適な記事構成
-          | 」とは？
+          = t("drafity.lp.concept_title_q")
+          span.text-gradient = t("drafity.lp.concept_title_2")
+          = t("drafity.lp.concept_title_3")
         
         .concept-scroll-wrap
-          button.concept-scroll-btn.concept-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.concept-grid', -1)"
+          button.concept-scroll-btn.concept-scroll-prev type="button" aria-label=t("drafity.lp.prev") onclick="scrollLpCards('.concept-grid', -1)"
             svg viewBox="0 0 24 24" fill="none"
               path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           .concept-grid
-            - concepts = [ \
-                { num: "01", title: "ピラー・クラスター構造", desc: "ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。", img: "icon1.png" }, \
-                { num: "02", title: "E-E-A-Tへの適応", desc: "経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。", img: "icon2.png" }, \
-                { num: "03", title: "ユーザーファースト", desc: "単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。", img: "icon3.png" \
-              } \
-            ]
-            - concepts.each do |c|
+            - lp_concepts.each do |c|
               .concept-card
                 .cc-header
                   .cc-num-badge = c[:num]
@@ -268,8 +213,8 @@
                 .cc-body
                   p.cc-desc = c[:desc]
                 .cc-illustration
-                  = image_tag c[:img], alt: "#{c[:title]}のイメージ", class: "cc-img"
-          button.concept-scroll-btn.concept-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.concept-grid', 1)"
+                  = image_tag c[:img], alt: t("drafity.lp.concept_img_alt", title: c[:title]), class: "cc-img"
+          button.concept-scroll-btn.concept-scroll-next type="button" aria-label=t("drafity.lp.next") onclick="scrollLpCards('.concept-grid', 1)"
             svg viewBox="0 0 24 24" fill="none"
               path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
@@ -277,182 +222,111 @@
   section.features-strip#features
     .features-inner
       .section-header
-        span.overline 機能一覧
-        h2.section-title 
-          | 記事制作のすべてを、
+        span.overline = t("drafity.lp.features_overline")
+        h2.section-title
+          = t("drafity.lp.features_title_1")
           span.text-brand Drafity
-          | ひとつで。
-        p.section-sub SEOに強い記事制作から運用・改善まで、必要な機能をすべて搭載。
-      
+          = t("drafity.lp.features_title_2")
+        p.section-sub = t("drafity.lp.features_sub")
+
       .features-scroll-wrap
-        button.features-scroll-btn.features-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.features-grid', -1)"
+        button.features-scroll-btn.features-scroll-prev type="button" aria-label=t("drafity.lp.prev") onclick="scrollLpCards('.features-grid', -1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .features-grid
-          /-- 01: キーワード調査 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 01
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    circle cx="11" cy="11" r="8"
-                    line x1="21" y1="21" x2="16.65" y2="16.65"
-                h3.fc-title AIターゲット定義
-              p.fc-desc AIがあなたの希望のターゲット選定を詳細化するので、手軽に的確な定義設計ができます。
-            .fc-mockup
-              .mock-window
-                .mw-header キーワード候補
-                .mw-table
-                  .mt-row.mt-head
-                    span キーワード
-                    span 競合性
-                  - kw_rows = [ \
-                      { kw: "AI 記事生成", vol: "12,100", b_class: "low", b_text: "低" }, \
-                      { kw: "SEO対策", vol: "8,900", b_class: "mid", b_text: "中" }, \
-                      { kw: "コンテンツマーケティング", vol: "6,600", b_class: "low", b_text: "低" } \
-                    ]
-                  - kw_rows.each do |row|
-                    .mt-row
-                      span = row[:kw]
-                      span = row[:vol]
-                      span.badge class=row[:b_class] = row[:b_text]
-
-          /-- 02: 構成案の自動生成 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 02
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                    polyline points="14 2 14 8 20 8"
-                    line x1="16" y1="13" x2="8" y2="13"
-                    line x1="16" y1="17" x2="8" y2="17"
-                    polyline points="10 9 9 9 8 9"
-                h3.fc-title ピラータイトルの自動提案
-              p.fc-desc SEOに強くユーザービューイングの高いタイトル構成をAIが自動で作成。
-            .fc-mockup
-              .mock-window
-                .mw-header 構成案
-                .mw-list
-                  - headings = ["AI記事生成ツールとは？", "AI記事生成ツールを使うメリット", "おすすめのAI記事生成ツール", "選び方のポイント", "まとめ"]
-                  - headings.each do |h|
-                    .ml-item
-                      span.h2-tag H2
-                      span.ml-text = h
-
-          /-- 03: 本文の自動生成 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 03
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-                h3.fc-title 本文の自動生成
-              p.fc-desc 自然な文章をAIが生成。高品質な記事を短時間で作成。
-            .fc-mockup
-              .mock-window
-                .mw-toolbar
-                  span B
-                  span I
-                  span U
-                  span.divider
-                  span 
-                    svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"
-                      rect x="3" y="3" width="18" height="18" rx="2" ry="2"
-                      circle cx="8.5" cy="8.5" r="1.5"
-                      polyline points="21 15 16 10 5 21"
-                .mw-editor-content
-                  p AI記事生成ツールは、記事制作の工数を大幅に削減し、高品質なコンテンツを効率的に作成できるツールです。
-                  p 本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。
-
-          /-- 04: 画像の自動生成 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 04
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    rect x="3" y="3" width="18" height="18" rx="2" ry="2"
-                    circle cx="8.5" cy="8.5" r="1.5"
-                    polyline points="21 15 16 10 5 21"
-                h3.fc-title 画像の自動生成
-              p.fc-desc 記事内容に合った画像やアイキャッチをAIが自動で生成・提案。
-            .fc-mockup
-              .mock-images
-                .mi-main
-                  .mi-placeholder.ai-bg
-                    span.ai-text AI
-                .mi-side
-                  .mi-placeholder.ai-bg-small
-                  .mi-placeholder.ai-bg-small
-                  .mi-placeholder.ai-bg-small
-
-          /-- 05: リライト・改善提案 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 05
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                    path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                h3.fc-title クラスタータイトル・記事の自動提案・作成
-              p.fc-desc 親タイトル・記事から最適な構成になる子タイトルを平均15個自動で提案します。
-            .fc-mockup
-              .mock-window
-                .mw-header 改善提案
-                .mw-check-list
-                  - suggestions = ["見出しにキーワードを含めると効果的です", "導入文をより具体的にすると離脱率が下がります", "内部リンクの追加をおすすめします"]
-                  - suggestions.each do |s|
-                    .mc-item
-                      svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3"
-                        polyline points="20 6 9 17 4 12"
-                      span = s
-
-          /-- 06: 公開・連携 --
-          .feature-card
-            .fc-top
-              .fc-head-row
-                .fc-num 06
-                .fc-icon
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                    polyline points="17 8 12 3 7 8"
-                    line x1="12" y1="3" x2="12" y2="15"
-                h3.fc-title 公開・連携
-              p.fc-desc WordPress連携でワンクリック公開。スムーズに入稿・運用が可能。
-            .fc-mockup
-              .mock-window.mw-center
-                .wp-logo
-                  svg viewBox="0 0 24 24" fill="#3B82F6"
-                    path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-6.42l-3.32-9.143a8.03 8.03 0 0 0-2.613 6.643c.48-1.573 2.05-4.8 2.05-4.8l3.883 7.3zm4.567-7.834c0-.987-.354-1.68-.787-2.18-.55-.634-1.26-.954-2.008-.954-1.143 0-1.93.854-1.93 1.93 0 .987.354 1.68.787 2.18.55.634 1.26.954 2.008.954 1.14 0 1.93-.854 1.93-1.93zm-1.614 7.69l2.7-7.55c.34-.954.21-1.666-.35-2.227a7.996 7.996 0 0 0-3.38-1.523l-3.353 9.4 4.383 1.9zm4.61-4.3c0-1.78-.58-3.415-1.554-4.733l-2.793 7.72c1.97-1.127 4.347-1.794 4.347-2.987z"
-                .mw-text WordPressに接続中...
-                .mw-progress
-                  .mp-bar
-                  span 100%
-        button.features-scroll-btn.features-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.features-grid', 1)"
+          - lp_feature_cards.each do |fc|
+            .feature-card
+              .fc-top
+                .fc-head-row
+                  .fc-num = fc[:num]
+                  .fc-icon
+                    svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      - if fc[:num] == "01"
+                        circle cx="11" cy="11" r="8"
+                        line x1="21" y1="21" x2="16.65" y2="16.65"
+                      - elsif fc[:num] == "02"
+                        path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                        polyline points="14 2 14 8 20 8"
+                      - elsif fc[:num] == "03"
+                        path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+                      - elsif fc[:num] == "04"
+                        rect x="3" y="3" width="18" height="18" rx="2" ry="2"
+                        circle cx="8.5" cy="8.5" r="1.5"
+                        polyline points="21 15 16 10 5 21"
+                      - elsif fc[:num] == "05"
+                        path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                        path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                      - else
+                        path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                        polyline points="17 8 12 3 7 8"
+                        line x1="12" y1="3" x2="12" y2="15"
+                  h3.fc-title = fc[:title]
+                p.fc-desc = fc[:desc]
+              .fc-mockup
+                - if fc[:num] == "01"
+                  .mock-window
+                    .mw-header = fc[:mock_header]
+                    .mw-table
+                      .mt-row.mt-head
+                        span = fc[:kw_head][0]
+                        span = fc[:kw_head][1]
+                      - fc[:kw_rows].each do |row|
+                        .mt-row
+                          span = row[:kw]
+                          span = row[:vol]
+                          span.badge class=row[:b_class] = row[:b_text]
+                - elsif fc[:num] == "02"
+                  .mock-window
+                    .mw-header = fc[:mock_header]
+                    .mw-list
+                      - fc[:headings].each do |h|
+                        .ml-item
+                          span.h2-tag H2
+                          span.ml-text = h
+                - elsif fc[:num] == "03"
+                  .mock-window
+                    .mw-toolbar
+                      span B
+                      span I
+                      span U
+                    .mw-editor-content
+                      p = fc[:editor_p1]
+                      p = fc[:editor_p2]
+                - elsif fc[:num] == "04"
+                  .mock-images
+                    .mi-main
+                      .mi-placeholder.ai-bg
+                        span.ai-text AI
+                    .mi-side
+                      .mi-placeholder.ai-bg-small
+                      .mi-placeholder.ai-bg-small
+                      .mi-placeholder.ai-bg-small
+                - elsif fc[:num] == "05"
+                  .mock-window
+                    .mw-header = fc[:mock_header]
+                    .mw-check-list
+                      - fc[:suggestions].each do |s|
+                        .mc-item
+                          svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="3"
+                            polyline points="20 6 9 17 4 12"
+                          span = s
+                - else
+                  .mock-window.mw-center
+                    .mw-text = fc[:wp_text]
+                    .mw-progress
+                      .mp-bar
+                      span 100%
+        button.features-scroll-btn.features-scroll-next type="button" aria-label=t("drafity.lp.next") onclick="scrollLpCards('.features-grid', 1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
-
-      /-- 下部サマリーバナー --
       .features-summary-banner
         .fsb-left
           p.fsb-lead
             span.text-brand Drafity
-            | が、記事制作のあらゆる工程を効率化し、成果につながるメディア運営を支援します。
+            =< t("drafity.lp.features_summary")
         .fsb-right
-          - fsb_points = [ \
-              { icon_type: "clock", text: "制作時間を大幅カット" }, \
-              { icon_type: "trend", text: "SEO成果を最大化" }, \
-              { icon_type: "shield", text: "品質を保ちながら安定運用" }, \
-              { icon_type: "Update", text: "常に記事精度を上げる定期更新" \
-            } \
-          ]
-          - fsb_points.each do |pt|
+          - lp_fsb_points.each do |pt|
             .fsb-point-item
               .fsb-point-icon
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
@@ -465,11 +339,8 @@
                   - elsif pt[:icon_type] == "shield"
                     path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
                     polyline points="9 12 11 14 15 10"
-                  - elsif pt[:icon_type] == "team"
-                    path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                    circle cx="9" cy="7" r="4"
-                    path d="M23 21v-2a4 4 0 0 0-3-3.87"
-                    path d="M16 3.13a4 4 0 0 1 0 7.75"
+                  - else
+                    polyline points="23 6 13.5 15.5 8.5 10.5 1 18"
               .fsb-point-text = pt[:text]
 
 
@@ -477,23 +348,16 @@
   section.dashboard-section#dashboard
     .dashboard-inner
       .section-header
-        span.overline ダッシュボード
-        h2.section-title 
-          | すべてが
-          span.text-blue 一目でわかる
-          | 、シンプルなダッシュボード
-        p.section-sub 記事生成から公開の確認まで。必要な情報をリアルタイムで可視化します。
+        span.overline = t("drafity.lp.dashboard_overline")
+        h2.section-title
+          = t("drafity.lp.dashboard_title_1")
+          span.text-blue = t("drafity.lp.dashboard_title_2")
+          = t("drafity.lp.dashboard_title_3")
+        p.section-sub = t("drafity.lp.dashboard_sub")
 
       .dashboard-grid
-        /-- 左カラム: 4つの特徴リスト --
         .dashboard-left-features
-          - db_features = [ \
-              { class: "icon-blue", type: "pie", label: "重要指標をリアルタイムで把握", desc: "総生成数・公開済・下書き・成功率など、主要な情報をひと目で確認できます。" }, \
-              { class: "icon-amber", type: "folder", label: "ジャンルごとの記事状況を可視化", desc: "ジャンル別の記事総数と、Pillar / Clusterの内訳を確認。コンテンツ戦略の最適化に役立ちます。" }, \
-              { class: "icon-indigo", type: "filter", label: "ステータスごとに簡単フィルタ", desc: "すべてのステータスをワンクリックで切り替え、必要な記事をすぐに検索・管理できます。" }, \
-              { class: "icon-purple", type: "clock", label: "リアルタイム生成状況を確認", desc: "AI生成の進行状況をリアルタイムで確認。完了数や進捗をすぐに把握できます。" } \
-            ]
-          - db_features.each do |df|
+          - lp_dashboard_features.each do |df|
             .df-item
               .df-icon-wrap class=df[:class]
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -511,12 +375,10 @@
                 h3.df-label = df[:label]
                 p.df-desc = df[:desc]
 
-        /-- 右カラム: ダッシュボード画像 (Rails image_tag対応) --
         .dashboard-right-mockup
           .mockup-container
-            = image_tag "img_dashboard.png", alt: "Drafity ダッシュボード画面", class: "dashboard-img"
+            = image_tag "img_dashboard.png", alt: t("drafity.lp.dashboard_img_alt"), class: "dashboard-img"
 
-      /-- 下部サマリーバナー --
       .dashboard-summary-banner
         .dsb-icon-wrap
           svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -524,40 +386,36 @@
             polyline points="2 17 12 22 22 17"
             polyline points="2 12 12 17 22 12"
         p.dsb-text
-          | 迷わず使える、直感的なUI/UXで日々の運用をもっと快適に。
-          span Drafityのダッシュボードが、コンテンツ運用のすべてをサポートします。
-
-
-
+          = t("drafity.lp.dashboard_summary_1")
+          span = t("drafity.lp.dashboard_summary_2")
 
   /-- ENTERPRISE AGENT --
   section.enterprise-agent-section
     .ea-inner
-      .ea-badge 自律型AIエージェント
+      .ea-badge = t("drafity.lp.ea_badge")
       h3.ea-title
-        | プロンプトは最小限に。
+        = t("drafity.lp.ea_title_1")
         br
-        | 「AIが主体的に動く」次の時代へ。
-      p.ea-desc
-        | Business/Enterpriseプランでは、AIが自律的にピラータイトル・本文、そして関連するクラスタータイトル・本文までを思考し一連の流れを完全自動生成し、PCやブラウザを閉じている間も裏側でタスクが進行し、完了状況はメールやSMSでリアルタイムに通知されます。
+        = t("drafity.lp.ea_title_2")
+      p.ea-desc = t("drafity.lp.ea_desc")
 
   /-- PRICING --
   section.pricing-section#pricing
     .pricing-inner
       .section-header
-        span.overline シンプルでわかりやすい料金プラン
-        h2.section-title あなたのビジネスに最適なプランを。
+        span.overline = t("drafity.lp.pricing_overline")
+        h2.section-title = t("drafity.lp.pricing_title")
         p.section-sub
-          | 個人利用からチーム・企業利用まで、目的や規模に合わせて選べる料金プランをご用意しています。
+          = t("drafity.lp.pricing_sub_1")
           br
-          | すべてのプランに、AIによる高品質な記事作成を体験できます。
+          = t("drafity.lp.pricing_sub_2")
       .toggle-wrap
-        button.toggle-btn.active onclick="setToggle(false,this)" 月額払い
+        button.toggle-btn.active onclick="setToggle(false,this)" = t("drafity.lp.pricing_monthly")
         button.toggle-btn onclick="setToggle(true,this)"
-          | 年額払い
-          span.toggle-save 20%お得
+          = t("drafity.lp.pricing_yearly")
+          span.toggle-save = t("drafity.lp.pricing_save")
       .pricing-scroll-wrap
-        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" onclick="scrollPricing(-1)"
+        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label=t("drafity.lp.pricing_prev") onclick="scrollPricing(-1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .pricing-grid
@@ -566,23 +424,23 @@
             - cta_class = plan[:popular] ? "filled" : (plan[:featured] ? "featured-cta" : "outline")
             .plan-card class=card_classes data-plan-key=plan[:key] data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
               - if plan[:popular]
-                .popular-badge 人気 No.1
+                .popular-badge = t("drafity.lp.popular_badge")
               - elsif plan[:featured]
-                .featured-badge イチオシ
+                .featured-badge = t("drafity.lp.featured_badge")
               .plan-name class=(plan[:popular] ? "accent" : (plan[:featured] ? "featured-name" : "")) = plan[:name]
               .plan-desc = plan[:description]
               .plan-price
                 - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
-                  .plan-price-orig id="#{plan[:key]}-orig" style="display:none" = "¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月"
+                  .plan-price-orig id="#{plan[:key]}-orig" style="display:none" = "¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}#{t('drafity.lp.price_unit')}"
                 .plan-price-main
                   span.price-yen ¥
                   span.price-num id="#{plan[:key]}-price" = plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')
-                  span.price-unit "/ 月"
+                  span.price-unit = t("drafity.lp.price_unit")
               .plan-price-note id="#{plan[:key]}-note"
                 - if plan[:key] == :trial
                   = plan[:note]
                 - else
-                  | ¥#{plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\\1')}/月（月額払い）
+                  = t("drafity.lp.price_note_monthly", price: plan[:monthly_price].to_s.gsub(/(\d)(?=\d{3})/, '\1'))
               hr.plan-divider
               ul.plan-features
                 - plan[:features].each do |feature|
@@ -591,7 +449,7 @@
                       path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                     = feature
               = link_to plan[:cta_text], "/clients/sign_up", class: "plan-cta #{cta_class}"
-        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" onclick="scrollPricing(1)"
+        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label=t("drafity.lp.pricing_next") onclick="scrollPricing(1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
@@ -600,88 +458,23 @@
     .voices-inner
       .section-header
         span.overline USER REVIEW
-        h2.section-title 
-          | 多くのメディア運営者に選ばれ、
-          span.text-accent 成果を実感
-          | いただいています
-        p.section-sub Drafityを導入した方々のリアルな声をご紹介します。
-      
-      /-- スライダー全体を包むコンテナ（PC以外で機能します） --
+        h2.section-title
+          = t("drafity.lp.voices_title_1")
+          span.text-accent = t("drafity.lp.voices_title_2")
+          = t("drafity.lp.voices_title_3")
+        p.section-sub = t("drafity.lp.voices_sub")
+
       .voices-slider-container
-        /-- カルーセル操作用のナビゲーション矢印 --
-        button.slider-arrow.arrow-prev type="button" aria-label="前へ" onclick="scrollVoices(-1)"
+        button.slider-arrow.arrow-prev type="button" aria-label=t("drafity.lp.prev") onclick="scrollVoices(-1)"
           svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             polyline points="15 18 9 12 15 6"
-        button.slider-arrow.arrow-next type="button" aria-label="次へ" onclick="scrollVoices(1)"
+        button.slider-arrow.arrow-next type="button" aria-label=t("drafity.lp.next") onclick="scrollVoices(1)"
           svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             polyline points="9 18 15 12 9 6"
 
-        /-- スクロールを発火させるビューポート --
         .voices-slider-viewport#voices-viewport
           .voices-grid#voices-grid
-            - voices = [ \
-                { \
-                  avatar_class: "avatar-blogger", \
-                  badge_class: "badge-blue", \
-                  badge_text: "インハウスSEO", \
-                  name: "事業会社 マーケティング担当者", \
-                  stars: "★★★★★", \
-                  rating: "5.0", \
-                  quote: "「インハウスでの記事作成時間が半分以下になりました！」", \
-                  body: "キーワード調査から構成案、本文作成まで一気通貫で内製化できるため、記事制作の時間が大幅に短縮。社内調整もスムーズになり、検証スピードが向上しました。", \
-                  metrics: [ \
-                    { type: "clock", label: "作成工数", val_class: "val-down", val: "-60%" }, \
-                    { type: "trend", label: "自然検索流入", val_class: "val-up", val: "+210%" } \
-                  ], \
-                  footer: "導入から3ヶ月の変化" \
-                }, \
-                { \
-                  avatar_class: "avatar-editor", \
-                  badge_class: "badge-cyan", \
-                  badge_text: "編集プロダクション", \
-                  name: "受託制作 ディレクター", \
-                  stars: "★★★★★", \
-                  rating: "5.0", \
-                  quote: "「外注ライターの品質管理とリライトが極めてスムーズに。」", \
-                  body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と校正・リライト提案機能により、均一で高品質なコンテンツを安定量産できています。", \
-                  metrics: [ \
-                    { type: "shield", label: "編集・校正時間", val_class: "val-down", val: "-45%" }, \
-                    { type: "chart", label: "月間納品本数", val_class: "val-up", val: "+180%" } \
-                  ], \
-                  footer: "導入から6ヶ月の変化" \
-                }, \
-                { \
-                  avatar_class: "avatar-manager", \
-                  badge_class: "badge-indigo", \
-                  badge_text: "B2Bマーケティング", \
-                  name: "オウンドメディア運営責任者", \
-                  stars: "★★★★★", \
-                  rating: "5.0", \
-                  quote: "「狙った重点キーワードで上位獲得。CV増加に直結！」", \
-                  body: "競合分析やリアルタイムのSEOスコア機能が極めて優秀です。狙いすました戦略的キーワードで検索上位表示が増え、質の高いホワイトペーパーDLや問い合わせに繋がっています。", \
-                  metrics: [ \
-                    { type: "team", label: "獲得リード数", val_class: "val-up", val: "+250%" }, \
-                    { type: "search", label: "上位表示KW数", val_class: "val-up", val: "+145%" } \
-                  ], \
-                  footer: "導入から4ヶ月の変化" \
-                }, \
-                { \
-                  avatar_class: "avatar-marketer", \
-                  badge_class: "badge-orange", \
-                  badge_text: "SaaS運営企業", \
-                  name: "コンテンツマーケ責任者（CMO）", \
-                  stars: "★★★★★", \
-                  rating: "5.0", \
-                  quote: "「外部の執筆外注コストを大幅に削減できました！」", \
-                  body: "AIアシスタントのサポートにより、専門知識のドキュメント化がチーム内で完結。外部のライティング外注費用を大きく抑えつつ、より専門性の高い独自性の強い一次情報記事を発信できています。", \
-                  metrics: [ \
-                    { type: "tool", label: "外注コスト", val_class: "val-down", val: "-50%" }, \
-                    { type: "write", label: "公開記事本数", val_class: "val-up", val: "+160%" } \
-                  ], \
-                  footer: "導入から5ヶ月の変化" \
-                } \
-              ]      
-            - voices.each do |v|
+            - lp_voices.each do |v|
               .voice-card
                 .vc-user-profile
                   .vu-avatar-wrap
@@ -689,17 +482,12 @@
                   .vu-info
                     span.vu-badge class=v[:badge_class] = v[:badge_text]
                     h4.vu-name = v[:name]
-                    p.vu-meta = v[:meta]
-                
                 .vc-rating-row
                   .vc-stars = v[:stars]
                   span.vc-rating-num = v[:rating]
-                
                 .vc-quote-box
                   p.vc-quote-text = v[:quote]
-                
                 p.vc-body-text = v[:body]
-                
                 .vc-metrics-row
                   - v[:metrics].each do |m|
                     .vm-item
@@ -731,61 +519,39 @@
                       .vm-data
                         span.vm-label = m[:label]
                         span.vm-val class=m[:val_class] = m[:val]
-                
                 .vc-footer-note = v[:footer]
 
-      /-- 下部サマリー・満足度バナー --
       .voices-summary-banner
         .vsb-satisfaction
-          .vsb-sat-title 導入企業・個人の満足度
+          .vsb-sat-title = t("drafity.lp.voices_sat_title")
           .vsb-sat-num 98%
           .vsb-sat-stars ★★★★★
-          .vsb-sat-note ※2024年12月時点 自社調べ
-        
+          .vsb-sat-note = t("drafity.lp.voices_sat_note")
         .vsb-divider
-        
         .vsb-industries
-          h3.vsb-ind-title Drafityは、さまざまなメディア・業種でご活用いただいています
+          h3.vsb-ind-title = t("drafity.lp.voices_ind_title")
           .vsb-ind-grid
-            - industry_tags = [ \
-                { icon: "📝", name: "ブログ・アフィリエイト" }, \
-                { icon: "📰", name: "ニュースメディア" }, \
-                { icon: "💻", name: "オウンドメディア" }, \
-                { icon: "🛒", name: "EC・比較メディア" }, \
-                { icon: "📈", name: "金融・不動産メディア" }, \
-                { icon: "🔍", name: "SaaS・ITメディア" } \
-              ]
-            - industry_tags.each do |tag|
+            - lp_industry_tags.each do |tag|
               .ind-tag
                 span.ind-icon = tag[:icon]
                 span = tag[:name]
-            span.ind-more など多数
-      
-      p.voices-disclaimer ※個人の感想であり、効果を保証するものではありません。
+            span.ind-more = t("drafity.lp.voices_more")
+      p.voices-disclaimer = t("drafity.lp.voices_disclaimer")
 
   section.steps-section
     .steps-inner
       .trial-card-box
         .tc-header
           span.trial-badge ⚡ TRIAL
-          h2.trial-title 10日間の無料トライアルを今すぐ体験
-          p.trial-sub クレジットカードの登録不要。すべての機能を制限なくお試しいただけます。
-        
+          h2.trial-title = t("drafity.lp.trial_title")
+          p.trial-sub = t("drafity.lp.trial_sub")
         .trial-features-grid
-          - trial_features = [ \
-              { icon: "polyline", label: "まずは無料体験", desc: "記事生成・SEO分析・画像生成など主要機能をお試しいただけます" }, \
-              { icon: "calendar", label: "商用利用OK", desc: "トライアル期間でも作成いただいた記事はそのままご利用いただけます" }, \
-              { icon: "shield", label: "いつでも解約可能", desc: "トライアル期間中に解約すれば料金は一切かかりません" } \
-            ]
-          - trial_features.each do |tf|
+          - lp_trial_features.each do |tf|
             .tf-item
               .tf-icon-wrap
                 svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   - if tf[:icon] == "polyline"
                     polyline points="20 6 9 17 4 12" stroke-width="2.5"
-                  - elsif tf[:icon] == "card"
-                    rect x="1" y="4" width="22" height="16" rx="2" ry="2"
-                    line x1="1" y1="10" x2="23" y2="10"
                   - elsif tf[:icon] == "calendar"
                     rect x="3" y="4" width="18" height="18" rx="2" ry="2"
                     line x1="16" y1="2" x2="16" y2="6"
@@ -795,25 +561,16 @@
                     path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
               h3.tf-label = tf[:label]
               p.tf-desc = tf[:desc]
-
         .trial-cta-area
-          = link_to "無料で10日間試す →", "/clients/sign_up", class: "btn-gradient-cta"
+          = link_to t("drafity.lp.trial_cta"), "/clients/sign_up", class: "btn-gradient-cta"
 
-
-  /-- FAQ --
   section.faq-section#faq
     .faq-inner
       .section-header
         span.overline FAQ
-        h2.section-title よくある質問
+        h2.section-title = t("drafity.lp.faq_title")
       .faq-grid
-        - faqs = [ \
-            { q: "無料プランは本当に無料ですか？", a: "はい。親記事1記事・子記事3記事まで無料でずっとご利用いただけます。" }, \
-            { q: "SEOスコアはどのように計測されますか？", a: "Googleの上位表示アルゴリズムの傾向をAIが独自に多角分析し、見出し構成やキーワード比率などから100点満点で客観的に自動査定します。" }, \
-            { q: "記事生成中にブラウザを閉じても大丈夫ですか？", a: "はい、完全に問題ありません。バックグラウンドのサーバーサイドですべて自動進行・生成されるため、画面を閉じた状態でも処理は継続されます。" }, \
-            { q: "他のツールやWordPressとの連携はできますか？", a: "はい、API連携やCMS向けのエクスポート機能を備えており、生成した最適記事をスムーズに構築サイトへ反映させることができます。" }, \
-          ]
-        - faqs.each do |faq|
+        - lp_faqs.each do |faq|
           details.faq-item
             summary.faq-q
               = faq[:q]
@@ -821,42 +578,35 @@
                 path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
             p.faq-answer = faq[:a]
 
-
+  section.resources-section#resources
+    .resources-inner
+      .section-header
+        span.overline RESOURCES
+        h2.section-title = t("drafity.lp.resources_title")
+        p.section-sub = t("drafity.lp.resources_sub")
+      ul.resources-list
+        - featured_ai_article_columns.each do |item|
+          li = link_to item[:title], item[:path]
+      p.resources-more
+        = link_to t("drafity.lp.resources_more"), ai_article_columns_index_path, class: "btn-ghost btn-purple"
 
   section.about-section#about
-    /-- 右上のグラデーション円形装飾 --
     .about-deco-circle
-    
     .about-inner
       .section-header
         span.overline ABOUT US
-        h2.section-title 会社概要
-        p.section-sub AIでメディアの可能性を広げ、ビジネスの成長を支援します。
-      
+        h2.section-title = t("drafity.lp.about_title")
+        p.section-sub = t("drafity.lp.about_sub")
       .about-grid
-        /-- 左カラム: ビジョン＆ハイライト実績 --
         .about-left-content
           h3.about-catch
-            | AIの力で、
+            = t("drafity.lp.about_catch_1")
             br
-            | 情報とビジネスの
-            span.text-accent 未来を創る。
-          
-          p.about-text
-            | Drafityは、AI技術を活用して記事作成を自動化し、
-            | メディア運営やコンテンツマーケティングの効率化を実現する
-            | SaaSプロダクトです。
-            | すべてのビジネスが、質の高い情報発信をもっと簡単に、
-            | もっと効果的に行える世界を目指しています。
-          
-          /-- 下部実績ハイライト（3列） --
+            = t("drafity.lp.about_catch_2")
+            span.text-accent = t("drafity.lp.about_catch_3")
+          p.about-text = t("drafity.lp.about_text")
           .about-stats-row
-            - about_stats = [ \
-                { type: "shop", label: "サービス開始", num: "2024", unit: "年" }, \
-                { type: "team", label: "導入企業数", num: "100", unit: "+社" }, \
-                { type: "doc", label: "累計生成記事数", num: "1", unit: "万記事+" } \
-              ]
-            - about_stats.each do |stat|
+            - lp_about_stats.each do |stat|
               .stat-box
                 .stat-icon-wrap
                   svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -878,50 +628,42 @@
                 .stat-number-wrap
                   span.stat-num = stat[:num]
                   span.stat-unit = stat[:unit]
-
-        /-- 右カラム: 会社概要テーブル --
         .about-right-table
           .profile-table
-            .pt-row
-              .pt-th 会社名
-              .pt-td 株式会社J Work
-            .pt-row
-              .pt-th 所在地
-              .pt-td
-                | 〒105-0013
-                br
-                | 東京都港区浜松町２丁目２番１５号２Ｆ
-            .pt-row
-              .pt-th 設立
-              .pt-td 2024年8月
-            .pt-row
-              .pt-th 代表者
-              .pt-td 山田 太郎
-            .pt-row
-              .pt-th 事業内容
-              .pt-td
-                | AI記事生成SaaS「Drafity」の開発・提供
-                br
-                | メディア支援・コンテンツマーケティング支援
-            .pt-row
-              .pt-th 資本金
-              .pt-td 500万円
-
+            - lp_about_rows.each do |row|
+              .pt-row
+                .pt-th = row[:th]
+                - if row[:html]
+                  .pt-td == row[:td]
+                - else
+                  .pt-td = row[:td]
 
   section.enterprise-agent-section
     .ea-inner
-      span.ea-badge 今なら10日間の無料トライアル
+      span.ea-badge = t("drafity.lp.cta_badge")
       h2.ea-title
-        | まずは
-        span.free2 無料
-        | で、AIの力を体験してください
+        = t("drafity.lp.cta_title_1")
+        span.free2 = t("drafity.lp.cta_title_free")
+        = t("drafity.lp.cta_title_2")
       .cta-actions style="margin-top: 32px"
-        = link_to "無料アカウント作成", "/clients/sign_up", class: "btn-white"
+        = link_to t("drafity.lp.cta_account"), "/clients/sign_up", class: "btn-white"
+
+  footer.lp-footer
+    .lp-footer-inner
+      = link_to locale_root_href, class: "lp-footer-brand" do
+        = image_tag "logo2.png", width: "120", alt: "Drafity"
+      nav.lp-footer-nav aria-label=t("drafity.lp.footer_nav")
+        = link_to t("drafity.lp.footer_articles"), ai_article_columns_index_path
+        a href="#pricing" = t("drafity.lp.footer_pricing")
+        a href="#faq" = t("drafity.lp.footer_faq")
+        = link_to t("drafity.lp.footer_start"), "/clients/sign_up"
+      p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)
 
 
 
 
 script
+  == "window.DRAFITY_LP_NOTES = #{ { trial: t('drafity.lp.js_note_trial'), yearly: t('drafity.lp.js_note_yearly'), monthlyTpl: t('drafity.lp.js_note_monthly', price: '__PRICE__') }.to_json };"
   | function setToggle(isYearly, btn) {
   |   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
   |   btn.classList.add('active');
@@ -940,9 +682,9 @@ script
   |     }
   |     if (noteEl) {
   |       if (isYearly) {
-  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '年額払いで20%お得';
+  |         noteEl.textContent = (key === 'trial') ? window.DRAFITY_LP_NOTES.trial : window.DRAFITY_LP_NOTES.yearly;
   |       } else {
-  |         noteEl.textContent = (key === 'trial') ? 'クレジットカード登録不要' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）';
+  |         noteEl.textContent = (key === 'trial') ? window.DRAFITY_LP_NOTES.trial : window.DRAFITY_LP_NOTES.monthlyTpl.replace('__PRICE__', monthly.toLocaleString('ja-JP'));
   |       }
   |     }
   |   });

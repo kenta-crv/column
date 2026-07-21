@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   include MetaTags::ControllerHelper
 
+  before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
 
@@ -9,7 +10,8 @@ class ApplicationController < ActionController::Base
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
-                :pending_review_columns_count, :routable_public_genre_key?, :platform_host?
+                :pending_review_columns_count, :routable_public_genre_key?, :platform_host?,
+                :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales
 
   def check_trial_expiration
     return unless current_client.present?
@@ -24,7 +26,48 @@ class ApplicationController < ActionController::Base
     @breadcrumbs << { label: label, path: path }
   end
 
+  def current_locale
+    I18n.locale
+  end
+
+  def available_ui_locales
+    %i[ja en]
+  end
+
+  def locale_root_href
+    if params[:locale].present?
+      localized_root_path(locale: params[:locale])
+    else
+      root_path
+    end
+  end
+
+  # *_path 名は Rails のルートヘルパーと衝突するため使わない。
+  def href_for_locale(target_locale)
+    target = target_locale.to_s.to_sym
+    return locale_root_href if target.blank?
+
+    path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
+    path = "/" if path.blank?
+
+    public_page = controller_path == "tops" || controller_path == "plans"
+    if public_page
+      target == :ja ? path : (path == "/" ? "/en" : "/en#{path}")
+    else
+      target == :ja ? root_path : "/en"
+    end
+  end
+
   protected
+
+  def set_locale
+    requested = params[:locale].presence&.to_sym
+    I18n.locale = if requested && I18n.available_locales.map(&:to_sym).include?(requested)
+                    requested
+                  else
+                    I18n.default_locale
+                  end
+  end
 
   def authenticate_admin_or_client!
     return if admin_signed_in?
@@ -243,8 +286,21 @@ class ApplicationController < ActionController::Base
     column.publicly_visible?
   end
 
-  def platform_host?(host)
-    %w[drafity.pro localhost 127.0.0.1].include?(normalize_host(host))
+  def platform_host?(host = nil)
+    # ブランドnginxは Host: drafity.pro でプロキシすることがあるため、
+    # ブラウザ側ホスト（X-Forwarded-Host）を優先して判定する。
+    candidate = if host.nil? || normalize_host(host) == "drafity.pro"
+                  public_request_host
+                else
+                  normalize_host(host)
+                end
+
+    %w[drafity.pro localhost 127.0.0.1].include?(candidate)
+  end
+
+  def public_request_host
+    forwarded = request.headers["X-Forwarded-Host"].to_s.split(",").first.to_s.strip.presence
+    normalize_host(forwarded || request.host)
   end
 
   def normalize_host(host)

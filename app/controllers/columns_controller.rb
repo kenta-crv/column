@@ -489,11 +489,20 @@ class ColumnsController < ApplicationController
     genre_key = genre_key.to_s
 
     if genre_key.match?(/\A[a-z0-9_]+\z/)
-      label = GenreRegistry.to_ja(genre_key)
-      label ||= (defined?(LpDefinition) ? LpDefinition.label(genre_key) : nil)
-      label ||= "お役立ち記事"
-      path = consumer_columns_index_path(genre_key)
-      add_breadcrumb label, path if path.present?
+      if platform_host?(request.host)
+        # drafity.pro 自社: トップ → AI記事 → 記事
+        label = GenreRegistry.to_ja(genre_key)
+        label ||= "お役立ち記事"
+        path = consumer_columns_index_path(genre_key)
+        add_breadcrumb label, path if path.present?
+      else
+        # ブランドドメイン: トップ → LP → お役立ち記事 → 記事
+        # （トップ直下に LP と columns が並列にならないようにする）
+        if (lp = brand_lp_breadcrumb_for(genre_key))
+          add_breadcrumb lp[:label], lp[:path]
+        end
+        add_breadcrumb "お役立ち記事", consumer_columns_index_path(genre_key)
+      end
     end
 
     if action_name == "show" && @column
@@ -503,6 +512,25 @@ class ColumnsController < ApplicationController
       end
       add_breadcrumb @column.title
     end
+  end
+
+  # ブランドサイト上の「親LP」。Columns を LP 配下の階層として見せるための対応表。
+  # nginx が /columns → /:genre/columns に振る前提で、公開 Host × genre で決める。
+  def brand_lp_breadcrumb_for(genre_key)
+    host = public_request_host
+    mapping = {
+      ["j-work.jp", "cargo"] => { label: "軽貨物", path: "/pages/cargo" },
+      ["okey.work", "cleaning"] => { label: "日常清掃", path: "/daily" },
+      ["okey.work", "emergency_cleaning"] => { label: "日常清掃", path: "/daily" },
+      ["okey.work", "cargo"] => { label: "軽貨物", path: "/" },
+      ["okurite.pro", "app"] => { label: "Okurite", path: "/okurite" },
+      ["meetia.pro", "meetia"] => { label: "Meetia", path: "/" },
+      ["自販機.net", "vender"] => { label: "自販機ねっと", path: "/" },
+      ["xn--new351c2sh.net", "vender"] => { label: "自販機ねっと", path: "/" },
+      ["kurasera.life", "housekeeping"] => { label: "家事代行", path: "/housekeeping" },
+      ["kurasera.life", "babysitting"] => { label: "ベビーシッター", path: "/babysitter" }
+    }
+    mapping[[host, genre_key.to_s]]
   end
 
   # ブランドドメインでは nginx で /columns にフラット化されるため、パンくずも合わせる

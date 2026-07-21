@@ -1,0 +1,41 @@
+css:
+  .lang-switch{
+    display:inline-flex!important;
+    align-items:center;
+    padding:3px!important;
+    border-radius:9px!important;
+    background:#f3f4f6!important;
+    border:1px solid #e5e7eb!important;
+    gap:2px!important;
+    flex-shrink:0;
+    vertical-align:middle;
+  }
+  .lang-switch__btn{
+    display:inline-flex!important;
+    align-items:center;
+    justify-content:center;
+    padding:7px 12px!important;
+    border:0!important;
+    border-radius:7px!important;
+    background:transparent!important;
+    color:#6b7280!important;
+    font-size:12px!important;
+    font-weight:700!important;
+    line-height:1!important;
+    text-decoration:none!important;
+    white-space:nowrap!important;
+    box-shadow:none!important;
+    transition:all .2s ease;
+  }
+  .lang-switch__btn:hover{color:#111827!important;background:transparent!important}
+  .lang-switch__btn.is-active{
+    background:linear-gradient(135deg,#7c3aed,#a855f7)!important;
+    color:#fff!important;
+    box-shadow:0 0 14px rgba(139,92,246,.25)!important;
+  }
+
+.lang-switch role="group" aria-label="Language"
+  = link_to href_for_locale(:ja), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'ja'}", "aria-pressed": (current_locale.to_s == "ja").to_s do
+    | 日本語
+  = link_to href_for_locale(:en), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'en'}", "aria-pressed": (current_locale.to_s == "en").to_s do
+    | English

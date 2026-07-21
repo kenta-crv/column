@@ -86,6 +86,14 @@ Rails.application.routes.draw do
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
+  # --- Public marketing pages: / = ja, /en/... = English (API/dashboard/webhooks stay outside) ---
+  # Must be declared before :genre/columns so "en" is never treated as a genre key.
+  scope "/:locale", constraints: { locale: /en/ } do
+    get "/", to: "tops#index", as: :localized_root
+    get "plans", to: "plans#index", as: :localized_plans
+    get "tops", to: "tops#index", as: :localized_tops
+  end
+
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
   # カスタムサービスジャンル（DB登録）も許可するため、起動時の固定キー一覧ではなくキー形式で制約する。
   # 実在・アクセス可否の判定はコントローラ側（accessible_public_genre? 等）で行う。

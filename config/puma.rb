@@ -8,18 +8,22 @@ threads threads_count, threads_count
 port        ENV.fetch("PORT") { 3000 }
 
 # Specifies the `environment` that Puma will run in.
-environment ENV.fetch("RAILS_ENV") { "production" }
+environment ENV.fetch("RAILS_ENV") { "development" }
 
 # Specifies the `pidfile` that Puma will use.
 pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 
 # Workers (cluster mode)
-# 6GB環境では基本1固定が安全ライン
-workers ENV.fetch("WEB_CONCURRENCY") { 1 }
+# macOS + preload_app! は objc fork で落ちることがあるため、
+# development は single mode (workers=0) をデフォルトにする。
+rails_env = ENV.fetch("RAILS_ENV") { "development" }
+default_workers = rails_env == "development" ? 0 : 1
+workers_count = Integer(ENV.fetch("WEB_CONCURRENCY") { default_workers })
+workers workers_count
 
 # Important: enable Copy on Write optimization
 # This reduces memory usage when using workers
-preload_app!
+preload_app! if workers_count > 0
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart

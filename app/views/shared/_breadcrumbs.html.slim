@@ -1,8 +1,11 @@
-nav.breadcrumbs
- - breadcrumbs.each_with_index do |crumb, i|
-  - if crumb[:path].present?
-    = link_to crumb[:label], crumb[:path]
-  - else
-    = crumb[:label]
-  - unless i == breadcrumbs.size - 1
-    |  /
+nav.breadcrumbs aria-label="パンくず"
+  - breadcrumbs.each_with_index do |crumb, i|
+    - if crumb[:path].present? && i < breadcrumbs.size - 1
+      = link_to crumb[:label], crumb[:path]
+    - elsif crumb[:path].present? && i == breadcrumbs.size - 1
+      / 現在ページはリンクにしない（クリック領域の誤認を防ぐ）
+      span.breadcrumbs__current = crumb[:label]
+    - else
+      span.breadcrumbs__current = crumb[:label]
+    - unless i == breadcrumbs.size - 1
+      |  /

@@ -1,3 +1,6 @@
+# .env の DATABASE_URL は本番用。development は sqlite を使う。
+ENV.delete("DATABASE_URL")
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 

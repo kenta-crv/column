@@ -1,5 +1,5 @@
 doctype html
-html lang="ja"
+html lang=I18n.locale
   head
     = render "layouts/head"
 
@@ -8,9 +8,8 @@ html lang="ja"
     link rel="canonical" href=canonical_url
 
   body
-    .hero
-      / breadcrumbs メソッドの未定義による500エラーを防止するため安全に判定
-      = render "shared/breadcrumbs" if defined?(breadcrumbs) && breadcrumbs.any?
+    - if defined?(breadcrumbs) && breadcrumbs.any?
+      = render "shared/breadcrumbs"
 
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"

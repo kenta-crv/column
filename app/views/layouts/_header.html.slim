@@ -45,6 +45,7 @@
                 a.nav-link-custom href="javascript:void(0)" data-target="inquiry" お問い合わせ
                 = image_tag "arrow-down.png", class: "arrow-icon", alt: "Arrow"
         .d-flex.align-items-center.gap-3.d-none.d-lg-flex
+          = render "shared/lang_switch"
           = image_tag "search.png", class: "search-icon", alt: "Search"
           = link_to "ログイン", new_client_session_path, class: "btn login-btn"
           button.btn.contact-btn.d-flex.align-items-center.gap-2

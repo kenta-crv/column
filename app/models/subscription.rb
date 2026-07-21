@@ -146,14 +146,15 @@ class Subscription < ApplicationRecord
         config = PLANS[key]
         next unless config[:show_on_lp]
 
+        i18n_key = "drafity.plans.#{key}"
         {
           key: key,
-          name: config[:lp_name],
-          description: config[:description],
+          name: I18n.t("#{i18n_key}.name", default: config[:lp_name]),
+          description: I18n.t("#{i18n_key}.description", default: config[:description]),
           monthly_price: config[:price],
           yearly_price: yearly_price_for(config[:price]),
-          note: config[:lp_note],
-          cta_text: config[:lp_cta],
+          note: I18n.t("#{i18n_key}.note", default: config[:lp_note]),
+          cta_text: I18n.t("#{i18n_key}.cta", default: config[:lp_cta]),
           popular: config[:lp_popular],
           featured: config[:lp_featured],
           features: feature_list_for(key)
@@ -169,19 +170,27 @@ class Subscription < ApplicationRecord
       config = config_for(plan_key)
       return [] if config.blank?
 
-      period = plan_key.to_sym == :trial ? "期間中" : "月"
+      period = if plan_key.to_sym == :trial
+                 I18n.t("drafity.plans.features.period_trial", default: "期間中")
+               else
+                 I18n.t("drafity.plans.features.period_month", default: "月")
+               end
 
       features = [
-        "親記事 #{period}#{config[:pillar_articles]}記事",
-        "子記事 #{period}#{config[:child_articles]}記事",
-        "AIタイトル提案 #{config[:title_suggestions]}回",
-        "画像生成 #{config[:image_generations]}回",
-        "ジャンル #{config[:genre_count]}個まで"
+        I18n.t("drafity.plans.features.pillar", count: config[:pillar_articles], period: period, default: "親記事 #{period}#{config[:pillar_articles]}記事"),
+        I18n.t("drafity.plans.features.child", count: config[:child_articles], period: period, default: "子記事 #{period}#{config[:child_articles]}記事"),
+        I18n.t("drafity.plans.features.titles", count: config[:title_suggestions], default: "AIタイトル提案 #{config[:title_suggestions]}回"),
+        I18n.t("drafity.plans.features.images", count: config[:image_generations], default: "画像生成 #{config[:image_generations]}回"),
+        I18n.t("drafity.plans.features.genres", count: config[:genre_count], default: "ジャンル #{config[:genre_count]}個まで")
       ]
 
       features << sub_category_feature_for(plan_key)
-      features << (config[:api_enabled] ? "API利用可" : "API利用不可")
-      features << "AI主導生成（自律型エージェント）" if config[:ai_autonomous]
+      features << if config[:api_enabled]
+                    I18n.t("drafity.plans.features.api_on", default: "API利用可")
+                  else
+                    I18n.t("drafity.plans.features.api_off", default: "API利用不可")
+                  end
+      features << I18n.t("drafity.plans.features.autonomous", default: "AI主導生成（自律型エージェント）") if config[:ai_autonomous]
       features
     end
 
@@ -202,9 +211,9 @@ class Subscription < ApplicationRecord
     def sub_category_feature_for(plan_key)
       count = config_for(plan_key)[:sub_category_count].to_i
       if count <= 0
-        "中分類なし"
+        I18n.t("drafity.plans.features.sub_none", default: "中分類なし")
       else
-        "中分類 #{count}件まで"
+        I18n.t("drafity.plans.features.sub_count", count: count, default: "中分類 #{count}件まで")
       end
     end
 
