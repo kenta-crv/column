@@ -66,7 +66,9 @@
           | お使いのプランでは最大#{sub_config[:max]}件まで登録できます。
 
       .sub-categories-toolbar
-        button#suggest-sub-categories.btn.btn-title-suggest type="button"
+        button#suggest-sub-categories.btn.btn-title-suggest.btn-ai-suggest type="button"
+          svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
           | AIで中分類を提案
         label.sub-categories-toolbar__count
           span 提案数
@@ -322,7 +324,23 @@ javascript:
       });
 
       if (suggestBtn) {
-        suggestBtn.addEventListener('click', async () => {
+        let suggestInFlight = false;
+        const SUGGEST_TIMEOUT_MS = 60000;
+
+        const resetSuggestButton = () => {
+          suggestInFlight = false;
+          suggestBtn.disabled = false;
+          if (suggestStatus && suggestStatus.classList.contains('sub-category-suggest-status--loading')) {
+            suggestStatus.hidden = true;
+            suggestStatus.textContent = '';
+          }
+        };
+
+        suggestBtn.addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (suggestInFlight) return;
+
           const key = readFormValue('key');
           const ja = readFormValue('ja');
           const serviceName = readFormValue('service_name');
@@ -340,13 +358,12 @@ javascript:
             return;
           }
 
-          const hasExisting = list.querySelectorAll('.sub-category-item').length > 0;
-          if (hasExisting && !window.confirm('既存の中分類をAI提案で置き換えます。よろしいですか？')) {
-            return;
-          }
-
+          suggestInFlight = true;
           suggestBtn.disabled = true;
-          showSuggestStatus('AIが中分類を生成しています…', 'loading');
+          showSuggestStatus('AIが中分類を生成しています…（最大約1分）', 'loading');
+
+          const controller = new AbortController();
+          const timeoutId = window.setTimeout(() => controller.abort(), SUGGEST_TIMEOUT_MS);
 
           try {
             const response = await fetch(suggestUrl, {
@@ -363,10 +380,15 @@ javascript:
                 strong_points: strongPoints,
                 keywords,
                 suggestion_count: suggestionCount
-              })
+              }),
+              signal: controller.signal
             });
 
-            const result = await response.json();
+            const result = await response.json().catch(() => null);
+            if (!result) {
+              showSuggestStatus('サーバーからの応答を読み取れませんでした。', 'error');
+              return;
+            }
             if (!response.ok || !result.success) {
               showSuggestStatus(result.error || '中分類の生成に失敗しました。', 'error');
               return;
@@ -379,11 +401,18 @@ javascript:
             updateTitles();
             showSuggestStatus(`${result.sub_categories.length}件の中分類を提案しました。内容を確認して保存してください。`, 'success');
           } catch (error) {
-            showSuggestStatus('通信エラーが発生しました。時間をおいて再度お試しください。', 'error');
+            if (error && error.name === 'AbortError') {
+              showSuggestStatus('生成がタイムアウトしました。提案数を減らすか、時間をおいて再度お試しください。', 'error');
+            } else {
+              showSuggestStatus('通信エラーが発生しました。時間をおいて再度お試しください。', 'error');
+            }
           } finally {
-            suggestBtn.disabled = false;
+            window.clearTimeout(timeoutId);
+            resetSuggestButton();
           }
         });
+
+        document.addEventListener('turbolinks:before-cache', resetSuggestButton);
       }
 
       list.addEventListener('click', (event) => {
