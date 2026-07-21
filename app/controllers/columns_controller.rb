@@ -483,18 +483,19 @@ class ColumnsController < ApplicationController
   end
 
   def set_breadcrumbs
-    # トップ → LP → LP記事一覧 → 記事（ブランドは Path だけ渡す。ラベルは統一で LP）
+    # トップ → {Genre}LP → {Genre}記事一覧 → 記事
+    # Genre名は Draftiy の GenreRegistry。LPのURLだけ nginx の X-Brand-Lp-Path
     add_breadcrumb "トップ", "/"
 
     genre_key = (@column&.genre.presence || params[:genre]).to_s
+    genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
 
     if platform_host? && genre_key == CrawlPolicy::GENRE_KEY
       add_breadcrumb "AI記事一覧", "/ai_article/columns"
-    elsif (lp_path = brand_lp_path_from_proxy_headers)
-      add_breadcrumb "LP", lp_path
-      add_breadcrumb "LP記事一覧", "/columns"
     else
-      genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
+      if (lp_path = brand_lp_path_from_proxy_headers)
+        add_breadcrumb "#{genre_ja}LP", lp_path
+      end
       add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
     end
 
@@ -507,8 +508,8 @@ class ColumnsController < ApplicationController
     add_breadcrumb @column.title
   end
 
-  # ブランドnginxが渡す親LPパスのみ。ラベルは常に「LP」（日本語ヘッダー不要）
-  #   X-Brand-Lp-Path: /pages/cargo
+  # ブランドnginxが渡す親LPのURLのみ（ASCII）。ラベル日本語はヘッダーに載せない。
+  #   proxy_set_header X-Brand-Lp-Path /pages/cargo;
   def brand_lp_path_from_proxy_headers
     path = request.headers["X-Brand-Lp-Path"].to_s.strip
     path = path.b.force_encoding(Encoding::UTF_8).strip
