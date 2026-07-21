@@ -483,19 +483,22 @@ class ColumnsController < ApplicationController
   end
 
   def set_breadcrumbs
-    # トップ →（ブランドnginxが渡すLP）→ お役立ち記事 → 記事
+    # トップ →（ブランドnginxが渡すLP）→ Genre名記事一覧 → 記事
     add_breadcrumb "トップ", "/"
 
     genre_key = (@column&.genre.presence || params[:genre]).to_s
 
     if platform_host? && genre_key == CrawlPolicy::GENRE_KEY
-      add_breadcrumb "AI記事", "/ai_article/columns"
+      add_breadcrumb "AI記事一覧", "/ai_article/columns"
     else
       # LPは Draftiy が知らない。ブランド側 nginx のヘッダーだけを信じる。
       if (lp = brand_lp_from_proxy_headers)
         add_breadcrumb lp[:label], lp[:path]
+        add_breadcrumb "#{lp[:label]}記事一覧", "/columns"
+      else
+        genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
+        add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
       end
-      add_breadcrumb "お役立ち記事", "/columns"
     end
 
     return unless action_name == "show" && @column
