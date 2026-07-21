@@ -483,22 +483,19 @@ class ColumnsController < ApplicationController
   end
 
   def set_breadcrumbs
-    # トップ →（ブランドnginxが渡すLP）→ Genre名記事一覧 → 記事
+    # トップ → LP → LP記事一覧 → 記事（ブランドは Path だけ渡す。ラベルは統一で LP）
     add_breadcrumb "トップ", "/"
 
     genre_key = (@column&.genre.presence || params[:genre]).to_s
 
     if platform_host? && genre_key == CrawlPolicy::GENRE_KEY
       add_breadcrumb "AI記事一覧", "/ai_article/columns"
+    elsif (lp_path = brand_lp_path_from_proxy_headers)
+      add_breadcrumb "LP", lp_path
+      add_breadcrumb "LP記事一覧", "/columns"
     else
-      # LPは Draftiy が知らない。ブランド側 nginx のヘッダーだけを信じる。
-      if (lp = brand_lp_from_proxy_headers)
-        add_breadcrumb lp[:label], lp[:path]
-        add_breadcrumb "#{lp[:label]}記事一覧", "/columns"
-      else
-        genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
-        add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
-      end
+      genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
+      add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
     end
 
     return unless action_name == "show" && @column
@@ -510,17 +507,17 @@ class ColumnsController < ApplicationController
     add_breadcrumb @column.title
   end
 
-  # ブランドnginxが渡す親LP。Draftiy側にブランド知識は持たない。
-  #   X-Brand-Lp-Path:  /pages/cargo
-  #   X-Brand-Lp-Label: 軽貨物
-  def brand_lp_from_proxy_headers
-    path = request.headers["X-Brand-Lp-Path"].to_s.strip.presence
-    label = request.headers["X-Brand-Lp-Label"].to_s.strip.presence
-    return nil if path.blank? || label.blank?
-    return nil unless path.match?(%r{\A/[\w\-./%]*\z}) && !path.start_with?("//")
+  # ブランドnginxが渡す親LPパスのみ。ラベルは常に「LP」（日本語ヘッダー不要）
+  #   X-Brand-Lp-Path: /pages/cargo
+  def brand_lp_path_from_proxy_headers
+    path = request.headers["X-Brand-Lp-Path"].to_s.strip
+    path = path.b.force_encoding(Encoding::UTF_8).strip
+    return nil if path.blank?
+    return nil unless path.match?(%r{\A/[\w\-./]*\z}) && !path.start_with?("//")
 
-    label = CGI.unescape(label) if label.include?("%")
-    { label: label, path: path }
+    path
+  rescue StandardError
+    nil
   end
 
   # ブランドドメインでは nginx で /columns にフラット化されるため、パンくずも合わせる
