@@ -494,7 +494,8 @@ class ColumnsController < ApplicationController
       add_breadcrumb "AI記事一覧", "/ai_article/columns"
     else
       if (lp_path = brand_lp_path_from_proxy_headers)
-        add_breadcrumb "#{genre_ja}LP", lp_path
+        # トップ(/)と同じURLなら LP 段は出さない（二重になるため）
+        add_breadcrumb "#{genre_ja}LP", lp_path unless lp_path == "/"
       end
       add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
     end
