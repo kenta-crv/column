@@ -218,6 +218,8 @@
   = form_with url: dashboard_columns_path, method: :get, local: true, class: "dropdowns-group-form" do |f|
     - if params[:scope].present?
       = hidden_field_tag :scope, params[:scope]
+    - if @per_page.present?
+      = hidden_field_tag :per, @per_page
     .dropdowns-group
       .form-group style="margin-bottom: 0;"
         = f.select :genre,
@@ -258,6 +260,7 @@
     .bulk-action-bar
       = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
       = bulk_f.button "選択項目を公開", name: "action_type", value: "publish_bulk", class: "btn btn-success", type: "submit", data: { confirm: "選択された記事をレビュー済みとして公開しますか？" }
+      = bulk_f.button "本文を削除", name: "action_type", value: "reset_content_bulk", class: "btn btn-secondary", type: "submit", data: { confirm: "選択された記事の本文・説明文を削除し、下書きに戻しますか？この操作は取り消せません。" }
       = bulk_f.button "選択項目を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: "本当に削除しますか？" }
 
     table.rich-dashboard-table
@@ -275,10 +278,7 @@
           - @columns.each do |c|
             tr data-column-id=c.id
               td
-                - if c.published?
-                  input type="checkbox" disabled="disabled" class="table-checkbox column-select-checkbox" title="公開済みの記事は一括選択できません"
-                - else
-                  input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
+                input type="checkbox" name="column_ids[]" value=c.id class="table-checkbox column-select-checkbox"
               td
                 .article-info-cell
                   - if c.file.present?
@@ -371,9 +371,17 @@
           a href="#" Last »
   .per-page-selector
     span 表示件数
-    select
-      option 30件
-      option 50件
+    = form_with url: dashboard_columns_path, method: :get, local: true do
+      - if params[:scope].present?
+        = hidden_field_tag :scope, params[:scope]
+      - if params[:genre].present?
+        = hidden_field_tag :genre, params[:genre]
+      - if params[:language].present?
+        = hidden_field_tag :language, params[:language]
+      = select_tag :per,
+        options_for_select([["30件", 30], ["50件", 50], ["100件", 100]], @per_page),
+        onchange: "this.form.submit();",
+        "aria-label": "表示件数"
 
 = link_to new_column_path, class: "floating-sparkle-btn" do
   svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

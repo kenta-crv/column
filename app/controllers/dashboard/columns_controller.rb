@@ -1,6 +1,8 @@
 class Dashboard::ColumnsController < ApplicationController
   helper ColumnsHelper
 
+  PER_PAGE_OPTIONS = [30, 50, 100].freeze
+
   before_action :authenticate_admin_or_client!
   before_action :require_admin!, only: [:management]
   before_action :enforce_client_genre_param!, only: [:index, :export]
@@ -61,7 +63,8 @@ class Dashboard::ColumnsController < ApplicationController
     end
 
     # 3. 最後にページネーションを適用
-    @columns = scope.page(params[:page]).per(30)
+    @per_page = PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 30
+    @columns = scope.page(params[:page]).per(@per_page)
 
     pillar_ids = @columns.select(&:pillar?).map(&:id)
     @child_counts = if pillar_ids.any?

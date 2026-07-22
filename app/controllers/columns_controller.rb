@@ -148,6 +148,31 @@ class ColumnsController < ApplicationController
     when "delete_bulk"
       deleted_count = scope.delete_all
       return redirect_to(delete_bulk_fallback_path, notice: "#{deleted_count}件を削除しました")
+
+    when "reset_content_bulk"
+      reset_count = 0
+      scope.find_each do |column|
+        if %w[generating queued].include?(column.generation_status)
+          GenerateColumnBodyJob.request_stop!(column.id)
+        end
+
+        column.update!(
+          body: nil,
+          description: nil,
+          published_at: nil,
+          status: "draft",
+          generation_status: "idle",
+          quality_score: 0.0,
+          evaluation_metrics: {}
+        )
+        reset_count += 1
+      end
+
+      Rails.logger.info("[BulkResetContent] reset #{reset_count} columns")
+      return redirect_to(
+        delete_bulk_fallback_path,
+        notice: "#{reset_count}件の本文・説明文を削除し、下書きに戻しました"
+      )
     else
       return redirect_to(delete_bulk_fallback_path, alert: "操作種別が不正です")
     end
