@@ -56,11 +56,12 @@ class GptPillarGenerator
         break
       end
 
-      puts "⚠️ Meta生成失敗 再試行中... (#{i + 1}/3)"
+      puts "⚠️ Meta生成失敗 再試行中... (#{i + 1}/3) #{last_gpt_error}"
       sleep(2)
     end
 
-    raise "Meta情報の生成に失敗しました" if meta_data.nil?
+    detail = last_gpt_error.presence || "原因不明（API応答なし / JSON解析失敗）"
+    raise "Meta情報の生成に失敗しました (#{detail})" if meta_data.nil?
 
     clean_code = meta_data["code"].to_s.downcase
                   .gsub(/[^a-z0-9\s\-]/, "")
@@ -351,10 +352,15 @@ class GptPillarGenerator
 
     return nil unless res
 
-    JSON.parse(
-      res.dig("choices", 0, "message", "content")
-    )
+    content = res.dig("choices", 0, "message", "content")
+    if content.blank?
+      remember_gpt_error!("empty content in choices[0].message.content")
+      return nil
+    end
+
+    JSON.parse(content)
   rescue => e
+    remember_gpt_error!("parse error: #{e.message}")
     puts "❌ generate_meta_info parse error: #{e.message}"
     nil
   end
@@ -467,6 +473,34 @@ class GptPillarGenerator
   # ==========================================================
   # GPT API
   # ==========================================================
+  def self.last_gpt_error
+    Thread.current[:gpt_pillar_last_error]
+  end
+
+  def self.remember_gpt_error!(message)
+    Thread.current[:gpt_pillar_last_error] = redact_secrets(message.to_s)
+  end
+
+  def self.redact_secrets(text)
+    text
+      .gsub(/sk-[a-zA-Z0-9_\-]+/, "[REDACTED_KEY]")
+      .gsub(/Bearer\s+[A-Za-z0-9\-._]+/i, "Bearer [REDACTED_KEY]")
+  end
+
+  def self.summarize_openai_error(code, body)
+    parsed = JSON.parse(body) rescue nil
+    msg =
+      if parsed.is_a?(Hash)
+        parsed.dig("error", "message").presence ||
+          parsed.dig("error", "code").presence ||
+          body.to_s
+      else
+        body.to_s
+      end
+
+    remember_gpt_error!("HTTP #{code}: #{msg.to_s.truncate(400)}")
+  end
+
   def self.call_gpt_api(prompt, json_mode: false)
     uri = URI(GPT_API_URL)
 
@@ -540,12 +574,15 @@ class GptPillarGenerator
       end
 
       if res.is_a?(Net::HTTPSuccess)
+        Thread.current[:gpt_pillar_last_error] = nil
         JSON.parse(res.body)
       else
-        puts "❌ OpenAI Error: #{res.code} #{res.body}"
+        summarize_openai_error(res.code, res.body)
+        puts "❌ OpenAI Error: #{res.code} #{redact_secrets(res.body.to_s)}"
         nil
       end
     rescue => e
+      remember_gpt_error!("API Exception: #{e.message}")
       puts "❌ API Exception: #{e.message}"
       nil
     end
