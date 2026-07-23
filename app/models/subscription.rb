@@ -19,6 +19,7 @@ class Subscription < ApplicationRecord
   YEARLY_DISCOUNT_RATE = 0.8
   POST_TRIAL_PLAN = :standard
   TITLE_SUGGESTION_BAR_MAX = 5
+  TITLE_SUGGESTION_ADMIN_BAR_MAX = 50
 
   # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
   PLANS = {

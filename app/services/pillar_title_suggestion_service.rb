@@ -6,7 +6,7 @@ class PillarTitleSuggestionService
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
   DEFAULT_SUGGESTION_COUNT = 1
-  ABSOLUTE_MAX_SUGGESTION_COUNT = 5
+  ABSOLUTE_MAX_SUGGESTION_COUNT = Subscription::TITLE_SUGGESTION_ADMIN_BAR_MAX
   MIN_SUGGESTION_COUNT = 1
 
   # ==========================================================

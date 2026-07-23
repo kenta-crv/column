@@ -307,7 +307,7 @@ class AutonomousContentRun < ApplicationRecord
     return [] if plan_limited? && !client.can_suggest_titles?
 
     keyword = pillar_column.keyword.presence || title.split(/[\s　]+/).first.to_s
-    suggestion_count = plan_limited? ? client.max_title_suggestion_count : PillarTitleSuggestionService::ABSOLUTE_MAX_SUGGESTION_COUNT
+    suggestion_count = plan_limited? ? client.max_title_suggestion_count : Subscription::TITLE_SUGGESTION_BAR_MAX
     result = PillarTitleSuggestionService.call(
       keyword1: keyword,
       keyword2: title,

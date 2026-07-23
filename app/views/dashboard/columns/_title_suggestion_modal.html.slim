@@ -44,6 +44,11 @@
           textarea#custom-prompt rows="4" placeholder="例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。"
         .form-group
           - suggestion_config = @title_suggestion_config || { default: 1, max: 5, bar_max: 5, remaining: nil }
+          - scale_ticks = if suggestion_config[:bar_max] <= 10
+              (1..suggestion_config[:bar_max]).to_a
+            else
+              ([1] + (5..suggestion_config[:bar_max]).step(5).to_a).uniq
+            end
           label 提案数
           - if suggestion_config[:remaining]
             small.form-text style="display: block; margin-bottom: 8px;"
@@ -51,7 +56,7 @@
           .suggestion-count-control class=("is-plan-capped" if suggestion_config[:max] < suggestion_config[:bar_max]) style="--plan-max: #{suggestion_config[:max]}; --bar-max: #{suggestion_config[:bar_max]};"
             input type="range" id="suggestion-count" min="1" max=suggestion_config[:bar_max] value=suggestion_config[:default] data-plan-max=suggestion_config[:max] data-bar-max=suggestion_config[:bar_max]
             .suggestion-count-scale
-              - (1..suggestion_config[:bar_max]).each do |n|
+              - scale_ticks.each do |n|
                 span class=("is-available" if n <= suggestion_config[:max]) = n
             .suggestion-count-display
               span#suggestion-count-value = suggestion_config[:default]

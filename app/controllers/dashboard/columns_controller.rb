@@ -299,7 +299,7 @@ class Dashboard::ColumnsController < ApplicationController
     max_per_use = if client_signed_in?
                     current_client.max_title_suggestion_count
                   else
-                    Subscription::TITLE_SUGGESTION_BAR_MAX
+                    Subscription::TITLE_SUGGESTION_ADMIN_BAR_MAX
                   end
 
     result = PillarTitleSuggestionService.call(
@@ -391,10 +391,9 @@ class Dashboard::ColumnsController < ApplicationController
   private
 
   def title_suggestion_ui_config
-    bar_max = Subscription::TITLE_SUGGESTION_BAR_MAX
-
     if client_signed_in?
       plan_max = current_client.max_title_suggestion_count
+      bar_max = Subscription::TITLE_SUGGESTION_BAR_MAX
       {
         default: 1,
         max: plan_max,
@@ -403,6 +402,7 @@ class Dashboard::ColumnsController < ApplicationController
         monthly_limit: current_client.plan_limits[:title_suggestions]
       }
     else
+      bar_max = Subscription::TITLE_SUGGESTION_ADMIN_BAR_MAX
       {
         default: 1,
         max: bar_max,
