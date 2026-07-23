@@ -271,7 +271,7 @@ ja:
       footer_pricing: "料金プラン"
       footer_faq: "よくある質問"
       footer_start: "無料で始める"
-      footer_copy: "© %{year} Drafity / 株式会社J Work"
+      footer_copy: "© %{year} Drafity / 合同会社ファクトル"
       js_note_trial: "クレジットカード登録不要"
       js_note_yearly: "年額払いで20%お得"
       js_note_monthly: "¥%{price}/月（月額払い）"

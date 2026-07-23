@@ -406,12 +406,12 @@ module TopsHelper
       ]
     else
       [
-        { th: "会社名", td: "株式会社J Work", html: false },
-        { th: "所在地", td: "〒105-0013<br>東京都港区浜松町２丁目２番１５号２Ｆ", html: true },
-        { th: "設立", td: "2024年8月", html: false },
-        { th: "代表者", td: "山田 太郎", html: false },
+        { th: "会社名", td: "合同会社ファクトル", html: false },
+        { th: "所在地", td: "熊本県天草市中央新町12-13", html: true },
+        { th: "設立", td: "2022年1月", html: false },
+        { th: "代表者", td: "奥山　健太", html: false },
         { th: "事業内容", td: "AI記事生成SaaS「Drafity」の開発・提供<br>メディア支援・コンテンツマーケティング支援", html: true },
-        { th: "資本金", td: "500万円", html: false }
+        { th: "資本金", td: "100万円", html: false }
       ]
     end
   end
