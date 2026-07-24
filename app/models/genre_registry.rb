@@ -407,12 +407,31 @@ module GenreRegistry
   }.freeze
 
   # 公開URLの genre キーと FALLBACK_GENRES キーが違う場合の別名
+  # 例: URL/DB は ai_sales_agent、レジストリ本体キーは meetia
   GENRE_KEY_ALIASES = {
-    ai_sales_agent: :meetia,
-    hirevo: :ai_interview
+    ai_sales_agent: :meetia
   }.freeze
 
   class << self
+    # URL/DB 上のキーをレジストリ本体キーへ正規化
+    def canonical_key(key)
+      return nil if key.blank?
+
+      GENRE_KEY_ALIASES.fetch(key.to_sym, key.to_sym).to_s
+    end
+
+    # 同一ジャンルとして扱うキー一式（本体・別名）
+    def equivalent_keys(key)
+      return [] if key.blank?
+
+      canonical = canonical_key(key)
+      keys = [key.to_s, canonical]
+      GENRE_KEY_ALIASES.each do |alias_key, target|
+        keys << alias_key.to_s if target.to_s == canonical
+      end
+      keys.uniq
+    end
+
     def fallback_templates_for(client: nil, host: nil)
       return FALLBACK_GENRES.deep_dup if client.nil?
 
@@ -542,8 +561,8 @@ module GenreRegistry
   def self.resolve_key(genre, client: nil)
     return nil if genre.blank?
 
-    key_str = GENRE_KEY_ALIASES.fetch(genre.to_s.to_sym, genre.to_s.to_sym).to_s
     registry = genres(client: client)
+    key_str = genre.to_s
     return key_str if registry.key?(key_str.to_sym)
 
     from_ja_key = from_ja(key_str)
@@ -555,8 +574,7 @@ module GenreRegistry
   def self.to_ja(key, client: nil)
     return nil if key.blank?
 
-    resolved = GENRE_KEY_ALIASES.fetch(key.to_sym, key.to_sym)
-    genres(client: client)[resolved]&.dig(:ja)
+    genres(client: client)[canonical_key(key)&.to_sym]&.dig(:ja)
   end
 
   # AI生成用のプロフィール。中分類がある場合はそれを優先する

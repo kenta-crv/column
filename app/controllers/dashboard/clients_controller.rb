@@ -64,8 +64,7 @@ class Dashboard::ClientsController < ApplicationController
   def assign_client_genre_options
     return unless @client
 
-    # Client専用 + Admin共有ジャンルを表示（Embed公開対象と一致させる）
-    @client_service_genres = ServiceGenre.where(client_id: [nil, @client.id]).order(:ja)
+    @client_service_genres = @client.service_genres.order(:ja)
   end
 
   def set_client

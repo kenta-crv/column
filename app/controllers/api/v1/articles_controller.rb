@@ -84,25 +84,19 @@ class Api::V1::ArticlesController < ApplicationController
 
   private
 
-  # Admin共有（client_id NULL）のジャンル・記事も他サイトEmbedから参照できるようにする。
-  # 公開SSRと同様、Admin作成物を Client スコープで落とさない。
   def client_articles_scope
-    Column.where(client_id: [@client.id, nil])
+    Column.where(client_id: @client.id)
           .where.not(body: [nil, ""])
           .merge(Column.published)
           .where(genre: allowed_genre_values)
   end
 
-  def allowed_genres_for_client
-    @allowed_genres_for_client ||= ServiceGenre.where(client_id: [nil, @client.id]).order(:ja).to_a
-  end
-
   def allowed_genre_values
-    allowed_genres_for_client.flat_map { |genre| [genre.key, genre.ja] }.compact.uniq
+    @client.service_genres.flat_map { |genre| [genre.key, genre.ja] }.compact.uniq
   end
 
   def filter_genre_values
-    matching_genre = allowed_genres_for_client.find do |genre|
+    matching_genre = @client.service_genres.find do |genre|
       genre.key == params[:genre] || genre.ja == params[:genre]
     end
 

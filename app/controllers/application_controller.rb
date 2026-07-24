@@ -112,10 +112,7 @@ class ApplicationController < ActionController::Base
   end
 
   def current_public_genre_key
-    key = params[:genre].to_s.presence
-    return nil if key.blank?
-
-    GenreRegistry.resolve_key(key).presence || key
+    params[:genre].to_s.presence
   end
 
   def default_public_genre_key
@@ -167,27 +164,31 @@ class ApplicationController < ActionController::Base
     return true if key.blank? && (admin_signed_in? || client_signed_in?)
     return false if key.blank?
 
-    key = GenreRegistry.resolve_key(key).presence || key
+    equivalent = GenreRegistry.equivalent_keys(key)
 
     if admin_signed_in?
-      return true if GenreRegistry.genre_keys.include?(key)
-      return ServiceGenre.exists?(key: key)
+      return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
+      return true if equivalent.any? { |k| ServiceGenre.exists?(key: k) }
+      return false
     end
 
     if client_signed_in?
       allowed = Array(current_client.allowed_genres).map(&:to_s)
-      return allowed.include?(key) if allowed.present?
+      if allowed.present?
+        return equivalent.any? { |k| allowed.include?(k) }
+      end
 
-      return current_client.genre_keys.include?(key)
+      return equivalent.any? { |k| current_client.genre_keys.include?(k) }
     end
 
     # 公開SSRはジャンルが実在すれば表示する。
     # drafity.pro で ai_article 以外をここで落とすと、
     # 自社ドメインが Host: drafity.pro 経由で来た場合に cleaning 等が 0 件になる。
     # Google への公開範囲制限は robots.txt / CrawlPolicy 側で行う。
-    return true if key == CrawlPolicy::GENRE_KEY
-    return true if GenreRegistry.genre_keys.include?(key)
-    return true if ServiceGenre.registered_key?(key)
+    # ai_sales_agent → meetia のような URL/DB 別名も本体キーとして許可する。
+    return true if equivalent.include?(CrawlPolicy::GENRE_KEY)
+    return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
+    return true if equivalent.any? { |k| ServiceGenre.registered_key?(k) }
 
     false
   end
@@ -200,10 +201,12 @@ class ApplicationController < ActionController::Base
     return [] if genre_key.blank?
 
     key = genre_key.to_s
+    keys = GenreRegistry.equivalent_keys(key)
+    canonical = GenreRegistry.canonical_key(key)
     registry = client ? GenreRegistry.genres(client: client) : GenreRegistry.genres
-    entry = registry[key.to_sym]
+    entry = registry[canonical.to_sym] || registry[key.to_sym]
     ja = entry&.dig(:ja) || GenreRegistry.to_ja(key, client: client)
-    [key, ja].compact.uniq.reject(&:blank?)
+    (keys + [ja]).compact.uniq.reject(&:blank?)
   end
 
   def column_matches_genre?(column, genre_key)
