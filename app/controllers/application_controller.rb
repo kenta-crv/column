@@ -112,7 +112,10 @@ class ApplicationController < ActionController::Base
   end
 
   def current_public_genre_key
-    params[:genre].to_s.presence
+    key = params[:genre].to_s.presence
+    return nil if key.blank?
+
+    GenreRegistry.resolve_key(key).presence || key
   end
 
   def default_public_genre_key
@@ -163,6 +166,8 @@ class ApplicationController < ActionController::Base
     key = genre_key.to_s
     return true if key.blank? && (admin_signed_in? || client_signed_in?)
     return false if key.blank?
+
+    key = GenreRegistry.resolve_key(key).presence || key
 
     if admin_signed_in?
       return true if GenreRegistry.genre_keys.include?(key)

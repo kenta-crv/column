@@ -408,7 +408,8 @@ module GenreRegistry
 
   # 公開URLの genre キーと FALLBACK_GENRES キーが違う場合の別名
   GENRE_KEY_ALIASES = {
-    ai_sales_agent: :meetia
+    ai_sales_agent: :meetia,
+    hirevo: :ai_interview
   }.freeze
 
   class << self
@@ -541,8 +542,8 @@ module GenreRegistry
   def self.resolve_key(genre, client: nil)
     return nil if genre.blank?
 
+    key_str = GENRE_KEY_ALIASES.fetch(genre.to_s.to_sym, genre.to_s.to_sym).to_s
     registry = genres(client: client)
-    key_str = genre.to_s
     return key_str if registry.key?(key_str.to_sym)
 
     from_ja_key = from_ja(key_str)
