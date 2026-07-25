@@ -23,22 +23,23 @@ class GptArticleGenerator
     # ==============================
     # GenreRegistryを用いたジャンル特定ロジック
     # ==============================
-    genre_code = if GenreRegistry::GENRES.key?(column.genre&.to_sym)
-                   column.genre.to_s
+    client = column.client
+    genre_code = if GenreRegistry.genre_entry(column.genre, client: client)
+                   GenreRegistry.resolve_key(column.genre, client: client).presence || column.genre.to_s
                  elsif (code = GenreRegistry.from_ja(column.genre))
                    code
                  else
                    detect_genre_code(column.keyword)
                  end
 
-    genre_data = GenreRegistry::GENRES[genre_code.to_sym] || {}
-    category = genre_data[:ja] || GenreRegistry.to_ja(genre_code) || "その他"
+    genre_data = GenreRegistry.genre_entry(genre_code, client: client) || {}
+    category = genre_data[:ja] || GenreRegistry.to_ja(genre_code, client: client) || "その他"
 
     # ==============================
-    # サブカテゴリ判定
+    # サブカテゴリ判定（保存済み中分類を優先）
     # ==============================
-    sub_genre_code = detect_sub_category(column, genre_code)
-    sub_data = (genre_data[:sub_categories] && sub_genre_code) ? genre_data[:sub_categories][sub_genre_code.to_sym] : nil
+    sub_genre_code = GenreRegistry.resolve_sub_category_key(column, genre_code, client: client)
+    sub_data = sub_genre_code.present? ? genre_data.dig(:sub_categories, sub_genre_code.to_sym) : nil
 
     Rails.logger.info("判定カテゴリ: #{category} (コード: #{genre_code}, サブ: #{sub_genre_code})")
 
@@ -58,10 +59,11 @@ class GptArticleGenerator
 
       update_attrs = {
         genre: genre_code,
-        sub_genre: sub_genre_code,
         description: meta_data["description"],
         keyword: meta_data["keyword"]
       }
+      # 保存済みの中分類をキーワード推定で上書きしない
+      update_attrs[:sub_genre] = sub_genre_code if sub_genre_code.present?
       update_attrs[:code] = clean_code if column.code.blank?
 
       column.update!(update_attrs)
@@ -183,32 +185,6 @@ class GptArticleGenerator
       end
     end
     "other"
-  end
-
-  # ==========================================================
-  # サブカテゴリ判定
-  # ==========================================================
-  def self.detect_sub_category(column, genre_key)
-    genre = GenreRegistry::GENRES[genre_key.to_sym]
-    return nil unless genre
-    return nil unless genre[:sub_categories]
-
-    text = [
-      column.title,
-      column.keyword,
-      column.prompt,
-      column.description
-    ].join(" ")
-
-    genre[:sub_categories].each do |key, sub|
-      next unless sub[:keywords]
-
-      if sub[:keywords].any? { |w| text.include?(w) }
-        return key.to_s
-      end
-    end
-
-    nil
   end
 
   # ==========================================================

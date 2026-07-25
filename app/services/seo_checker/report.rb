@@ -8,7 +8,7 @@ module SeoChecker
       def generate(raw_url)
         fetch = SeoChecker::PageFetcher.fetch(raw_url)
         if fetch.error.present? || fetch.body.blank?
-          return Outcome.new(ok: false, error: fetch.error.presence || "ページを取得できませんでした")
+          return Outcome.new(ok: false, error: fetch.error.presence || I18n.t("drafity.seo_checker.error_fetch_failed"))
         end
 
         analysis = SeoChecker::Analyzer.analyze(

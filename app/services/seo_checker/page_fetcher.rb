@@ -29,7 +29,7 @@ module SeoChecker
     class << self
       def fetch(raw_url)
         uri = normalize_uri(raw_url)
-        return Result.new(url: raw_url, error: "URLの形式が正しくありません") unless uri
+        return Result.new(url: raw_url, error: t_seo("error_invalid_url")) unless uri
 
         current = uri
         redirects = 0
@@ -43,17 +43,17 @@ module SeoChecker
           case response
           when Net::HTTPRedirection
             location = response["location"].to_s
-            return Result.new(url: raw_url, final_url: current.to_s, error: "リダイレクト先が不正です") if location.blank?
+            return Result.new(url: raw_url, final_url: current.to_s, error: t_seo("error_bad_redirect")) if location.blank?
 
             redirects += 1
-            return Result.new(url: raw_url, final_url: current.to_s, error: "リダイレクトが多すぎます") if redirects > MAX_REDIRECTS
+            return Result.new(url: raw_url, final_url: current.to_s, error: t_seo("error_too_many_redirects")) if redirects > MAX_REDIRECTS
 
             current = current.merge(location)
             next
           when Net::HTTPSuccess
             body = response.body.to_s
             if body.bytesize > MAX_BODY_BYTES
-              return Result.new(url: raw_url, final_url: current.to_s, error: "ページサイズが大きすぎます")
+              return Result.new(url: raw_url, final_url: current.to_s, error: t_seo("error_body_too_large"))
             end
 
             body = body.dup.force_encoding("UTF-8")
@@ -67,15 +67,19 @@ module SeoChecker
             )
           else
             code = response.respond_to?(:code) ? response.code : "?"
-            return Result.new(url: raw_url, final_url: current.to_s, error: "取得に失敗しました（HTTP #{code}）")
+            return Result.new(url: raw_url, final_url: current.to_s, error: t_seo("error_http", code: code))
           end
         end
       rescue StandardError => e
         Rails.logger.warn("[SeoChecker::PageFetcher] #{e.class}: #{e.message}")
-        Result.new(url: raw_url, error: "ページを取得できませんでした")
+        Result.new(url: raw_url, error: t_seo("error_fetch_failed"))
       end
 
       private
+
+      def t_seo(key, **opts)
+        I18n.t("drafity.seo_checker.#{key}", **opts)
+      end
 
       def normalize_uri(raw_url)
         text = raw_url.to_s.strip
@@ -90,26 +94,26 @@ module SeoChecker
       end
 
       def ssrf_guard(uri)
-        return "http / https のみ利用できます" unless %w[http https].include?(uri.scheme)
-        return "ホスト名が不正です" if uri.host.blank?
+        return t_seo("error_scheme") unless %w[http https].include?(uri.scheme)
+        return t_seo("error_host") if uri.host.blank?
 
         default_port = uri.scheme == "https" ? 443 : 80
-        return "ポートが許可されていません" unless uri.port == default_port
+        return t_seo("error_port") unless uri.port == default_port
 
         host = uri.host
-        return "内部向けアドレスは診断できません" if %w[localhost metadata].include?(host.downcase)
+        return t_seo("error_private") if %w[localhost metadata].include?(host.downcase)
 
         addresses = Resolv.getaddresses(host)
-        return "ホストを解決できませんでした" if addresses.empty?
+        return t_seo("error_resolve") if addresses.empty?
 
         addresses.each do |addr|
           ip = IPAddr.new(addr)
-          return "内部向けアドレスは診断できません" if BLOCKED_NETWORKS.any? { |net| net.include?(ip) }
+          return t_seo("error_private") if BLOCKED_NETWORKS.any? { |net| net.include?(ip) }
         end
 
         nil
       rescue Resolv::ResolvError, IPAddr::InvalidAddressError
-        "ホストを解決できませんでした"
+        t_seo("error_resolve")
       end
 
       def http_get(uri)

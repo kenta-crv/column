@@ -574,14 +574,54 @@ module GenreRegistry
   def self.to_ja(key, client: nil)
     return nil if key.blank?
 
-    genres(client: client)[canonical_key(key)&.to_sym]&.dig(:ja)
+    genre_entry(key, client: client)&.dig(:ja)
+  end
+
+  # クライアント固有定義を優先し、なければグローバル定義を返す
+  def self.genre_entry(key, client: nil)
+    return nil if key.blank?
+
+    canon = canonical_key(key)&.to_sym
+    if client
+      entry = genres(client: client)[canon]
+      return entry if entry.present?
+    end
+
+    genres[canon]
+  end
+
+  # 保存済み中分類を優先。未設定時のみキーワードから推定する
+  def self.resolve_sub_category_key(column, genre_key, client: nil)
+    genre = genre_entry(genre_key, client: client)
+    subs = genre&.dig(:sub_categories)
+    return nil if subs.blank?
+
+    saved = column.sub_genre.to_s
+    if saved.present? && (subs.key?(saved.to_sym) || subs.key?(saved))
+      return saved
+    end
+
+    text = [
+      column.title,
+      column.keyword,
+      column.prompt,
+      column.description
+    ].join(" ")
+
+    subs.each do |key, sub|
+      next unless sub[:keywords]
+
+      return key.to_s if sub[:keywords].any? { |w| text.include?(w) }
+    end
+
+    nil
   end
 
   # AI生成用のプロフィール。中分類がある場合はそれを優先する
   def self.service_profile(category_key, sub_key = nil, client: nil)
     return "専門知識に基づいた最適なソリューションを提供。" if category_key.blank?
 
-    g = genres(client: client)[canonical_key(category_key)&.to_sym]
+    g = genre_entry(category_key, client: client)
     return "専門知識に基づいた最適なソリューションを提供。" unless g
 
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
@@ -590,7 +630,7 @@ module GenreRegistry
         サービス名: #{g[:service_name]}（#{s[:name]}）
         ターゲット: #{s[:target]}
         内容: #{s[:description]}
-        特徴: #{s[:features].join('、')}
+        特徴: #{Array(s[:features]).join('、')}
         料金: #{s[:price_hint]}
         強み: #{s[:strengths]}
         業界の課題と弊社の立ち位置: #{s[:industry_weakness]}

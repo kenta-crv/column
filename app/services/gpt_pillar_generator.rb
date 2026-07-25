@@ -15,17 +15,18 @@ class GptPillarGenerator
     raise "タイトルが空です" if column.title.blank?
     ensure_not_cancelled!(column)
 
+    client = column.client
     target_category = detect_category(column)
     current_genre   = column.genre.presence || GenreRegistry.from_ja(target_category) || "other"
 
     puts "▶ 統合生成開始: #{column.title} (判定: #{target_category}, genre: #{current_genre})"
 
     # ----------------------------------------------------------
-    # Genre情報取得
+    # Genre情報取得（保存済み中分類を優先）
     # ----------------------------------------------------------
-    genre_data = GenreRegistry::GENRES[current_genre.to_sym] || {}
-    sub_key    = detect_sub_category(column, current_genre)
-    sub_data   = genre_data.dig(:sub_categories, sub_key.to_sym) rescue nil
+    genre_data = GenreRegistry.genre_entry(current_genre, client: client) || {}
+    sub_key    = GenreRegistry.resolve_sub_category_key(column, current_genre, client: client)
+    sub_data   = sub_key.present? ? genre_data.dig(:sub_categories, sub_key.to_sym) : nil
 
     # ----------------------------------------------------------
     # EEATコンテキスト生成
@@ -242,32 +243,6 @@ class GptPillarGenerator
     end
 
     "その他"
-  end
-
-  # ==========================================================
-  # サブカテゴリ判定
-  # ==========================================================
-  def self.detect_sub_category(column, genre_key)
-    genre = GenreRegistry::GENRES[genre_key.to_sym]
-    return nil unless genre
-    return nil unless genre[:sub_categories]
-
-    text = [
-      column.title,
-      column.keyword,
-      column.prompt,
-      column.description
-    ].join(" ")
-
-    genre[:sub_categories].each do |key, sub|
-      next unless sub[:keywords]
-
-      if sub[:keywords].any? { |w| text.include?(w) }
-        return key.to_s
-      end
-    end
-
-    nil
   end
 
   # ==========================================================

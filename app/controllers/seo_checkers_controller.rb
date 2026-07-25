@@ -1,14 +1,7 @@
 # frozen_string_literal: true
 
 class SeoCheckersController < ApplicationController
-  AXIS_LABELS = {
-    content: "コンテンツ量",
-    basic_seo: "基本SEO",
-    specificity: "内容の具体性",
-    cluster: "クラスター性"
-  }.freeze
-
-  helper_method :seo_checker_remaining, :seo_axis_label
+  helper_method :seo_checker_remaining, :seo_axis_label, :seo_checker_unlimited?
 
   def show
     @remaining = seo_checker_remaining
@@ -20,17 +13,17 @@ class SeoCheckersController < ApplicationController
     @url = params[:url].to_s.strip
 
     if @url.blank?
-      flash.now[:alert] = "URLを入力してください"
+      flash.now[:alert] = t("drafity.seo_checker.alert_blank_url")
       return render :show, status: :unprocessable_entity
     end
 
-    unless SeoChecker::UsageLimiter.allowed?(request.remote_ip)
-      flash.now[:alert] = "本日の無料診断枠（#{SeoChecker::UsageLimiter::DAILY_LIMIT}回）を使い切りました。明日またお試しください。"
+    unless seo_checker_unlimited? || SeoChecker::UsageLimiter.allowed?(request.remote_ip)
+      flash.now[:alert] = t("drafity.seo_checker.alert_limit", limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
       @limit_reached = true
       return render :show, status: :too_many_requests
     end
 
-    SeoChecker::UsageLimiter.consume!(request.remote_ip)
+    SeoChecker::UsageLimiter.consume!(request.remote_ip) unless seo_checker_unlimited?
     @remaining = seo_checker_remaining
 
     outcome = SeoChecker::Report.generate(@url)
@@ -45,11 +38,17 @@ class SeoCheckersController < ApplicationController
 
   private
 
+  def seo_checker_unlimited?
+    admin_signed_in?
+  end
+
   def seo_checker_remaining
+    return Float::INFINITY if seo_checker_unlimited?
+
     SeoChecker::UsageLimiter.remaining(request.remote_ip)
   end
 
   def seo_axis_label(key)
-    AXIS_LABELS[key.to_sym] || key.to_s
+    t("drafity.seo_checker.axis_#{key}", default: key.to_s)
   end
 end

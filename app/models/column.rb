@@ -124,7 +124,7 @@ class Column < ApplicationRecord
   end
 
   def service_profile
-    GenreRegistry.service_profile(genre)
+    GenreRegistry.service_profile(genre, sub_genre, client: client)
   end
 
   def category_images

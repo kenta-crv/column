@@ -32,7 +32,10 @@
             input#seo-url.seo-input type="url" name="url" value=@url placeholder=t("drafity.seo_checker.url_placeholder") required=true autocomplete="url"
             button.seo-submit type="submit" = t("drafity.seo_checker.submit")
         p.seo-remaining
-          = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
+          - if seo_checker_unlimited?
+            = t("drafity.seo_checker.remaining_unlimited")
+          - else
+            = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
 
   - if @report
     section.seo-result#seo-result
@@ -49,30 +52,68 @@
 
         .seo-axes
           - @report.axes.each do |key, axis|
-            .seo-axis
+            .seo-axis class=("is-excluded" if axis[:excluded])
               .seo-axis-head
                 span.seo-axis-name = seo_axis_label(key)
-                span.seo-axis-score = "#{axis[:score]}"
+                span.seo-axis-score
+                  - if axis[:excluded] || axis[:score].nil?
+                    = t("drafity.seo_checker.score_na")
+                  - else
+                    = axis[:score]
               .seo-axis-bar
-                span.seo-axis-fill style="width: #{axis[:score]}%"
+                - unless axis[:excluded] || axis[:score].nil?
+                  span.seo-axis-fill style="width: #{axis[:score]}%"
               p.seo-axis-note = axis[:note]
+
+        .seo-method
+          h2.seo-section-title = t("drafity.seo_checker.method_title")
+          ul.seo-method-list
+            li = t("drafity.seo_checker.method_1")
+            li = t("drafity.seo_checker.method_2")
+            li = t("drafity.seo_checker.method_3")
+            li = t("drafity.seo_checker.method_4")
 
         - cluster = @report.cluster
         .seo-cluster
           h2.seo-section-title = t("drafity.seo_checker.cluster_title")
-          - if cluster[:pillar_candidate].present? || cluster[:cluster_candidate].present?
+          p.seo-cluster-status class="is-#{cluster[:status]}"
+            = t("drafity.seo_checker.cluster_status_#{cluster[:status]}")
+
+          - crumbs = Array(@report.stats[:breadcrumb_labels]).reject(&:blank?)
+          - if crumbs.any?
             p.seo-cluster-line
-              span.seo-cluster-key = t("drafity.seo_checker.pillar_candidate")
-              span = cluster[:pillar_candidate].presence || "—"
+              span.seo-cluster-key = t("drafity.seo_checker.breadcrumb_found")
+              span = crumbs.join(" › ")
+          - else
             p.seo-cluster-line
-              span.seo-cluster-key = t("drafity.seo_checker.cluster_candidate")
-              span = cluster[:cluster_candidate].presence || "—"
-          p.seo-cluster-evidence
-            = t("drafity.seo_checker.cluster_evidence")
-            = " "
-            = Array(cluster[:evidence]).join(" / ")
-          p.seo-cluster-confidence
-            = t("drafity.seo_checker.confidence", value: cluster[:confidence].to_i)
+              span.seo-cluster-key = t("drafity.seo_checker.breadcrumb_found")
+              span = t("drafity.seo_checker.breadcrumb_none")
+
+          - if cluster[:status] == "not_applicable"
+            p.seo-cluster-evidence = t("drafity.seo_checker.cluster_top_page_help")
+          - else
+            - if cluster[:genre_hint].present?
+              p.seo-cluster-line
+                span.seo-cluster-key = t("drafity.seo_checker.genre_candidate")
+                span = cluster[:genre_hint]
+            - if cluster[:pillar_candidate].present? || cluster[:cluster_candidate].present?
+              p.seo-cluster-line
+                span.seo-cluster-key = t("drafity.seo_checker.pillar_candidate")
+                span = cluster[:pillar_candidate].presence || "—"
+              p.seo-cluster-line
+                span.seo-cluster-key = t("drafity.seo_checker.cluster_candidate")
+                span = cluster[:cluster_candidate].presence || "—"
+            p.seo-cluster-evidence
+              = t("drafity.seo_checker.cluster_evidence")
+              = " "
+              = Array(cluster[:evidence]).join(" / ")
+            - if cluster[:confidence].present?
+              p.seo-cluster-confidence
+                = t("drafity.seo_checker.confidence", value: cluster[:confidence].to_i)
+        .seo-stats
+          p.seo-stats-line = t("drafity.seo_checker.stats_line", chars: @report.stats[:char_count].to_i, h2: @report.stats[:h2_count].to_i, links: @report.stats[:internal_link_count].to_i)
+          - if @report.axes[:cluster] && @report.axes[:cluster][:excluded]
+            p.seo-stats-line = t("drafity.seo_checker.overall_without_cluster")
 
         - if @report.improvements.any?
           .seo-improvements
@@ -85,7 +126,10 @@
           p.seo-cta-text = t("drafity.seo_checker.cta_text")
           = link_to t("drafity.seo_checker.cta_button"), "/clients/sign_up", class: "btn-primary-lg"
           p.seo-remaining
-            = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
+            - if seo_checker_unlimited?
+              = t("drafity.seo_checker.remaining_unlimited")
+            - else
+              = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
 
   - elsif @limit_reached
     section.seo-limit

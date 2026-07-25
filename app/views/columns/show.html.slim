@@ -1,8 +1,5 @@
 - set_meta_tags title: "#{@column.title}"
 - set_meta_tags description: "#{@column.title}"
-/ j-work.jp 側の導線出し分け用（UIは jwork が注入）
-- sub_genre_for_cta = @column.sub_genre.presence || @column.parent&.sub_genre
-meta name="jwork-sub-genre" content="#{sub_genre_for_cta}"
 
 .blog-container
   .container
