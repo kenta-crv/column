@@ -1,5 +1,8 @@
 - set_meta_tags title: "#{@column.title}"
 - set_meta_tags description: "#{@column.title}"
+/ j-work.jp 側の導線出し分け用（UIは jwork が注入）
+- sub_genre_for_cta = @column.sub_genre.presence || @column.parent&.sub_genre
+meta name="jwork-sub-genre" content="#{sub_genre_for_cta}"
 
 .blog-container
   .container
@@ -156,29 +159,6 @@
               li style="margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; display: flex; align-items: baseline;"
                 span style="color: #007bff; margin-right: 12px; font-size: 1.2rem;" ●
                 = link_to child.title, public_column_show_path(child), style: "color: #007bff; text-decoration: none; font-weight: 600; font-size: 1.1rem;"
-
-    / ===== J Work LINE 導線（中ジャンルで問い合わせ先を切替） =====
-    - if show_jwork_line_cta?(@column)
-      - cta = jwork_line_cta_for(@column)
-      section.jwork-line-cta class="jwork-line-cta--#{cta[:kind]}"
-        .jwork-line-cta__glow aria-hidden="true"
-        .jwork-line-cta__inner
-          .jwork-line-cta__copy
-            span.jwork-line-cta__badge = cta[:badge]
-            h2.jwork-line-cta__title = cta[:title]
-            p.jwork-line-cta__lead = cta[:lead]
-            = link_to cta[:url], class: "jwork-line-cta__banner-link", target: "_blank", rel: "noopener noreferrer" do
-              img.jwork-line-cta__banner src=cta[:banner_path] alt="LINEでカンタン #{cta[:cta_label]}" loading="lazy" width="1200" height="300"
-            = link_to cta[:url], class: "jwork-line-cta__btn", target: "_blank", rel: "noopener noreferrer" do
-              span.jwork-line-cta__btn-icon aria-hidden="true"
-              span = "LINEで#{cta[:cta_label]}"
-          .jwork-line-cta__qr
-            = link_to cta[:url], target: "_blank", rel: "noopener noreferrer", class: "jwork-line-cta__qr-link" do
-              img.jwork-line-cta__qr-img src=cta[:qr_url] alt="#{cta[:cta_label]} LINE QRコード" loading="lazy" width="180" height="180"
-            p.jwork-line-cta__qr-caption
-              | スマホでQRを読み取り
-              br
-              | 友だち追加できます
 
     .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
       - parent = @column.parent
