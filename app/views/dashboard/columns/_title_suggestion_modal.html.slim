@@ -40,6 +40,11 @@
           - if @needs_genre_setup
             small.form-text 上の「AIでジャンルを登録」後に選択できます。
         .form-group
+          label 中分類（任意）
+          select#sub-genre-select-modal disabled=true data-master-data=(@dashboard_sub_categories_json || '{}')
+            option value="" ジャンルを先に選択してください
+          small.form-text 選択すると、その中分類の切り口に寄せたタイトルを提案します。
+        .form-group
           label 自由入力（任意）
           textarea#custom-prompt rows="4" placeholder="例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。"
         .form-group

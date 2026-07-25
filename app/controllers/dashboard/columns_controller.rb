@@ -302,15 +302,19 @@ class Dashboard::ColumnsController < ApplicationController
                     Subscription::TITLE_SUGGESTION_ADMIN_BAR_MAX
                   end
 
+    client = client_signed_in? ? current_client : nil
+    sub_genre = sanitize_sub_genre_param(params[:genre], params[:sub_genre], client: client)
+
     result = PillarTitleSuggestionService.call(
       keyword1: params[:keyword1],
       keyword2: params[:keyword2],
       target_layer: params[:target_layer],
       genre: params[:genre],
+      sub_genre: sub_genre,
       custom_prompt: params[:custom_prompt],
       suggestion_count: params[:suggestion_count],
       max_suggestion_count: max_per_use,
-      client: (client_signed_in? ? current_client : nil)
+      client: client
     )
 
     if result[:success]
@@ -326,10 +330,12 @@ class Dashboard::ColumnsController < ApplicationController
       return render json: { success: false, error: current_client.plan_limit_message(:pillar) }
     end
 
+    client = client_signed_in? ? current_client : nil
     @column = Column.new(
       title: params[:title],
       article_type: "pillar",
       genre: params[:genre],
+      sub_genre: sanitize_sub_genre_param(params[:genre], params[:sub_genre], client: client),
       status: "draft"
     )
     assign_column_client!(@column)
@@ -344,6 +350,8 @@ class Dashboard::ColumnsController < ApplicationController
   def bulk_create_from_suggestions
     titles = params[:titles]
     genre = params[:genre]
+    client = client_signed_in? ? current_client : nil
+    sub_genre = sanitize_sub_genre_param(genre, params[:sub_genre], client: client)
 
     if titles.blank? || genre.blank?
       render json: { success: false, error: "タイトルとジャンルを指定してください" }
@@ -368,6 +376,7 @@ class Dashboard::ColumnsController < ApplicationController
         title: title,
         article_type: "pillar",
         genre: genre,
+        sub_genre: sub_genre,
         status: "draft"
       )
       assign_column_client!(column)
@@ -422,8 +431,19 @@ class Dashboard::ColumnsController < ApplicationController
 
   def assign_dashboard_genre_options
     @dashboard_genre_options = dashboard_genre_registry_options
+    @dashboard_sub_categories_json = dashboard_sub_categories_json
     @sub_category_config = sub_category_ui_config
     @needs_genre_setup = client_signed_in? && !admin_signed_in? && @dashboard_genre_options.blank?
+  end
+
+  def sanitize_sub_genre_param(genre, sub_genre, client: nil)
+    return nil if genre.blank? || sub_genre.blank?
+
+    genre_key = GenreRegistry.resolve_key(genre, client: client) || genre
+    subs = GenreRegistry.genres(client: client).dig(genre_key.to_sym, :sub_categories) || {}
+    return nil unless subs.key?(sub_genre.to_sym) || subs.key?(sub_genre.to_s)
+
+    sub_genre.to_s
   end
 
   def image_generation_target_scope(base_scope)

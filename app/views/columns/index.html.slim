@@ -1,5 +1,7 @@
 - current_genre_key = @current_genre_key.presence || params[:genre].presence
-- service_name = current_genre_key ? GenreRegistry::GENRES.dig(current_genre_key.to_sym, :service_name) : nil
+/ ai_sales_agent → meetia のような別名でもレジストリ本体から service_name を取る
+- registry_genre_key = current_genre_key.present? ? GenreRegistry.canonical_key(current_genre_key) : nil
+- service_name = registry_genre_key.present? ? GenreRegistry.genres.dig(registry_genre_key.to_sym, :service_name) : nil
 - page_title = params[:article_type] == 'pillar' ? '親記事（ピラー）一覧' : (params[:article_type] == 'child' ? '子記事（クラスター）一覧' : '公開済み記事')
 - empty_message = params[:article_type] == 'pillar' ? '親記事がありません。ダッシュボードから親記事を作成してください。' : (params[:article_type] == 'child' ? 'クラスター記事はありません。' : '公開済みの記事はありません。')
 

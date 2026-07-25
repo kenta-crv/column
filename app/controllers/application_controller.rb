@@ -370,14 +370,22 @@ class ApplicationController < ActionController::Base
     GenreRegistry.genres(client: current_client)
   end
 
-  def dashboard_genre_registry_options
-    registry = if admin_signed_in?
-                 GenreRegistry.genres
-               else
-                 client_accessible_genre_registry
-               end
+  def dashboard_genre_registry
+    if admin_signed_in?
+      GenreRegistry.genres
+    else
+      client_accessible_genre_registry
+    end
+  end
 
-    registry.map { |key, value| [value[:ja], key.to_s] }
+  def dashboard_genre_registry_options
+    dashboard_genre_registry.map { |key, value| [value[:ja], key.to_s] }
+  end
+
+  def dashboard_sub_categories_json
+    dashboard_genre_registry.transform_values do |value|
+      value[:sub_categories]&.map { |sub_key, sub_value| { id: sub_key.to_s, name: sub_value[:name] } } || []
+    end.to_json
   end
 
   def assign_column_client!(column)

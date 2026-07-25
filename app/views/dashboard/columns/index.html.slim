@@ -642,6 +642,66 @@ javascript:
     syncSuggestionCountDisplay();
   }
 
+  function getModalSubCategories() {
+    const subSelect = document.getElementById('sub-genre-select-modal');
+    if (!subSelect) return {};
+    try {
+      return JSON.parse(subSelect.dataset.masterData || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function setModalSubCategories(data) {
+    const subSelect = document.getElementById('sub-genre-select-modal');
+    if (!subSelect) return;
+    subSelect.dataset.masterData = JSON.stringify(data || {});
+  }
+
+  function updateModalSubGenre(selectedGenre) {
+    const subSelect = document.getElementById('sub-genre-select-modal');
+    if (!subSelect) return;
+
+    const subCategories = getModalSubCategories();
+    subSelect.innerHTML = '';
+
+    if (selectedGenre && subCategories[selectedGenre] && subCategories[selectedGenre].length > 0) {
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = '選択しない（任意）';
+      subSelect.appendChild(defaultOption);
+
+      subCategories[selectedGenre].forEach((sub) => {
+        const option = document.createElement('option');
+        option.value = sub.id;
+        option.textContent = sub.name;
+        subSelect.appendChild(option);
+      });
+      subSelect.disabled = false;
+    } else if (!selectedGenre) {
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'ジャンルを先に選択してください';
+      subSelect.appendChild(emptyOption);
+      subSelect.disabled = true;
+    } else {
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = '中分類はありません';
+      subSelect.appendChild(emptyOption);
+      subSelect.disabled = true;
+    }
+  }
+
+  function initModalSubGenreSelect() {
+    const genreSelect = document.getElementById('genre-select-modal');
+    if (!genreSelect || genreSelect.dataset.subGenreInitialized === 'true') return;
+
+    genreSelect.dataset.subGenreInitialized = 'true';
+    genreSelect.addEventListener('change', (e) => updateModalSubGenre(e.target.value));
+    updateModalSubGenre(genreSelect.value);
+  }
+
   function initQuickGenreCreate() {
     const btn = document.getElementById('quick-genre-create-btn');
     const status = document.getElementById('quick-genre-status');
@@ -702,6 +762,11 @@ javascript:
           option.selected = true;
           genreSelect.appendChild(option);
           genreSelect.disabled = false;
+
+          const master = getModalSubCategories();
+          master[result.genre.key] = Array.isArray(result.sub_categories) ? result.sub_categories : [];
+          setModalSubCategories(master);
+          updateModalSubGenre(result.genre.key);
         }
 
         const panel = document.getElementById('genre-quick-setup-panel');
@@ -724,6 +789,7 @@ javascript:
 
   function openTitleSuggestionModal() {
     initSuggestionCountSlider();
+    initModalSubGenreSelect();
     initQuickGenreCreate();
     const modal = document.getElementById('title-suggestion-modal');
     if (modal) modal.style.display = 'flex';
@@ -739,6 +805,7 @@ javascript:
     const keyword2    = document.getElementById('keyword2').value;
     const targetLayer = document.getElementById('target_layer').value;
     const genre       = document.getElementById('genre-select-modal').value;
+    const subGenre    = document.getElementById('sub-genre-select-modal')?.value || '';
     const customPrompt = document.getElementById('custom-prompt').value;
     const suggestionCount = clampSuggestionCount(document.getElementById('suggestion-count').value);
 
@@ -757,6 +824,9 @@ javascript:
       genre,
       suggestion_count: suggestionCount
     });
+    if (subGenre) {
+      params.set('sub_genre', subGenre);
+    }
     if (customPrompt.trim()) {
       params.set('custom_prompt', customPrompt.trim());
     }
@@ -810,8 +880,12 @@ javascript:
 
     const titles = Array.from(checkboxes).map(cb => cb.value);
     const genre  = document.getElementById('genre-select-modal').value;
+    const subGenre = document.getElementById('sub-genre-select-modal')?.value || '';
 
     if (!confirm(`${titles.length}件のタイトルを登録しますか？`)) return;
+
+    const payload = { titles, genre };
+    if (subGenre) payload.sub_genre = subGenre;
 
     fetch('/dashboard/columns/bulk_create_from_suggestions', {
       method: 'POST',
@@ -819,7 +893,7 @@ javascript:
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       },
-      body: JSON.stringify({ titles, genre })
+      body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {

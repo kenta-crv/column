@@ -156,6 +156,9 @@ class Dashboard::ServiceGenresController < ApplicationController
       render json: {
         success: true,
         genre: { key: @service_genre.key, ja: @service_genre.ja },
+        sub_categories: (@service_genre.sub_categories || {}).map { |k, v|
+          { id: k.to_s, name: v.with_indifferent_access[:name] }
+        },
         sub_categories_count: @service_genre.sub_categories_count
       }
     else

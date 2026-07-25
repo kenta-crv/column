@@ -12,7 +12,7 @@ class PillarTitleSuggestionService
   # ==========================================================
   # キーワードとターゲット層から親記事（Pillar）タイトルを生成
   # ==========================================================
-  def self.call(keyword1:, keyword2:, target_layer:, genre:, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil)
+  def self.call(keyword1:, keyword2:, target_layer:, genre:, sub_genre: nil, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil)
     if keyword1.blank? || keyword2.blank? || genre.blank?
       Rails.logger.error("PillarTitleSuggestionService: 必須パラメータが不足しています")
       return { success: false, error: "必須パラメータが不足しています", titles: [] }
@@ -20,7 +20,11 @@ class PillarTitleSuggestionService
 
     genre_key = GenreRegistry.resolve_key(genre, client: client)
     genre_label = GenreRegistry.to_ja(genre_key, client: client) || genre.to_s
-    service_info = GenreRegistry.service_profile(genre_key, client: client)
+    sub_genre_key = sub_genre.presence
+    sub_genre_label = if sub_genre_key
+                        GenreRegistry.genres(client: client).dig(genre_key.to_sym, :sub_categories, sub_genre_key.to_sym, :name)
+                      end
+    service_info = GenreRegistry.service_profile(genre_key, sub_genre_key, client: client)
     per_use_max = max_suggestion_count || (client ? client.max_title_suggestion_count : ABSOLUTE_MAX_SUGGESTION_COUNT)
     title_count = normalize_suggestion_count(suggestion_count, max: per_use_max)
 
@@ -46,6 +50,16 @@ class PillarTitleSuggestionService
       ""
     end
 
+    sub_genre_input_line = sub_genre_label.present? ? "- 中分類: #{sub_genre_label}\n" : ""
+    sub_genre_rule = if sub_genre_label.present?
+      <<~RULE
+         指定された中分類「#{sub_genre_label}」の切り口・検索意図に寄せたタイトルにしてください。
+         中分類のターゲット・特徴・強みをタイトルの示唆に反映してください。
+      RULE
+    else
+      ""
+    end
+
     prompt = <<~PROMPT
       # あなたの役割
       あなたは高度なSEO戦略家およびコンテンツマーケターです。
@@ -56,7 +70,7 @@ class PillarTitleSuggestionService
       - キーワード2: #{keyword2}
       - ターゲット層: #{target_layer_description}
       - 業種カテゴリ: #{genre_label}
-      - 専門サービス強み: #{service_info}
+      #{sub_genre_input_line}- 専門サービス強み: #{service_info}
       - 提案数: #{title_count}個（必ず#{title_count}個生成すること）
       #{custom_prompt_section}
       # タイトル選定の条件（厳守）
@@ -71,7 +85,7 @@ class PillarTitleSuggestionService
       3. 業種カテゴリとの整合性:
          必ず「#{genre_label}」のドメインに関連した範囲内で、かつ業種の専門性を活かしたタイトルにしてください。
          サービスの強み（#{service_info}）を反映させ、信頼性と専門性を感じさせるタイトルにしてください。
-
+      #{sub_genre_rule}
       4. クリック誘導性:
          ユーザーがクリックしたくなるような魅力的な表現を使用してください。
          「完全ガイド」「徹底解説」「初心者向け」「比較」「選び方」など、検索意図に合致したパワーワードを適切に活用してください。

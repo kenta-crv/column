@@ -581,7 +581,7 @@ module GenreRegistry
   def self.service_profile(category_key, sub_key = nil, client: nil)
     return "専門知識に基づいた最適なソリューションを提供。" if category_key.blank?
 
-    g = genres(client: client)[category_key.to_sym]
+    g = genres(client: client)[canonical_key(category_key)&.to_sym]
     return "専門知識に基づいた最適なソリューションを提供。" unless g
 
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
@@ -607,7 +607,7 @@ module GenreRegistry
 
   # 画像取得用
   def self.images(key, client: nil)
-    genres(client: client)[key.to_sym]&.dig(:images) || []
+    genres(client: client)[canonical_key(key)&.to_sym]&.dig(:images) || []
   end
 
   # キーワード取得用
