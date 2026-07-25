@@ -50,7 +50,7 @@ class ApplicationController < ActionController::Base
     path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
     path = "/" if path.blank?
 
-    public_page = controller_path == "tops" || controller_path == "plans"
+    public_page = %w[tops plans seo_checkers].include?(controller_path)
     if public_page
       target == :ja ? path : (path == "/" ? "/en" : "/en#{path}")
     else

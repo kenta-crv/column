@@ -1,6 +1,7 @@
 module CrawlPolicy
   GENRE_KEY = "ai_article"
   TOPS_PATH = "/tops"
+  SEO_CHECKER_PATH = "/tools/seo-checker"
   SITEMAP_HOST = ENV.fetch("SITEMAP_DEFAULT_HOST", "https://drafity.pro")
 
   module_function
@@ -26,6 +27,10 @@ module CrawlPolicy
       Allow: /sitemap.xml
       Allow: #{TOPS_PATH}$
       Allow: #{TOPS_PATH}/
+      Allow: #{SEO_CHECKER_PATH}$
+      Allow: #{SEO_CHECKER_PATH}/
+      Allow: /en#{SEO_CHECKER_PATH}$
+      Allow: /en#{SEO_CHECKER_PATH}/
       Allow: /#{GENRE_KEY}/columns
       Allow: /#{GENRE_KEY}/columns/
       Disallow: /
@@ -34,4 +39,5 @@ module CrawlPolicy
     ROBOTS
   end
 end
+
 

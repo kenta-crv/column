@@ -1,0 +1,105 @@
+- set_meta_tags title: t("drafity.seo_checker.meta_title")
+- set_meta_tags description: t("drafity.seo_checker.meta_description")
+
+.drafify-lp.seo-checker-page
+  nav.nav
+    .nav-inner
+      = link_to locale_root_href
+        = image_tag "logo2.png", width: "150px"
+      .nav-links
+        = link_to t("drafity.lp.nav_features"), "#{locale_root_href}#features"
+        = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale, class: "active"
+        = link_to t("drafity.lp.nav_columns"), ai_article_columns_index_path
+        = link_to t("drafity.lp.nav_pricing"), "#{locale_root_href}#pricing"
+      .nav-cta
+        = render "shared/lang_switch"
+        = link_to t("drafity.lp.login"), new_client_session_path, class: "btn-login"
+        = link_to t("drafity.lp.cta_start"), "/clients/sign_up", class: "btn-primary"
+
+  section.seo-hero
+    .seo-hero-inner
+      p.seo-brand Drafity
+      h1.seo-title = t("drafity.seo_checker.title")
+      p.seo-lead = t("drafity.seo_checker.lead")
+
+      = form_with url: seo_checker_submit_path_for_locale, method: :post, local: true, html: { class: "seo-form" } do
+        label.seo-label for="seo-url" = t("drafity.seo_checker.url_label")
+        .seo-form-row
+          - if @limit_reached
+            input#seo-url.seo-input type="url" name="url" value=@url placeholder=t("drafity.seo_checker.url_placeholder") disabled=true
+            button.seo-submit type="button" disabled=true = t("drafity.seo_checker.submit")
+          - else
+            input#seo-url.seo-input type="url" name="url" value=@url placeholder=t("drafity.seo_checker.url_placeholder") required=true autocomplete="url"
+            button.seo-submit type="submit" = t("drafity.seo_checker.submit")
+        p.seo-remaining
+          = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
+
+  - if @report
+    section.seo-result#seo-result
+      .seo-result-inner
+        .seo-score-block
+          .seo-score-main class=seo_score_level(@report.overall_score)
+            span.seo-score-number = @report.overall_score
+            span.seo-score-unit = "/ 100"
+          .seo-score-meta
+            p.seo-score-label = t("drafity.seo_checker.overall")
+            p.seo-score-url = @report.final_url
+            - if @report.title.present?
+              p.seo-score-page-title = @report.title
+
+        .seo-axes
+          - @report.axes.each do |key, axis|
+            .seo-axis
+              .seo-axis-head
+                span.seo-axis-name = seo_axis_label(key)
+                span.seo-axis-score = "#{axis[:score]}"
+              .seo-axis-bar
+                span.seo-axis-fill style="width: #{axis[:score]}%"
+              p.seo-axis-note = axis[:note]
+
+        - cluster = @report.cluster
+        .seo-cluster
+          h2.seo-section-title = t("drafity.seo_checker.cluster_title")
+          - if cluster[:pillar_candidate].present? || cluster[:cluster_candidate].present?
+            p.seo-cluster-line
+              span.seo-cluster-key = t("drafity.seo_checker.pillar_candidate")
+              span = cluster[:pillar_candidate].presence || "—"
+            p.seo-cluster-line
+              span.seo-cluster-key = t("drafity.seo_checker.cluster_candidate")
+              span = cluster[:cluster_candidate].presence || "—"
+          p.seo-cluster-evidence
+            = t("drafity.seo_checker.cluster_evidence")
+            = " "
+            = Array(cluster[:evidence]).join(" / ")
+          p.seo-cluster-confidence
+            = t("drafity.seo_checker.confidence", value: cluster[:confidence].to_i)
+
+        - if @report.improvements.any?
+          .seo-improvements
+            h2.seo-section-title = t("drafity.seo_checker.improvements_title")
+            ol.seo-improve-list
+              - @report.improvements.each do |tip|
+                li = tip
+
+        .seo-cta-block
+          p.seo-cta-text = t("drafity.seo_checker.cta_text")
+          = link_to t("drafity.seo_checker.cta_button"), "/clients/sign_up", class: "btn-primary-lg"
+          p.seo-remaining
+            = t("drafity.seo_checker.remaining", count: @remaining.to_i, limit: SeoChecker::UsageLimiter::DAILY_LIMIT)
+
+  - elsif @limit_reached
+    section.seo-limit
+      .seo-limit-inner
+        h2.seo-section-title = t("drafity.seo_checker.limit_title")
+        p = t("drafity.seo_checker.limit_body")
+        = link_to t("drafity.seo_checker.cta_button"), "/clients/sign_up", class: "btn-primary-lg"
+
+  footer.lp-footer
+    .lp-footer-inner
+      = link_to locale_root_href, class: "lp-footer-brand" do
+        = image_tag "logo2.png", width: "120", alt: "Drafity"
+      nav.lp-footer-nav aria-label=t("drafity.lp.footer_nav")
+        = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale
+        = link_to t("drafity.lp.footer_articles"), ai_article_columns_index_path
+        = link_to t("drafity.lp.footer_start"), "/clients/sign_up"
+      p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)

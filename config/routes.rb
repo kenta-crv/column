@@ -92,6 +92,8 @@ Rails.application.routes.draw do
     get "/", to: "tops#index", as: :localized_root
     get "plans", to: "plans#index", as: :localized_plans
     get "tops", to: "tops#index", as: :localized_tops
+    get "tools/seo-checker", to: "seo_checkers#show", as: :localized_seo_checker
+    post "tools/seo-checker", to: "seo_checkers#create"
   end
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
@@ -129,6 +131,9 @@ Rails.application.routes.draw do
   root to: 'tops#index'
 
   get '/tops',    to: 'tops#index'
+
+  get  "/tools/seo-checker", to: "seo_checkers#show", as: :seo_checker
+  post "/tools/seo-checker", to: "seo_checkers#create"
 
   get 'draft/progress', to: 'draft#progress'
   resources :contracts

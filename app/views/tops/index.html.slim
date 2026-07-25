@@ -13,6 +13,7 @@
         a.active href="#pricing" = t("drafity.lp.nav_pricing")
         a href="#cases" = t("drafity.lp.nav_cases")
         a href="#faq" = t("drafity.lp.nav_faq")
+        = link_to t("drafity.lp.nav_seo_checker"), (params[:locale].present? ? localized_seo_checker_path(locale: params[:locale]) : seo_checker_path)
         = link_to t("drafity.lp.nav_columns"), ai_article_columns_index_path
       .nav-cta
         = render "shared/lang_switch"
@@ -653,6 +654,7 @@
       = link_to locale_root_href, class: "lp-footer-brand" do
         = image_tag "logo2.png", width: "120", alt: "Drafity"
       nav.lp-footer-nav aria-label=t("drafity.lp.footer_nav")
+        = link_to t("drafity.lp.nav_seo_checker"), (params[:locale].present? ? localized_seo_checker_path(locale: params[:locale]) : seo_checker_path)
         = link_to t("drafity.lp.footer_articles"), ai_article_columns_index_path
         a href="#pricing" = t("drafity.lp.footer_pricing")
         a href="#faq" = t("drafity.lp.footer_faq")

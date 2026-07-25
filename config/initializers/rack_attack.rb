@@ -17,6 +17,13 @@ class Rack::Attack
     req.ip unless api_key
   end
 
+  # 公開 SEO チェッカーのバースト防止（日次3回制限とは別の短時間ガード）
+  throttle("seo_checker/by_ip", limit: 10, period: 1.minute) do |req|
+    next unless req.post? && req.path.match?(%r{\A(/en)?/tools/seo-checker/?\z})
+
+    req.ip
+  end
+
   self.throttled_responder = lambda do |request|
     match_data = request.env['rack.attack.match_data']
     now = match_data[:epoch_time]

@@ -2599,3 +2599,228 @@ $theme-border: rgba(0, 0, 0, 0.08);
     }
   }
 }
+
+/* --------- J Work LINE CTA（記事下部導線） --------- */
+.jwork-line-cta {
+  --line-green: #06c755;
+  --line-green-deep: #05a849;
+  --line-mint: #e8fbe9;
+  --line-ink: #0f172a;
+  position: relative;
+  margin: 56px 0 28px;
+  padding: 28px 24px;
+  border-radius: 22px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(6, 199, 85, 0.12) 0%, rgba(255, 255, 255, 0.95) 42%, #ffffff 100%);
+  border: 1px solid rgba(6, 199, 85, 0.22);
+  box-shadow:
+    0 18px 40px rgba(6, 199, 85, 0.1),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+  animation: jwork-line-cta-in 0.55s ease both;
+}
+
+.jwork-line-cta__glow {
+  position: absolute;
+  inset: auto -20% -40% 40%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(6, 199, 85, 0.22) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.jwork-line-cta__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+}
+
+.jwork-line-cta__badge {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(6, 199, 85, 0.12);
+  color: var(--line-green-deep);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.jwork-line-cta__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  font-weight: 800;
+  color: var(--line-ink);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.jwork-line-cta__lead {
+  margin: 0 0 18px;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.jwork-line-cta__banner-link {
+  display: block;
+  max-width: 420px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  transition: transform 0.25s ease, filter 0.25s ease;
+  filter: drop-shadow(0 10px 18px rgba(6, 199, 85, 0.22));
+
+  &:hover {
+    transform: translateY(-2px) scale(1.015);
+    filter: drop-shadow(0 14px 22px rgba(6, 199, 85, 0.3));
+  }
+}
+
+.jwork-line-cta__banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+}
+
+.jwork-line-cta__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0.85rem 1.35rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #06c755 0%, #05a849 100%);
+  color: #fff !important;
+  font-weight: 800;
+  font-size: 0.98rem;
+  text-decoration: none !important;
+  box-shadow: 0 10px 22px rgba(6, 199, 85, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(6, 199, 85, 0.34);
+    color: #fff !important;
+  }
+}
+
+.jwork-line-cta__btn-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: #fff;
+  position: relative;
+  flex: 0 0 auto;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 4px 4px 6px;
+    border-radius: 4px;
+    background: var(--line-green);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    bottom: 3px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 5px 6px 0 0;
+    border-color: var(--line-green) transparent transparent transparent;
+  }
+}
+
+.jwork-line-cta__qr {
+  text-align: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(6, 199, 85, 0.16);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.jwork-line-cta__qr-link {
+  display: inline-block;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.03);
+  }
+}
+
+.jwork-line-cta__qr-img {
+  display: block;
+  width: 148px;
+  height: 148px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.jwork-line-cta__qr-caption {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.jwork-line-cta--recruit {
+  background:
+    linear-gradient(145deg, rgba(6, 199, 85, 0.16) 0%, rgba(255, 255, 255, 0.96) 48%, #ffffff 100%);
+}
+
+@keyframes jwork-line-cta-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .jwork-line-cta {
+    margin: 40px 0 20px;
+    padding: 22px 18px;
+  }
+
+  .jwork-line-cta__inner {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .jwork-line-cta__banner-link {
+    max-width: none;
+  }
+
+  .jwork-line-cta__btn {
+    width: 100%;
+  }
+
+  .jwork-line-cta__qr {
+    justify-self: center;
+    width: 100%;
+    max-width: 220px;
+  }
+
+  .jwork-line-cta__qr-img {
+    width: 132px;
+    height: 132px;
+    margin: 0 auto;
+  }
+}
