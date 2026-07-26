@@ -110,6 +110,14 @@ module ColumnsHelper
     platform_host? ? public_column_show_path(column) : "/columns/#{column.code}"
   end
 
+  def related_article_excerpt(column, length: 72)
+    raw = column.description.to_s.strip
+    raw = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip if raw.blank? || raw == column.title.to_s.strip
+    return if raw.blank?
+
+    truncate(raw, length: length, omission: "…")
+  end
+
   def columns_index_link(genre_key, label_text = nil)
     key = genre_key.to_s
     return unless key.match?(/\A[a-z0-9_]+\z/)

@@ -149,36 +149,71 @@
     - if @column.article_type == "pillar"
       - public_children = @children.select { |c| c.publicly_visible? && c.code.present? }
       - if public_children.any? && !can_manage_column?(@column)
-        .related-articles
-          h2.related-articles__title このテーマの関連記事
+        section.related-articles.related-articles--children
+          .related-articles__header
+            div
+              p.related-articles__eyebrow クラスター
+              h2.related-articles__title このテーマの関連記事
+            span.related-articles__count = "#{public_children.size}件"
           ul.related-articles__list
-            - public_children.each do |child|
+            - public_children.each_with_index do |child, idx|
               li.related-articles__item
-                = link_to child.title, public_related_column_path(child), class: "related-articles__link"
+                = link_to public_related_column_path(child), class: "related-articles__link" do
+                  span.related-articles__index = format("%02d", idx + 1)
+                  span.related-articles__body
+                    span.related-articles__item-title = child.title
+                    - desc = related_article_excerpt(child)
+                    - if desc.present?
+                      span.related-articles__item-desc = desc
+                  span.related-articles__arrow aria-hidden="true" →
 
     - if !can_manage_column?(@column) && @sibling_columns.present?
-      .related-articles.related-articles--siblings
-        h2.related-articles__title 同じクラスターの記事
+      section.related-articles.related-articles--siblings
+        .related-articles__header
+          div
+            p.related-articles__eyebrow 兄弟記事
+            h2.related-articles__title 同じクラスターの記事
+          span.related-articles__count = "#{@sibling_columns.size}件"
         ul.related-articles__list
-          - @sibling_columns.each do |sibling|
+          - @sibling_columns.each_with_index do |sibling, idx|
             li.related-articles__item
-              = link_to sibling.title, public_related_column_path(sibling), class: "related-articles__link"
+              = link_to public_related_column_path(sibling), class: "related-articles__link" do
+                span.related-articles__index = format("%02d", idx + 1)
+                span.related-articles__body
+                  span.related-articles__item-title = sibling.title
+                  - desc = related_article_excerpt(sibling)
+                  - if desc.present?
+                    span.related-articles__item-desc = desc
+                span.related-articles__arrow aria-hidden="true" →
 
     - if !can_manage_column?(@column) && @cross_cluster_columns.present?
-      .related-articles.related-articles--cross
-        h2.related-articles__title あわせて読みたい（関連テーマ）
+      section.related-articles.related-articles--cross
+        .related-articles__header
+          div
+            p.related-articles__eyebrow 関連テーマ
+            h2.related-articles__title あわせて読みたい
+          span.related-articles__count = "#{@cross_cluster_columns.size}件"
         ul.related-articles__list
-          - @cross_cluster_columns.each do |related|
+          - @cross_cluster_columns.each_with_index do |related, idx|
             li.related-articles__item
-              = link_to related.title, public_related_column_path(related), class: "related-articles__link"
+              = link_to public_related_column_path(related), class: "related-articles__link" do
+                span.related-articles__index = format("%02d", idx + 1)
+                span.related-articles__body
+                  span.related-articles__item-title = related.title
+                  - desc = related_article_excerpt(related)
+                  - if desc.present?
+                    span.related-articles__item-desc = desc
+                span.related-articles__arrow aria-hidden="true" →
 
-    .column-footer style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;"
+    .column-footer.column-footer--public
       - parent = @column.parent
       - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
-        p style="margin-bottom: 16px;"
-          = link_to "親記事: #{parent.title}", public_related_column_path(parent), style: "color: #007bff; text-decoration: none; font-weight: 600;"
+        p.column-footer__parent
+          = link_to public_related_column_path(parent), class: "column-footer__parent-link" do
+            span.column-footer__parent-label 親記事
+            span.column-footer__parent-title = parent.title
       - if client_signed_in?
         = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
       - else
         - index_path = platform_host? ? public_columns_index_path(genre: @column.genre) : "/columns"
-        = link_to '一覧へ戻る', index_path, class: 'btn btn-default'
+        = link_to '一覧へ戻る', index_path, class: 'btn btn-default column-footer__back'

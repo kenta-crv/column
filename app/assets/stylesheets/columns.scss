@@ -30,53 +30,278 @@
   }
 
   .related-articles {
-    margin: 48px 0 0;
-    padding: 28px 24px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fff;
+    margin: 56px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    & + .related-articles {
+      margin-top: 28px;
+    }
+
+    &__header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    &__eyebrow {
+      display: inline-block;
+      margin: 0 0 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0.04em;
+      color: #3b82f6;
+    }
 
     &__title {
-      margin: 0 0 18px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #2563eb;
-      font-size: 1.25rem;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       color: #111827;
+      line-height: 1.35;
+    }
+
+    &__count {
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      white-space: nowrap;
     }
 
     &__list {
       list-style: none;
       margin: 0;
       padding: 0;
+      display: grid;
+      gap: 12px;
     }
 
     &__item {
       margin: 0;
-      padding: 12px 0;
-      border-bottom: 1px solid #f3f4f6;
-
-      &:last-child {
-        border-bottom: 0;
-        padding-bottom: 0;
-      }
+      padding: 0;
+      border: 0;
     }
 
     &__link {
-      color: #2563eb;
-      font-weight: 600;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      color: inherit;
       text-decoration: none;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 
       &:hover {
-        text-decoration: underline;
+        border-color: #93c5fd;
+        background: #f0f7ff;
+        text-decoration: none;
+        transform: translateY(-1px);
+
+        .related-articles__arrow {
+          transform: translateX(3px);
+          color: #2563eb;
+        }
+
+        .related-articles__item-title {
+          color: #1d4ed8;
+        }
       }
     }
 
-    &--cross .related-articles__title {
-      border-bottom-color: #0f766e;
+    &__index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
-    &--siblings .related-articles__title {
-      border-bottom-color: #7c3aed;
+    &__body {
+      min-width: 0;
+    }
+
+    &__item-title {
+      display: block;
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.55;
+      transition: color 0.2s ease;
+    }
+
+    &__item-desc {
+      display: block;
+      margin: 6px 0 0;
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: #6b7280;
+      line-height: 1.55;
+    }
+
+    &__arrow {
+      flex-shrink: 0;
+      color: #9ca3af;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    &--children {
+      .related-articles__eyebrow,
+      .related-articles__index {
+        color: #2563eb;
+      }
+
+      .related-articles__index {
+        background: #eff6ff;
+      }
+    }
+
+    &--siblings {
+      .related-articles__eyebrow {
+        color: #0f766e;
+      }
+
+      .related-articles__index {
+        color: #0f766e;
+        background: #ecfdf5;
+      }
+
+      .related-articles__link:hover {
+        border-color: #6ee7b7;
+        background: #f0fdf9;
+
+        .related-articles__item-title {
+          color: #0f766e;
+        }
+
+        .related-articles__arrow {
+          color: #0f766e;
+        }
+      }
+    }
+
+    &--cross {
+      .related-articles__eyebrow {
+        color: #b45309;
+      }
+
+      .related-articles__index {
+        color: #b45309;
+        background: #fffbeb;
+      }
+
+      .related-articles__link:hover {
+        border-color: #fcd34d;
+        background: #fffbeb;
+
+        .related-articles__item-title {
+          color: #b45309;
+        }
+
+        .related-articles__arrow {
+          color: #b45309;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .related-articles {
+      &__header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      &__link {
+        grid-template-columns: 40px 1fr;
+        gap: 12px;
+        padding: 14px 14px;
+      }
+
+      &__index {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+      }
+
+      &__arrow {
+        display: none;
+      }
+
+      &__item-title {
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .column-footer--public {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+
+    .column-footer__parent {
+      margin: 0 0 20px;
+    }
+
+    .column-footer__parent-link {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      padding: 14px 20px;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: #f8fbff;
+      text-decoration: none;
+
+      &:hover {
+        border-color: #93c5fd;
+        background: #eff6ff;
+        text-decoration: none;
+      }
+    }
+
+    .column-footer__parent-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #3b82f6;
+    }
+
+    .column-footer__parent-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e3a8a;
+      line-height: 1.5;
+    }
+
+    .column-footer__back {
+      min-width: 160px;
     }
   }
 
