@@ -118,6 +118,45 @@ module ColumnsHelper
     truncate(raw, length: length, omission: "…")
   end
 
+  # 公開記事向け自社CTA（関連記事セクションの直前）
+  def column_service_cta_for(column)
+    ColumnServiceCta.resolve(column)
+  end
+
+  def column_service_cta_href(cta, column)
+    return if cta.blank?
+
+    absolute = cta[:url].to_s.strip
+    return absolute if absolute.start_with?("http://", "https://")
+
+    path = cta[:path].presence || brand_lp_path_for_cta || "/"
+    path = "/#{path}" unless path.start_with?("/")
+
+    return path unless platform_host?
+
+    host = column_service_cta_brand_host(column)
+    return path if host.blank?
+
+    "https://#{host}#{path}"
+  end
+
+  def brand_lp_path_for_cta
+    path = request.headers["X-Brand-Lp-Path"].to_s.strip
+    path = path.b.force_encoding(Encoding::UTF_8).strip
+    return nil if path.blank?
+    return nil unless path.match?(%r{\A/[\w\-./]*\z}) && !path.start_with?("//")
+
+    path
+  rescue StandardError
+    nil
+  end
+
+  def column_service_cta_brand_host(column)
+    key = GenreRegistry.canonical_key(column&.genre)
+    hosts = GenreRegistry.genre_entry(key)&.dig(:host)
+    Array(hosts).map(&:to_s).reject(&:blank?).first
+  end
+
   def columns_index_link(genre_key, label_text = nil)
     key = genre_key.to_s
     return unless key.match?(/\A[a-z0-9_]+\z/)

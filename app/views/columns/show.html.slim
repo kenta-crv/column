@@ -145,6 +145,12 @@
             .pillar-children-empty
               p まだ子記事がありません。上の Step 1 からタイトルを追加してください。
 
+    / ===== 自社サービスCTA（関連・おすすめ記事の直前） =====
+    - unless can_manage_column?(@column)
+      - cta = column_service_cta_for(@column)
+      - if cta.present?
+        = render "columns/service_cta", cta: cta, column: @column
+
     / ===== 親記事（子記事ページ） =====
     - parent = @column.parent
     - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?

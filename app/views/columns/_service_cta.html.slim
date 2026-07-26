@@ -1,0 +1,23 @@
+- return unless cta.present?
+- href = column_service_cta_href(cta, column)
+- return if href.blank?
+- theme = cta[:theme].presence || "default"
+- external = href.start_with?("http://", "https://")
+
+section.column-service-cta class="column-service-cta--#{theme}" data-column-service-cta="1"
+  .column-service-cta__glow aria-hidden="true"
+  .column-service-cta__inner
+    .column-service-cta__copy
+      - if cta[:badge].present?
+        span.column-service-cta__badge = cta[:badge]
+      h2.column-service-cta__title = cta[:title]
+      - if cta[:lead].present?
+        p.column-service-cta__lead = cta[:lead]
+      - if external
+        = link_to href, class: "column-service-cta__btn", target: "_blank", rel: "noopener noreferrer" do
+          span = cta[:cta_label].presence || "詳しく見る"
+          span.column-service-cta__btn-arrow aria-hidden="true" →
+      - else
+        = link_to href, class: "column-service-cta__btn" do
+          span = cta[:cta_label].presence || "詳しく見る"
+          span.column-service-cta__btn-arrow aria-hidden="true" →
