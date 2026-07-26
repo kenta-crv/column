@@ -125,4 +125,62 @@ module ApplicationHelper
   rescue StandardError
     false
   end
+
+  def organization_json_ld
+    {
+      "@context" => "https://schema.org",
+      "@type" => "Organization",
+      "name" => "Drafity",
+      "legalName" => "合同会社ファクトル",
+      "url" => "https://drafity.pro/",
+      "logo" => "https://drafity.pro#{image_path('favicon.ico')}",
+      "description" => "AI記事生成SaaS「Drafity」の開発・提供。メディア支援・コンテンツマーケティング支援。",
+      "address" => {
+        "@type" => "PostalAddress",
+        "streetAddress" => "中央新町12-13",
+        "addressLocality" => "天草市",
+        "addressRegion" => "熊本県",
+        "postalCode" => "863-0023",
+        "addressCountry" => "JP"
+      }
+    }.to_json
+  end
+
+  def website_json_ld
+    {
+      "@context" => "https://schema.org",
+      "@type" => "WebSite",
+      "name" => "Drafity",
+      "url" => "https://drafity.pro/",
+      "inLanguage" => %w[ja en],
+      "publisher" => {
+        "@type" => "Organization",
+        "name" => "合同会社ファクトル"
+      }
+    }.to_json
+  end
+
+  def faq_page_json_ld(items)
+    entities = Array(items).filter_map do |item|
+      q = (item[:q] || item["q"]).to_s.strip
+      a = (item[:a] || item["a"]).to_s.strip
+      next if q.blank? || a.blank?
+
+      {
+        "@type" => "Question",
+        "name" => q,
+        "acceptedAnswer" => {
+          "@type" => "Answer",
+          "text" => a
+        }
+      }
+    end
+    return if entities.blank?
+
+    {
+      "@context" => "https://schema.org",
+      "@type" => "FAQPage",
+      "mainEntity" => entities
+    }.to_json
+  end
 end
