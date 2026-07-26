@@ -145,6 +145,26 @@
             .pillar-children-empty
               p まだ子記事がありません。上の Step 1 からタイトルを追加してください。
 
+    / ===== 親記事（子記事ページ） =====
+    - parent = @column.parent
+    - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
+      section.related-articles.related-articles--parent
+        .related-articles__header
+          div
+            p.related-articles__eyebrow 親記事
+            h2.related-articles__title この記事の親テーマ
+          span.related-articles__count 1件
+        ul.related-articles__list
+          li.related-articles__item
+            = link_to public_related_column_path(parent), class: "related-articles__link" do
+              span.related-articles__index 親
+              span.related-articles__body
+                span.related-articles__item-title = parent.title
+                - desc = related_article_excerpt(parent, length: 96)
+                - if desc.present?
+                  span.related-articles__item-desc = desc
+              span.related-articles__arrow aria-hidden="true" →
+
     / ===== 関連記事一覧（一般公開用：本文があるもののみ） =====
     - if @column.article_type == "pillar"
       - public_children = @children.select { |c| c.publicly_visible? && c.code.present? }
@@ -206,14 +226,8 @@
                 span.related-articles__arrow aria-hidden="true" →
 
     .column-footer.column-footer--public
-      - parent = @column.parent
-      - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
-        p.column-footer__parent
-          = link_to public_related_column_path(parent), class: "column-footer__parent-link" do
-            span.column-footer__parent-label 親記事
-            span.column-footer__parent-title = parent.title
       - if client_signed_in?
         = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
       - else
         - index_path = platform_host? ? public_columns_index_path(genre: @column.genre) : "/columns"
-        = link_to '一覧へ戻る', index_path, class: 'btn btn-default column-footer__back'
+        = link_to '一覧へ戻る', index_path, class: 'column-footer__back'

@@ -1,4 +1,12 @@
 ja:
+  views:
+    pagination:
+      first: "最初"
+      last: "最後"
+      previous: "前へ"
+      next: "次へ"
+      truncate: "…"
+
   meetia:
     lp:
       meta_title: "AI商談代行サービス Meetia｜24時間365日、AIが音声商談を代行"

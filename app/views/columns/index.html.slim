@@ -125,6 +125,6 @@
       - else
         p.image-generation-empty = empty_message
 
-      .pagination-wrapper style="margin-top: 40px; display: flex; justify-content: center;"
+      .pagination-wrapper
         - if @columns.present?
           = paginate @paginated_columns
