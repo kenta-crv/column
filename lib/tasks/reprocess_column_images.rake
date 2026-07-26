@@ -1,4 +1,45 @@
 namespace :columns do
+  desc "uploads上の実ファイルと columns.file の不一致を修復（No Image対策）"
+  task repair_image_filenames: :environment do
+    dry_run = ENV["DRY_RUN"].to_s == "1"
+    fixed = 0
+    ok = 0
+    empty = 0
+
+    Column.find_each do |column|
+      dir = Rails.root.join("public", "uploads", "column", "file", column.id.to_s)
+      unless dir.directory?
+        empty += 1 if column.read_attribute(:file).present?
+        next
+      end
+
+      files = dir.children.select { |p| p.file? && p.extname.to_s.match?(/\A\.(webp|jpe?g|png|gif)\z/i) }
+      if files.empty?
+        empty += 1 if column.read_attribute(:file).present?
+        next
+      end
+
+      current = column.read_attribute(:file).to_s
+      if current.present? && dir.join(current).file?
+        ok += 1
+        next
+      end
+
+      preferred_base = current.present? ? File.basename(current, ".*") : nil
+      chosen =
+        files.find { |f| preferred_base.present? && f.basename(".*").to_s == preferred_base && f.extname.downcase == ".webp" } ||
+        files.find { |f| preferred_base.present? && f.basename(".*").to_s == preferred_base } ||
+        files.find { |f| f.extname.downcase == ".webp" } ||
+        files.max_by(&:mtime)
+
+      puts "FIX id=#{column.id} db=#{current.inspect} -> #{chosen.basename}"
+      column.update_column(:file, chosen.basename.to_s) unless dry_run
+      fixed += 1
+    end
+
+    puts "Done fixed=#{fixed} ok=#{ok} missing_or_empty=#{empty} dry_run=#{dry_run}"
+  end
+
   desc "既存の記事画像を WebP に一括変換（縮小込み）。DRY_RUN=1 で確認のみ。LIMIT=N で件数制限。"
   task reprocess_images_webp: :environment do
     dry_run = ENV["DRY_RUN"].to_s == "1"
@@ -62,13 +103,19 @@ namespace :columns do
           end
         end
 
+        column.reload
+        new_name = column.read_attribute(:file).to_s
         new_path = column.file.path
+        unless new_path.present? && File.exist?(new_path) && File.extname(new_name).downcase == ".webp"
+          raise "convert incomplete: db=#{new_name.inspect} path=#{new_path.inspect}"
+        end
+
         if old_path != new_path && File.exist?(old_path)
           FileUtils.rm_f(old_path)
         end
 
-        new_kb = File.exist?(new_path.to_s) ? (File.size(new_path) / 1024.0).round(1) : "?"
-        puts "OK id=#{column.id} -> #{File.basename(new_path.to_s)} (#{new_kb}KB)"
+        new_kb = (File.size(new_path) / 1024.0).round(1)
+        puts "OK id=#{column.id} -> #{File.basename(new_path)} (#{new_kb}KB)"
         ok += 1
       rescue StandardError => e
         puts "FAIL id=#{column.id}: #{e.class}: #{e.message}"

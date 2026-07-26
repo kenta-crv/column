@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_14_120000) do
+ActiveRecord::Schema.define(version: 2026_07_26_120000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -167,13 +167,13 @@ ActiveRecord::Schema.define(version: 2026_07_14_120000) do
     t.string "ja", null: false
     t.string "service_name"
     t.text "strong_points"
-    t.text "columns_index_description"
     t.json "hosts", default: []
     t.json "keywords", default: []
     t.json "images", default: []
     t.json "sub_categories", default: {}
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.text "columns_index_description"
     t.index ["client_id", "key"], name: "index_service_genres_on_client_id_and_key", unique: true
     t.index ["client_id"], name: "index_service_genres_on_client_id"
   end

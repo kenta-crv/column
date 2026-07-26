@@ -23,7 +23,7 @@ class ServiceGenre < ApplicationRecord
       service_name: service_name.to_s,
       keywords: Array(keywords),
       strong_points: strong_points,
-      columns_index_description: columns_index_description,
+      columns_index_description: columns_index_description_value,
       images: Array(images),
       sub_categories: deep_symbolize(sub_categories || {})
     }.compact
@@ -38,6 +38,12 @@ class ServiceGenre < ApplicationRecord
     else
       "#{name}に関する解説記事一覧。導入・運用・事例のポイントをまとめています。"
     end
+  end
+
+  def columns_index_description_value
+    return unless has_attribute?(:columns_index_description)
+
+    self[:columns_index_description]
   end
 
   def sub_categories_count
@@ -93,17 +99,20 @@ class ServiceGenre < ApplicationRecord
     data = GenreRegistry::FALLBACK_GENRES[template_key.to_sym]
     return new unless data
 
-    new(
+    attrs = {
       key: template_key.to_s,
       ja: data[:ja],
       service_name: data[:service_name],
       strong_points: data[:strong_points],
-      columns_index_description: data[:columns_index_description],
       hosts: Array(data[:host]),
       keywords: Array(data[:keywords]),
       images: Array(data[:images]),
       sub_categories: stringify_nested(data[:sub_categories] || {})
-    )
+    }
+    if attribute_names.include?("columns_index_description")
+      attrs[:columns_index_description] = data[:columns_index_description]
+    end
+    new(attrs)
   end
 
   def self.stringify_nested(value)
@@ -126,7 +135,8 @@ class ServiceGenre < ApplicationRecord
   end
 
   def ensure_columns_index_description
-    return if columns_index_description.to_s.strip.present?
+    return unless has_attribute?(:columns_index_description)
+    return if columns_index_description_value.to_s.strip.present?
 
     self.columns_index_description = default_columns_index_description
   end

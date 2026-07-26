@@ -6,10 +6,9 @@
 - empty_message = params[:article_type] == 'pillar' ? '親記事がありません。ダッシュボードから親記事を作成してください。' : (params[:article_type] == 'child' ? 'クラスター記事はありません。' : '公開済みの記事はありません。')
 
 - set_meta_tags title: service_name.present? ? "【#{service_name}】記事一覧" : page_title
-- index_description = begin
-    key = registry_genre_key.presence || current_genre_key
-    GenreRegistry.columns_index_description(key).presence
-  end
+- index_desc_key = registry_genre_key.presence || current_genre_key
+- index_description = index_desc_key.present? && GenreRegistry.respond_to?(:columns_index_description) ? GenreRegistry.columns_index_description(index_desc_key).presence : nil
+- index_description ||= index_desc_key.present? ? GenreRegistry.genres.dig(index_desc_key.to_sym, :columns_index_description).presence : nil
 - index_description ||= service_name.present? ? "#{service_name}のAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。" : "#{page_title}。導入・運用・事例のポイントをまとめています。"
 - set_meta_tags description: index_description
 
@@ -124,9 +123,19 @@
         .columns-grid
           - @columns.each do |column|
             .column-card
+              .column-image
+                - if column.file.present?
+                  = image_tag column.file.to_s, width: "100%", class: "column-thumb", alt: column.title, loading: "lazy", decoding: "async"
+                - else
+                  .no-image style="background:#eee; aspect-ratio:16/9; border-radius:8px 8px 0 0; display:flex; align-items:center; justify-content:center; color:#999;" No Image
               .column-content
                 h2.column-title
                   = link_to column.title, public_column_show_path(column), data: { turbo: false }
+                - if column.description.present?
+                  .column-description
+                    = truncate(strip_tags(column.description), length: 120)
+                    span.ms-1 style="color:#999; font-size:0.8rem;"
+                      | （#{column.updated_at.in_time_zone.strftime("%Y/%m/%d")}）
       - else
         p.image-generation-empty = empty_message
 

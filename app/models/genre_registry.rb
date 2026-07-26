@@ -4,6 +4,7 @@ module GenreRegistry
       ja: "清掃",
       host: ["okey.work"],
       service_name: "OK清掃",
+      columns_index_description: "OK清掃の日常清掃・オフィス清掃・施設清掃に関する解説記事一覧。導入の進め方、運用ポイント、現場の事例をまとめています。",
       keywords: ["日常清掃", "オフィス清掃", "学校清掃", "施設清掃", "店舗清掃"],
       sub_categories: {
         daily_standard: {
@@ -143,6 +144,7 @@ module GenreRegistry
       ja: "家事代行",
       host: ["kurasera.life"],
       service_name: "クラセラ",
+      columns_index_description: "クラセラの家事代行・ハウスクリーニングに関する解説記事一覧。依頼の流れ、料金の考え方、活用事例をまとめています。",
       keywords: ["家事代行", "お手伝いさん", "家政婦", "ハウスキーピング"],
       strong_points: "家事代行・お手伝いさん・家政婦・ハウスキーピングの依頼なら『クラセラ』",
       sub_categories: {
@@ -162,6 +164,7 @@ module GenreRegistry
       ja: "シロアリ駆除",
       host: [],
       service_name: "シロアリ害虫駆除なら『シロアリ駆除士隊』",
+      columns_index_description: "シロアリ駆除・害虫対策に関する解説記事一覧。調査から施工、再発防止までのポイントをまとめています。",
       keywords: ["シロアリ駆除"],
       strong_points: "自宅のシロアリにお悩みの方に向けて害虫の駆除を行います。",
       sub_categories: {
@@ -184,6 +187,7 @@ module GenreRegistry
       ja: "特殊清掃",
       host: ["okey.work"],
       service_name: "OK特殊クリーンサービス",
+      columns_index_description: "OK特殊クリーンの特殊清掃・遺品整理に関する解説記事一覧。対応範囲、消臭・除菌、依頼時の注意点をまとめています。",
       keywords: ["特殊清掃", "遺品整理", "孤独死清掃", "ゴミ屋敷片付け", "特殊消臭"],
       sub_categories: {
         special: {
@@ -202,6 +206,7 @@ module GenreRegistry
       ja: "Amazon配送",
       host: ["okey.work"],
       service_name: "J Work",
+      columns_index_description: "J WorkのAmazon配送・軽貨物ドライバー支援に関する解説記事一覧。採用、請負、現場運営のポイントをまとめています。",
       keywords: ["Amazonデリバリー", "軽貨物配送", "配送ドライバー"],
       sub_categories: {
         delivery_partner: {
@@ -232,6 +237,7 @@ module GenreRegistry
       ja: "営業代行",
       host: ["okurite.pro"],
       service_name: "Okurite",
+      columns_index_description: "Okuriteの営業代行・テレアポ・インサイドセールスに関する解説記事一覧。施策設計、KPI、導入事例のポイントをまとめています。",
       strong_points: "AIを活用した低価格かつ大量アプローチを叶えるトータル営業代行サービス",
       keywords: ["営業代行", "テレアポ", "インサイドセールス", "コールセンター", "フォーム営業", "営業KPI", "営業戦略"],
       images: ['app1.jpg', 'app2.jpg'],
@@ -315,6 +321,7 @@ module GenreRegistry
       ja: "自販機設置",
       host: ["自販機.net"],
       service_name: "自動販売機の設置なら『自販機ねっと』",
+      columns_index_description: "自販機ねっとの自動販売機設置・購入に関する解説記事一覧。無料設置と購入運営の違い、導入手順、収益の考え方をまとめています。",
       strong_points: "中小企業や小規模企業・個人オーナー向けに自動販売機の購入・販売サービス、大手企業や商店街・繁華街に向けては自動販売機の一括見積もりサービスを提供しております。",
       keywords: ["自販機", "自動販売機"],
       sub_categories: {
@@ -349,6 +356,7 @@ module GenreRegistry
       ja: "AI記事生成",
       host: ["drafity.pro"],
       service_name: "Drafify",
+      columns_index_description: "DrafifyのAI記事生成・SEOコンテンツに関する解説記事一覧。ピラー／クラスター設計、運用、品質の見方をまとめています。",
       strong_points: "最新AIがGoogleの検索志向を分析し、SEOに強く読者の心に響く高品質な記事を自動生成。ピラー・クラスター構造の設計から、E-E-A-T対応の本文・画像生成、SEOスコア査定、CMS/API連携まで一貫対応。",
       keywords: ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツSEO", "E-E-A-T", "コンテンツ資産化"],
       sub_categories: {
@@ -383,6 +391,7 @@ module GenreRegistry
       ja: "AI記事",
       host: ["drafity.pro"],
       service_name: "AI記事生成サービス",
+      columns_index_description: "AI記事生成サービスのSEO記事・コンテンツ資産化に関する解説記事一覧。親子記事の作り方と運用のポイントをまとめています。",
       strong_points: "AIを活用し、高品質なSEO記事を自動生成することで、トラフィック増加とコンテンツ資産化を実現",
       keywords: ["AI記事", "AI記事生成", "親記事", "子記事", "SEO記事", "コンテンツSEO", "高品質記事", "コンテンツ資産化"],
       sub_categories: {
@@ -402,6 +411,30 @@ module GenreRegistry
           price_hint: "要お見積り",
           area: "全国対応",
           strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"
+        }
+      }
+    },
+    # ----------------------------------------------------------------
+    # Recrivo: AI面接代行
+    # ----------------------------------------------------------------
+    ai_interview: {
+      ja: "AI面接代行",
+      host: ["recrivo.pro"],
+      service_name: "Recrivo",
+      columns_index_description: "RecrivoのAI面接代行に関する解説記事一覧。24時間面接、評価・結果の見方、採用オペレーション改善のポイントをまとめています。",
+      strong_points: "求職者との面接をAIが完全代行。24時間いつでも求職者の好きなタイミングで面接ができ、採用結果を把握できるため、応募から面接までのリードタイムを短縮します。",
+      keywords: ["AI面接", "AI面接代行", "採用自動化", "オンライン面接", "採用DX", "面接スクリーニング"],
+      sub_categories: {
+        ai_screening: {
+          name: "AI面接・スクリーニング",
+          target: "応募増に対して面接工数が逼迫している採用チーム・人事",
+          description: "求職者が好きな時間にAI面接を受診。質問・深掘り・評価までを自動化し、採用担当は結果確認と最終判断に集中できる。",
+          features: ["24時間面接受付", "質問・深掘りの自動化", "評価結果の可視化", "応募〜面接リードタイム短縮"],
+          keywords: ["AI面接", "面接代行", "採用スクリーニング", "24時間面接"],
+          price_hint: "要お見積り",
+          area: "全国対応",
+          strengths: "面接枠の調整や一次面接の工数を大幅に削減し、採用スピードと候補者体験を両立。",
+          industry_weakness: "従来の面接は日程調整と一次対応の負荷が大きく取りこぼしが起きやすいが、AI面接で常時受付と初期評価を自動化できる。"
         }
       }
     }
