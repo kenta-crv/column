@@ -20,7 +20,7 @@
 
     - if @column.file.present?
       .column-image-wrapper style="position: relative; display: inline-block; max-width: 100%;"
-        = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title
+        = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title, loading: 'lazy', decoding: 'async'
         - if can_manage_column?(@column)
           = link_to '× 画像削除', remove_image_column_path(@column), method: :patch, data: { confirm: 'この画像のみを削除しますか？', turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
 

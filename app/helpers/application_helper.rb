@@ -118,4 +118,11 @@ module ApplicationHelper
       "itemListElement" => items
     }.to_json
   end
+
+  # 記事詳細には英語版が無いので、トップ向けhreflangを出さない
+  def public_column_article_page?
+    controller_name == "columns" && action_name == "show" && !columns_manage_view?
+  rescue StandardError
+    false
+  end
 end

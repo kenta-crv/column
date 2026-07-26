@@ -9,6 +9,7 @@ class ServiceGenre < ApplicationRecord
   validates :ja, presence: true
 
   before_validation :normalize_key
+  before_validation :ensure_columns_index_description
   validate :within_client_genre_limit, on: :create
   validate :within_client_sub_category_limit, if: -> { client_id? && !admin_override }
   after_save :sync_client_allowed_genres, if: :client_id?
@@ -22,9 +23,21 @@ class ServiceGenre < ApplicationRecord
       service_name: service_name.to_s,
       keywords: Array(keywords),
       strong_points: strong_points,
+      columns_index_description: columns_index_description,
       images: Array(images),
       sub_categories: deep_symbolize(sub_categories || {})
     }.compact
+  end
+
+  def default_columns_index_description
+    name = service_name.presence || ja.presence || key
+    tip = strong_points.to_s.gsub(/\s+/, " ").strip
+    tip = tip.truncate(70) if tip.present?
+    if tip.present?
+      "#{name}に関する解説記事一覧。#{tip}"
+    else
+      "#{name}に関する解説記事一覧。導入・運用・事例のポイントをまとめています。"
+    end
   end
 
   def sub_categories_count
@@ -85,6 +98,7 @@ class ServiceGenre < ApplicationRecord
       ja: data[:ja],
       service_name: data[:service_name],
       strong_points: data[:strong_points],
+      columns_index_description: data[:columns_index_description],
       hosts: Array(data[:host]),
       keywords: Array(data[:keywords]),
       images: Array(data[:images]),
@@ -109,6 +123,12 @@ class ServiceGenre < ApplicationRecord
 
   def normalize_key
     self.key = key.to_s.strip.downcase if key.present?
+  end
+
+  def ensure_columns_index_description
+    return if columns_index_description.to_s.strip.present?
+
+    self.columns_index_description = default_columns_index_description
   end
 
   def within_client_sub_category_limit

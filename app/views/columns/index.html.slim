@@ -6,7 +6,12 @@
 - empty_message = params[:article_type] == 'pillar' ? '親記事がありません。ダッシュボードから親記事を作成してください。' : (params[:article_type] == 'child' ? 'クラスター記事はありません。' : '公開済みの記事はありません。')
 
 - set_meta_tags title: service_name.present? ? "【#{service_name}】記事一覧" : page_title
-- set_meta_tags description: service_name.present? ? "#{service_name}の記事をご覧いただけます。" : page_title
+- index_description = begin
+    key = registry_genre_key.presence || current_genre_key
+    GenreRegistry.columns_index_description(key).presence
+  end
+- index_description ||= service_name.present? ? "#{service_name}のAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。" : "#{page_title}。導入・運用・事例のポイントをまとめています。"
+- set_meta_tags description: index_description
 
 - if @columns_manage_view
   .image-generation-page.columns-manage-page

@@ -167,6 +167,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_120000) do
     t.string "ja", null: false
     t.string "service_name"
     t.text "strong_points"
+    t.text "columns_index_description"
     t.json "hosts", default: []
     t.json "keywords", default: []
     t.json "images", default: []

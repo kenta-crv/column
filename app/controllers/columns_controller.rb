@@ -84,19 +84,8 @@ class ColumnsController < ApplicationController
     end
 
     unless can_manage_column?(@column)
-      @cross_cluster_columns = Column.cross_cluster_related_to(@column, limit: 6)
-      if @column.parent_id.present?
-        @sibling_columns = Column.published
-                                 .with_generated_body
-                                 .where(parent_id: @column.parent_id)
-                                 .where.not(id: @column.id)
-                                 .where.not(code: [nil, ""])
-                                 .order(published_at: :desc)
-                                 .limit(6)
-                                 .to_a
-      else
-        @sibling_columns = []
-      end
+      @cross_cluster_columns = Column.cross_cluster_related_to(@column, limit: 5)
+      @sibling_columns = Column.related_siblings_for(@column, limit: 5)
     else
       @cross_cluster_columns = []
       @sibling_columns = []

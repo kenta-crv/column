@@ -60,6 +60,7 @@ class FluxImageGeneratorService
       image_size: 'landscape_16_9',
       num_images: 1,
       enable_safety_checker: true,
+      # jpegで受け取り、CarrierWave側でWebP+縮小する
       output_format: 'jpeg'
     }.to_json
 
@@ -94,6 +95,7 @@ class FluxImageGeneratorService
       File.binwrite(tmp_path, image.read)
     end
 
+    # Uploader が WebP 変換・長辺1200px 縮小を担当
     File.open(tmp_path) do |file|
       column.file = file
       column.save!
@@ -102,6 +104,8 @@ class FluxImageGeneratorService
     column.client&.record_image_generation!
 
     tmp_path.to_s
+  ensure
+    FileUtils.rm_f(tmp_path) if defined?(tmp_path) && tmp_path && File.exist?(tmp_path)
   end
 
   def self.build_prompt(column)

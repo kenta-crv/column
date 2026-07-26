@@ -114,8 +114,8 @@ class Column < ApplicationRecord
   end
 
   # 同一ジャンル内で、別ピラー配下（＝別クラスター）の公開記事を返す。
-  # 親子リンクとは別に、トピック横断の内部リンク用。配列を返す。
-  def self.cross_cluster_related_to(column, limit: 6)
+  # 似たタイトルは除外し、同じサブジャンル・キーワード重なりを優先する。
+  def self.cross_cluster_related_to(column, limit: 5)
     return [] if column.blank? || limit.to_i <= 0
 
     resolved = GenreRegistry.resolve_key(column.genre, client: column.client) || column.genre
@@ -140,26 +140,85 @@ class Column < ApplicationRecord
       exclude_ids.concat(column.children.limit(200).pluck(:id))
     elsif column.parent_id.present?
       exclude_ids << column.parent_id
-      # 同一ピラーの兄弟は「クラスター内」なので横断からは除外（別枠で出す）
       exclude_ids.concat(where(parent_id: column.parent_id).limit(200).pluck(:id))
     end
     scope = scope.where.not(id: exclude_ids.uniq)
 
-    candidates = scope.order(published_at: :desc).limit(40).to_a
+    candidates = scope.order(published_at: :desc).limit(60).to_a
     return [] if candidates.empty?
 
     own_sub = column.sub_genre.to_s
-    ranked = candidates.sort_by do |c|
-      same_sub = own_sub.present? && c.sub_genre.to_s == own_sub ? 0 : 1
-      other_pillar = c.pillar? ? 0 : 1
-      [same_sub, other_pillar, -(c.published_at || c.updated_at).to_i]
+    own_keywords = related_keyword_tokens(column)
+    scored = candidates.map do |c|
+      score = 0
+      score += 50 if own_sub.present? && c.sub_genre.to_s == own_sub
+      score += 20 if c.pillar?
+      score += 15 if c.description.to_s.strip.present? && c.description.to_s.strip != c.title.to_s.strip
+      score += 10 * (related_keyword_tokens(c) & own_keywords).size
+      # 新しすぎる一括公開だけに偏らないよう、少しだけ新しいものを優遇
+      age_days = ((Time.current - (c.published_at || c.updated_at)).to_i / 86_400)
+      score += 8 if age_days <= 30
+      score += 4 if age_days <= 90
+      score -= 30 if titles_too_similar?(column.title, c.title)
+      [score, c]
     end
 
-    ranked.first(limit)
+    scored.sort_by! { |score, c| [-score, -(c.published_at || c.updated_at).to_i] }
+
+    picked = []
+    scored.each do |_score, c|
+      next if picked.any? { |p| titles_too_similar?(p.title, c.title) }
+
+      picked << c
+      break if picked.size >= limit
+    end
+    picked
   rescue StandardError => e
     Rails.logger.warn("[Column.cross_cluster_related_to] #{e.class}: #{e.message}")
     []
   end
+
+  def self.related_siblings_for(column, limit: 5)
+    return [] if column.blank? || column.parent_id.blank? || limit.to_i <= 0
+
+    candidates = published.with_generated_body
+                          .where(parent_id: column.parent_id)
+                          .where.not(id: column.id)
+                          .where.not(code: [nil, ""])
+                          .order(published_at: :desc)
+                          .limit(40)
+                          .to_a
+
+    picked = []
+    candidates.each do |c|
+      next if picked.any? { |p| titles_too_similar?(p.title, c.title) }
+
+      picked << c
+      break if picked.size >= limit
+    end
+    picked
+  end
+
+  def self.related_keyword_tokens(column)
+    raw = [column.keyword, column.title, column.sub_genre].compact.join(" ")
+    raw.downcase.scan(/[a-z0-9一-龥ぁ-んァ-ヶー]{2,}/).uniq.first(12)
+  end
+
+  def self.titles_too_similar?(a, b)
+    na = normalize_related_title(a)
+    nb = normalize_related_title(b)
+    return false if na.blank? || nb.blank?
+    return true if na == nb
+    return true if na.include?(nb) || nb.include?(na)
+
+    prefix = na.chars.zip(nb.chars).take_while { |x, y| x == y }.size
+    prefix >= 14
+  end
+
+  def self.normalize_related_title(title)
+    title.to_s.downcase.gsub(/[\s　\[\]【】「」『』（）()：:・\-_|]/, "")
+  end
+  private_class_method :related_keyword_tokens, :titles_too_similar?, :normalize_related_title
 
   def approved?
     status == "approved"

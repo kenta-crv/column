@@ -283,6 +283,7 @@ module GenreRegistry
       ja: "AI商談代行",
       host: ["meetia.pro"],
       service_name: "Meetia",
+      columns_index_description: "MeetiaのAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。",
       strong_points: "営業担当者が行う商談工程をAIアバター「ミーティア」が代行。資料アップロードだけで24時間365日即時商談を開始し、商談結果の報告・見込み度分析・自動追客まで一気通貫で営業工数をゼロに。",
       keywords: ["AI商談", "AI商談代行", "AI営業代行", "AIアバター", "24時間商談", "商談自動化", "自動追客"],
       sub_categories: {
@@ -653,5 +654,23 @@ module GenreRegistry
   # キーワード取得用
   def self.keywords(ja, client: nil)
     genres(client: client)[from_ja(ja)&.to_sym]&.dig(:keywords) || []
+  end
+
+  # 記事一覧ページ用の meta description（ジャンル定義に無ければ自動生成）
+  def self.columns_index_description(key, client: nil)
+    entry = genre_entry(key, client: client)
+    return nil if entry.blank?
+
+    stored = entry[:columns_index_description].to_s.strip
+    return stored if stored.present?
+
+    name = entry[:service_name].presence || entry[:ja].presence || key.to_s
+    tip = entry[:strong_points].to_s.gsub(/\s+/, " ").strip
+    tip = tip.truncate(70) if tip.present?
+    if tip.present?
+      "#{name}に関する解説記事一覧。#{tip}"
+    else
+      "#{name}に関する解説記事一覧。導入・運用・事例のポイントをまとめています。"
+    end
   end
 end
