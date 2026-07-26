@@ -23,3 +23,7 @@ link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;70
   script type="application/ld+json"
     = raw(breadcrumb_list_json_ld)
 
+- if content_for?(:article_json_ld)
+  script type="application/ld+json"
+    = yield(:article_json_ld)
+

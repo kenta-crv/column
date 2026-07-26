@@ -29,6 +29,57 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   }
 
+  .related-articles {
+    margin: 48px 0 0;
+    padding: 28px 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+
+    &__title {
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #2563eb;
+      font-size: 1.25rem;
+      color: #111827;
+    }
+
+    &__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    &__item {
+      margin: 0;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+
+      &:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+    }
+
+    &__link {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &--cross .related-articles__title {
+      border-bottom-color: #0f766e;
+    }
+
+    &--siblings .related-articles__title {
+      border-bottom-color: #7c3aed;
+    }
+  }
+
   .column-title {
     font-size: 36px;
     font-weight: 700;

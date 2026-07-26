@@ -106,7 +106,59 @@ class Column < ApplicationRecord
   end
 
   def to_meta_tags
-    { title: title, keyword: keyword, description: description }
+    {
+      title: title,
+      keyword: keyword,
+      description: description.presence || title
+    }
+  end
+
+  # 同一ジャンル内で、別ピラー配下（＝別クラスター）の公開記事を返す。
+  # 親子リンクとは別に、トピック横断の内部リンク用。配列を返す。
+  def self.cross_cluster_related_to(column, limit: 6)
+    return [] if column.blank? || limit.to_i <= 0
+
+    resolved = GenreRegistry.resolve_key(column.genre, client: column.client) || column.genre
+    genre_values = GenreRegistry.equivalent_keys(resolved)
+    ja = GenreRegistry.to_ja(resolved, client: column.client)
+    genre_values = (genre_values + [column.genre.to_s, ja]).compact.map(&:to_s).uniq.reject(&:blank?)
+
+    scope = published.with_generated_body
+                     .where.not(id: column.id)
+                     .where.not(code: [nil, ""])
+                     .where(genre: genre_values)
+
+    scope =
+      if column.client_id.present?
+        scope.where(client_id: column.client_id)
+      else
+        scope.where(client_id: nil)
+      end
+
+    exclude_ids = [column.id]
+    if column.pillar?
+      exclude_ids.concat(column.children.limit(200).pluck(:id))
+    elsif column.parent_id.present?
+      exclude_ids << column.parent_id
+      # 同一ピラーの兄弟は「クラスター内」なので横断からは除外（別枠で出す）
+      exclude_ids.concat(where(parent_id: column.parent_id).limit(200).pluck(:id))
+    end
+    scope = scope.where.not(id: exclude_ids.uniq)
+
+    candidates = scope.order(published_at: :desc).limit(40).to_a
+    return [] if candidates.empty?
+
+    own_sub = column.sub_genre.to_s
+    ranked = candidates.sort_by do |c|
+      same_sub = own_sub.present? && c.sub_genre.to_s == own_sub ? 0 : 1
+      other_pillar = c.pillar? ? 0 : 1
+      [same_sub, other_pillar, -(c.published_at || c.updated_at).to_i]
+    end
+
+    ranked.first(limit)
+  rescue StandardError => e
+    Rails.logger.warn("[Column.cross_cluster_related_to] #{e.class}: #{e.message}")
+    []
   end
 
   def approved?

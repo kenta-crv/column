@@ -83,6 +83,25 @@ class ColumnsController < ApplicationController
       @children = []
     end
 
+    unless can_manage_column?(@column)
+      @cross_cluster_columns = Column.cross_cluster_related_to(@column, limit: 6)
+      if @column.parent_id.present?
+        @sibling_columns = Column.published
+                                 .with_generated_body
+                                 .where(parent_id: @column.parent_id)
+                                 .where.not(id: @column.id)
+                                 .where.not(code: [nil, ""])
+                                 .order(published_at: :desc)
+                                 .limit(6)
+                                 .to_a
+      else
+        @sibling_columns = []
+      end
+    else
+      @cross_cluster_columns = []
+      @sibling_columns = []
+    end
+
     markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
     raw_html_body = Kramdown::Document.new(markdown_body).to_html
     sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
