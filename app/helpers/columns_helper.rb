@@ -127,11 +127,12 @@ module ColumnsHelper
     truncate(raw, length: length, omission: "…")
   end
 
-  # 公開記事向け自社CTA（関連記事セクションの直前）
+  # 公開記事向け自社CTA（本文途中 + 本文末尾）
   def column_service_cta_for(column)
     ColumnServiceCta.resolve(column)
   end
 
+  # 本文HTMLの途中（目次以外の見出し直前）へCTAを1回差し込む
   def column_body_html_with_inline_cta(column, body_html)
     return body_html.to_s.html_safe if can_manage_column?(column)
 
@@ -140,9 +141,32 @@ module ColumnsHelper
 
     cta_html = render(partial: "columns/service_cta", locals: { cta: cta, column: column, inline: true })
     html = body_html.to_s
-    inserted = html.sub(/(<h[2-4]\b[^>]*>)/i) { "#{cta_html}\n\\1" }
-    inserted = "#{html}\n#{cta_html}" if inserted == html
+    offsets = []
 
+    html.scan(/<(h[2-4])\b[^>]*>(.*?)<\/\1>/im) do
+      match = Regexp.last_match
+      text = strip_tags(match[2]).to_s.gsub(/\s+/, "").strip
+      next if text == "目次"
+
+      offsets << match.begin(0)
+    end
+
+    if offsets.empty?
+      return "#{html}\n#{cta_html}".html_safe
+    end
+
+    # 見出しが十分なときは中央付近、少ないときは後半側の見出し直前へ
+    idx =
+      if offsets.size >= 3
+        offsets.size / 2
+      elsif offsets.size == 2
+        1
+      else
+        0
+      end
+
+    inserted = +html
+    inserted.insert(offsets[idx], "#{cta_html}\n")
     inserted.html_safe
   end
 
