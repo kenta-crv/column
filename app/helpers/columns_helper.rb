@@ -127,6 +127,11 @@ module ColumnsHelper
     truncate(raw, length: length, omission: "…")
   end
 
+  # 関連記事カード用の抜粋（column_excerpt の別名）
+  def related_article_excerpt(column, length: 120)
+    column_excerpt(column, length: length)
+  end
+
   # 公開記事向け自社CTA（本文途中 + 本文末尾）
   def column_service_cta_for(column)
     ColumnServiceCta.resolve(column)
@@ -165,7 +170,7 @@ module ColumnsHelper
         0
       end
 
-    inserted = +html
+    inserted = html.dup
     inserted.insert(offsets[idx], "#{cta_html}\n")
     inserted.html_safe
   end
