@@ -243,6 +243,7 @@
     --cta-accent: #0f766e;
     --cta-accent-deep: #0d9488;
     --cta-ink: #0f172a;
+    --cta-glow: rgba(13, 148, 136, 0.22);
     position: relative;
     margin: 56px 0 0;
     padding: 28px 24px;
@@ -253,11 +254,16 @@
     border: 1px solid rgba(15, 118, 110, 0.2);
     box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
 
+    // 下端で切れて見えないよう、グローはカード内で完結させる
     &__glow {
       position: absolute;
-      inset: auto -18% -42% 38%;
-      height: 70%;
-      background: radial-gradient(circle, rgba(13, 148, 136, 0.2) 0%, transparent 68%);
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        ellipse 72% 64% at 76% 62%,
+        var(--cta-glow) 0%,
+        transparent 58%
+      );
       pointer-events: none;
       z-index: 0;
     }
@@ -281,6 +287,7 @@
     }
 
     &__title {
+      display: block;
       margin: 0 0 10px;
       padding: 0;
       border: 0;
@@ -319,6 +326,7 @@
         box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
         color: #fff !important;
         text-decoration: none !important;
+        opacity: 1;
       }
     }
 
@@ -327,6 +335,7 @@
       line-height: 1;
     }
 
+    // 配置差は余白のみ。見た目（背景・グロー・タイポ）は共通
     &--early {
       margin: 0 0 36px;
     }
@@ -342,11 +351,13 @@
     &--meetia {
       --cta-accent: #0f766e;
       --cta-accent-deep: #14b8a6;
+      --cta-glow: rgba(20, 184, 166, 0.22);
     }
 
     &--okurite {
       --cta-accent: #1d4ed8;
       --cta-accent-deep: #3b82f6;
+      --cta-glow: rgba(59, 130, 246, 0.22);
       background: linear-gradient(145deg, rgba(29, 78, 216, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(29, 78, 216, 0.2);
 
@@ -359,6 +370,7 @@
     &--jwork-recruit {
       --cta-accent: #05a849;
       --cta-accent-deep: #06c755;
+      --cta-glow: rgba(6, 199, 85, 0.22);
       background: linear-gradient(145deg, rgba(6, 199, 85, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(6, 199, 85, 0.22);
 
@@ -370,6 +382,7 @@
     &--vender {
       --cta-accent: #b45309;
       --cta-accent-deep: #f59e0b;
+      --cta-glow: rgba(245, 158, 11, 0.22);
       background: linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(245, 158, 11, 0.22);
 
@@ -381,6 +394,7 @@
     &--okwork {
       --cta-accent: #0369a1;
       --cta-accent-deep: #0ea5e9;
+      --cta-glow: rgba(14, 165, 233, 0.22);
       background: linear-gradient(145deg, rgba(14, 165, 233, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(14, 165, 233, 0.22);
 
@@ -392,6 +406,7 @@
     &--kurasera {
       --cta-accent: #9d174d;
       --cta-accent-deep: #ec4899;
+      --cta-glow: rgba(236, 72, 153, 0.2);
       background: linear-gradient(145deg, rgba(236, 72, 153, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(236, 72, 153, 0.2);
 
@@ -403,6 +418,7 @@
     &--recrivo {
       --cta-accent: #6d28d9;
       --cta-accent-deep: #8b5cf6;
+      --cta-glow: rgba(139, 92, 246, 0.22);
       background: linear-gradient(145deg, rgba(139, 92, 246, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(139, 92, 246, 0.2);
 
@@ -414,6 +430,7 @@
     &--drafity {
       --cta-accent: #334155;
       --cta-accent-deep: #475569;
+      --cta-glow: rgba(71, 85, 105, 0.2);
       background: linear-gradient(145deg, rgba(71, 85, 105, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
       border-color: rgba(71, 85, 105, 0.2);
 
