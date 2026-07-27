@@ -25,8 +25,32 @@ class ServiceGenre < ApplicationRecord
       strong_points: strong_points,
       columns_index_description: columns_index_description_value,
       images: Array(images),
-      sub_categories: deep_symbolize(sub_categories || {})
+      sub_categories: deep_symbolize(sub_categories || {}),
+      column_cta: column_cta_value
     }.compact
+  end
+
+  def column_cta_value
+    return unless has_attribute?(:column_cta)
+
+    raw = self[:column_cta]
+    return {} if raw.blank?
+
+    raw
+  end
+
+  def column_cta_enabled?
+    data = column_cta_for_form
+    flag = data[:enabled]
+    !(flag == false || flag.to_s == "false" || flag.to_s == "0")
+  end
+
+  def column_cta_for_form
+    default = ColumnServiceCta.stringify_payload(ColumnServiceCta.default_payload_for(key) || {})
+    stored = has_attribute?(:column_cta) ? ColumnServiceCta.stringify_payload(self[:column_cta] || {}) : {}
+    merged = default.deep_merge(stored)
+    merged["enabled"] = true unless merged.key?("enabled")
+    merged.with_indifferent_access
   end
 
   def default_columns_index_description
@@ -111,6 +135,10 @@ class ServiceGenre < ApplicationRecord
     }
     if attribute_names.include?("columns_index_description")
       attrs[:columns_index_description] = data[:columns_index_description]
+    end
+    if attribute_names.include?("column_cta")
+      default_cta = ColumnServiceCta.default_payload_for(template_key)
+      attrs[:column_cta] = ColumnServiceCta.stringify_payload(default_cta) if default_cta.present?
     end
     new(attrs)
   end

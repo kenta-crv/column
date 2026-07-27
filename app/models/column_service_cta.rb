@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 # 公開コラム記事下部（関連記事の直前）に出す自社サービスCTA。
-# ServiceGenre の DB 上書きとは独立して保持し、ジャンルごとに文言・導線を定義する。
+# 優先順位: ServiceGenre.column_cta（ダッシュボード編集） → コード上のデフォルト CTAS
 class ColumnServiceCta
   CTAS = {
     meetia: {
+      enabled: true,
       theme: "meetia",
       badge: "Meetia",
       title: "資料をアップロードするだけ。AIが24時間商談代行",
@@ -13,6 +14,7 @@ class ColumnServiceCta
       path: "/"
     },
     app: {
+      enabled: true,
       theme: "okurite",
       badge: "Okurite",
       title: "AI×プロで、営業成果を仕組み化する",
@@ -21,6 +23,7 @@ class ColumnServiceCta
       path: "/okurite"
     },
     cargo: {
+      enabled: true,
       theme: "jwork",
       badge: "J Work",
       title: "Amazon配送の人材確保・業務請負はLINEで相談",
@@ -39,6 +42,7 @@ class ColumnServiceCta
       }
     },
     vender: {
+      enabled: true,
       theme: "vender",
       badge: "自販機ねっと",
       title: "自動販売機の設置・購入を無料相談",
@@ -47,6 +51,7 @@ class ColumnServiceCta
       path: "/"
     },
     cleaning: {
+      enabled: true,
       theme: "okwork",
       badge: "OK清掃",
       title: "日常清掃・オフィス清掃はOK清掃へ",
@@ -55,6 +60,7 @@ class ColumnServiceCta
       path: "/"
     },
     housekeeping: {
+      enabled: true,
       theme: "kurasera",
       badge: "クラセラ",
       title: "家事代行・ハウスクリーニングはクラセラ",
@@ -63,6 +69,7 @@ class ColumnServiceCta
       path: "/"
     },
     ai_interview: {
+      enabled: true,
       theme: "recrivo",
       badge: "Recrivo",
       title: "一次面接をAIが代行。採用スピードを上げる",
@@ -71,6 +78,7 @@ class ColumnServiceCta
       path: "/"
     },
     ai_article_generation: {
+      enabled: true,
       theme: "drafity",
       badge: "Drafity",
       title: "SEO記事を、ピラー／クラスターで自動生成",
@@ -79,6 +87,7 @@ class ColumnServiceCta
       path: "/"
     },
     ai_article: {
+      enabled: true,
       theme: "drafity",
       badge: "Drafity",
       title: "AI記事生成でコンテンツSEOを加速",
@@ -87,6 +96,7 @@ class ColumnServiceCta
       path: "/"
     },
     emergency_cleaning: {
+      enabled: true,
       theme: "okwork",
       badge: "OK特殊クリーン",
       title: "特殊清掃・緊急対応のご相談",
@@ -96,25 +106,117 @@ class ColumnServiceCta
     }
   }.freeze
 
+  THEME_OPTIONS = [
+    ["Meetia", "meetia"],
+    ["Okurite", "okurite"],
+    ["J Work", "jwork"],
+    ["J Work（求職）", "jwork-recruit"],
+    ["自販機ねっと", "vender"],
+    ["OK清掃", "okwork"],
+    ["クラセラ", "kurasera"],
+    ["Recrivo", "recrivo"],
+    ["Drafity", "drafity"],
+    ["デフォルト", "default"]
+  ].freeze
+
   def self.resolve(column)
     return nil if column.blank?
 
     key = GenreRegistry.canonical_key(column.genre)&.to_sym
     return nil if key.blank?
 
-    base = CTAS[key]
+    base = stored_payload_for(column, key) || default_payload_for(key)
     return nil if base.blank?
+    return nil if disabled?(base)
 
     sub_key = GenreRegistry.resolve_sub_category_key(column, key)
-    override = base.dig(:by_sub_genre, sub_key&.to_sym)
+    override = dig_sub_genre(base, sub_key)
     merge_cta(base, override)
   end
 
+  def self.default_payload_for(key)
+    canon = GenreRegistry.canonical_key(key)&.to_sym
+    return nil if canon.blank?
+
+    CTAS[canon]&.deep_dup
+  end
+
+  def self.stringify_payload(payload)
+    return {} if payload.blank?
+
+    case payload
+    when Hash
+      payload.each_with_object({}) do |(k, v), result|
+        result[k.to_s] = stringify_payload(v)
+      end
+    when Array
+      payload.map { |item| stringify_payload(item) }
+    else
+      payload
+    end
+  end
+
+  def self.symbolize_payload(payload)
+    return {} if payload.blank?
+
+    case payload
+    when Hash
+      payload.each_with_object({}) do |(k, v), result|
+        result[k.to_sym] = symbolize_payload(v)
+      end
+    when Array
+      payload.map { |item| symbolize_payload(item) }
+    else
+      payload
+    end
+  end
+
+  def self.stored_payload_for(column, key)
+    return nil unless ServiceGenre.table_exists?
+    return nil unless ServiceGenre.column_names.include?("column_cta")
+
+    keys = GenreRegistry.equivalent_keys(key)
+    scope = ServiceGenre.where(key: keys)
+
+    record = scope.find_by(client_id: column.client_id) if column.client_id.present?
+    record ||= scope.find_by(client_id: nil)
+    return nil if record.blank?
+
+    raw = record.column_cta
+    return nil if blank_payload?(raw)
+
+    symbolize_payload(raw)
+  rescue ActiveRecord::StatementInvalid, ActiveRecord::NoDatabaseError
+    nil
+  end
+
+  def self.blank_payload?(payload)
+    return true if payload.blank?
+
+    data = payload.with_indifferent_access
+    data[:title].blank? && data[:cta_label].blank? && data[:url].blank? && data[:path].blank? && data[:badge].blank?
+  end
+
+  def self.disabled?(payload)
+    flag = payload.with_indifferent_access[:enabled]
+    flag == false || flag.to_s == "false" || flag.to_s == "0"
+  end
+
+  def self.dig_sub_genre(base, sub_key)
+    return nil if sub_key.blank?
+
+    by_sub = base.with_indifferent_access[:by_sub_genre]
+    return nil unless by_sub.is_a?(Hash)
+
+    by_sub[sub_key.to_s].presence || by_sub[sub_key.to_sym].presence
+  end
+
   def self.merge_cta(base, override)
-    data = base.except(:by_sub_genre)
+    data = base.except(:by_sub_genre, "by_sub_genre")
+    data = symbolize_payload(data)
     return data if override.blank?
 
-    data.merge(override.except(:by_sub_genre))
+    data.merge(symbolize_payload(override).except(:by_sub_genre))
   end
-  private_class_method :merge_cta
+  private_class_method :merge_cta, :dig_sub_genre, :disabled?, :blank_payload?
 end

@@ -51,7 +51,7 @@ class Column < ApplicationRecord
     body.to_s.strip.present?
   end
 
-  # 本文生成が完了しても、レビュー・手動公開を行うまでは一般公開されない。
+  # 本文生成が完了したら公開可能。publish! で一般公開される。
   def published?
     published_at.present?
   end
@@ -62,6 +62,7 @@ class Column < ApplicationRecord
 
   def publish!
     return false unless generated_body?
+    return true if published?
 
     update!(published_at: Time.current)
   end

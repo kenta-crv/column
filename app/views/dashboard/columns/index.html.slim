@@ -443,8 +443,15 @@ javascript:
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (!data) return;
+        const inProgress = (data.queued_count || 0) + (data.generating_count || 0);
+        const wasPolling = !!generationPollTimer;
         renderGenerationPanel(data);
-        configureGenerationPolling((data.queued_count || 0) + (data.generating_count || 0) > 0);
+        configureGenerationPolling(inProgress > 0);
+
+        // 生成がすべて終わったら一覧の公開ステータスを反映するためリロード
+        if (wasPolling && inProgress === 0 && sessionCompletedCount > 0) {
+          window.setTimeout(function() { window.location.reload(); }, 800);
+        }
       })
       .catch(() => {});
   }

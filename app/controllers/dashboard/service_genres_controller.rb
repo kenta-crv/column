@@ -238,6 +238,9 @@ class Dashboard::ServiceGenresController < ApplicationController
       keywords: split_list(permitted[:keywords_text]),
       sub_categories: sub_categories
     }
+    if ServiceGenre.column_names.include?("column_cta")
+      attrs[:column_cta] = build_column_cta(params.dig(:service_genre, :column_cta))
+    end
 
     if admin_signed_in?
       attrs[:client_id] = permitted[:client_id].presence
@@ -250,6 +253,57 @@ class Dashboard::ServiceGenresController < ApplicationController
     end
 
     [attrs, sub_category_error]
+  end
+
+  def build_column_cta(raw)
+    return {} if raw.blank?
+
+    data = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+    data = data.with_indifferent_access
+
+    enabled = if data.key?(:enabled) || data.key?("enabled")
+                ActiveModel::Type::Boolean.new.cast(data[:enabled])
+              else
+                true
+              end
+
+    result = {
+      "enabled" => enabled,
+      "theme" => data[:theme].to_s.strip.presence || "default",
+      "badge" => data[:badge].to_s.strip.presence,
+      "title" => data[:title].to_s.strip.presence,
+      "lead" => data[:lead].to_s.strip.presence,
+      "cta_label" => data[:cta_label].to_s.strip.presence,
+      "path" => data[:path].to_s.strip.presence,
+      "url" => data[:url].to_s.strip.presence
+    }.compact
+    result["enabled"] = enabled
+
+    by_sub = {}
+    raw_by_sub = data[:by_sub_genre]
+    raw_by_sub = raw_by_sub.to_unsafe_h if raw_by_sub.respond_to?(:to_unsafe_h)
+    if raw_by_sub.is_a?(Hash)
+      raw_by_sub.each do |sub_key, values|
+        values = values.to_unsafe_h if values.respond_to?(:to_unsafe_h)
+        next unless values.is_a?(Hash)
+
+        values = values.with_indifferent_access
+        next if values.values.all? { |v| v.to_s.strip.blank? }
+
+        entry = {
+          "theme" => values[:theme].to_s.strip.presence,
+          "badge" => values[:badge].to_s.strip.presence,
+          "title" => values[:title].to_s.strip.presence,
+          "lead" => values[:lead].to_s.strip.presence,
+          "cta_label" => values[:cta_label].to_s.strip.presence,
+          "path" => values[:path].to_s.strip.presence,
+          "url" => values[:url].to_s.strip.presence
+        }.compact
+        by_sub[sub_key.to_s] = entry if entry.present?
+      end
+    end
+    result["by_sub_genre"] = by_sub if by_sub.present?
+    result
   end
 
   def build_sub_categories(items)

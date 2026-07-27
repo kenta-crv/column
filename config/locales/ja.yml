@@ -1,4 +1,9 @@
 ja:
+  time:
+    formats:
+      default: "%Y/%m/%d %H:%M"
+      long: "%Y年%m月%d日 %H:%M"
+
   views:
     pagination:
       first: "最初"

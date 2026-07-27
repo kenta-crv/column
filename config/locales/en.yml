@@ -1,4 +1,9 @@
 en:
+  time:
+    formats:
+      default: "%Y/%m/%d %H:%M"
+      long: "%b %d, %Y %H:%M"
+
   meetia:
     lp:
       meta_title: "Meetia | AI Sales Agent — Voice Deals 24/7"

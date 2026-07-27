@@ -4,7 +4,7 @@
       .service-genres-header-row
         div
           h1.api-settings-title サービス・ジャンル管理
-          p.api-settings-subtitle 記事生成やAPI連携で使用するジャンル・サービス情報を管理します
+          p.api-settings-subtitle 記事生成・API連携・記事下部CTA（自社案内）をジャンル単位で管理します
         = link_to "新規作成", new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
 
     .api-settings-card
@@ -20,6 +20,7 @@
                   - if admin_signed_in?
                     th クライアント
                   th 中分類数
+                  th CTA
                   th 操作
               tbody
                 - @service_genres.each do |genre|
@@ -36,6 +37,13 @@
                         - else
                           span.empty-text システム
                     td = "#{genre.sub_categories_count}件"
+                    td
+                      - if genre.column_cta_enabled? && genre.column_cta_for_form[:title].present?
+                        span style="color:#0f766e;font-weight:700;" 表示中
+                      - elsif genre.column_cta_enabled?
+                        span style="color:#b45309;font-weight:600;" 要設定
+                      - else
+                        span.empty-text 非表示
                     td style="white-space: nowrap; width: 1%;"
                       .service-genres-actions
                         = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: "編集" do

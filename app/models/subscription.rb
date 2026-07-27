@@ -139,7 +139,8 @@ class Subscription < ApplicationRecord
 
   class << self
     def config_for(plan_key)
-      PLANS[plan_key.to_sym] || {}
+      key = plan_key.to_s.presence&.to_sym
+      PLANS[key] || PLANS[:trial] || {}
     end
 
     def lp_plans
@@ -242,19 +243,35 @@ class Subscription < ApplicationRecord
     self.class.limits_for(plan_type)
   end
 
+  def plan_key
+    self[:plan_type].to_s.presence&.to_sym
+  end
+
+  def known_plan_key?
+    plan_key.present? && PLANS.key?(plan_key)
+  end
+
   def plan_name
-    PLAN_NAMES[plan_type.to_sym]
+    raw_plan_type = self[:plan_type].to_s
+    return raw_plan_type if raw_plan_type.present? && !known_plan_key?
+
+    PLAN_NAMES[plan_key] || "不明"
   end
 
   def display_name
+    return plan_name unless known_plan_key?
+
     plan_config[:lp_name].presence || plan_name
   end
 
   def self.display_name_for(plan_key)
-    config_for(plan_key)[:lp_name].presence || PLAN_NAMES[plan_key.to_sym]
+    normalized_key = plan_key.to_s.presence&.to_sym
+    config_for(normalized_key)[:lp_name].presence || PLAN_NAMES[normalized_key] || plan_key.to_s.presence || "不明"
   end
 
   def price
+    return 0 unless known_plan_key?
+
     plan_config[:price] || 0
   end
 
@@ -263,6 +280,8 @@ class Subscription < ApplicationRecord
   end
 
   def feature_list
+    return [] unless known_plan_key?
+
     self.class.feature_list_for(plan_type)
   end
 
@@ -284,7 +303,7 @@ class Subscription < ApplicationRecord
   end
 
   def trial?
-    plan_type == "trial"
+    plan_key == :trial
   end
 
   def paid?

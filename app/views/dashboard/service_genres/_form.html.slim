@@ -57,6 +57,69 @@
       = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: "空欄可"
       small.form-text AIタイトル提案・記事生成の参考に使われます。
 
+  - cta = (params.dig(:service_genre, :column_cta).presence || service_genre.column_cta_for_form).with_indifferent_access
+  - by_sub = (cta[:by_sub_genre] || {}).with_indifferent_access
+  .form-section
+    .form-section__header
+      h3.form-section-title 記事下部のサービス案内（CTA）
+    p.sub-categories-intro
+      | 公開記事の「関連記事」の直前に表示される自社案内です。Admin / Client どちらも編集できます。
+    .form-group
+      = hidden_field_tag "service_genre[column_cta][enabled]", "0", id: nil
+      label.checkbox-inline
+        = check_box_tag "service_genre[column_cta][enabled]", "1", service_genre.column_cta_enabled?, id: "service_genre_column_cta_enabled"
+        |  CTAを表示する
+    .form-group
+      = label_tag "service_genre_column_cta_theme", "テーマ色"
+      = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta::THEME_OPTIONS, cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
+    .form-group
+      = label_tag "service_genre_column_cta_badge", "バッジ"
+      = text_field_tag "service_genre[column_cta][badge]", cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: "例: Meetia"
+    .form-group
+      = label_tag "service_genre_column_cta_title", "見出し"
+      = text_field_tag "service_genre[column_cta][title]", cta[:title], class: "form-control", id: "service_genre_column_cta_title", placeholder: "例: AIが24時間商談代行"
+    .form-group
+      = label_tag "service_genre_column_cta_lead", "リード文"
+      = text_area_tag "service_genre[column_cta][lead]", cta[:lead], class: "form-control", id: "service_genre_column_cta_lead", rows: 3
+    .form-group
+      = label_tag "service_genre_column_cta_cta_label", "ボタン文言"
+      = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: "例: 無料で体験する"
+    .form-group
+      = label_tag "service_genre_column_cta_path", "遷移先パス（同一ドメイン）"
+      = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: "例: / または /okurite"
+      small.form-text ブランドサイト内のパス。外部URLを使う場合は下の「外部URL」を優先します。
+    .form-group
+      = label_tag "service_genre_column_cta_url", "外部URL（任意）"
+      = text_field_tag "service_genre[column_cta][url]", cta[:url], class: "form-control", id: "service_genre_column_cta_url", placeholder: "例: https://lin.ee/xxxx"
+      small.form-text 入力がある場合はパスよりこちらが使われます（LINEなど）。
+
+    - sub_keys = service_genre.sub_categories_for_form.map { |item| item[:key] }.reject(&:blank?)
+    - sub_keys |= by_sub.keys.map(&:to_s)
+    - if sub_keys.any?
+      details.form-section.form-section--collapsible style="margin-top: 12px;"
+        summary.form-section-title 中分類ごとの上書き（任意）
+        p.sub-categories-intro
+          | 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
+        - sub_keys.uniq.each do |sub_key|
+          - sub_cta = (by_sub[sub_key] || {}).with_indifferent_access
+          - sub_name = service_genre.sub_categories_for_form.find { |item| item[:key].to_s == sub_key.to_s }&.dig(:name)
+          .form-group style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;"
+            strong = "#{sub_key}#{sub_name.present? ? "（#{sub_name}）" : ""}"
+            = label_tag nil, "テーマ色", style: "display:block;margin-top:8px;"
+            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([["（共通と同じ）", ""]] + ColumnServiceCta::THEME_OPTIONS, sub_cta[:theme]), class: "form-control"
+            = label_tag nil, "バッジ", style: "display:block;margin-top:8px;"
+            = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][badge]", sub_cta[:badge], class: "form-control"
+            = label_tag nil, "見出し", style: "display:block;margin-top:8px;"
+            = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][title]", sub_cta[:title], class: "form-control"
+            = label_tag nil, "リード文", style: "display:block;margin-top:8px;"
+            = text_area_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][lead]", sub_cta[:lead], class: "form-control", rows: 2
+            = label_tag nil, "ボタン文言", style: "display:block;margin-top:8px;"
+            = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][cta_label]", sub_cta[:cta_label], class: "form-control"
+            = label_tag nil, "遷移先パス", style: "display:block;margin-top:8px;"
+            = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][path]", sub_cta[:path], class: "form-control"
+            = label_tag nil, "外部URL", style: "display:block;margin-top:8px;"
+            = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][url]", sub_cta[:url], class: "form-control"
+
   - if sub_config[:allowed]
     .form-section
       h3.form-section-title 中分類

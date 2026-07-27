@@ -24,7 +24,9 @@ class GenerateColumnBodyJob < ApplicationJob
       return
     end
 
-    return if column.generated_body?
+    if column.generated_body?
+      return
+    end
 
     return if GenerateColumnBodyJob.cancelled?(column_id)
 
@@ -50,6 +52,7 @@ class GenerateColumnBodyJob < ApplicationJob
         end
       end
 
+      column.reload
       broadcast_generation_status(column)
       Rails.logger.info("[GenerateColumnBodyJob] completed column_id=#{column_id}")
 
