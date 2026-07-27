@@ -3,8 +3,9 @@
 - return if href.blank?
 - theme = cta[:theme].presence || "default"
 - external = href.start_with?("http://", "https://")
+- placement = local_assigns[:placement].presence || (local_assigns[:inline] ? "inline" : nil)
 - wrapper_classes = ["column-service-cta", "column-service-cta--#{theme}"]
-- wrapper_classes << "column-service-cta--inline" if local_assigns[:inline]
+- wrapper_classes << "column-service-cta--#{placement}" if placement.present?
 
 section class=wrapper_classes.join(" ") data-column-service-cta="1"
   .column-service-cta__glow aria-hidden="true"
@@ -12,7 +13,8 @@ section class=wrapper_classes.join(" ") data-column-service-cta="1"
     .column-service-cta__copy
       - if cta[:badge].present?
         span.column-service-cta__badge = cta[:badge]
-      h2.column-service-cta__title = cta[:title]
+      / h2にしない（本文側の見出しスタイル干渉・見出し重複を避ける）
+      .column-service-cta__title = cta[:title]
       - if cta[:lead].present?
         p.column-service-cta__lead = cta[:lead]
       - if external

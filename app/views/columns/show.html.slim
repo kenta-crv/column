@@ -33,7 +33,13 @@
             li class="toc-item toc-level-#{h[:level]}"
               a href="##{h[:id]}" = h[:text]
 
-    / 本文
+    / ===== 自社サービスCTA（冒頭：目次直後〜本文前） =====
+    - unless can_manage_column?(@column)
+      - cta = column_service_cta_for(@column)
+      - if cta.present?
+        = render "columns/service_cta", cta: cta, column: @column, placement: "early"
+
+    / 本文（途中CTA込み）
     .column-body
       == raw(column_body_html_with_inline_cta(@column, @column_body_with_ids))
 
@@ -41,7 +47,7 @@
     - unless can_manage_column?(@column)
       - cta = column_service_cta_for(@column)
       - if cta.present?
-        = render "columns/service_cta", cta: cta, column: @column
+        = render "columns/service_cta", cta: cta, column: @column, placement: "end"
 
     / ===== 子記事生成 & 管理（記事オーナー / Admin） =====
     - if can_manage_column?(@column) && @column.article_type == "pillar"

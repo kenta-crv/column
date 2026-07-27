@@ -282,6 +282,8 @@
 
     &__title {
       margin: 0 0 10px;
+      padding: 0;
+      border: 0;
       font-size: clamp(1.2rem, 2.3vw, 1.55rem);
       font-weight: 800;
       color: var(--cta-ink);
@@ -316,6 +318,7 @@
         transform: translateY(-1px);
         box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
         color: #fff !important;
+        text-decoration: none !important;
       }
     }
 
@@ -324,8 +327,16 @@
       line-height: 1;
     }
 
+    &--early {
+      margin: 0 0 36px;
+    }
+
     &--inline {
-      margin: 32px 0 24px;
+      margin: 40px 0 28px;
+    }
+
+    &--end {
+      margin: 56px 0 0;
     }
 
     &--meetia {
@@ -639,6 +650,42 @@
     .column-service-cta--inline + h3,
     .column-service-cta--inline + h4 {
       margin-top: 36px;
+    }
+
+    // 本文内に差し込んだCTAへ、記事見出し/リンク装飾が漏れないように隔離
+    .column-service-cta {
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--cta-ink, #0f172a);
+
+      .column-service-cta__title {
+        margin: 0 0 10px;
+        padding: 0;
+        border: 0;
+        font-size: clamp(1.2rem, 2.3vw, 1.55rem);
+        font-weight: 800;
+        color: var(--cta-ink, #0f172a);
+        line-height: 1.35;
+        letter-spacing: -0.02em;
+      }
+
+      .column-service-cta__lead {
+        margin: 0 0 18px;
+        color: #475569;
+        font-size: 0.95rem;
+        line-height: 1.75;
+      }
+
+      .column-service-cta__btn {
+        color: #fff !important;
+        text-decoration: none !important;
+
+        &:hover {
+          color: #fff !important;
+          text-decoration: none !important;
+          opacity: 1;
+        }
+      }
     }
 
     p {

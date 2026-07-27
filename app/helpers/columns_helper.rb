@@ -144,7 +144,7 @@ module ColumnsHelper
     cta = column_service_cta_for(column)
     return body_html.to_s.html_safe if cta.blank?
 
-    cta_html = render(partial: "columns/service_cta", locals: { cta: cta, column: column, inline: true })
+    cta_html = render(partial: "columns/service_cta", locals: { cta: cta, column: column, placement: "inline" })
     html = body_html.to_s
     offsets = []
 
