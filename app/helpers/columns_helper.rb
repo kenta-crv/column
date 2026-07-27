@@ -110,7 +110,16 @@ module ColumnsHelper
     platform_host? ? public_column_show_path(column) : "/columns/#{column.code}"
   end
 
-  def related_article_excerpt(column, length: 72)
+  def column_image_src(column)
+    return if column.blank?
+
+    column.repair_image_filename_from_disk! unless column.image_file_stored?
+    return unless column.image_file_stored?
+
+    column.file.to_s.presence || column.file.url
+  end
+
+  def column_excerpt(column, length: 120)
     raw = column.description.to_s.strip
     raw = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip if raw.blank? || raw == column.title.to_s.strip
     return if raw.blank?
@@ -121,6 +130,20 @@ module ColumnsHelper
   # 公開記事向け自社CTA（関連記事セクションの直前）
   def column_service_cta_for(column)
     ColumnServiceCta.resolve(column)
+  end
+
+  def column_body_html_with_inline_cta(column, body_html)
+    return body_html.to_s.html_safe if can_manage_column?(column)
+
+    cta = column_service_cta_for(column)
+    return body_html.to_s.html_safe if cta.blank?
+
+    cta_html = render(partial: "columns/service_cta", locals: { cta: cta, column: column, inline: true })
+    html = body_html.to_s
+    inserted = html.sub(/(<h[2-4]\b[^>]*>)/i) { "#{cta_html}\n\\1" }
+    inserted = "#{html}\n#{cta_html}" if inserted == html
+
+    inserted.html_safe
   end
 
   def column_service_cta_href(cta, column)

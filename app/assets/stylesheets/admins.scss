@@ -1507,6 +1507,9 @@ body.admin-body {
 .status-badge.reserved { color: #8b5cf6; background: #f3e8ff; }
 .status-badge.draft { color: #f59e0b; background: #fef3c7; }
 .status-badge.error { color: #ef4444; background: #fde8e8; }
+.status-badge.status-active { color: #10b981; background: #e6f4ea; }
+.status-badge.status-warning { color: #d97706; background: #fef3c7; }
+.status-badge.status-inactive { color: #64748b; background: #f1f5f9; }
 
 .category-text {
   color: #334155;

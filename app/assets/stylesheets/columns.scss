@@ -324,6 +324,10 @@
       line-height: 1;
     }
 
+    &--inline {
+      margin: 32px 0 24px;
+    }
+
     &--meetia {
       --cta-accent: #0f766e;
       --cta-accent-deep: #14b8a6;
@@ -629,6 +633,12 @@
     h4 {
       font-size: 18px;
       color: #374151;
+    }
+
+    .column-service-cta--inline + h2,
+    .column-service-cta--inline + h3,
+    .column-service-cta--inline + h4 {
+      margin-top: 36px;
     }
 
     p {
@@ -2187,6 +2197,16 @@ $theme-border: rgba(0, 0, 0, 0.08);
       margin-right: 0.5rem;
       box-shadow: 0 0 8px #10b981; // サイバー感のあるグローエフェクト
     }
+  }
+  &.status-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+  &.status-inactive {
+    background: rgba(100, 116, 139, 0.08);
+    color: #64748b;
+    border-color: rgba(100, 116, 139, 0.18);
   }
   &.status-canceled {
     background: rgba(239, 68, 68, 0.1);

@@ -26,6 +26,7 @@ class Column < ApplicationRecord
   def self.reconcile_broken_image_file_refs!(scope)
     scope.where.not(file: [nil, ""]).find_each do |column|
       next if column.image_file_stored?
+      next if column.repair_image_filename_from_disk!
 
       Rails.logger.warn "[Column #{column.id}] clearing broken image file reference"
       column.update_column(:file, nil)
@@ -38,6 +39,33 @@ class Column < ApplicationRecord
     path = file.path
     path.present? && File.exist?(path)
   rescue StandardError
+    false
+  end
+
+  # uploads 上の実ファイルと DB の file 名がズレている場合に修復する（webp↔jpg 等）
+  def repair_image_filename_from_disk!
+    dir = Rails.root.join("public", "uploads", "column", "file", id.to_s)
+    return false unless dir.directory?
+
+    files = dir.children.select { |p| p.file? && p.extname.to_s.match?(/\A\.(webp|jpe?g|png|gif)\z/i) }
+    return false if files.empty?
+
+    current = self[:file].to_s
+    return true if current.present? && dir.join(current).file?
+
+    preferred_base = current.present? ? File.basename(current, ".*") : nil
+    chosen =
+      files.find { |f| preferred_base.present? && f.basename(".*").to_s == preferred_base && f.extname.downcase == ".webp" } ||
+      files.find { |f| preferred_base.present? && f.basename(".*").to_s == preferred_base } ||
+      files.find { |f| f.extname.downcase == ".webp" } ||
+      files.max_by(&:mtime)
+
+    return false if chosen.blank?
+
+    update_column(:file, chosen.basename.to_s)
+    true
+  rescue StandardError => e
+    Rails.logger.warn "[Column #{id}] repair_image_filename_from_disk! failed: #{e.message}"
     false
   end
   scope :without_generated_body, -> { where("body IS NULL OR TRIM(body) = ''") }

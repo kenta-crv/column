@@ -1,10 +1,11 @@
 namespace :columns do
-  desc "uploads上の実ファイルと columns.file の不一致を修復（No Image対策）"
+  desc "uploads上の実ファイルと columns.file の不一致を修復（No Image対策）。空の file も uploads があれば復元。"
   task repair_image_filenames: :environment do
     dry_run = ENV["DRY_RUN"].to_s == "1"
     fixed = 0
     ok = 0
     empty = 0
+    restored = 0
 
     Column.find_each do |column|
       dir = Rails.root.join("public", "uploads", "column", "file", column.id.to_s)
@@ -32,12 +33,19 @@ namespace :columns do
         files.find { |f| f.extname.downcase == ".webp" } ||
         files.max_by(&:mtime)
 
-      puts "FIX id=#{column.id} db=#{current.inspect} -> #{chosen.basename}"
-      column.update_column(:file, chosen.basename.to_s) unless dry_run
-      fixed += 1
+      label = current.present? ? "FIX" : "RESTORE"
+      puts "#{label} id=#{column.id} db=#{current.inspect} -> #{chosen.basename}"
+      unless dry_run
+        column.update_column(:file, chosen.basename.to_s)
+      end
+      if current.present?
+        fixed += 1
+      else
+        restored += 1
+      end
     end
 
-    puts "Done fixed=#{fixed} ok=#{ok} missing_or_empty=#{empty} dry_run=#{dry_run}"
+    puts "Done fixed=#{fixed} restored=#{restored} ok=#{ok} missing_or_empty=#{empty} dry_run=#{dry_run}"
   end
 
   desc "既存の記事画像を WebP に一括変換（縮小込み）。DRY_RUN=1 で確認のみ。LIMIT=N で件数制限。"

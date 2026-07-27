@@ -18,9 +18,9 @@
         - else
           = link_to 'レビュー完了・公開する', publish_column_path(@column), method: :patch, data: { confirm: '内容を確認済みとして公開しますか？', turbo: false }, class: 'btn btn-primary'
 
-    - if @column.file.present?
+    - if (image_src = column_image_src(@column)).present?
       .column-image-wrapper style="position: relative; display: inline-block; max-width: 100%;"
-        = image_tag @column.file.to_s, class: 'column-thumb-main', alt: @column.title, loading: 'lazy', decoding: 'async'
+        = image_tag image_src, class: 'column-thumb-main', alt: @column.title, loading: 'lazy', decoding: 'async'
         - if can_manage_column?(@column)
           = link_to '× 画像削除', remove_image_column_path(@column), method: :patch, data: { confirm: 'この画像のみを削除しますか？', turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
 
@@ -35,7 +35,13 @@
 
     / 本文
     .column-body
-      == raw(@column_body_with_ids)
+      == raw(column_body_html_with_inline_cta(@column, @column_body_with_ids))
+
+    / ===== 自社サービスCTA（本文末尾） =====
+    - unless can_manage_column?(@column)
+      - cta = column_service_cta_for(@column)
+      - if cta.present?
+        = render "columns/service_cta", cta: cta, column: @column
 
     / ===== 子記事生成 & 管理（記事オーナー / Admin） =====
     - if can_manage_column?(@column) && @column.article_type == "pillar"
@@ -144,12 +150,6 @@
           - else
             .pillar-children-empty
               p まだ子記事がありません。上の Step 1 からタイトルを追加してください。
-
-    / ===== 自社サービスCTA（関連・おすすめ記事の直前） =====
-    - unless can_manage_column?(@column)
-      - cta = column_service_cta_for(@column)
-      - if cta.present?
-        = render "columns/service_cta", cta: cta, column: @column
 
     / ===== 親記事（子記事ページ） =====
     - parent = @column.parent

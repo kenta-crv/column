@@ -3,8 +3,10 @@
 - return if href.blank?
 - theme = cta[:theme].presence || "default"
 - external = href.start_with?("http://", "https://")
+- wrapper_classes = ["column-service-cta", "column-service-cta--#{theme}"]
+- wrapper_classes << "column-service-cta--inline" if local_assigns[:inline]
 
-section.column-service-cta class="column-service-cta--#{theme}" data-column-service-cta="1"
+section class=wrapper_classes.join(" ") data-column-service-cta="1"
   .column-service-cta__glow aria-hidden="true"
   .column-service-cta__inner
     .column-service-cta__copy

@@ -39,11 +39,11 @@
                     td = "#{genre.sub_categories_count}件"
                     td
                       - if genre.column_cta_enabled? && genre.column_cta_for_form[:title].present?
-                        span style="color:#0f766e;font-weight:700;" 表示中
+                        span.status-badge.status-active CTA表示中
                       - elsif genre.column_cta_enabled?
-                        span style="color:#b45309;font-weight:600;" 要設定
+                        span.status-badge.status-warning CTA要設定
                       - else
-                        span.empty-text 非表示
+                        span.status-badge.status-inactive CTA非表示
                     td style="white-space: nowrap; width: 1%;"
                       .service-genres-actions
                         = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: "編集" do
