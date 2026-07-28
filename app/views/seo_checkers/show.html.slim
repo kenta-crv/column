@@ -27,9 +27,20 @@
         .seo-form-row
           - if @limit_reached
             input#seo-url.seo-input type="url" name="url" value=@url placeholder=t("drafity.seo_checker.url_placeholder") disabled=true
-            button.seo-submit type="button" disabled=true = t("drafity.seo_checker.submit")
           - else
             input#seo-url.seo-input type="url" name="url" value=@url placeholder=t("drafity.seo_checker.url_placeholder") required=true autocomplete="url"
+
+        label.seo-label.seo-label-spaced for="seo-keyword" = t("drafity.seo_checker.keyword_label")
+        - if @limit_reached
+          input#seo-keyword.seo-input type="text" name="keyword" value=@keyword placeholder=t("drafity.seo_checker.keyword_placeholder") disabled=true
+        - else
+          input#seo-keyword.seo-input type="text" name="keyword" value=@keyword placeholder=t("drafity.seo_checker.keyword_placeholder") autocomplete="off"
+        p.seo-field-hint = t("drafity.seo_checker.keyword_hint")
+
+        .seo-form-actions
+          - if @limit_reached
+            button.seo-submit type="button" disabled=true = t("drafity.seo_checker.submit")
+          - else
             button.seo-submit type="submit" = t("drafity.seo_checker.submit")
         p.seo-remaining
           - if seo_checker_unlimited?
@@ -110,8 +121,89 @@
             - if cluster[:confidence].present?
               p.seo-cluster-confidence
                 = t("drafity.seo_checker.confidence", value: cluster[:confidence].to_i)
+        .seo-metrics
+          h2.seo-section-title = t("drafity.seo_checker.metrics_title")
+          - stats = @report.stats
+          - kw = stats[:keyword] || {}
+          - tech = @report.technical || {}
+
+          .seo-metrics-grid
+            .seo-metric
+              span.seo-metric-label = t("drafity.seo_checker.metric_title")
+              p.seo-metric-value.seo-metric-text = stats[:title].presence || t("drafity.seo_checker.metric_empty")
+              p.seo-metric-sub = t("drafity.seo_checker.metric_chars", count: stats[:title_length].to_i)
+
+            .seo-metric
+              span.seo-metric-label = t("drafity.seo_checker.metric_description")
+              p.seo-metric-value.seo-metric-text = stats[:meta_description].presence || t("drafity.seo_checker.metric_empty")
+              p.seo-metric-sub = t("drafity.seo_checker.metric_chars", count: stats[:meta_description_length].to_i)
+
+            .seo-metric
+              span.seo-metric-label = t("drafity.seo_checker.metric_char_count")
+              p.seo-metric-value = number_with_delimiter(stats[:char_count].to_i)
+              p.seo-metric-sub = t("drafity.seo_checker.metric_char_count_hint")
+
+            .seo-metric
+              span.seo-metric-label = t("drafity.seo_checker.metric_headings")
+              ul.seo-metric-list
+                li
+                  span = "H2"
+                  strong = stats[:h2_count].to_i
+                li
+                  span = "H3"
+                  strong = stats[:h3_count].to_i
+                li
+                  span = "H4"
+                  strong = stats[:h4_count].to_i
+
+            .seo-metric.seo-metric-wide
+              span.seo-metric-label = t("drafity.seo_checker.metric_keyword")
+              - if kw[:present]
+                p.seo-metric-keyword
+                  span.seo-metric-keyword-chip = kw[:keyword]
+                  span.seo-metric-keyword-total = t("drafity.seo_checker.metric_keyword_total", count: kw[:total_count].to_i)
+                ul.seo-metric-list.seo-metric-list-inline
+                  li
+                    span = t("drafity.seo_checker.metric_keyword_title")
+                    strong = kw[:title_count].to_i
+                  li
+                    span = t("drafity.seo_checker.metric_keyword_heading")
+                    strong = kw[:heading_count].to_i
+                  li
+                    span = t("drafity.seo_checker.metric_keyword_body")
+                    strong = kw[:body_count].to_i
+                  li
+                    span = t("drafity.seo_checker.metric_keyword_description")
+                    strong = kw[:description_count].to_i
+              - else
+                p.seo-metric-value.seo-metric-muted = t("drafity.seo_checker.metric_keyword_blank")
+
+            - domain_age = tech[:domain_age] || {}
+            .seo-metric class="is-#{domain_age[:status].presence || 'unknown'}"
+              span.seo-metric-label = t("drafity.seo_checker.metric_domain_age")
+              p.seo-metric-value = domain_age[:message].presence || t("drafity.seo_checker.metric_empty")
+              - if domain_age[:domain].present?
+                p.seo-metric-sub = domain_age[:domain]
+
+            - ssl = tech[:ssl] || {}
+            .seo-metric class="is-#{ssl[:status].presence || 'unknown'}"
+              span.seo-metric-label = t("drafity.seo_checker.metric_ssl")
+              p.seo-metric-value = ssl[:message].presence || t("drafity.seo_checker.metric_empty")
+              - if ssl[:issuer].present?
+                p.seo-metric-sub = t("drafity.seo_checker.metric_ssl_issuer", issuer: ssl[:issuer])
+
+            - dns = tech[:dns] || {}
+            .seo-metric class="is-#{dns[:status].presence || 'unknown'}"
+              span.seo-metric-label = t("drafity.seo_checker.metric_dns")
+              p.seo-metric-value = dns[:message].presence || t("drafity.seo_checker.metric_empty")
+              - if Array(dns[:a_records]).any?
+                p.seo-metric-sub = t("drafity.seo_checker.metric_dns_a", records: Array(dns[:a_records]).first(3).join(", "))
+              - if Array(dns[:mx_records]).any?
+                - mx_text = Array(dns[:mx_records]).first(3).map { |m| "#{m[:exchange]} (#{m[:preference]})" }.join(", ")
+                p.seo-metric-sub = t("drafity.seo_checker.metric_dns_mx", records: mx_text)
+
         .seo-stats
-          p.seo-stats-line = t("drafity.seo_checker.stats_line", chars: @report.stats[:char_count].to_i, h2: @report.stats[:h2_count].to_i, links: @report.stats[:internal_link_count].to_i)
+          p.seo-stats-line = t("drafity.seo_checker.stats_line", chars: @report.stats[:char_count].to_i, h2: @report.stats[:h2_count].to_i, h3: @report.stats[:h3_count].to_i, h4: @report.stats[:h4_count].to_i, links: @report.stats[:internal_link_count].to_i)
           - if @report.axes[:cluster] && @report.axes[:cluster][:excluded]
             p.seo-stats-line = t("drafity.seo_checker.overall_without_cluster")
 

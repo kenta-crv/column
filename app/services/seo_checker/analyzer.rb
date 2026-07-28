@@ -17,6 +17,7 @@ module SeoChecker
       :cluster,
       :improvements,
       :stats,
+      :technical,
       keyword_init: true
     )
 
@@ -39,12 +40,12 @@ module SeoChecker
     CARD_ARTICLE_CLASS = /card|teaser|widget|tile|item|feature-card|feature-focus|slide|swiper/i.freeze
 
     class << self
-      def analyze(url:, html:, final_url: nil)
+      def analyze(url:, html:, final_url: nil, keyword: nil, technical: nil)
         doc = Nokogiri::HTML(html.to_s)
         final = final_url.presence || url
         uri = URI.parse(final)
 
-        stats = extract_stats(doc, uri)
+        stats = extract_stats(doc, uri, keyword: keyword)
         breadcrumbs = extract_breadcrumbs(doc)
         cluster_info = estimate_cluster(uri, breadcrumbs, stats)
 
@@ -65,7 +66,8 @@ module SeoChecker
           axes: axes,
           cluster: cluster_info,
           improvements: build_improvements(axes, stats, cluster_info),
-          stats: stats.merge(breadcrumb_labels: breadcrumbs)
+          stats: stats.merge(breadcrumb_labels: breadcrumbs),
+          technical: technical
         )
       end
 
@@ -85,7 +87,7 @@ module SeoChecker
 
       private
 
-      def extract_stats(doc, uri)
+      def extract_stats(doc, uri, keyword: nil)
         title = doc.at_css("title")&.text.to_s.gsub(/\s+/, " ").strip
         meta_desc = meta_content(doc, "description")
         h1s = doc.css("h1").map { |n| clean_text(n.text) }.reject(&:blank?)
@@ -99,17 +101,35 @@ module SeoChecker
         heading_scope = content_clone
         h2_count = heading_scope.css("h2").size
         h3_count = heading_scope.css("h3").size
+        h4_count = heading_scope.css("h4").size
         # 見出しが content 外だけにある場合のフォールバック
         if h2_count.zero?
           h2_count = doc.css("h2").size
           h3_count = doc.css("h3").size
+          h4_count = doc.css("h4").size
         end
+
+        heading_texts = heading_scope.css("h1, h2, h3, h4").map { |n| clean_text(n.text) }.reject(&:blank?)
+        if heading_texts.empty?
+          heading_texts = doc.css("h1, h2, h3, h4").map { |n| clean_text(n.text) }.reject(&:blank?)
+        end
+
+        body_for_keyword = content_clone.dup
+        body_for_keyword.css("h1, h2, h3, h4, h5, h6").remove
+        body_keyword_text = clean_text(body_for_keyword.text)
 
         images = content_clone.css("img")
         images = doc.css("img") if images.empty?
         images_with_alt = images.count { |img| img["alt"].to_s.strip.present? }
 
         same_host_links = extract_internal_links(doc, uri)
+        keyword_stats = count_keyword(
+          keyword: keyword,
+          title: title,
+          headings: heading_texts,
+          body: body_keyword_text,
+          meta_description: meta_desc
+        )
 
         {
           title: title,
@@ -120,6 +140,7 @@ module SeoChecker
           h1_text: h1s.first.to_s,
           h2_count: h2_count,
           h3_count: h3_count,
+          h4_count: h4_count,
           char_count: char_count,
           paragraph_count: content_clone.css("p").count { |p| clean_text(p.text).length > 40 },
           list_count: content_clone.css("ul, ol").size,
@@ -136,8 +157,51 @@ module SeoChecker
           is_top_page: top_page?(uri),
           internal_link_count: same_host_links.size,
           internal_links: same_host_links.first(80),
-          body_text_sample: body_text[0, 5_000]
+          body_text_sample: body_text[0, 5_000],
+          keyword: keyword_stats
         }
+      end
+
+      def count_keyword(keyword:, title:, headings:, body:, meta_description:)
+        target = keyword.to_s.strip
+        if target.blank?
+          return {
+            present: false,
+            keyword: nil,
+            title_count: 0,
+            heading_count: 0,
+            body_count: 0,
+            description_count: 0,
+            total_count: 0
+          }
+        end
+
+        title_count = occurrence_count(title, target)
+        heading_count = headings.sum { |h| occurrence_count(h, target) }
+        body_count = occurrence_count(body, target)
+        description_count = occurrence_count(meta_description, target)
+
+        {
+          present: true,
+          keyword: target,
+          title_count: title_count,
+          heading_count: heading_count,
+          body_count: body_count,
+          description_count: description_count,
+          total_count: title_count + heading_count + body_count + description_count
+        }
+      end
+
+      def occurrence_count(text, keyword)
+        source = text.to_s
+        needle = keyword.to_s
+        return 0 if source.blank? || needle.blank?
+
+        if needle.match?(/\A[\p{Ascii}]+\z/)
+          source.scan(/#{Regexp.escape(needle)}/i).size
+        else
+          source.scan(needle).size
+        end
       end
 
       def top_page?(uri)

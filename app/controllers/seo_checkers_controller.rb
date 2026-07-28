@@ -6,11 +6,13 @@ class SeoCheckersController < ApplicationController
   def show
     @remaining = seo_checker_remaining
     @url = params[:url].to_s
+    @keyword = params[:keyword].to_s
   end
 
   def create
     @remaining = seo_checker_remaining
     @url = params[:url].to_s.strip
+    @keyword = params[:keyword].to_s.strip
 
     if @url.blank?
       flash.now[:alert] = t("drafity.seo_checker.alert_blank_url")
@@ -26,7 +28,7 @@ class SeoCheckersController < ApplicationController
     SeoChecker::UsageLimiter.consume!(request.remote_ip) unless seo_checker_unlimited?
     @remaining = seo_checker_remaining
 
-    outcome = SeoChecker::Report.generate(@url)
+    outcome = SeoChecker::Report.generate(@url, keyword: @keyword.presence)
     unless outcome.ok
       flash.now[:alert] = outcome.error
       return render :show, status: :unprocessable_entity

@@ -97,3 +97,6 @@ gem 'stripe'
 
 gem 'rack-cors'
 gem 'rack-attack'
+
+gem 'whois'
+gem 'whois-parser'

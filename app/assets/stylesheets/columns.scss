@@ -243,29 +243,24 @@
     --cta-accent: #0f766e;
     --cta-accent-deep: #0d9488;
     --cta-ink: #0f172a;
-    --cta-glow: rgba(13, 148, 136, 0.28);
+    --cta-tint: rgba(15, 118, 110, 0.12);
+    --cta-glow: rgba(13, 148, 136, 0.3);
     position: relative;
     margin: 56px 0 0;
     padding: 28px 24px;
     border-radius: 18px;
     overflow: hidden;
     isolation: isolate;
-    background: linear-gradient(145deg, rgba(15, 118, 110, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+    // 1層目: 右下グロー / 2層目: 左上→白のベースグラデ（テーマは変数だけ変える）
+    background:
+      radial-gradient(ellipse 75% 70% at 100% 100%, var(--cta-glow) 0%, transparent 58%),
+      linear-gradient(145deg, var(--cta-tint) 0%, rgba(255, 255, 255, 0.97) 48%, #fff 100%);
     border: 1px solid rgba(15, 118, 110, 0.2);
     box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
 
-    // 右下コーナーから自然に広がる（箱の切れ目が出ないよう全面オーバーレイ）
+    // 旧グロー要素は背景へ統合済み（DOM互換のため残すが非表示）
     &__glow {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(
-        120% 95% at 100% 100%,
-        var(--cta-glow) 0%,
-        transparent 55%
-      );
-      pointer-events: none;
-      z-index: 0;
+      display: none;
     }
 
     &__inner {
@@ -337,7 +332,6 @@
       line-height: 1;
     }
 
-    // 配置差は余白のみ
     &--early {
       margin: 0 0 36px;
     }
@@ -353,14 +347,15 @@
     &--meetia {
       --cta-accent: #0f766e;
       --cta-accent-deep: #14b8a6;
-      --cta-glow: rgba(20, 184, 166, 0.28);
+      --cta-tint: rgba(15, 118, 110, 0.12);
+      --cta-glow: rgba(20, 184, 166, 0.3);
     }
 
     &--okurite {
       --cta-accent: #1d4ed8;
       --cta-accent-deep: #3b82f6;
-      --cta-glow: rgba(59, 130, 246, 0.28);
-      background: linear-gradient(145deg, rgba(29, 78, 216, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(29, 78, 216, 0.12);
+      --cta-glow: rgba(59, 130, 246, 0.32);
       border-color: rgba(29, 78, 216, 0.2);
 
       .column-service-cta__badge {
@@ -372,8 +367,8 @@
     &--jwork-recruit {
       --cta-accent: #05a849;
       --cta-accent-deep: #06c755;
-      --cta-glow: rgba(6, 199, 85, 0.28);
-      background: linear-gradient(145deg, rgba(6, 199, 85, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(6, 199, 85, 0.14);
+      --cta-glow: rgba(6, 199, 85, 0.3);
       border-color: rgba(6, 199, 85, 0.22);
 
       .column-service-cta__badge {
@@ -384,8 +379,8 @@
     &--vender {
       --cta-accent: #b45309;
       --cta-accent-deep: #f59e0b;
-      --cta-glow: rgba(245, 158, 11, 0.28);
-      background: linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(245, 158, 11, 0.14);
+      --cta-glow: rgba(245, 158, 11, 0.3);
       border-color: rgba(245, 158, 11, 0.22);
 
       .column-service-cta__badge {
@@ -396,8 +391,8 @@
     &--okwork {
       --cta-accent: #0369a1;
       --cta-accent-deep: #0ea5e9;
-      --cta-glow: rgba(14, 165, 233, 0.28);
-      background: linear-gradient(145deg, rgba(14, 165, 233, 0.12) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(14, 165, 233, 0.14);
+      --cta-glow: rgba(14, 165, 233, 0.3);
       border-color: rgba(14, 165, 233, 0.22);
 
       .column-service-cta__badge {
@@ -408,8 +403,8 @@
     &--kurasera {
       --cta-accent: #9d174d;
       --cta-accent-deep: #ec4899;
-      --cta-glow: rgba(236, 72, 153, 0.26);
-      background: linear-gradient(145deg, rgba(236, 72, 153, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(236, 72, 153, 0.12);
+      --cta-glow: rgba(236, 72, 153, 0.28);
       border-color: rgba(236, 72, 153, 0.2);
 
       .column-service-cta__badge {
@@ -420,8 +415,8 @@
     &--recrivo {
       --cta-accent: #6d28d9;
       --cta-accent-deep: #8b5cf6;
-      --cta-glow: rgba(139, 92, 246, 0.28);
-      background: linear-gradient(145deg, rgba(139, 92, 246, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(139, 92, 246, 0.12);
+      --cta-glow: rgba(139, 92, 246, 0.3);
       border-color: rgba(139, 92, 246, 0.2);
 
       .column-service-cta__badge {
@@ -432,8 +427,8 @@
     &--drafity {
       --cta-accent: #334155;
       --cta-accent-deep: #475569;
-      --cta-glow: rgba(71, 85, 105, 0.26);
-      background: linear-gradient(145deg, rgba(71, 85, 105, 0.1) 0%, rgba(255, 255, 255, 0.96) 46%, #fff 100%);
+      --cta-tint: rgba(71, 85, 105, 0.12);
+      --cta-glow: rgba(71, 85, 105, 0.28);
       border-color: rgba(71, 85, 105, 0.2);
 
       .column-service-cta__badge {

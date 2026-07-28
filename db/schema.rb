@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_27_120000) do
+ActiveRecord::Schema.define(version: 2026_07_28_135243) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -159,6 +159,15 @@ ActiveRecord::Schema.define(version: 2026_07_27_120000) do
     t.index ["client_id"], name: "index_payments_on_client_id"
     t.index ["status"], name: "index_payments_on_status"
     t.index ["stripe_payment_intent_id"], name: "index_payments_on_stripe_payment_intent_id", unique: true
+  end
+
+  create_table "problems", force: :cascade do |t|
+    t.string "company"
+    t.string "email"
+    t.string "body"
+    t.string "photo"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "service_genres", force: :cascade do |t|

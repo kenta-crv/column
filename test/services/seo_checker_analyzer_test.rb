@@ -134,4 +134,37 @@ class SeoCheckerAnalyzerTest < ActiveSupport::TestCase
     # 総合はクラスター除外の3軸平均
     assert result.overall_score >= 70
   end
+
+  test "counts keyword occurrences and h4 headings" do
+    html = <<~HTML
+      <html><head>
+        <title>コンテンツSEOの基礎とコンテンツSEOの実践</title>
+        <meta name="description" content="コンテンツSEOを学ぶ入門記事です。">
+      </head><body><main>
+        <h1>コンテンツSEO入門</h1>
+        <h2>概要</h2>
+        <p>コンテンツSEOとは何か。コンテンツSEOのポイントを解説します。</p>
+        <h3>詳細</h3>
+        <h4>補足</h4>
+        <h4>まとめ補足</h4>
+      </main></body></html>
+    HTML
+
+    result = SeoChecker::Analyzer.analyze(
+      url: "https://example.com/seo",
+      html: html,
+      final_url: "https://example.com/seo",
+      keyword: "コンテンツSEO"
+    )
+
+    kw = result.stats[:keyword]
+    assert kw[:present]
+    assert_equal "コンテンツSEO", kw[:keyword]
+    assert_equal 2, kw[:title_count]
+    assert_equal 1, kw[:heading_count]
+    assert_equal 2, kw[:body_count]
+    assert_equal 1, kw[:description_count]
+    assert_equal 6, kw[:total_count]
+    assert_equal 2, result.stats[:h4_count]
+  end
 end

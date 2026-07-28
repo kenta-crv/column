@@ -130,6 +130,8 @@ Rails.application.routes.draw do
 
   root to: 'tops#index'
 
+  resources :problems
+
   get '/tops',    to: 'tops#index'
 
   get  "/tools/seo-checker", to: "seo_checkers#show", as: :seo_checker
