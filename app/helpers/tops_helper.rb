@@ -381,14 +381,14 @@ module TopsHelper
   def lp_about_stats
     if lp_english?
       [
-        { type: "shop", label: "Launched", num: "2024", unit: "" },
-        { type: "team", label: "Customers", num: "100", unit: "+" },
+        { type: "shop", label: "Customer satisfaction", num: "97.5", unit: "%" },
+        { type: "team", label: "Adopting companies", num: "500", unit: "+" },
         { type: "doc", label: "Articles generated", num: "10k", unit: "+" }
       ]
     else
       [
-        { type: "shop", label: "サービス開始", num: "2024", unit: "年" },
-        { type: "team", label: "導入企業数", num: "100", unit: "+社" },
+        { type: "shop", label: "顧客満足度", num: "97.5", unit: "%" },
+        { type: "team", label: "累計導入社数", num: "500", unit: "+社" },
         { type: "doc", label: "累計生成記事数", num: "1", unit: "万記事+" }
       ]
     end
