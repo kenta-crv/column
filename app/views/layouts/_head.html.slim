@@ -14,6 +14,12 @@ link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;70
 = display_meta_tags
 = favicon_link_tag "favicon.ico"
 
+script async=true src="https://s.yimg.jp/images/listing/tool/cv/ytag.js"
+javascript:
+    window.yjDataLayer = window.yjDataLayer || [];
+    function ytag() { yjDataLayer.push(arguments); }
+    ytag({"type":"ycl_cookie", "config":{"ycl_use_non_cookie_storage":true}});
+
 - if respond_to?(:href_for_locale) && !public_column_article_page?
   link rel="alternate" hreflang="ja" href="#{request.base_url}#{href_for_locale(:ja)}"
   link rel="alternate" hreflang="en" href="#{request.base_url}#{href_for_locale(:en)}"
