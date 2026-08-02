@@ -60,7 +60,7 @@ class GptPillarGenerator
 
     company_name = resolve_company_name
 
-    puts "▶ 統合生成開始(比較記事・汎用版): #{column.title} (判定: #{target_category}, genre: #{current_genre})"
+    Rails.logger.info "▶ 統合生成開始(比較記事・汎用版): #{column.title} (判定: #{target_category}, genre: #{current_genre})"
 
     genre_data = GenreRegistry.genre_entry(current_genre, client: client) || {}
     sub_key    = GenreRegistry.resolve_sub_category_key(column, current_genre, client: client)
@@ -72,7 +72,7 @@ class GptPillarGenerator
     # ----------------------------------------------------------
     own_facts = fetch_web_facts_strict(OWN_COMPANY_URL)
 
-    puts(own_facts.present? ? "✅ 自社:Web直接取得の事実を使用" : "ℹ️ 自社:Web取得なし。一般的なトーンで言及")
+    Rails.logger.info(own_facts.present? ? "✅ 自社:Web直接取得の事実を使用" : "ℹ️ 自社:Web取得なし。一般的なトーンで言及")
 
     # ----------------------------------------------------------
     # 比較対象(他社)の事実:column.promptに「比較対象：」で
@@ -83,7 +83,7 @@ class GptPillarGenerator
     competitor_names = parse_competitor_names(column)
 
     if competitor_names.blank?
-      puts "ℹ️ 比較対象の指定なし。AIによる自動発見にフォールバックする"
+      Rails.logger.info "ℹ️ 比較対象の指定なし。AIによる自動発見にフォールバックする"
       competitor_names = discover_competitors_automatically(column, target_category)
     end
     competitor_facts = {}
@@ -92,7 +92,7 @@ class GptPillarGenerator
       url = discover_competitor_url(name, target_category)
 
       if url.blank?
-        puts "ℹ️ 競合「#{name}」: 公式URLが見つからなかったため、事実なしとして扱う"
+        Rails.logger.info "ℹ️ 競合「#{name}」: 公式URLが見つからなかったため、事実なしとして扱う"
         competitor_facts[name] = nil
         next
       end
@@ -121,7 +121,7 @@ class GptPillarGenerator
         break
       end
 
-      puts "⚠️ Meta生成失敗 再試行中... (#{i + 1}/3) #{last_gpt_error}"
+      Rails.logger.info "⚠️ Meta生成失敗 再試行中... (#{i + 1}/3) #{last_gpt_error}"
       sleep(2)
     end
 
@@ -151,7 +151,7 @@ class GptPillarGenerator
         break
       end
 
-      puts "⚠️ 構成生成失敗 再試行中... (#{i + 1}/3)"
+      Rails.logger.info "⚠️ 構成生成失敗 再試行中... (#{i + 1}/3)"
       sleep(2)
     end
 
@@ -234,7 +234,7 @@ class GptPillarGenerator
       Rails.logger.error e.backtrace.first(5).join("\n")
     end
 
-    puts "✅ 生成完了(比較記事・汎用版): #{clean_code}"
+    Rails.logger.info "✅ 生成完了(比較記事・汎用版): #{clean_code}"
 
     true
   end
@@ -286,6 +286,37 @@ class GptPillarGenerator
   end
 
   # ==========================================================
+  # テキストから最初のURLを抽出する。全角括弧・バッククォート・
+  # 説明文の混入を防ぐため、URLとして正当な文字集合だけで
+  # 打ち切る(前回の「URLの後ろに説明文まで結合される」バグの修正)
+  # ==========================================================
+  def self.extract_first_url(text)
+    return nil if text.blank?
+
+    m = text.match(%r{https?://\S+})
+    return nil unless m
+
+    m[0][%r{\Ahttps?://[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+}]
+  end
+
+  # ==========================================================
+  # Claudeのweb_fetch応答から、前置きの独り言(「まず〜取得します」等)
+  # を除外して、実際の1行目(社名)と事実本文を取り出す
+  # (前回の「前置き文を社名として誤読する」バグの修正)
+  # ==========================================================
+  PREAMBLE_LINE_PATTERN = /(取得します|確認します|参照します|見てみます|お待ちください|少々|しばらく)/
+
+  def self.extract_confirmed_name_and_facts(text)
+    lines = text.to_s.split("\n").map(&:strip).reject(&:blank?)
+    content_lines = lines.reject { |l| l.match?(PREAMBLE_LINE_PATTERN) }
+
+    confirmed_name = content_lines.first.to_s
+    facts = content_lines[1..].to_a.join("\n")
+
+    [confirmed_name, facts]
+  end
+
+  # ==========================================================
   # web_fetchで指定URLを直接取得する(検索は使わない)。
   # allowed_domainsで、指定URLのドメイン以外は一切参照できないよう
   # 技術的に制限する。取得できなければ nil を返すのみで、
@@ -297,7 +328,7 @@ class GptPillarGenerator
     domain = URI.parse(target_url).host rescue nil
     return nil if domain.blank?
 
-    puts "🔎 Web直接取得(web_fetch)開始: #{target_url} (許可ドメイン: #{domain})"
+    Rails.logger.info "🔎 Web直接取得(web_fetch)開始: #{target_url} (許可ドメイン: #{domain})"
 
     prompt = <<~PROMPT
       web_fetchツールを使って、次のURLのページ内容を直接取得してください。
@@ -311,6 +342,7 @@ class GptPillarGenerator
       - 料金・プラン、具体的な件数・数値、機能・技術的特徴、会社情報、導入実績など
       - このURLの取得に失敗した場合、または内容がサービス説明として不十分な場合は、
         他の情報で埋め合わせず、「取得失敗」という1行だけを出力する
+      - 「まず指定URLのページ内容を取得します」のような作業説明の前置きを一切書かない
       - 前置き・後書きは不要。箇条書き、または「取得失敗」の1行のみ出力する
     PROMPT
 
@@ -320,14 +352,14 @@ class GptPillarGenerator
     facts = extract_claude_text(res)
 
     if facts.blank? || facts.include?("取得失敗") || facts.length < 30
-      puts "⚠️ Web直接取得: 有効な事実が取得できませんでした(#{facts.length}文字)"
+      Rails.logger.info "⚠️ Web直接取得: 有効な事実が取得できませんでした(#{facts.length}文字)"
       return nil
     end
 
-    puts "✅ Web直接取得完了(#{facts.length}文字)"
+    Rails.logger.info "✅ Web直接取得完了(#{facts.length}文字)"
     facts
   rescue => e
-    puts "❌ fetch_web_facts_strict error: #{e.message}"
+    Rails.logger.info "❌ fetch_web_facts_strict error: #{e.message}"
     nil
   end
 
@@ -356,11 +388,11 @@ class GptPillarGenerator
   # パイプライン(URL特定→直接取得→社名一致検証)にそのまま流す。
   # ==========================================================
   def self.discover_competitors_automatically(column, category)
-    puts "🔎 競合の自動発見(web_search)開始"
+    Rails.logger.info "🔎 競合の自動発見(web_search)開始"
 
     prompt = <<~PROMPT
       Web検索を使って、次のテーマ・業種で実際に提供されている競合サービス・会社を
-      2〜3社、実在する具体的な社名またはサービス名で挙げてください。
+      4〜5社、実在する具体的な社名またはサービス名で挙げてください。
 
       記事タイトル: #{column.title}
       業種の目安: #{category}
@@ -382,12 +414,12 @@ class GptPillarGenerator
     names = text.split("\n")
                .map { |l| l.gsub(/\A[-・\d\.\s]+/, "").strip }
                .reject(&:blank?)
-               .first(3)
+               .first(MAX_COMPETITORS)
 
-    puts(names.present? ? "✅ 競合自動発見: #{names.join('、')}" : "ℹ️ 競合自動発見: 該当なし")
+    Rails.logger.info(names.present? ? "✅ 競合自動発見: #{names.join('、')}" : "ℹ️ 競合自動発見: 該当なし")
     names
   rescue => e
-    puts "❌ discover_competitors_automatically error: #{e.message}"
+    Rails.logger.info "❌ discover_competitors_automatically error: #{e.message}"
     []
   end
 
@@ -396,7 +428,7 @@ class GptPillarGenerator
   # 確信が持てない場合は "不明" を返させ、無理にURLを推測させない。
   # ==========================================================
   def self.discover_competitor_url(company_name, category)
-    puts "🔎 競合探索(web_search)開始: #{company_name}"
+    Rails.logger.info "🔎 競合探索(web_search)開始: #{company_name}"
 
     prompt = <<~PROMPT
       Web検索を使って、次の会社・サービスの「公式サイトのURL」を1つだけ特定してください。
@@ -418,14 +450,13 @@ class GptPillarGenerator
     text = extract_claude_text(res)
     return nil if text.blank? || text.include?("不明")
 
-    url_match = text.match(URL_REGEX)
-    return nil unless url_match
+    url = extract_first_url(text)
+    return nil if url.blank?
 
-    url = url_match[0].sub(/[)\.、。]+\z/, "")
-    puts "✅ 競合探索: #{company_name} → #{url}"
+    Rails.logger.info "✅ 競合探索: #{company_name} → #{url}"
     url
   rescue => e
-    puts "❌ discover_competitor_url error: #{e.message}"
+    Rails.logger.info "❌ discover_competitor_url error: #{e.message}"
     nil
   end
 
@@ -442,7 +473,7 @@ class GptPillarGenerator
     domain = URI.parse(url).host rescue nil
     return nil if domain.blank?
 
-    puts "🔎 競合の直接取得+検証(web_fetch)開始: #{company_name} (#{url})"
+    Rails.logger.info "🔎 競合の直接取得+検証(web_fetch)開始: #{company_name} (#{url})"
 
     prompt = <<~PROMPT
       web_fetchツールを使って、次のURLのページ内容を直接取得してください。
@@ -455,6 +486,11 @@ class GptPillarGenerator
       2行目以降: 料金・プラン、具体的な件数・数値、機能・技術的特徴、会社情報、導入実績などの
         客観的事実を日本語の箇条書きで(10項目程度)
 
+      【絶対禁止(厳守)】
+      - 「まず指定URLのページ内容を取得します」のような、作業内容を説明する前置き文を
+        一切出力しないこと。1行目から直接、実際の社名・サービス名だけを書く
+      - 前置き・後書き・言い訳・確認の相槌は一切不要
+
       取得に失敗した場合、または内容がサービス説明として不十分な場合は、
       他の情報で埋め合わせず「取得失敗」という1行だけを出力してください。
     PROMPT
@@ -465,28 +501,26 @@ class GptPillarGenerator
     text = extract_claude_text(res)
 
     if text.blank? || text.include?("取得失敗") || text.length < 30
-      puts "⚠️ 競合直接取得: 有効な内容が取得できませんでした"
+      Rails.logger.info "⚠️ 競合直接取得: 有効な内容が取得できませんでした"
       return nil
     end
 
-    lines = text.split("\n").map(&:strip).reject(&:blank?)
-    confirmed_name = lines.first.to_s
-    facts = lines[1..].to_a.join("\n")
+    confirmed_name, facts = extract_confirmed_name_and_facts(text)
 
     if facts.blank?
-      puts "⚠️ 競合直接取得: 事実の本文が空でした"
+      Rails.logger.info "⚠️ 競合直接取得: 事実の本文が空でした"
       return nil
     end
 
-    if company_names_match?(company_name, confirmed_name)
-      puts "✅ 競合検証OK: 期待='#{company_name}' 実際='#{confirmed_name}'"
+    if company_names_match?(strip_domain_hint(company_name), confirmed_name)
+      Rails.logger.info "✅ 競合検証OK: 期待='#{company_name}' 実際='#{confirmed_name}'"
       facts
     else
-      puts "⚠️ 競合検証NG(社名不一致のため事実を破棄): 期待='#{company_name}' 実際='#{confirmed_name}' (#{url})"
+      Rails.logger.info "⚠️ 競合検証NG(社名不一致のため事実を破棄): 期待='#{company_name}' 実際='#{confirmed_name}' (#{url})"
       nil
     end
   rescue => e
-    puts "❌ verify_and_fetch_competitor_facts error: #{e.message}"
+    Rails.logger.info "❌ verify_and_fetch_competitor_facts error: #{e.message}"
     nil
   end
 
@@ -495,6 +529,17 @@ class GptPillarGenerator
   # 部分一致するかを見る)。厳密な同一性ではなく、明らかな別会社を
   # 弾くための最低限のガードとして使う。
   # ==========================================================
+  # ==========================================================
+  # 社名に付いている「（xxx.com）」のようなドメインヒントの
+  # 括弧書きを除去する。discover_competitors_automatically が
+  # 社名にドメインを併記することがあり、それをそのまま社名一致
+  # チェックに使うと、本来一致するはずのケースまで弾いてしまう
+  # (前回発生したバグの修正)
+  # ==========================================================
+  def self.strip_domain_hint(name)
+    name.to_s.gsub(/[（(][^（）()]*\.[a-z]{2,}[^（）()]*[）)]/i, "").strip
+  end
+
   def self.company_names_match?(expected, actual)
     normalize = lambda do |s|
       s.to_s
@@ -714,7 +759,7 @@ class GptPillarGenerator
     JSON.parse(content)
   rescue => e
     remember_gpt_error!("parse error: #{e.message}")
-    puts "❌ generate_meta_info parse error: #{e.message}"
+    Rails.logger.info "❌ generate_meta_info parse error: #{e.message}"
     nil
   end
 
@@ -748,6 +793,9 @@ class GptPillarGenerator
         - "recommendation": 自社サービスへの言及・推薦を行う見出し
       - 【追加指示】に実在企業名や具体的事実が明記されている場合のみ comparison_axis を "company" にしてよい
       - 明記がない場合は "company" にせず、下記EEAT強化情報のfeatures(業界特有の比較軸)を使った "method" として構成する
+      - 【追加指示】に複数の比較対象他社(最大5社)の情報がある場合、原則として1社につき1つのH2を割り当てる
+        (例:他社が4社あれば company軸のH2を4つ作る)。無理に1つのH2へ複数社を詰め込まず、
+        各社の特徴・違いを個別に掘り下げられる粒度にする
       - 最後のH2、または「まとめ」に近い位置に、comparison_axis: "recommendation" のH2を必ず1つ含める(自社#{company_name}への言及)
       - 各H2は異なる論点・異なる結論を扱うこと
 
@@ -758,7 +806,7 @@ class GptPillarGenerator
       #{eeat_context}
 
       【出力条件】
-      - H2は4〜7個
+      - H2は6〜10個(比較対象他社の数に応じて、無理のない範囲で増減してよい)
       - 全て日本語
       - 見出しのみ
       - 各H2について、比較・条件整理に該当する場合は has_table を true にしてよい
@@ -778,7 +826,7 @@ class GptPillarGenerator
 
     JSON.parse(res.dig("choices", 0, "message", "content"))
   rescue => e
-    puts "❌ generate_structure parse error: #{e.message}"
+    Rails.logger.info "❌ generate_structure parse error: #{e.message}"
     nil
   end
 
@@ -804,7 +852,7 @@ class GptPillarGenerator
       retries += 1
 
       if retries < max_retries
-        puts "⚠️ 本文生成失敗 再試行中... (#{retries}/#{max_retries}) #{e.message}"
+        Rails.logger.info "⚠️ 本文生成失敗 再試行中... (#{retries}/#{max_retries}) #{e.message}"
         sleep(2)
         retry
       end
@@ -933,12 +981,12 @@ class GptPillarGenerator
         JSON.parse(res.body)
       else
         summarize_openai_error(res.code, res.body)
-        puts "❌ OpenAI Error: #{res.code} #{redact_secrets(res.body.to_s)}"
+        Rails.logger.info "❌ OpenAI Error: #{res.code} #{redact_secrets(res.body.to_s)}"
         nil
       end
     rescue => e
       remember_gpt_error!("API Exception: #{e.message}")
-      puts "❌ API Exception: #{e.message}"
+      Rails.logger.info "❌ API Exception: #{e.message}"
       nil
     end
   end
@@ -982,11 +1030,11 @@ class GptPillarGenerator
       if res.is_a?(Net::HTTPSuccess)
         JSON.parse(res.body)
       else
-        puts "❌ Claude API Error: #{res.code} #{redact_secrets(res.body.to_s)}"
+        Rails.logger.info "❌ Claude API Error: #{res.code} #{redact_secrets(res.body.to_s)}"
         nil
       end
     rescue => e
-      puts "❌ Claude API Exception: #{e.message}"
+      Rails.logger.info "❌ Claude API Exception: #{e.message}"
       nil
     end
   end
@@ -1249,7 +1297,7 @@ class GptPillarGenerator
         if valid_table?(table_block)
           result.concat(table_block)
         else
-          puts "⚠️ 崩れたMarkdown表を検出したため、テキスト形式に変換しました"
+          Rails.logger.info "⚠️ 崩れたMarkdown表を検出したため、テキスト形式に変換しました"
           table_block.each do |row|
             next if separator_row?(row)
             cells = row.split("|").map(&:strip).reject(&:blank?)

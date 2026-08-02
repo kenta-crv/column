@@ -263,7 +263,7 @@ ja:
       voices_more: "など多数"
       voices_disclaimer: "※個人の感想であり、効果を保証するものではありません。"
       trial_title: "10日間の無料トライアルを今すぐ体験"
-      trial_sub: "クレジットカードの登録不要。すべての機能を制限なくお試しいただけます。"
+      trial_sub: "基本的な機能をお試しいただけます。"
       trial_cta: "無料で10日間試す →"
       faq_title: "よくある質問"
       resources_title: "お役立ち記事"
@@ -286,7 +286,7 @@ ja:
       footer_faq: "よくある質問"
       footer_start: "無料で始める"
       footer_copy: "© %{year} Drafity / 合同会社ファクトル"
-      js_note_trial: "クレジットカード登録不要"
+      js_note_trial: ""
       js_note_yearly: "年額払いで20%お得"
       js_note_monthly: "¥%{price}/月（月額払い）"
     plans:
@@ -294,7 +294,7 @@ ja:
         name: "トライアル"
         description: "まずはAI記事作成を気軽に試したい方へ"
         cta: "無料で始める →"
-        note: "クレジットカード登録不要"
+        note: ""
       starter:
         name: "スターター"
         description: "個人ブロガーや小規模サイトの運営におすすめ"

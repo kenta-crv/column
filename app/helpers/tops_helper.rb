@@ -11,7 +11,7 @@ module TopsHelper
     { title: "量産型ブログの落とし穴と対策", path: "/ai_article/columns/ryousangata-blog-no-otoshiana-to-taisaku" },
     { title: "SEOに強いAI記事を作るためのステップバイステップ", path: "/ai_article/columns/seo-ai-article-creation-steps" }
   ].freeze
-
+ 
   AI_ARTICLE_FEATURED_FALLBACK_EN = [
     { title: "GEO-powered content strategy that works", path: "/ai_article/columns/geo-content-strategy" },
     { title: "Using AI for the next era of SEO", path: "/ai_article/columns/ai-article-generation-seo-future" },

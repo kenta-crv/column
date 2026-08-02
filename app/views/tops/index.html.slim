@@ -12,7 +12,6 @@
         a href="#features" = t("drafity.lp.nav_functions")
         a.active href="#pricing" = t("drafity.lp.nav_pricing")
         a href="#cases" = t("drafity.lp.nav_cases")
-        a href="#faq" = t("drafity.lp.nav_faq")
         = link_to t("drafity.lp.nav_seo_checker"), (params[:locale].present? ? localized_seo_checker_path(locale: params[:locale]) : seo_checker_path)
         = link_to t("drafity.lp.nav_columns"), ai_article_columns_index_path
       .nav-cta

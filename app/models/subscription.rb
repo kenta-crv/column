@@ -40,7 +40,7 @@ class Subscription < ApplicationRecord
       lp_popular: false,
       lp_featured: false,
       lp_cta: "無料で始める →",
-      lp_note: "クレジットカード登録不要",
+      lp_note: "",
       show_on_lp: true,
       checkout_selectable: true
     },

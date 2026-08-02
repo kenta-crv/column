@@ -255,7 +255,7 @@ en:
       voices_more: "and more"
       voices_disclaimer: "*Individual experiences; results are not guaranteed."
       trial_title: "Try 10 days free — start now"
-      trial_sub: "No credit card required. Full access to every feature."
+      trial_sub: "Try the core features."
       trial_cta: "Try 10 days free →"
       faq_title: "FAQ"
       resources_title: "Helpful articles"
@@ -278,7 +278,7 @@ en:
       footer_faq: "FAQ"
       footer_start: "Get started free"
       footer_copy: "© %{year} Drafity / J Work Inc."
-      js_note_trial: "No credit card required"
+      js_note_trial: ""
       js_note_yearly: "Save 20% with yearly billing"
       js_note_monthly: "¥%{price}/mo (monthly)"
     plans:
@@ -286,7 +286,7 @@ en:
         name: "Trial"
         description: "Try AI article creation risk-free"
         cta: "Start free →"
-        note: "No credit card required"
+        note: ""
       starter:
         name: "Starter"
         description: "For personal blogs and small sites"
