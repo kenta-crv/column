@@ -6,7 +6,7 @@
           - elsif request.host.include?("自販機.net")
             = image_tag "logo-vender.png", class: "nav-logo me-2", alt: "自販機"
           - else
-            = image_tag "logo2.png", class: "nav-logo me-2", alt: "Logo"
+            = image_tag drafity_logo_image, class: "nav-logo me-2", alt: "Drafity"
           span.nav-subtext
             | 
         nav.nav-menu.d-none.d-lg-flex
@@ -40,14 +40,14 @@
                 a.nav-link-custom href="javascript:void(0)" data-target="case" 導入事例
             .mobile-nav-actions
               = image_tag "search.png", class: "search-icon", alt: "Search"
-              = link_to "ログイン", new_client_session_path, class: "btn login-btn"
+              = link_to "ログイン", client_sign_in_path_for_locale, class: "btn login-btn"
               button.btn.contact-btn.d-flex.align-items-center.gap-2
                 a.nav-link-custom href="javascript:void(0)" data-target="inquiry" お問い合わせ
                 = image_tag "arrow-down.png", class: "arrow-icon", alt: "Arrow"
         .d-flex.align-items-center.gap-3.d-none.d-lg-flex
           = render "shared/lang_switch"
           = image_tag "search.png", class: "search-icon", alt: "Search"
-          = link_to "ログイン", new_client_session_path, class: "btn login-btn"
+          = link_to "ログイン", client_sign_in_path_for_locale, class: "btn login-btn"
           button.btn.contact-btn.d-flex.align-items-center.gap-2
             a.nav-link-custom href="javascript:void(0)" data-target="inquiry" お問い合わせ
             = image_tag "arrow-down.png", class: "arrow-icon", alt: "Arrow"

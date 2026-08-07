@@ -131,7 +131,7 @@ class FluxImageGeneratorService
     api_key = ENV['GPT_API_KEY']
     return nil unless api_key.present?
 
-    genre_info = GenreRegistry::GENRES[column.genre.to_sym] rescue nil
+    genre_info = GenreRegistry.genre_entry(column.genre)
     industry = genre_info&.dig(:ja).to_s
 
     instruction = <<~PROMPT
@@ -254,7 +254,7 @@ class FluxImageGeneratorService
         Business technology atmosphere without visible screens or devices showing content.
       TEXT
 
-    when 'meetia'
+    when 'meetia', 'ai_sales_agent'
       <<~TEXT
         Two business professionals in a sleek conference room with frosted glass walls.
         Soft blue ambient lighting, empty whiteboard, no visible screens.

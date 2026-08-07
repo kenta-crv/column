@@ -23,9 +23,14 @@
   </tr>
 </table>
 
-<% if @problem.photo.present? %>
+<% if @photo_attachment_name.present? && attachments[@photo_attachment_name].present? %>
   <p>添付された写真:</p>
   <p>
-    <%= image_tag attachments[@problem.photo.identifier].url, width: 400 %>
+    <%= image_tag attachments[@photo_attachment_name].url, width: 400 %>
+  </p>
+<% elsif @problem.photo.present? %>
+  <p>添付された写真:</p>
+  <p>
+    <%= link_to @problem.photo.url, @problem.photo.url %>
   </p>
 <% end %>

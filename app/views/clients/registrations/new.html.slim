@@ -1,50 +1,58 @@
+- set_meta_tags title: t("drafity.auth.meta_signup_title"), description: t("drafity.auth.meta_signup_description")
+
 .auth-wrapper.auth-wrapper--signup
+  .drafity-auth__lang
+    = render "shared/lang_switch"
   .auth-forms
     .auth-card.auth-card--signup
       .auth-card__header
-        h2.auth-card__title アカウント登録
+        = link_to locale_root_href do
+          = image_tag drafity_logo_image, alt: "Drafity", width: "120"
+        h2.auth-card__title = t("drafity.auth.signup_title")
+        p.auth-card__lead = t("drafity.auth.signup_lead")
 
-      = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-signup-form" }) do |f|
+      = form_for(resource, as: resource_name, url: client_registration_url_for_locale, html: { class: "auth-signup-form" }) do |f|
         = render "clients/shared/error_messages", resource: resource
+        = f.hidden_field :preferred_locale, value: I18n.locale.to_s
 
         .auth-form-section
           .auth-form-row.auth-form-row--pair
             .field
-              = f.label :company, "会社名"
-              = f.text_field :company, autofocus: true, autocomplete: "organization", class: "input-field", placeholder: "株式会社サンプル", required: true
+              = f.label :company, t("drafity.auth.company")
+              = f.text_field :company, autofocus: true, autocomplete: "organization", class: "input-field", placeholder: t("drafity.auth.ph_company"), required: true
             .field
-              = f.label :name, "担当者名"
-              = f.text_field :name, autocomplete: "name", class: "input-field", placeholder: "山田 太郎", required: true
+              = f.label :name, t("drafity.auth.name")
+              = f.text_field :name, autocomplete: "name", class: "input-field", placeholder: t("drafity.auth.ph_name"), required: true
 
           .field
-            = f.label :address, "住所"
-            = f.text_field :address, autocomplete: "street-address", class: "input-field", placeholder: "東京都渋谷区...", required: true
+            = f.label :address, t("drafity.auth.address")
+            = f.text_field :address, autocomplete: "street-address", class: "input-field", placeholder: t("drafity.auth.ph_address"), required: true
 
           .auth-form-row.auth-form-row--pair
             .field
-              = f.label :tel, "電話番号"
-              = f.telephone_field :tel, autocomplete: "tel", class: "input-field", placeholder: "03-1234-5678", required: true
+              = f.label :tel, t("drafity.auth.tel")
+              = f.telephone_field :tel, autocomplete: "tel", class: "input-field", placeholder: t("drafity.auth.ph_tel"), required: true
             .field
-              = f.label :url, "URL"
-              = f.url_field :url, autocomplete: "url", class: "input-field", placeholder: "https://example.com", required: true
+              = f.label :url, t("drafity.auth.url")
+              = f.url_field :url, autocomplete: "url", class: "input-field", placeholder: t("drafity.auth.ph_url"), required: true
 
         .auth-form-section
           .field
-            = f.label :email, "メールアドレス"
-            = f.email_field :email, autocomplete: "email", class: "input-field", placeholder: "you@example.com", required: true
+            = f.label :email, t("drafity.auth.email")
+            = f.email_field :email, autocomplete: "email", class: "input-field", placeholder: t("drafity.auth.ph_email"), required: true
 
           .field
-            = f.label :password, "パスワード"
+            = f.label :password, t("drafity.auth.password")
             - if @minimum_password_length
-              em= "（#{@minimum_password_length}文字以上）"
+              em = t("drafity.auth.password_hint", count: @minimum_password_length)
             = f.password_field :password, autocomplete: "new-password", class: "input-field", required: true
 
           .field
-            = f.label :password_confirmation, "パスワード（確認）"
+            = f.label :password_confirmation, t("drafity.auth.password_confirmation")
             = f.password_field :password_confirmation, autocomplete: "new-password", class: "input-field", required: true
 
         .actions
-          = f.submit "登録してプラン選択へ", class: "btn-signup"
+          = f.submit t("drafity.auth.submit_signup"), class: "btn-signup"
 
       .auth-card__footer
         = render "clients/shared/links"

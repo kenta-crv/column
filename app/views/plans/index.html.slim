@@ -2,46 +2,48 @@
   section.pricing-section
     .pricing-inner
       .plans-top
+        .drafity-auth__lang style="margin:0 0 12px auto;max-width:none;padding:0"
+          = render "shared/lang_switch"
         .section-header
-          span.overline 料金プラン
-          h2.section-title プランをお選びください
+          span.overline = t("drafity.auth.plans_overline")
+          h2.section-title = t("drafity.auth.plans_choose_title")
           - if @is_new_account
             p.section-sub
-              | 新規アカウントは
-              strong = "#{Subscription::TRIAL_DAYS}日間の無料トライアル"
-              | が利用できます。
+              = t("drafity.auth.plans_trial_prefix")
+              strong = t("drafity.auth.plans_trial_strong", days: Subscription::TRIAL_DAYS)
+              = t("drafity.auth.plans_trial_suffix")
         .toggle-wrap
-          button.toggle-btn.active type="button" data-plans-toggle="monthly" 月額払い
+          button.toggle-btn.active type="button" data-plans-toggle="monthly" = t("drafity.auth.plans_monthly")
           button.toggle-btn type="button" data-plans-toggle="yearly"
-            | 年額払い
-            span.toggle-save 20%お得
+            = t("drafity.auth.plans_yearly")
+            span.toggle-save = t("drafity.auth.plans_yearly_save")
 
       - if @subscription&.active?
         - usage = current_client.usage_summary
         .plans-usage
-          h3.plans-usage__title 今月の利用状況
+          h3.plans-usage__title = t("drafity.auth.plans_usage_title")
           .plans-usage__grid
             .plans-usage__item
-              span.plans-usage__label 親記事
+              span.plans-usage__label = t("drafity.auth.plans_usage_pillar")
               span.plans-usage__value = "#{usage[:pillar][:used]} / #{usage[:pillar][:limit]}"
             .plans-usage__item
-              span.plans-usage__label 子記事
+              span.plans-usage__label = t("drafity.auth.plans_usage_child")
               span.plans-usage__value = "#{usage[:child][:used]} / #{usage[:child][:limit]}"
             .plans-usage__item
-              span.plans-usage__label AIタイトル提案
+              span.plans-usage__label = t("drafity.auth.plans_usage_titles")
               span.plans-usage__value = "#{usage[:title_suggestions][:used]} / #{usage[:title_suggestions][:limit]}"
             .plans-usage__item
-              span.plans-usage__label 画像生成
+              span.plans-usage__label = t("drafity.auth.plans_usage_images")
               span.plans-usage__value = "#{usage[:image_generations][:used]} / #{usage[:image_generations][:limit]}"
             .plans-usage__item
-              span.plans-usage__label ジャンル
+              span.plans-usage__label = t("drafity.auth.plans_usage_genres")
               span.plans-usage__value = "#{usage[:genres][:used]} / #{usage[:genres][:limit]}"
             .plans-usage__item
-              span.plans-usage__label API
-              span.plans-usage__value = usage[:api_enabled] ? "利用可" : "利用不可"
+              span.plans-usage__label = t("drafity.auth.plans_usage_api")
+              span.plans-usage__value = usage[:api_enabled] ? t("drafity.auth.plans_usage_api_on") : t("drafity.auth.plans_usage_api_off")
 
       .pricing-scroll-wrap
-        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label="前のプラン" data-plans-scroll="-1" disabled=true
+        button.pricing-scroll-btn.pricing-scroll-prev type="button" aria-label=t("drafity.auth.pricing_prev") data-plans-scroll="-1" disabled=true
           svg viewBox="0 0 24 24" fill="none"
             path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .pricing-grid#plans-pricing-grid
@@ -59,27 +61,27 @@
 
             .plan-card class=card_classes.join(" ") data-plan-key=plan[:key] data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
               - if plan[:popular]
-                .popular-badge 人気 No.1
+                .popular-badge = t("drafity.auth.plans_popular")
               - elsif plan[:featured]
-                .featured-badge イチオシ
+                .featured-badge = t("drafity.auth.plans_featured")
               - elsif is_current
-                .popular-badge.current-badge 現在のプラン
+                .popular-badge.current-badge = t("drafity.auth.plans_current")
 
               .plan-name class=(plan[:popular] ? "accent" : (plan[:featured] ? "featured-name" : "")) = plan[:name]
               .plan-desc = plan[:description]
               .plan-price
                 - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
-                  .plan-price-orig id="plans-#{plan[:key]}-orig" style="display:none" = "¥#{number_with_delimiter(plan[:monthly_price])}/月"
+                  .plan-price-orig id="plans-#{plan[:key]}-orig" style="display:none" = "¥#{number_with_delimiter(plan[:monthly_price])}#{t('drafity.auth.pricing_per_month')}"
                 .plan-price-main
                   span.price-yen ¥
                   span.price-num id="plans-#{plan[:key]}-price" = number_with_delimiter(plan[:monthly_price])
                   - if plan[:key] != :trial
-                    span.price-unit "/ 月"
+                    span.price-unit = t("drafity.auth.pricing_per_month")
               .plan-price-note id="plans-#{plan[:key]}-note"
                 - if plan[:key] == :trial
                   = plan[:note]
                 - else
-                  | ¥#{number_with_delimiter(plan[:monthly_price])}/月（月額払い）
+                  = t("drafity.lp.price_note_monthly", price: number_with_delimiter(plan[:monthly_price]))
 
               hr.plan-divider
               ul.plan-features
@@ -90,17 +92,18 @@
                     = feature
 
               - if is_current
-                span.plan-cta.is-disabled 現在のプラン
+                span.plan-cta.is-disabled = t("drafity.auth.plans_current")
               - elsif plan[:key] == :trial && !trial_selectable
-                span.plan-cta.is-disabled 利用不可
+                span.plan-cta.is-disabled = t("drafity.auth.plans_unavailable")
               - else
-                = link_to "このプランを選択 →", checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
+                = link_to t("drafity.auth.plans_select_cta"), checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
 
-        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label="次のプラン" data-plans-scroll="1"
+        button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label=t("drafity.auth.pricing_next") data-plans-scroll="1"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
 script
+  == "window.DRAFITY_PLANS_NOTES = #{ { yearly: t('drafity.lp.js_note_yearly'), monthlyTpl: t('drafity.lp.js_note_monthly', price: '__PRICE__') }.to_json };"
   | (function() {
   |   const initPlansPage = () => {
   |     const page = document.querySelector('.plans-page');
@@ -128,7 +131,7 @@ script
   |         if (noteEl) {
   |           noteEl.textContent = (key === 'trial')
   |             ? ''
-  |             : (isYearly ? '年額払いで20%お得' : '¥' + monthly.toLocaleString('ja-JP') + '/月（月額払い）');
+  |             : (isYearly ? (window.DRAFITY_PLANS_NOTES && window.DRAFITY_PLANS_NOTES.yearly) : ((window.DRAFITY_PLANS_NOTES && window.DRAFITY_PLANS_NOTES.monthlyTpl) || '¥__PRICE__').replace('__PRICE__', monthly.toLocaleString('ja-JP')));
   |         }
   |       });
   |     };

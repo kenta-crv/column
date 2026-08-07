@@ -15,7 +15,7 @@ class Subscription < ApplicationRecord
   validates :status, presence: true
   validates :stripe_subscription_id, uniqueness: true, allow_nil: true
 
-  TRIAL_DAYS = 10
+  TRIAL_DAYS = 14
   YEARLY_DISCOUNT_RATE = 0.8
   POST_TRIAL_PLAN = :standard
   TITLE_SUGGESTION_BAR_MAX = 5
@@ -37,6 +37,7 @@ class Subscription < ApplicationRecord
       sub_category_count: 0,
       api_enabled: false,
       ai_autonomous: false,
+      attribution_required: true,
       lp_popular: false,
       lp_featured: false,
       lp_cta: "無料で始める →",
@@ -58,6 +59,7 @@ class Subscription < ApplicationRecord
       sub_category_count: 0,
       api_enabled: true,
       ai_autonomous: false,
+      attribution_required: true,
       lp_popular: false,
       lp_featured: false,
       lp_cta: "このプランで始める →",
@@ -79,6 +81,7 @@ class Subscription < ApplicationRecord
       sub_category_count: 3,
       api_enabled: true,
       ai_autonomous: false,
+      attribution_required: true,
       lp_popular: true,
       lp_featured: false,
       lp_cta: "このプランで始める →",
@@ -100,6 +103,7 @@ class Subscription < ApplicationRecord
       sub_category_count: 10,
       api_enabled: true,
       ai_autonomous: true,
+      attribution_required: false,
       lp_popular: false,
       lp_featured: true,
       lp_cta: "このプランで始める →",
@@ -121,6 +125,7 @@ class Subscription < ApplicationRecord
       sub_category_count: 10,
       api_enabled: true,
       ai_autonomous: true,
+      attribution_required: false,
       lp_popular: false,
       lp_featured: false,
       lp_cta: "問い合わせる →",
@@ -193,6 +198,11 @@ class Subscription < ApplicationRecord
                     I18n.t("drafity.plans.features.api_off", default: "API利用不可")
                   end
       features << I18n.t("drafity.plans.features.autonomous", default: "AI主導生成（自律型エージェント）") if config[:ai_autonomous]
+      features << if config[:attribution_required]
+                    I18n.t("drafity.plans.features.attribution_on", default: "Powered by 表示あり")
+                  else
+                    I18n.t("drafity.plans.features.attribution_off", default: "Powered by 表示なし")
+                  end
       features
     end
 
@@ -230,7 +240,8 @@ class Subscription < ApplicationRecord
         :genre_count,
         :sub_category_count,
         :api_enabled,
-        :ai_autonomous
+        :ai_autonomous,
+        :attribution_required
       )
     end
   end

@@ -74,11 +74,30 @@ class ServiceGenre < ApplicationRecord
     (sub_categories || {}).size
   end
 
+  def self.registered_key?(key)
+    return false if key.blank?
+
+    exists?(key: GenreRegistry.equivalent_keys(key))
+  end
+
+  # 運営側（自社）ジャンル。Enterprise 相当のアトリビューション扱い。
+  def self.platform_owned?(key)
+    return false if key.blank?
+
+    keys = GenreRegistry.equivalent_keys(key)
+    scope = where(client_id: nil)
+    scope.where(key: keys).or(scope.where(ja: key.to_s)).exists?
+  end
+
+  def platform_owned?
+    client_id.nil?
+  end
+
   def self.owner_client_id_for(key, host: nil, client: nil)
     return client.id if client&.id.present?
     return nil if key.blank?
 
-    candidates = where(key: key.to_s).where.not(client_id: nil)
+    candidates = where(key: GenreRegistry.equivalent_keys(key)).where.not(client_id: nil)
     return candidates.first.client_id if candidates.one?
 
     if host.present?
@@ -93,11 +112,6 @@ class ServiceGenre < ApplicationRecord
 
     nil
   end
-
-  def self.registered_key?(key)
-    key.present? && exists?(key: key.to_s)
-  end
-
   def sub_categories_for_form
     categories = sub_categories.is_a?(Hash) ? sub_categories : {}
     return [] if categories.blank?
@@ -120,11 +134,12 @@ class ServiceGenre < ApplicationRecord
   end
 
   def self.from_fallback_template(template_key)
-    data = GenreRegistry::FALLBACK_GENRES[template_key.to_sym]
+    canon = GenreRegistry.canonical_key(template_key).presence || template_key.to_s
+    data = GenreRegistry::FALLBACK_GENRES[canon.to_sym]
     return new unless data
 
     attrs = {
-      key: template_key.to_s,
+      key: canon.to_s,
       ja: data[:ja],
       service_name: data[:service_name],
       strong_points: data[:strong_points],
@@ -137,7 +152,7 @@ class ServiceGenre < ApplicationRecord
       attrs[:columns_index_description] = data[:columns_index_description]
     end
     if attribute_names.include?("column_cta")
-      default_cta = ColumnServiceCta.default_payload_for(template_key)
+      default_cta = ColumnServiceCta.default_payload_for(canon)
       attrs[:column_cta] = ColumnServiceCta.stringify_payload(default_cta) if default_cta.present?
     end
     new(attrs)
@@ -159,7 +174,10 @@ class ServiceGenre < ApplicationRecord
   private
 
   def normalize_key
-    self.key = key.to_s.strip.downcase if key.present?
+    return if key.blank?
+
+    self.key = key.to_s.strip.downcase
+    self.key = GenreRegistry.canonical_key(key)
   end
 
   def ensure_columns_index_description

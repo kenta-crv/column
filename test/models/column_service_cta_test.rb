@@ -14,12 +14,20 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     GenreRegistry.reset!
   end
 
-  test "resolves meetia CTA for ai_sales_agent alias" do
+  test "resolves ai_sales_agent CTA and keeps meetia theme" do
     column = Column.new(genre: "ai_sales_agent", title: "AI商談の進め方")
     cta = ColumnServiceCta.resolve(column)
 
     assert_equal "Meetia", cta[:badge]
     assert_equal "/", cta[:path]
+    assert_equal "meetia", cta[:theme]
+  end
+
+  test "resolves CTA via legacy meetia alias key" do
+    column = Column.new(genre: "meetia", title: "AI商談の進め方")
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "Meetia", cta[:badge]
     assert_equal "meetia", cta[:theme]
   end
 
@@ -74,7 +82,7 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
   test "prefers stored ServiceGenre CTA over code default" do
     skip "column_cta column missing" unless ServiceGenre.column_names.include?("column_cta")
 
-    genre = ServiceGenre.find_or_initialize_by(key: "meetia", client_id: nil)
+    genre = ServiceGenre.find_or_initialize_by(key: "ai_sales_agent", client_id: nil)
     genre.ja ||= "AI商談代行"
     genre.service_name ||= "Meetia"
     genre.column_cta = {
@@ -95,7 +103,7 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_equal "/plans", cta[:path]
   ensure
     if genre&.persisted? && genre.column_cta&.dig("badge") == "MeetiaDB"
-      default = ColumnServiceCta.default_payload_for("meetia")
+      default = ColumnServiceCta.default_payload_for("ai_sales_agent")
       genre.update!(column_cta: ColumnServiceCta.stringify_payload(default)) if default
     end
   end

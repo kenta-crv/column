@@ -8,17 +8,17 @@ class ProblemsController < ApplicationController
       @problem = Problem.new
     end
   
-def create
-  @problem = Problem.new(problem_params)
+    def create
+      @problem = Problem.new(problem_params)
 
-  if @problem.save
-    flash[:notice] = "送信完了しました"
-    redirect_to dashboard_index_path
-    ProblemMailer.report_email(@problem).deliver # 管理者に通知
-  else
-    render :new
-  end
-end
+      if @problem.save
+        ProblemMailer.report_email(@problem).deliver
+        redirect_to dashboard_root_path, notice: "報告完了しました"
+      else
+        render :new
+      end
+    end
+
 
     def show
       @problem = Problem.find(params[:id])

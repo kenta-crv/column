@@ -24,7 +24,9 @@ class Dashboard::ColumnsController < ApplicationController
     @kpi_pending_review_count = base_scope.merge(Column.pending_review).count
 
     filtered_base = base_scope
-    filtered_base = filtered_base.where(genre: params[:genre]) if params[:genre].present?
+    if params[:genre].present?
+      filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
+    end
     filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
     @total_count        = filtered_base.count
     @draft_count        = filtered_base.where(body: [nil, ""]).count
@@ -74,9 +76,13 @@ class Dashboard::ColumnsController < ApplicationController
                     end
 
     # 相互互換データの確保
-    @genre_pillar_counts = filtered_base.where(article_type: "pillar").group(:genre).count
-    @genre_child_counts   = filtered_base.where(article_type: %w[cluster child]).group(:genre).count
-    @all_genres = base_scope.distinct.pluck(:genre).compact
+    @genre_pillar_counts = merge_canonical_genre_counts(
+      filtered_base.where(article_type: "pillar").group(:genre).count
+    )
+    @genre_child_counts   = merge_canonical_genre_counts(
+      filtered_base.where(article_type: %w[cluster child]).group(:genre).count
+    )
+    @all_genres = base_scope.distinct.pluck(:genre).compact.map { |g| GenreRegistry.canonical_key(g) || g }.uniq.sort
 
     # 4. 通知ドロップダウン（ベルマーク用）に表示する直近の実行・変更履歴（最新5件）
     @recent_columns = filtered_base.order(updated_at: :desc).limit(5)
@@ -178,7 +184,9 @@ class Dashboard::ColumnsController < ApplicationController
     Column.reconcile_broken_image_file_refs!(base_scope)
 
     query = image_generation_target_scope(base_scope)
-    query = query.where(genre: params[:bulk_genre]) if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
+    if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
+      query = query.where(genre: GenreRegistry.equivalent_keys(params[:bulk_genre]))
+    end
     query = query.merge(Column.with_article_type_filter(params[:bulk_article_type])) if params[:bulk_article_type].present?
 
     render json: {
@@ -214,7 +222,7 @@ class Dashboard::ColumnsController < ApplicationController
     end
 
     if params[:genre].present?
-      scope = scope.where(genre: params[:genre])
+      scope = scope.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
 
     if params[:language].present?

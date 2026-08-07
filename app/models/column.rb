@@ -253,14 +253,15 @@ class Column < ApplicationRecord
     status == "approved"
   end
 
+  before_validation :normalize_genre_key
   before_validation :assign_random_file, on: :create
 
   def genre_key
-    GenreRegistry.from_ja(genre)
+    GenreRegistry.resolve_key(genre, client: client).presence || GenreRegistry.from_ja(genre)
   end
 
   def genre_label
-    GenreRegistry.to_ja(genre)
+    GenreRegistry.to_ja(genre, client: client)
   end
 
   def service_profile
@@ -384,6 +385,13 @@ class Column < ApplicationRecord
     elsif counts_as_child_slot?
       client.record_child_creation!
     end
+  end
+
+  def normalize_genre_key
+    return if genre.blank?
+
+    resolved = GenreRegistry.resolve_key(genre, client: client)
+    self.genre = resolved if resolved.present?
   end
 
   def assign_random_file

@@ -35,7 +35,7 @@ css:
   }
 
 .lang-switch role="group" aria-label="Language"
-  = link_to href_for_locale(:ja), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'ja'}", "aria-pressed": (current_locale.to_s == "ja").to_s do
+  = link_to locale_switch_path_for(:ja), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'ja'}", "aria-pressed": (current_locale.to_s == "ja").to_s do
     | 日本語
-  = link_to href_for_locale(:en), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'en'}", "aria-pressed": (current_locale.to_s == "en").to_s do
+  = link_to locale_switch_path_for(:en), class: "lang-switch__btn#{' is-active' if current_locale.to_s == 'en'}", "aria-pressed": (current_locale.to_s == "en").to_s do
     | English

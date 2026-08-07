@@ -1,0 +1,12 @@
+doctype html
+html lang=I18n.locale
+  head
+    = render "layouts/head"
+
+  body
+    - flash.each do |type, message|
+      - tag_class = (type == 'notice' ? 'success' : 'danger')
+      div class="flash-message alert alert-#{tag_class}" role="alert"
+        = message
+
+    = yield

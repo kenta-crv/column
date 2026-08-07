@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   include MetaTags::ControllerHelper
 
+  layout :layout_for_request
+
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
@@ -11,7 +13,7 @@ class ApplicationController < ActionController::Base
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
                 :pending_review_columns_count, :routable_public_genre_key?, :platform_host?,
-                :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales
+                :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales, :locale_switch_path_for
 
   def check_trial_expiration
     return unless current_client.present?
@@ -35,38 +37,72 @@ class ApplicationController < ActionController::Base
   end
 
   def locale_root_href
-    if params[:locale].present?
-      localized_root_path(locale: params[:locale])
+    if I18n.locale.to_s == "en"
+      localized_root_path(locale: :en)
     else
       root_path
     end
   end
 
+  # 公開ページは / <-> /en。認証・plans も同様。それ以外は locale 切替エンドポイントへ。
   # *_path 名は Rails のルートヘルパーと衝突するため使わない。
   def href_for_locale(target_locale)
-    target = target_locale.to_s.to_sym
+    target = target_locale.to_s
     return locale_root_href if target.blank?
 
     path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
     path = "/" if path.blank?
 
-    public_page = %w[tops plans seo_checkers].include?(controller_path)
-    if public_page
-      target == :ja ? path : (path == "/" ? "/en" : "/en#{path}")
+    if public_switchable_path?(path)
+      target == "ja" ? path : (path == "/" ? "/en" : "/en#{path}")
     else
-      target == :ja ? root_path : "/en"
+      locale_switch_path_for(target, return_to: request.fullpath)
     end
+  end
+
+  def locale_switch_path_for(target_locale, return_to: nil)
+    switch_locale_path(locale: target_locale, return_to: return_to.presence || request.fullpath)
   end
 
   protected
 
   def set_locale
-    requested = params[:locale].presence&.to_sym
-    I18n.locale = if requested && I18n.available_locales.map(&:to_sym).include?(requested)
-                    requested
-                  else
-                    I18n.default_locale
-                  end
+    locale = resolve_ui_locale
+    I18n.locale = locale
+    session[:ui_locale] = locale.to_s
+  end
+
+  def resolve_ui_locale
+    requested = params[:locale].presence.to_s
+    return requested.to_sym if Client::LOCALES.include?(requested)
+
+    # /en なしの公開URLは明示的に日本語（session に en が残っていても上書き）
+    path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
+    path = "/" if path.blank?
+    return :ja if public_switchable_path?(path)
+
+    if client_signed_in? && current_client.preferred_locale.present?
+      return current_client.ui_locale
+    end
+
+    session_locale = session[:ui_locale].to_s
+    return session_locale.to_sym if Client::LOCALES.include?(session_locale)
+
+    :ja
+  end
+
+
+  def public_switchable_path?(path)
+    path == "/" ||
+      path == "/plans" ||
+      path.start_with?("/plans") ||
+      path == "/tops" ||
+      path.start_with?("/tops") ||
+      path == "/tools/seo-checker" ||
+      path.start_with?("/tools/seo-checker") ||
+      path.start_with?("/clients/sign_in") ||
+      path.start_with?("/clients/sign_up") ||
+      path.start_with?("/clients/password")
   end
 
   def authenticate_admin_or_client!
@@ -86,8 +122,10 @@ class ApplicationController < ActionController::Base
 
   def admin_or_allowed_genre?(genre)
     return true if admin_signed_in?
+    return false if genre.blank?
 
-    current_client_allowed_genre_keys.include?(genre.to_s)
+    equivalent = GenreRegistry.equivalent_keys(genre)
+    equivalent.any? { |k| current_client_allowed_genre_keys.include?(k) }
   end
 
   def dashboard_columns_base_scope
@@ -185,7 +223,7 @@ class ApplicationController < ActionController::Base
     # drafity.pro で ai_article 以外をここで落とすと、
     # 自社ドメインが Host: drafity.pro 経由で来た場合に cleaning 等が 0 件になる。
     # Google への公開範囲制限は robots.txt / CrawlPolicy 側で行う。
-    # ai_sales_agent → meetia のような URL/DB 別名も本体キーとして許可する。
+    # meetia → ai_sales_agent のような旧キー互換も本体キーとして許可する。
     return true if equivalent.include?(CrawlPolicy::GENRE_KEY)
     return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
     return true if equivalent.any? { |k| ServiceGenre.registered_key?(k) }
@@ -207,6 +245,13 @@ class ApplicationController < ActionController::Base
     entry = registry[canonical.to_sym] || registry[key.to_sym]
     ja = entry&.dig(:ja) || GenreRegistry.to_ja(key, client: client)
     (keys + [ja]).compact.uniq.reject(&:blank?)
+  end
+
+  def merge_canonical_genre_counts(counts)
+    counts.each_with_object(Hash.new(0)) do |(key, count), result|
+      canon = GenreRegistry.canonical_key(key).presence || key.to_s
+      result[canon] += count.to_i
+    end
   end
 
   def column_matches_genre?(column, genre_key)
@@ -429,8 +474,12 @@ class ApplicationController < ActionController::Base
     when Client
       dashboard_root_path
     else
-      root_path
+      locale_root_href
     end
+  end
+
+  def after_sign_out_path_for(_resource_or_scope)
+    locale_root_href
   end
 
   def configure_permitted_parameters
@@ -447,7 +496,31 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:account_update, keys: added_attrs)
   end
 
+  def layout_for_request
+    return "auth" if devise_controller? && !admin_controller?
+
+    "application"
+  end
+
+  def authenticate_client!
+    unless client_signed_in?
+      respond_to do |format|
+        format.json { render json: { error: "Unauthorized" }, status: :unauthorized }
+        format.all do
+          redirect_to(
+            (I18n.locale.to_s == "en" ? new_client_session_en_path(locale: :en) : new_client_session_path),
+            alert: t("drafity.auth.login_required")
+          )
+        end
+      end
+    end
+  end
+
   private
+
+  def admin_controller?
+    is_a?(::AdminsController) || self.class.name.start_with?("Admins::") || self.class.name.start_with?("Dashboard::")
+  end
 
   def admin_root_path
     admin_dashboard_index_path

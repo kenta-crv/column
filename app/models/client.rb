@@ -1,4 +1,6 @@
 class Client < ApplicationRecord
+  LOCALES = %w[ja en].freeze
+
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
@@ -12,6 +14,16 @@ class Client < ApplicationRecord
   has_one :active_subscription, -> { where(status: :active) }, class_name: "Subscription"
   has_many :payments, dependent: :destroy
 
+  validates :preferred_locale, inclusion: { in: LOCALES }
+
+  def ui_locale
+    value = self[:preferred_locale].presence || "ja"
+    (LOCALES.include?(value) ? value : "ja").to_sym
+  end
+
+  def send_devise_notification(notification, *args)
+    I18n.with_locale(ui_locale) { super }
+  end
 
   def genre_keys
     service_genres.pluck(:key)
@@ -189,6 +201,11 @@ class Client < ApplicationRecord
     plan_limits[:ai_autonomous]
   end
 
+  # Standard 以下は true。Business / Enterprise、および自社ジャンルは false。
+  def attribution_required?(genre: nil, column: nil)
+    AttributionPolicy.required?(client: self, genre: genre, column: column)
+  end
+
   DEFAULT_AUTONOMOUS_SETTINGS = {
     "notify_on" => ["cycle_complete"],
     "pause_for_approval_at" => nil,
@@ -273,7 +290,8 @@ class Client < ApplicationRecord
       genres: { used: service_genres.count, limit: limits[:genre_count] },
       sub_categories: { limit: limits[:sub_category_count] },
       api_enabled: limits[:api_enabled],
-      ai_autonomous: limits[:ai_autonomous]
+      ai_autonomous: limits[:ai_autonomous],
+      attribution_required: limits.fetch(:attribution_required, true)
     }
   end
 

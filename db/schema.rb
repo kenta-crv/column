@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_28_135243) do
+ActiveRecord::Schema.define(version: 2026_08_07_120000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -79,6 +79,7 @@ ActiveRecord::Schema.define(version: 2026_07_28_135243) do
     t.json "allowed_genres"
     t.json "embed_settings"
     t.json "autonomous_settings"
+    t.string "preferred_locale", default: "ja", null: false
     t.index ["email"], name: "index_clients_on_email", unique: true
     t.index ["reset_password_token"], name: "index_clients_on_reset_password_token", unique: true
     t.index ["stripe_customer_id"], name: "index_clients_on_stripe_customer_id", unique: true

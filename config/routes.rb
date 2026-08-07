@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     passwords: "clients/passwords"
   }
 
+  get "locale/:locale", to: "locales#update", as: :switch_locale, constraints: { locale: /ja|en/ }
+
   # --- 管理画面を /dashboard 配下に完全移行 ---
   namespace :dashboard do
     get 'setting', to: 'columns#setting'
@@ -91,9 +93,23 @@ Rails.application.routes.draw do
   scope "/:locale", constraints: { locale: /en/ } do
     get "/", to: "tops#index", as: :localized_root
     get "plans", to: "plans#index", as: :localized_plans
+    post "plans/select", to: "plans#select", as: :localized_select_plan
     get "tops", to: "tops#index", as: :localized_tops
     get "tools/seo-checker", to: "seo_checkers#show", as: :localized_seo_checker
     post "tools/seo-checker", to: "seo_checkers#create"
+
+    devise_scope :client do
+      get "clients/sign_in", to: "clients/sessions#new", as: :new_client_session_en
+      post "clients/sign_in", to: "clients/sessions#create", as: :client_session_en
+      delete "clients/sign_out", to: "clients/sessions#destroy", as: :destroy_client_session_en
+      get "clients/sign_up", to: "clients/registrations#new", as: :new_client_registration_en
+      post "clients", to: "clients/registrations#create", as: :client_registration_en
+      get "clients/password/new", to: "clients/passwords#new", as: :new_client_password_en
+      get "clients/password/edit", to: "clients/passwords#edit", as: :edit_client_password_en
+      post "clients/password", to: "clients/passwords#create", as: :client_password_en
+      put "clients/password", to: "clients/passwords#update"
+      patch "clients/password", to: "clients/passwords#update"
+    end
   end
 
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---

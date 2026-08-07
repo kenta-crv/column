@@ -1,0 +1,37 @@
+- report_client = (client_signed_in? ? current_client : nil)
+- report_problem = Problem.new(company: report_client&.company, email: report_client&.email)
+
+#problem-report-modal.modal-overlay style="display: none;" role="dialog" aria-modal="true" aria-labelledby="problem-report-modal-title"
+  .modal-content.problem-report-modal__content
+    .modal-header
+      h3#problem-report-modal-title 問題報告
+      button.modal-close type="button" onclick="closeProblemReportModal()" aria-label="閉じる" ✕
+    .modal-body
+      p.problem-report-modal__lead
+        | サービスに関する不具合やご要望があればご報告ください。内容を確認のうえ対応します。
+      = form_with model: report_problem, url: problems_path, local: true, html: { id: "problem-report-form", class: "problem-report-modal__form", multipart: true } do |f|
+        .form-group
+          label for="problem_company"
+            | 会社名
+            span.problem-report-modal__required *
+          = f.text_field :company, id: "problem_company", class: "form-control", placeholder: "株式会社〇〇〇〇", required: true
+        .form-group
+          label for="problem_email"
+            | メールアドレス
+            span.problem-report-modal__required *
+          = f.email_field :email, id: "problem_email", class: "form-control", placeholder: "test@example.com", required: true
+        .form-group
+          label for="problem_photo"
+            | 添付画像
+            span.problem-report-modal__optional 任意
+          = f.file_field :photo, id: "problem_photo", class: "form-control", accept: "image/*"
+          small.form-text スクリーンショットなどがあると調査がスムーズです。
+        .form-group
+          label for="problem_body"
+            | 内容
+            span.problem-report-modal__optional 任意
+          = f.text_area :body, id: "problem_body", class: "form-control", rows: 5, placeholder: "発生した状況、再現手順、期待する動作などを記入してください"
+        .problem-report-modal__actions
+          button.btn.btn-secondary type="button" onclick="closeProblemReportModal()"
+            | キャンセル
+          = f.submit "報告する", class: "btn btn-primary problem-report-modal__submit"

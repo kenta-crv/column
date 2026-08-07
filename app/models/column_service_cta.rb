@@ -4,7 +4,7 @@
 # 優先順位: ServiceGenre.column_cta（ダッシュボード編集） → コード上のデフォルト CTAS
 class ColumnServiceCta
   CTAS = {
-    meetia: {
+    ai_sales_agent: {
       enabled: true,
       theme: "meetia",
       badge: "Meetia",

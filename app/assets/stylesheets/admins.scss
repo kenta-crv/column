@@ -2466,7 +2466,8 @@ a:-webkit-any-link {
   padding: 24px;
 }
 
-#title-suggestion-modal {
+#title-suggestion-modal,
+#problem-report-modal {
   .form-group {
     margin-bottom: 16px;
   }
@@ -2481,7 +2482,8 @@ a:-webkit-any-link {
 
   .form-group input,
   .form-group select,
-  .form-group textarea {
+  .form-group textarea,
+  .form-group .form-control {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #e2e8f0;
@@ -2493,7 +2495,8 @@ a:-webkit-any-link {
     color: #0f172a;
   }
 
-  .form-group textarea {
+  .form-group textarea,
+  .form-group textarea.form-control {
     min-height: 96px;
     resize: vertical;
     line-height: 1.5;
@@ -2501,10 +2504,18 @@ a:-webkit-any-link {
 
   .form-group input:focus,
   .form-group select:focus,
-  .form-group textarea:focus {
+  .form-group textarea:focus,
+  .form-group .form-control:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
   }
 
   .modal-hint {
@@ -2513,6 +2524,79 @@ a:-webkit-any-link {
     font-size: 12px;
     color: #64748b;
   }
+}
+
+#problem-report-modal {
+  z-index: 1100;
+
+  .problem-report-modal__content {
+    max-width: 520px;
+  }
+
+  .problem-report-modal__lead {
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #64748b;
+  }
+
+  .problem-report-modal__required {
+    margin-left: 4px;
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  .problem-report-modal__optional {
+    margin-left: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+  }
+
+  .problem-report-modal__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .problem-report-modal__actions .btn {
+    flex: 1;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, background-color 0.2s, border-color 0.2s;
+  }
+
+  .problem-report-modal__actions .btn-secondary {
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+  }
+
+  .problem-report-modal__actions .btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .problem-report-modal__submit {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  }
+
+  .problem-report-modal__submit:hover {
+    opacity: 0.92;
+  }
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 .suggestion-count-control {

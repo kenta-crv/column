@@ -27,7 +27,7 @@ class ColumnsController < ApplicationController
       )
     end
 
-    columns = columns.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+    columns = columns.where(genre: GenreRegistry.equivalent_keys(params[:selected_genre])) if params[:selected_genre].present?
     columns = columns.order(updated_at: :desc)
 
     @paginated_columns = columns.page(params[:page]).per(30)
@@ -39,8 +39,9 @@ class ColumnsController < ApplicationController
     stats_scope = stats_scope.where(genre: genre_values) if genre_values.present?
 
     if params[:article_type] == "pillar"
-      @grouped_columns = @columns.group_by(&:genre)
+      @grouped_columns = @columns.group_by { |c| GenreRegistry.canonical_key(c.genre).presence || c.genre.to_s }
       @all_genres = stats_scope.where(article_type: "pillar").distinct.pluck(:genre).compact
+                               .map { |g| GenreRegistry.canonical_key(g) || g }.uniq
     end
 
     if @columns.present?
@@ -57,19 +58,22 @@ class ColumnsController < ApplicationController
         "%#{params[:q]}%", "%#{params[:q]}%", "%#{params[:q]}%"
       )
     end
-    base_count_query = base_count_query.where(genre: params[:selected_genre]) if params[:selected_genre].present?
+    base_count_query = base_count_query.where(genre: GenreRegistry.equivalent_keys(params[:selected_genre])) if params[:selected_genre].present?
 
-    @genre_pillar_counts = base_count_query.where(article_type: "pillar").group(:genre).count
-    @genre_child_counts  = base_count_query.where(article_type: %w[child cluster]).group(:genre).count
+    @genre_pillar_counts = merge_canonical_genre_counts(
+      base_count_query.where(article_type: "pillar").group(:genre).count
+    )
+    @genre_child_counts  = merge_canonical_genre_counts(
+      base_count_query.where(article_type: %w[child cluster]).group(:genre).count
+    )
 
     @current_genre_key = genre_key
     @columns_manage_view = columns_manage_view?
   end
 
   def show
-    current_genre_key = if defined?(GenreRegistry) && GenreRegistry.respond_to?(:from_ja)
-                          GenreRegistry.from_ja(@column.genre)
-                        end
+    current_genre_key = GenreRegistry.resolve_key(@column.genre, client: @column.client).presence
+    current_genre_key ||= GenreRegistry.from_ja(@column.genre) if defined?(GenreRegistry)
     current_genre_key ||= @column.genre.to_s.strip.downcase
 
     if @column.article_type == "pillar"
@@ -254,7 +258,7 @@ class ColumnsController < ApplicationController
     Column.reconcile_broken_image_file_refs!(base_scope)
 
     query = base_scope.merge(Column.missing_generated_image)
-    query = query.where(genre: genre) if genre.present? && admin_or_allowed_genre?(genre)
+    query = query.where(genre: GenreRegistry.equivalent_keys(genre)) if genre.present? && admin_or_allowed_genre?(genre)
     query = query.merge(Column.with_article_type_filter(article_type)) if article_type.present?
 
     render json: { count: query.count, is_running: @@bulk_image_generating }
@@ -521,6 +525,7 @@ class ColumnsController < ApplicationController
     add_breadcrumb "トップ", "/"
 
     genre_key = (@column&.genre.presence || params[:genre]).to_s
+    genre_key = GenreRegistry.resolve_key(genre_key, client: @column&.client).presence || genre_key
     genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
 
     if platform_host? && genre_key == CrawlPolicy::GENRE_KEY

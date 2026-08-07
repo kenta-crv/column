@@ -1,26 +1,33 @@
+- set_meta_tags title: t("drafity.auth.meta_login_title"), description: t("drafity.auth.meta_login_description")
+
 .auth-wrapper.auth-wrapper--signup
+  .drafity-auth__lang
+    = render "shared/lang_switch"
   .auth-forms
     .auth-card.auth-card--signup.auth-card--login
       .auth-card__header
-        h2.auth-card__title ログイン
+        = link_to locale_root_href do
+          = image_tag drafity_logo_image, alt: "Drafity", width: "120"
+        h2.auth-card__title = t("drafity.auth.login_title")
+        p.auth-card__lead = t("drafity.auth.login_lead")
 
-      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-signup-form" }) do |f|
+      = form_for(resource, as: resource_name, url: client_session_url_for_locale, html: { class: "auth-signup-form" }) do |f|
         .auth-form-section
           .field
-            = f.label :email, "メールアドレス"
-            = f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field", placeholder: "you@example.com", required: true
+            = f.label :email, t("drafity.auth.email")
+            = f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field", placeholder: t("drafity.auth.ph_email"), required: true
 
           .field
-            = f.label :password, "パスワード"
+            = f.label :password, t("drafity.auth.password")
             = f.password_field :password, autocomplete: "current-password", class: "input-field", required: true
 
           - if devise_mapping.rememberable?
             .field.remember
               = f.check_box :remember_me
-              = f.label :remember_me, "ログイン状態を保持する"
+              = f.label :remember_me, t("drafity.auth.remember_me")
 
         .actions
-          = f.submit "ログイン", class: "btn-signup"
+          = f.submit t("drafity.auth.submit_login"), class: "btn-signup"
 
       .auth-card__footer
         = render "clients/shared/links"

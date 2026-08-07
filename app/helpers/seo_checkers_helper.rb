@@ -1,7 +1,7 @@
 module SeoCheckersHelper
   def seo_checker_path_for_locale
-    if params[:locale].present?
-      localized_seo_checker_path(locale: params[:locale])
+    if I18n.locale.to_s == "en"
+      localized_seo_checker_path(locale: :en)
     else
       seo_checker_path
     end

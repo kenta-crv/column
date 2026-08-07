@@ -285,7 +285,7 @@ module GenreRegistry
         }
       }
     },
-    meetia: {
+    ai_sales_agent: {
       ja: "AI商談代行",
       host: ["meetia.pro"],
       service_name: "Meetia",
@@ -366,7 +366,7 @@ module GenreRegistry
           description: "AIが検索需要を捉えたテーマを提案し、ピラー記事（親）とクラスター記事（子）を自動設計・生成。約6,000〜8,000字の高品質記事を平均40秒で生成し、SEOスコアで品質を可視化。",
           features: ["テーマ・キーワードの自動提案", "親子記事（ピラー・クラスター）の自動連携", "E-E-A-T対応の高精度記事生成", "画像AI自動生成", "記事ランク・SEOスコア自動査定", "API/CMS連携", "バックグラウンド生成"],
           keywords: ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツ資産化"],
-          price_hint: "無料プラン 月3記事（クレカ不要・ずっと無料）/ トライアル 7日間無料 / スターター ¥29,800 / スタンダード ¥49,800 / ビジネス ¥98,000 / エンタープライズ ¥198,000（各月額・年額20%OFF）",
+          price_hint: "無料プラン 月3記事（クレカ不要・ずっと無料）/ トライアル #{Subscription::TRIAL_DAYS}日間無料 / スターター ¥29,800 / スタンダード ¥49,800 / ビジネス ¥98,000 / エンタープライズ ¥198,000（各月額・年額20%OFF）",
           area: "全国対応",
           strengths: "単なる記事生成ではなく、Google上位表示に適したピラー・クラスター構造の設計から生成・査定まで一貫対応。",
           industry_weakness: "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafifyはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
@@ -440,10 +440,9 @@ module GenreRegistry
     }
   }.freeze
 
-  # 公開URLの genre キーと FALLBACK_GENRES キーが違う場合の別名
-  # 例: URL/DB は ai_sales_agent、レジストリ本体キーは meetia
+  # 旧キー互換: meetia → 本体 ai_sales_agent
   GENRE_KEY_ALIASES = {
-    ai_sales_agent: :meetia
+    meetia: :ai_sales_agent
   }.freeze
 
   class << self
@@ -488,16 +487,18 @@ module GenreRegistry
       return true if client.nil?
       return false if key.blank?
 
-      !FALLBACK_GENRES.key?(key.to_sym)
+      # 別名キー（meetia 等）は本体キー扱い。カスタム作成不可。
+      !FALLBACK_GENRES.key?(canonical_key(key).to_sym)
     end
 
     def permitted_template_keys_for(client, host)
       allowed = Array(client.allowed_genres).map(&:to_s).reject(&:blank?)
       return [] if allowed.blank?
 
+      allowed_canonical = allowed.map { |k| canonical_key(k) }.uniq
       fallback_keys = FALLBACK_GENRES.keys.map(&:to_s)
-      existing = client.service_genres.pluck(:key).map(&:to_s)
-      (allowed & fallback_keys) - existing
+      existing = client.service_genres.pluck(:key).map { |k| canonical_key(k) }.uniq
+      (allowed_canonical & fallback_keys) - existing
     end
 
     def resolve_platform_host(request_host, client)
@@ -565,9 +566,10 @@ module GenreRegistry
       if client
         return {} unless service_genres_table_ready?
 
-        ServiceGenre.where(client_id: client.id).order(:ja).each_with_object({}) do |record, hash|
+        result = ServiceGenre.where(client_id: client.id).order(:ja).each_with_object({}) do |record, hash|
           hash[record.key.to_sym] = record.to_registry_hash
         end
+        collapse_aliased_genre_keys!(result)
       else
         result = FALLBACK_GENRES.deep_dup
         return result unless service_genres_table_ready?
@@ -575,8 +577,24 @@ module GenreRegistry
         ServiceGenre.where(client_id: nil).find_each do |record|
           result[record.key.to_sym] = record.to_registry_hash
         end
-        result
+        collapse_aliased_genre_keys!(result)
       end
+    end
+
+    # 別名キーと本体が同時に載らないよう、本体キーへ寄せる
+    def collapse_aliased_genre_keys!(result)
+      GENRE_KEY_ALIASES.each do |alias_key, target|
+        alias_sym = alias_key.to_sym
+        target_sym = target.to_sym
+        next unless result.key?(alias_sym)
+
+        if result.key?(target_sym)
+          result.delete(alias_sym)
+        else
+          result[target_sym] = result.delete(alias_sym)
+        end
+      end
+      result
     end
 
     def service_genres_table_ready?
@@ -596,11 +614,14 @@ module GenreRegistry
     return nil if genre.blank?
 
     registry = genres(client: client)
-    key_str = genre.to_s
+    key_str = canonical_key(genre)
     return key_str if registry.key?(key_str.to_sym)
 
-    from_ja_key = from_ja(key_str)
-    return from_ja_key if from_ja_key.present? && registry.key?(from_ja_key.to_sym)
+    from_ja_key = from_ja(genre.to_s)
+    if from_ja_key.present?
+      from_ja_canon = canonical_key(from_ja_key)
+      return from_ja_canon if registry.key?(from_ja_canon.to_sym)
+    end
 
     key_str
   end

@@ -241,5 +241,6 @@
       - if client_signed_in?
         = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
       - else
-        - index_path = platform_host? ? public_columns_index_path(genre: @column.genre) : "/columns"
+        - index_genre = GenreRegistry.resolve_key(@column.genre, client: @column.client).presence || @column.genre
+        - index_path = platform_host? ? public_columns_index_path(genre: index_genre) : "/columns"
         = link_to '一覧へ戻る', index_path, class: 'column-footer__back'

@@ -190,7 +190,13 @@ curl -X GET https://your-domain.com/api/v1/articles \
       "file_url": "https://...",
       "published_at": "2026-06-18T00:00:00+09:00",
       "created_at": "2026-06-18T00:00:00+09:00",
-      "updated_at": "2026-06-18T00:00:00+09:00"
+      "updated_at": "2026-06-18T00:00:00+09:00",
+      "attribution_required": true,
+      "attribution": {
+        "text": "Powered by Drafity",
+        "url": "https://drafity.pro",
+        "html": "<div class=\"drafity-attribution\">...</div>"
+      }
     }
   ],
   "pagination": {
@@ -201,6 +207,11 @@ curl -X GET https://your-domain.com/api/v1/articles \
   }
 }
 ```
+
+**アトリビューション（Powered by）**:
+- トライアル / スターター / スタンダード: `attribution_required: true`。JSON に `attribution` が付き、`render_html` 末尾にも明示クレジットが入る
+- ビジネス / エンタープライズ、および運営側の自社ジャンル（`ServiceGenre.client_id` が null）: 表示なし（`attribution_required: false`）
+- クレジットは明示表示のみ（隠しリンクは使わない）
 
 **注意**: 差分同期を行う場合は `updated_since` を使うと、更新された記事のみを効率的に取得できます。
 

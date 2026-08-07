@@ -31,7 +31,7 @@ class PlansController < ApplicationController
     plan_type = params[:plan_type]
 
     unless Subscription::PLAN_PRICES.key?(plan_type.to_sym)
-      redirect_to plans_path, alert: "無効なプランです。"
+      redirect_to plans_path_for_locale, alert: t("drafity.auth.invalid_plan")
       return
     end
 
@@ -56,7 +56,7 @@ class PlansController < ApplicationController
         trial_ends_at: trial_end
       )
 
-      redirect_to plans_path, notice: "無料トライアルを開始しました。"
+      redirect_to plans_path_for_locale, notice: t("drafity.auth.trial_started", default: "無料トライアルを開始しました。")
       return
     end
 

@@ -1,16 +1,37 @@
-<h2>Forgot your password?</h2>
+<% set_meta_tags title: t("drafity.auth.meta_password_title"), description: t("drafity.auth.meta_password_description") %>
 
-<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
-  <%= render "clients/shared/error_messages", resource: resource %>
-
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+<div class="auth-wrapper auth-wrapper--signup">
+  <div class="drafity-auth__lang">
+    <%= render "shared/lang_switch" %>
   </div>
+  <div class="auth-forms">
+    <div class="auth-card auth-card--signup auth-card--login">
+      <div class="auth-card__header">
+        <%= link_to locale_root_href do %>
+          <%= image_tag drafity_logo_image, alt: "Drafity", width: "120" %>
+        <% end %>
+        <h2 class="auth-card__title"><%= t("drafity.auth.password_forgot_title") %></h2>
+        <p class="auth-card__lead"><%= t("drafity.auth.password_forgot_lead") %></p>
+      </div>
 
-  <div class="actions">
-    <%= f.submit "Send me reset password instructions" %>
+      <%= form_for(resource, as: resource_name, url: client_password_url_for_locale, html: { method: :post, class: "auth-signup-form" }) do |f| %>
+        <%= render "clients/shared/error_messages", resource: resource %>
+
+        <div class="auth-form-section">
+          <div class="field">
+            <%= f.label :email, t("drafity.auth.email") %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field" %>
+          </div>
+        </div>
+
+        <div class="actions">
+          <%= f.submit t("drafity.auth.submit_password_email"), class: "btn-signup" %>
+        </div>
+      <% end %>
+
+      <div class="auth-card__footer">
+        <%= render "clients/shared/links" %>
+      </div>
+    </div>
   </div>
-<% end %>
-
-<%= render "clients/shared/links" %>
+</div>

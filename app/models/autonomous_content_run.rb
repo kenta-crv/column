@@ -22,6 +22,8 @@ class AutonomousContentRun < ApplicationRecord
   validates :cluster_limit, numericality: { only_integer: true, in: MIN_CLUSTER_LIMIT..MAX_CLUSTER_LIMIT }
   validates :status, inclusion: { in: STATUSES }
 
+  before_validation :normalize_genre_key
+
   scope :recent, -> { order(created_at: :desc) }
 
   STALE_RUN_AFTER = 30.minutes
@@ -301,6 +303,13 @@ class AutonomousContentRun < ApplicationRecord
   end
 
   private
+
+  def normalize_genre_key
+    return if genre.blank?
+
+    resolved = GenreRegistry.resolve_key(genre, client: client)
+    self.genre = resolved if resolved.present?
+  end
 
   def build_next_pillar_suggestions
     return [] unless pillar_column

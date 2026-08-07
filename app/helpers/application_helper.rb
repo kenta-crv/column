@@ -183,4 +183,48 @@ module ApplicationHelper
       "mainEntity" => entities
     }.to_json
   end
+
+  def english_ui?
+    I18n.locale.to_s == "en"
+  end
+
+  def client_sign_in_path_for_locale
+    english_ui? ? new_client_session_en_path(locale: :en) : new_client_session_path
+  end
+
+  def client_sign_up_path_for_locale
+    english_ui? ? new_client_registration_en_path(locale: :en) : new_client_registration_path
+  end
+
+  def client_password_new_path_for_locale
+    english_ui? ? new_client_password_en_path(locale: :en) : new_client_password_path
+  end
+
+  def client_session_url_for_locale
+    english_ui? ? client_session_en_path(locale: :en) : session_path(:client)
+  end
+
+  def client_registration_url_for_locale
+    english_ui? ? client_registration_en_path(locale: :en) : registration_path(:client)
+  end
+
+  def client_password_url_for_locale
+    english_ui? ? client_password_en_path(locale: :en) : password_path(:client)
+  end
+
+  def client_password_update_url_for_locale
+    english_ui? ? client_password_en_path(locale: :en) : password_path(:client)
+  end
+
+  def plans_path_for_locale
+    english_ui? ? localized_plans_path(locale: :en) : plans_path
+  end
+
+  def select_plan_path_for_locale
+    english_ui? ? localized_select_plan_path(locale: :en) : select_plan_path
+  end
+
+  def drafity_logo_image
+    english_ui? ? "logo2-en.png" : "logo2.png"
+  end
 end

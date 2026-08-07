@@ -39,7 +39,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
     @run = AutonomousContentRun.start!(
       client: owner_client,
       title: run_params[:title],
-      genre: run_params[:genre],
+      genre: GenreRegistry.resolve_key(run_params[:genre], client: owner_client).presence || run_params[:genre],
       cluster_limit: run_params[:cluster_limit]
     )
 
@@ -156,7 +156,8 @@ class Dashboard::AutonomousRunsController < ApplicationController
     return false if genre.blank?
     return true if admin_signed_in?
 
-    client.genre_keys.include?(genre.to_s)
+    equivalent = GenreRegistry.equivalent_keys(genre)
+    equivalent.any? { |k| client.genre_keys.include?(k) }
   end
 
   def run_params

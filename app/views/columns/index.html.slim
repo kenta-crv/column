@@ -1,5 +1,5 @@
 - current_genre_key = @current_genre_key.presence || params[:genre].presence
-/ ai_sales_agent → meetia のような別名でもレジストリ本体から service_name を取る
+/ meetia → ai_sales_agent のような旧キーでもレジストリ本体から service_name を取る
 - registry_genre_key = current_genre_key.present? ? GenreRegistry.canonical_key(current_genre_key) : nil
 - service_name = registry_genre_key.present? ? GenreRegistry.genres.dig(registry_genre_key.to_sym, :service_name) : nil
 - page_title = params[:article_type] == 'pillar' ? '親記事（ピラー）一覧' : (params[:article_type] == 'child' ? '子記事（クラスター）一覧' : '公開済み記事')

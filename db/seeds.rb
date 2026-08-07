@@ -37,7 +37,7 @@ upsert_service_genre!(
         "バックグラウンド生成（画面を閉じても処理継続）"
       ],
       "keywords" => ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツ資産化"],
-      "price_hint" => "無料プラン 月3記事（クレカ不要・ずっと無料）/ トライアル 7日間無料 / スターター ¥29,800 / スタンダード ¥49,800 / ビジネス ¥98,000 / エンタープライズ ¥198,000（各月額・年額20%OFF）",
+      "price_hint" => "無料プラン 月3記事（クレカ不要・ずっと無料）/ トライアル #{Subscription::TRIAL_DAYS}日間無料 / スターター ¥29,800 / スタンダード ¥49,800 / ビジネス ¥98,000 / エンタープライズ ¥198,000（各月額・年額20%OFF）",
       "area" => "全国対応",
       "strengths" => "単なる記事生成ではなく、Google上位表示に適したピラー・クラスター構造の設計から生成・査定まで一貫対応。EnterpriseプランではAIエージェントが自律的に親子記事を量産し、進捗をメール・SMS通知。",
       "industry_weakness" => "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafifyはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
@@ -63,7 +63,7 @@ upsert_service_genre!(
 )
 
 upsert_service_genre!(
-  key: "meetia",
+  key: "ai_sales_agent",
   ja: "AI商談代行",
   service_name: "Meetia",
   strong_points: <<~TEXT.strip,

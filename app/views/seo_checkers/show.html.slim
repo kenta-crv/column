@@ -5,7 +5,7 @@
   nav.nav
     .nav-inner
       = link_to locale_root_href
-        = image_tag "logo2.png", width: "150px"
+        = image_tag drafity_logo_image, width: "150px", alt: "Drafity"
       .nav-links
         = link_to t("drafity.lp.nav_features"), "#{locale_root_href}#features"
         = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale, class: "active"
@@ -13,8 +13,8 @@
         = link_to t("drafity.lp.nav_pricing"), "#{locale_root_href}#pricing"
       .nav-cta
         = render "shared/lang_switch"
-        = link_to t("drafity.lp.login"), new_client_session_path, class: "btn-login"
-        = link_to t("drafity.lp.cta_start"), "/clients/sign_up", class: "btn-primary"
+        = link_to t("drafity.lp.login"), client_sign_in_path_for_locale, class: "btn-login"
+        = link_to t("drafity.lp.cta_start"), client_sign_up_path_for_locale, class: "btn-primary"
 
   section.seo-hero
     .seo-hero-inner
@@ -216,7 +216,7 @@
 
         .seo-cta-block
           p.seo-cta-text = t("drafity.seo_checker.cta_text")
-          = link_to t("drafity.seo_checker.cta_button"), "/clients/sign_up", class: "btn-primary-lg"
+          = link_to t("drafity.seo_checker.cta_button"), client_sign_up_path_for_locale, class: "btn-primary-lg"
           p.seo-remaining
             - if seo_checker_unlimited?
               = t("drafity.seo_checker.remaining_unlimited")
@@ -228,14 +228,14 @@
       .seo-limit-inner
         h2.seo-section-title = t("drafity.seo_checker.limit_title")
         p = t("drafity.seo_checker.limit_body")
-        = link_to t("drafity.seo_checker.cta_button"), "/clients/sign_up", class: "btn-primary-lg"
+        = link_to t("drafity.seo_checker.cta_button"), client_sign_up_path_for_locale, class: "btn-primary-lg"
 
   footer.lp-footer
     .lp-footer-inner
       = link_to locale_root_href, class: "lp-footer-brand" do
-        = image_tag "logo2.png", width: "120", alt: "Drafity"
+        = image_tag drafity_logo_image, width: "120", alt: "Drafity"
       nav.lp-footer-nav aria-label=t("drafity.lp.footer_nav")
         = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale
         = link_to t("drafity.lp.footer_articles"), ai_article_columns_index_path
-        = link_to t("drafity.lp.footer_start"), "/clients/sign_up"
+        = link_to t("drafity.lp.footer_start"), client_sign_up_path_for_locale
       p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)

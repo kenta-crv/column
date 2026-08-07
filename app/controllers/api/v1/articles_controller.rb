@@ -61,6 +61,7 @@ class Api::V1::ArticlesController < ApplicationController
         partial: 'api/v1/articles/show',
         locals: { column: @column, base_url: request.base_url }
       )
+      html = append_attribution_html(html, column: @column)
     else
       @columns = client_articles_scope.order(updated_at: :desc)
 
@@ -68,6 +69,7 @@ class Api::V1::ArticlesController < ApplicationController
         partial: 'api/v1/articles/articles',
         locals: { columns: @columns, base_url: request.base_url }
       )
+      html = append_attribution_html(html)
     end
 
     if html.nil?
@@ -92,15 +94,22 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def allowed_genre_values
-    @client.service_genres.flat_map { |genre| [genre.key, genre.ja] }.compact.uniq
+    @client.service_genres.flat_map do |genre|
+      GenreRegistry.equivalent_keys(genre.key) + [genre.ja]
+    end.compact.uniq
   end
 
   def filter_genre_values
+    param = params[:genre].to_s
     matching_genre = @client.service_genres.find do |genre|
-      genre.key == params[:genre] || genre.ja == params[:genre]
+      GenreRegistry.equivalent_keys(genre.key).include?(param) || genre.ja == param
     end
 
-    matching_genre ? [matching_genre.key, matching_genre.ja].compact.uniq : [params[:genre]]
+    if matching_genre
+      (GenreRegistry.equivalent_keys(matching_genre.key) + [matching_genre.ja]).compact.uniq
+    else
+      GenreRegistry.equivalent_keys(param).presence || [param]
+    end
   end
 
   def parsed_updated_since
@@ -142,7 +151,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def article_json(column)
-    {
+    payload = {
       id: column.id,
       title: column.title,
       body: column.body,
@@ -158,5 +167,26 @@ class Api::V1::ArticlesController < ApplicationController
       created_at: column.created_at,
       updated_at: column.updated_at
     }
+
+    if AttributionPolicy.required?(client: @client, genre: column.genre, column: column)
+      attr = AttributionPolicy.payload(base_url: request.base_url)
+      payload[:attribution_required] = true
+      payload[:attribution] = {
+        text: attr[:text],
+        url: attr[:url],
+        html: attr[:html]
+      }
+    else
+      payload[:attribution_required] = false
+      payload[:attribution] = nil
+    end
+
+    payload
+  end
+
+  def append_attribution_html(html, column: nil)
+    return html unless AttributionPolicy.required?(client: @client, genre: column&.genre, column: column)
+
+    "#{html}#{AttributionPolicy.payload(base_url: request.base_url)[:html]}"
   end
 end
