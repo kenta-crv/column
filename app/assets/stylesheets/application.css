@@ -448,6 +448,7 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
       }
 
       .auth-card__header,
+      .auth-oauth,
       .auth-signup-form,
       .auth-card__footer {
         padding-left: 36px;
@@ -720,6 +721,7 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
 }
 
 .auth-wrapper--signup .auth-card--signup .auth-card__header,
+.auth-wrapper--signup .auth-card--signup .auth-oauth,
 .auth-wrapper--signup .auth-card--signup .auth-signup-form,
 .auth-wrapper--signup .auth-card--signup .auth-card__footer {
   padding-left: 36px;
@@ -775,6 +777,7 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
       padding: 0;
 
       .auth-card__header,
+      .auth-oauth,
       .auth-signup-form,
       .auth-card__footer {
         padding-left: 22px;
@@ -788,6 +791,7 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
     }
   }
   .auth-wrapper--signup .auth-card--signup .auth-card__header,
+  .auth-wrapper--signup .auth-card--signup .auth-oauth,
   .auth-wrapper--signup .auth-card--signup .auth-signup-form,
   .auth-wrapper--signup .auth-card--signup .auth-card__footer {
     padding-left: 22px;
