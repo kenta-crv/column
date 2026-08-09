@@ -52,7 +52,7 @@ require "uri"
 #    今回の修正では「決め打ちのSEO用語」と「同一事実の使い回し」を
 #    解消することに絞った(プロンプト文面自体の書き換えは最小限)。
 # ==========================================================
-class GptPillarGenerator
+class GptPillarNote
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_08_07_120000) do
+ActiveRecord::Schema.define(version: 2026_08_08_220000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -80,7 +80,10 @@ ActiveRecord::Schema.define(version: 2026_08_07_120000) do
     t.json "embed_settings"
     t.json "autonomous_settings"
     t.string "preferred_locale", default: "ja", null: false
+    t.string "provider"
+    t.string "uid"
     t.index ["email"], name: "index_clients_on_email", unique: true
+    t.index ["provider", "uid"], name: "index_clients_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_clients_on_reset_password_token", unique: true
     t.index ["stripe_customer_id"], name: "index_clients_on_stripe_customer_id", unique: true
     t.index ["subscription_plan"], name: "index_clients_on_subscription_plan"
@@ -107,12 +110,14 @@ ActiveRecord::Schema.define(version: 2026_08_07_120000) do
     t.string "sub_genre"
     t.string "generation_status", default: "idle", null: false
     t.float "quality_score", default: 0.0
-    t.json "evaluation_metrics", default: "\"{}\""
+    t.json "evaluation_metrics", default: "\"\\\"\\\\\\\"{}\\\\\\\"\\\"\""
     t.integer "client_id"
     t.datetime "published_at"
+    t.string "generation_mode", default: "default", null: false
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["client_id"], name: "index_columns_on_client_id"
     t.index ["code"], name: "index_columns_on_code", unique: true
+    t.index ["generation_mode"], name: "index_columns_on_generation_mode"
     t.index ["generation_status"], name: "index_columns_on_generation_status"
     t.index ["parent_id"], name: "index_columns_on_parent_id"
     t.index ["published_at"], name: "index_columns_on_published_at"

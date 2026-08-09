@@ -195,7 +195,8 @@ class AutonomousContentRun < ApplicationRecord
           status: "draft",
           genre: pillar_column.genre,
           choice: pillar_column.choice,
-          client_id: client_id
+          client_id: client_id,
+          **Column.attributes_for_child_generation(pillar_column)
         )
       end
     end

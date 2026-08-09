@@ -11,6 +11,8 @@
         h2.auth-card__title = t("drafity.auth.login_title")
         p.auth-card__lead = t("drafity.auth.login_lead")
 
+      = render "clients/shared/oauth_buttons"
+
       = form_for(resource, as: resource_name, url: client_session_url_for_locale, html: { class: "auth-signup-form" }) do |f|
         .auth-form-section
           .field

@@ -52,7 +52,7 @@ class Clients::RegistrationsController < Devise::RegistrationsController
   end
 
   def after_sign_up_path_for(_resource)
-    I18n.locale.to_s == "en" ? localized_plans_path(locale: :en) : plans_path
+    dashboard_root_path
   end
 
   private

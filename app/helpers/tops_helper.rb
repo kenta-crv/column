@@ -413,24 +413,24 @@ module TopsHelper
     { category: "service", q: "Drafityはどんなサービスですか？", a: "法人のオウンドメディア・コンテンツマーケ向けに、SEO構成から本文・画像・リライト・効果測定までを一つの画面で進めるAIコンテンツ増量プラットフォームです。親記事（ピラー）と子記事（クラスター）の設計にも対応しています。" },
     { category: "service", q: "SEOスコアはどう出ますか？", a: "見出し構成やキーワード比率などをもとに、AIが100点満点で自動査定します。生成後にエディタで直しながらスコアを確認できます。" },
     { category: "service", q: "記事生成中にブラウザを閉じても大丈夫ですか？", a: "はい。サーバー側で処理が続くため、画面を閉じても生成は止まりません。" },
-    { category: "service", q: "WordPressやAPI連携はできますか？", a: "はい。WordPressへのワンクリック公開やCMS向けエクスポートに対応しています。API利用はスターター以上です（トライアルでは不可）。" },
+    { category: "service", q: "WordPressやAPI連携はできますか？", a: "はい。WordPressへのワンクリック公開やCMS向けエクスポートに対応しています。API利用はスタンダード以上です（トライアルでは不可）。" },
     { category: "service", q: "生成した記事の著作権は誰のものですか？", a: "トライアル期間を含め、生成した記事はお客様のコンテンツとしてご利用いただけます。" },
 
     # pricing
-    { category: "pricing", q: "無料トライアルの条件は？", a: "#{Subscription::TRIAL_DAYS}日間・0円です。上限は親記事1・子記事3・画像5・タイトル提案1。アカウント登録だけで開始でき、クレジットカードは不要です。期間終了後はスタンダード（月額49,800円）へ移行します。" },
-    { category: "pricing", q: "料金プランと記事上限は？", a: "スターター月額29,800円（親3・子45）／スタンダード49,800円（5・75）／ビジネス98,000円（15・225、AI自律あり）／エンタープライズ198,000円（50・750）。年額払いは月額換算で約20%お得です。詳細は料金セクションをご確認ください。" },
-    { category: "pricing", q: "トライアル中に解約したら課金されますか？", a: "トライアル期間中に解約すれば料金はかかりません。解約後も契約期間の終了日までは利用できます。" },
+    { category: "pricing", q: "無料トライアルの条件は？", a: "#{Subscription::TRIAL_DAYS}日間・0円です。上限は親記事1・子記事5・画像8・タイトル提案1。アカウント登録だけで開始でき、クレジットカードは不要です。期間終了後は自動課金されず期限切れとなり、スタンダード（月額49,800円）への移行をご案内します。" },
+    { category: "pricing", q: "料金プランと記事上限は？", a: "スタンダード月額49,800円（親5・子75）／ビジネス98,000円（15・225、AI自律あり）／エンタープライズ198,000円（50・750）。スタンダードは初回3ヶ月15%OFF。詳細は料金セクションをご確認ください。" },
+    { category: "pricing", q: "トライアル中に解約したら課金されますか？", a: "トライアルはカード不要で、終了後も自動課金はされません。" },
     { category: "pricing", q: "プラン変更や請求書払いはできますか？", a: "プラン変更はダッシュボードの契約管理から可能です。請求書払いは契約形態により案内します。法人でのご利用・請求書払いをご希望の場合はお問い合わせください。" },
 
     # setup
-    { category: "setup", q: "申し込みから最初の記事までの手順は？", a: "①「無料で始める」からアカウント登録→②登録完了と同時にトライアル開始（カード不要）→③料金プラン画面で現状確認／必要なら有料プランへCheckout→④キーワード入力から構成・本文を生成→⑤エディタで編集し、公開またはWordPress連携、の順です。最短数分で下書きまで進められます。" },
+    { category: "setup", q: "申し込みから最初の記事までの手順は？", a: "①「無料で始める」からアカウント登録→②登録完了と同時にトライアル開始（カード不要）→③キーワード入力から構成・本文を生成→④エディタで編集し、公開またはWordPress連携。必要になったら料金プラン画面から有料プランへCheckoutできます。" },
     { category: "setup", q: "始めるときに用意するものは？", a: "特別な準備は不要です。狙いたいキーワードやテーマが決まっていればすぐ生成できます。プログラミング知識も不要です。" },
-    { category: "setup", q: "有料プランへの切り替え方は？", a: "ダッシュボードの料金プラン（/plans）からプランと月額／年額を選び、クレジットカードでCheckoutします。エンタープライズは問い合わせ導線もあります。" },
+    { category: "setup", q: "有料プランへの切り替え方は？", a: "ダッシュボードの料金プラン（/plans）からプランを選び、クレジットカードでCheckoutします。エンタープライズは問い合わせ導線もあります。" },
 
     # usage
     { category: "usage", q: "既存記事のリライトはできますか？", a: "はい。既存コンテンツのSEO改善・リライトに対応し、スコアを見ながら直せます。" },
     { category: "usage", q: "複数メディアを1アカウントで運用できますか？", a: "はい。プランに応じて複数プロジェクトを管理でき、マーケ・SEOチームでの共同運用にも対応しています。" },
-    { category: "usage", q: "AI自律生成はどのプランからですか？", a: "ビジネスおよびエンタープライズです。スターター・スタンダードには含まれません。" }
+    { category: "usage", q: "AI自律生成はどのプランからですか？", a: "ビジネスおよびエンタープライズです。スタンダードには含まれません。" }
   ].freeze
 
   FAQ_ITEMS_EN = [
@@ -438,24 +438,24 @@ module TopsHelper
     { category: "service", q: "What is Drafity?", a: "An AI content-volume platform for corporate owned media and content marketing—SEO outlines, article generation, images, rewrites, and measurement in one place, including pillar/cluster structures." },
     { category: "service", q: "How is the SEO score calculated?", a: "AI scores headings, keyword balance, and more out of 100. Edit in the editor while watching the score." },
     { category: "service", q: "Can I close the browser while generating?", a: "Yes. Generation continues server-side even if you leave the page." },
-    { category: "service", q: "Does it support WordPress and API?", a: "Yes—one-click WordPress publish and CMS export. API is available on Starter and above (not on Trial)." },
+    { category: "service", q: "Does it support WordPress and API?", a: "Yes—one-click WordPress publish and CMS export. API is available on Standard and above (not on Trial)." },
     { category: "service", q: "Who owns generated content?", a: "Articles you generate—including during the trial—are yours to use." },
 
     # pricing
-    { category: "pricing", q: "What are the free trial terms?", a: "#{Subscription::TRIAL_DAYS} days at ¥0: 1 parent article, 3 child articles, 5 images, 1 title suggestion. No card needed to start. After the trial you move to Standard (¥49,800/month)." },
-    { category: "pricing", q: "What are the plans and article limits?", a: "Starter ¥29,800/mo (3 parent / 45 child) / Standard ¥49,800 (5 / 75) / Business ¥98,000 (15 / 225, AI autonomous) / Enterprise ¥198,000 (50 / 750). Yearly billing is about 20% off vs monthly. See the pricing section." },
-    { category: "pricing", q: "If I cancel during the trial, am I charged?", a: "No. Cancel during the trial and you pay nothing. You can keep using until the current period ends." },
+    { category: "pricing", q: "What are the free trial terms?", a: "#{Subscription::TRIAL_DAYS} days at ¥0: 1 parent article, 5 child articles, 8 images, 1 title suggestion. No card needed to start. When the trial ends there is no auto-charge; you are guided to Standard (¥49,800/month)." },
+    { category: "pricing", q: "What are the plans and article limits?", a: "Standard ¥49,800/mo (5 parent / 75 child) / Business ¥98,000 (15 / 225, AI autonomous) / Enterprise ¥198,000 (50 / 750). Standard includes 15% off for the first 3 months. See the pricing section." },
+    { category: "pricing", q: "If I cancel during the trial, am I charged?", a: "No. Trial needs no card, and there is no auto-charge when it ends." },
     { category: "pricing", q: "Can I change plans or pay by invoice?", a: "Yes—change plans from dashboard billing. Invoice payment depends on contract type; contact us for company billing." },
 
     # setup
-    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Review /plans and upgrade via Checkout if needed → 4) Enter keywords to generate outline and body → 5) Edit, then publish or push to WordPress. First draft often takes only a few minutes." },
+    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Enter keywords to generate outline and body → 4) Edit, then publish or push to WordPress. Upgrade later from /plans when ready." },
     { category: "setup", q: "What do I need to prepare?", a: "Nothing special—just target keywords or themes. No coding skills required." },
-    { category: "setup", q: "How do I switch to a paid plan?", a: "Choose monthly or yearly on /plans and complete Stripe Checkout. Enterprise also has a contact CTA." },
+    { category: "setup", q: "How do I switch to a paid plan?", a: "Choose a plan on /plans and complete Stripe Checkout. Enterprise also has a contact CTA." },
 
     # usage
     { category: "usage", q: "Can I rewrite existing articles?", a: "Yes. Improve SEO and rewrite while watching the score." },
     { category: "usage", q: "Can one account run multiple media sites?", a: "Yes. Depending on your plan, manage multiple projects and collaborate with marketing and SEO teams." },
-    { category: "usage", q: "Which plans include AI autonomous generation?", a: "Business and Enterprise only—not Starter or Standard." }
+    { category: "usage", q: "Which plans include AI autonomous generation?", a: "Business and Enterprise only—not Standard." }
   ].freeze
 
   def lp_faq_categories
@@ -486,20 +486,20 @@ module TopsHelper
     if lp_english?
       [
         { th: "Company", td: "J Work Inc.", html: false },
-        { th: "Address", td: "2F, 2-2-15 Hamamatsucho, Minato-ku, Tokyo 105-0013, Japan", html: true },
-        { th: "Founded", td: "August 2024", html: false },
-        { th: "Representative", td: "Taro Yamada", html: false },
-        { th: "Business", td: "Development of AI article SaaS “Drafity”<br>Media & content marketing support", html: true },
-        { th: "Capital", td: "¥5,000,000", html: false }
+        { th: "CEO", td: "Kenta Okuyama", html: false },
+        { th: "Founded", td: "August 22, 2023", html: false },
+        { th: "Capital", td: "JPY 5,000,000", html: false },
+        { th: "Address", td: "2F, 2-2-15 Hamamatsucho, Minato-ku, Tokyo", html: true },
+        { th: "Business", td: "Development and delivery of Drafity, an AI article SaaS<br>Media & content marketing support", html: true }
       ]
     else
       [
-        { th: "会社名", td: "合同会社ファクトル", html: false },
-        { th: "所在地", td: "熊本県天草市中央新町12-13", html: true },
-        { th: "設立", td: "2022年1月", html: false },
-        { th: "代表者", td: "奥山　健太", html: false },
-        { th: "事業内容", td: "AI記事生成SaaS「Drafity」の開発・提供<br>メディア支援・コンテンツマーケティング支援", html: true },
-        { th: "資本金", td: "100万円", html: false }
+        { th: "会社名", td: "株式会社J Work", html: false },
+        { th: "代表取締役", td: "奥山　健太", html: false },
+        { th: "設立", td: "2023年8月22日", html: false },
+        { th: "資本金", td: "5,000,000円", html: false },
+        { th: "所在地", td: "東京都港区浜松町２丁目２番１５号２Ｆ", html: true },
+        { th: "事業内容", td: "AI記事生成SaaS「Drafity」の開発・提供<br>メディア支援・コンテンツマーケティング支援", html: true }
       ]
     end
   end

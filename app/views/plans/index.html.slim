@@ -1,3 +1,7 @@
+- billing_currency = BillingCurrency.resolve(locale: I18n.locale, accept_language: request.headers["Accept-Language"])
+- currency_symbol = BillingCurrency.symbol(billing_currency)
+- lp_plans = Subscription.lp_plans(currency: billing_currency)
+
 .drafify-lp.plans-page
   section.pricing-section
     .pricing-inner
@@ -12,11 +16,6 @@
               = t("drafity.auth.plans_trial_prefix")
               strong = t("drafity.auth.plans_trial_strong", days: Subscription::TRIAL_DAYS)
               = t("drafity.auth.plans_trial_suffix")
-        .toggle-wrap
-          button.toggle-btn.active type="button" data-plans-toggle="monthly" = t("drafity.auth.plans_monthly")
-          button.toggle-btn type="button" data-plans-toggle="yearly"
-            = t("drafity.auth.plans_yearly")
-            span.toggle-save = t("drafity.auth.plans_yearly_save")
 
       - if @subscription&.active?
         - usage = current_client.usage_summary
@@ -50,7 +49,7 @@
           - current_plan = @subscription&.plan_type || current_client.subscription_plan
           - trial_used = current_client.subscriptions.exists?(plan_type: :trial)
 
-          - Subscription.lp_plans.each do |plan|
+          - lp_plans.each do |plan|
             - card_classes = []
             - card_classes << "popular" if plan[:popular]
             - card_classes << "featured" if plan[:featured]
@@ -58,8 +57,9 @@
             - card_classes << "current-plan" if is_current
             - cta_class = plan[:popular] ? "filled" : (plan[:featured] ? "featured-cta" : "outline")
             - trial_selectable = plan[:key] == :trial && @is_new_account && !trial_used
+            - intro_note = plan[:key] == :standard
 
-            .plan-card class=card_classes.join(" ") data-plan-key=plan[:key] data-monthly=plan[:monthly_price] data-yearly=plan[:yearly_price]
+            .plan-card class=card_classes.join(" ") data-plan-key=plan[:key] data-monthly=plan[:monthly_price]
               - if plan[:popular]
                 .popular-badge = t("drafity.auth.plans_popular")
               - elsif plan[:featured]
@@ -70,18 +70,27 @@
               .plan-name class=(plan[:popular] ? "accent" : (plan[:featured] ? "featured-name" : "")) = plan[:name]
               .plan-desc = plan[:description]
               .plan-price
-                - if plan[:monthly_price] && plan[:yearly_price] && plan[:monthly_price] > 0
-                  .plan-price-orig id="plans-#{plan[:key]}-orig" style="display:none" = "¥#{number_with_delimiter(plan[:monthly_price])}#{t('drafity.auth.pricing_per_month')}"
-                .plan-price-main
-                  span.price-yen ¥
-                  span.price-num id="plans-#{plan[:key]}-price" = number_with_delimiter(plan[:monthly_price])
-                  - if plan[:key] != :trial
+                - if intro_note
+                  - intro_price = Subscription.intro_price_for(:standard, currency: billing_currency)
+                  - list_price = (billing_currency == :jpy) ? number_with_delimiter(plan[:monthly_price]) : plan[:monthly_price]
+                  - sale_price = (billing_currency == :jpy) ? number_with_delimiter(intro_price) : intro_price
+                  .plan-price-orig
+                    span.price-yen = currency_symbol
+                    span = list_price
+                  .plan-price-main.plan-price-main--sale
+                    span.price-yen = currency_symbol
+                    span.price-num = sale_price
                     span.price-unit = t("drafity.auth.pricing_per_month")
-              .plan-price-note id="plans-#{plan[:key]}-note"
-                - if plan[:key] == :trial
-                  = plan[:note]
+                  p.plan-price-sale-note
+                    = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS)
                 - else
-                  = t("drafity.lp.price_note_monthly", price: number_with_delimiter(plan[:monthly_price]))
+                  .plan-price-main
+                    span.price-yen = currency_symbol
+                    span.price-num = (plan[:key] == :trial || billing_currency == :jpy) ? number_with_delimiter(plan[:monthly_price]) : plan[:monthly_price]
+                    - if plan[:key] != :trial
+                      span.price-unit = t("drafity.auth.pricing_per_month")
+              - if plan[:key] == :trial
+                .plan-price-note = plan[:note]
 
               hr.plan-divider
               ul.plan-features
@@ -95,6 +104,8 @@
                 span.plan-cta.is-disabled = t("drafity.auth.plans_current")
               - elsif plan[:key] == :trial && !trial_selectable
                 span.plan-cta.is-disabled = t("drafity.auth.plans_unavailable")
+              - elsif plan[:key] == :trial
+                = link_to t("drafity.auth.plans_select_cta"), checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
               - else
                 = link_to t("drafity.auth.plans_select_cta"), checkout_confirmation_path(plan_type: plan[:key]), class: "plan-cta #{cta_class}"
 
@@ -103,7 +114,6 @@
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
 script
-  == "window.DRAFITY_PLANS_NOTES = #{ { yearly: t('drafity.lp.js_note_yearly'), monthlyTpl: t('drafity.lp.js_note_monthly', price: '__PRICE__') }.to_json };"
   | (function() {
   |   const initPlansPage = () => {
   |     const page = document.querySelector('.plans-page');
@@ -113,28 +123,6 @@ script
   |     const grid = document.getElementById('plans-pricing-grid');
   |     const prevBtn = page.querySelector('[data-plans-scroll="-1"]');
   |     const nextBtn = page.querySelector('[data-plans-scroll="1"]');
-  |
-  |     const syncToggle = (isYearly, btn) => {
-  |       page.querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
-  |       btn.classList.add('active');
-  |       page.querySelectorAll('.plan-card').forEach((card) => {
-  |         const key = card.dataset.planKey;
-  |         const monthly = parseInt(card.dataset.monthly, 10);
-  |         const yearly = parseInt(card.dataset.yearly, 10);
-  |         if (!key || Number.isNaN(monthly)) return;
-  |         const price = isYearly ? yearly : monthly;
-  |         const priceEl = card.querySelector('#plans-' + key + '-price');
-  |         const origEl = card.querySelector('#plans-' + key + '-orig');
-  |         const noteEl = card.querySelector('#plans-' + key + '-note');
-  |         if (priceEl) priceEl.textContent = price.toLocaleString('ja-JP');
-  |         if (origEl) origEl.style.display = (isYearly && monthly > yearly) ? '' : 'none';
-  |         if (noteEl) {
-  |           noteEl.textContent = (key === 'trial')
-  |             ? ''
-  |             : (isYearly ? (window.DRAFITY_PLANS_NOTES && window.DRAFITY_PLANS_NOTES.yearly) : ((window.DRAFITY_PLANS_NOTES && window.DRAFITY_PLANS_NOTES.monthlyTpl) || '¥__PRICE__').replace('__PRICE__', monthly.toLocaleString('ja-JP')));
-  |         }
-  |       });
-  |     };
   |
   |     const scrollStep = () => {
   |       const card = grid?.querySelector('.plan-card');
@@ -154,10 +142,6 @@ script
   |       if (!grid) return;
   |       grid.scrollBy({ left: direction * scrollStep(), behavior: 'smooth' });
   |     };
-  |
-  |     page.querySelectorAll('[data-plans-toggle]').forEach((btn) => {
-  |       btn.addEventListener('click', () => syncToggle(btn.dataset.plansToggle === 'yearly', btn));
-  |     });
   |
   |     page.querySelectorAll('[data-plans-scroll]').forEach((btn) => {
   |       btn.addEventListener('click', () => scrollPlans(parseInt(btn.dataset.plansScroll, 10)));

@@ -51,7 +51,7 @@
                   td.knowhow-date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
                   td 
                     .knowhow-row-actions
-                      = link_to approve_column_path(column), method: :patch, data: { turbolinks: false }, class: "knowhow-action-btn knowhow-action-btn--gpt", title: "ChatGPT依頼" do
+                      = link_to approve_column_path(column), method: :patch, data: { turbolinks: false, confirm: "本文生成を開始しますか？（生成スタイル: #{generation_mode_label(column.generation_mode)}）" }, class: "knowhow-action-btn knowhow-action-btn--gpt", title: "ChatGPT依頼" do
                         span ⚡ GPT
                       = link_to edit_column_path(column), class: 'knowhow-action-btn knowhow-action-btn--edit', data: { turbo: false }, title: "編集" do
                         span 編集

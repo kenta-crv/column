@@ -2,7 +2,8 @@ class Client < ApplicationRecord
   LOCALES = %w[ja en].freeze
 
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+         :recoverable, :rememberable, :validatable,
+         :omniauthable, omniauth_providers: %i[google_oauth2 microsoft_graph]
 
   has_many :client_usage_logs, dependent: :destroy
   has_many :columns, dependent: :nullify
@@ -15,6 +16,38 @@ class Client < ApplicationRecord
   has_many :payments, dependent: :destroy
 
   validates :preferred_locale, inclusion: { in: LOCALES }
+
+  def self.from_omniauth(auth, preferred_locale: "ja")
+    email = auth.info.email.to_s.downcase.presence
+    raise ArgumentError, "OAuth email missing" if email.blank?
+
+    client = find_by(provider: auth.provider, uid: auth.uid)
+    return client if client
+
+    client = find_by(email: email)
+    if client
+      client.update!(provider: auth.provider, uid: auth.uid)
+      client.name = auth.info.name if client.name.blank? && auth.info.name.present?
+      client.preferred_locale = preferred_locale if client.preferred_locale.blank?
+      client.save! if client.changed?
+      return client
+    end
+
+    create!(
+      email: email,
+      password: Devise.friendly_token[0, 20],
+      name: auth.info.name,
+      provider: auth.provider,
+      uid: auth.uid,
+      preferred_locale: preferred_locale
+    )
+  end
+
+  def password_required?
+    return false if provider.present?
+
+    super
+  end
 
   def ui_locale
     value = self[:preferred_locale].presence || "ja"
@@ -295,65 +328,29 @@ class Client < ApplicationRecord
     }
   end
 
-  # トライアル終了時の自動アップグレード（Stripe Charge）
+  def approaching_limit?(threshold: 0.8)
+    usage_summary.any? do |key, row|
+      next false unless row.is_a?(Hash) && row[:limit].present? && row[:limit].to_i.positive? && row.key?(:used)
+
+      row[:used].to_f / row[:limit] >= threshold
+    end
+  end
+
+  def trial_expired_without_paid?
+    subscription = current_subscription
+    return true if subscription&.expired?
+    return true if subscription_plan == "trial" && trial_ends_at.present? && trial_ends_at <= Time.current
+
+    false
+  end
+
+  # トライアル終了時は自動課金せず期限切れにする（有料プランは手動誘導）
   def check_and_upgrade_expired_trial
     return unless subscription_plan == "trial"
     return unless trial_ends_at.present?
     return if trial_ends_at > Time.current
-    return if subscription_status.in?(%w[expired cancelled])
 
-    unless stripe_customer_id.present?
-      Rails.logger.error "Client #{id} trial expired but no Stripe customer ID found"
-      expire_trial_after_payment_failure!
-      return nil
-    end
-
-    begin
-      upgrade_plan = Subscription::POST_TRIAL_PLAN
-      amount = Subscription::PLAN_PRICES[upgrade_plan]
-
-      charge = Stripe::Charge.create(
-        amount: amount,
-        currency: "jpy",
-        customer: stripe_customer_id,
-        description: "#{Subscription::PLAN_NAMES[upgrade_plan]} subscription (trial upgrade)"
-      )
-
-      if charge.status == "succeeded"
-        subscriptions.where(status: :active).update_all(status: :cancelled)
-
-        subscription = subscriptions.create!(
-          plan_type: upgrade_plan,
-          status: :active,
-          stripe_subscription_id: charge.id,
-          trial_ends_at: nil
-        )
-
-        update!(
-          subscription_plan: upgrade_plan.to_s,
-          subscription_status: "active",
-          trial_ends_at: nil
-        )
-
-        payments.create!(
-          amount: amount,
-          stripe_payment_intent_id: charge.id,
-          status: "succeeded",
-          description: "#{Subscription::PLAN_NAMES[upgrade_plan]} subscription (trial upgrade)"
-        )
-
-        Rails.logger.info "Client #{id} trial expired, charged #{amount} JPY via Stripe and upgraded to #{upgrade_plan} plan"
-        subscription
-      else
-        Rails.logger.error "Client #{id} trial expired but Stripe charge failed: #{charge.failure_message}"
-        expire_trial_after_payment_failure!
-        nil
-      end
-    rescue => e
-      Rails.logger.error "Error upgrading trial via Stripe for client #{id}: #{e.message}"
-      expire_trial_after_payment_failure!
-      nil
-    end
+    current_subscription&.expire_trial_without_charge!
   end
 
   def expire_trial_after_payment_failure!
@@ -372,7 +369,24 @@ class Client < ApplicationRecord
     created_at > Subscription::TRIAL_DAYS.days.ago
   end
 
-  after_create :initialize_trial_subscription, if: :new_record?
+  def initialize_trial_subscription!
+    return current_subscription if subscriptions.where(plan_type: :trial).exists?
+
+    ends_at = Subscription::TRIAL_DAYS.days.from_now
+    subscription = subscriptions.create!(
+      plan_type: :trial,
+      status: :active,
+      trial_ends_at: ends_at
+    )
+    update_columns(
+      subscription_plan: "trial",
+      subscription_status: "active",
+      trial_ends_at: ends_at
+    )
+    subscription
+  end
+
+  after_create :bootstrap_trial_subscription
   before_create :generate_api_key_if_blank
 
   private
@@ -381,18 +395,8 @@ class Client < ApplicationRecord
     self.api_key = SecureRandom.hex(32) if api_key.blank?
   end
 
-  def initialize_trial_subscription
-    subscriptions.create!(
-      plan_type: :trial,
-      status: :active,
-      trial_ends_at: Subscription::TRIAL_DAYS.days.from_now
-    )
-
-    update(
-      subscription_plan: "trial",
-      subscription_status: "active",
-      trial_ends_at: Subscription::TRIAL_DAYS.days.from_now
-    )
+  def bootstrap_trial_subscription
+    initialize_trial_subscription!
   end
 
 end

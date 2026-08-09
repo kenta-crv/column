@@ -340,9 +340,9 @@ class ColumnsController < ApplicationController
     end
 
     spawn_sequential_body_generation!(pending_ids)
-    Rails.logger.info("[ApproveGenerate] started column_id=#{@column.id}")
+    Rails.logger.info("[ApproveGenerate] started column_id=#{@column.id} mode=#{@column.generation_mode}")
 
-    redirect_to dashboard_root_path, notice: "本文生成を開始しました"
+    redirect_to dashboard_root_path, notice: "本文生成を開始しました（#{generation_mode_label(@column.generation_mode)}）"
   end
 
   def publish
@@ -423,7 +423,8 @@ class ColumnsController < ApplicationController
           status: "draft",
           genre: @column.genre,
           choice: @column.choice,
-          client_id: @column.client_id
+          client_id: @column.client_id,
+          **Column.attributes_for_child_generation(@column)
         )
       end
     end
@@ -459,7 +460,8 @@ class ColumnsController < ApplicationController
       status: "draft",
       genre: @column.genre,
       choice: @column.choice,
-      client_id: @column.client_id
+      client_id: @column.client_id,
+      **Column.attributes_for_child_generation(@column)
     )
 
     if child.save
@@ -574,10 +576,16 @@ class ColumnsController < ApplicationController
   end
 
   def column_params
-    params.require(:column).permit(
+    permitted = params.require(:column).permit(
       :title, :file, :choice, :keyword, :description, :genre, :code,
-      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre
+      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre, :generation_mode
     )
+
+    if permitted[:generation_mode].present?
+      permitted[:generation_mode] = sanitize_generation_mode_for_actor(permitted[:generation_mode])
+    end
+
+    permitted
   end
 
   def assign_column_form_genre_options
@@ -627,6 +635,25 @@ class ColumnsController < ApplicationController
       updated_at: Time.current
     )
     pending_ids
+  end
+
+  def sanitize_generation_mode_for_actor(mode)
+    normalized = Column.normalize_generation_mode(mode)
+    return normalized if admin_signed_in?
+    return normalized if Column::PUBLIC_GENERATION_MODES.include?(normalized)
+
+    "default"
+  end
+
+  def generation_mode_label(mode)
+    {
+      "default" => "通常",
+      "comparison" => "比較",
+      "recommendation" => "自社宣伝",
+      "note" => "Note",
+      "qiita" => "Qiita",
+      "zenn" => "Zenn"
+    }[Column.normalize_generation_mode(mode)] || "通常"
   end
 
   def spawn_sequential_body_generation!(column_ids)

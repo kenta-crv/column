@@ -16,23 +16,30 @@ class Subscription < ApplicationRecord
   validates :stripe_subscription_id, uniqueness: true, allow_nil: true
 
   TRIAL_DAYS = 14
+  # 年額割引は当面使わない（表示・Checkout から除外）
   YEARLY_DISCOUNT_RATE = 0.8
   POST_TRIAL_PLAN = :standard
+  STANDARD_INTRO_PERCENT_OFF = 15
+  STANDARD_INTRO_MONTHS = 3
   TITLE_SUGGESTION_BAR_MAX = 5
   TITLE_SUGGESTION_ADMIN_BAR_MAX = 50
 
   # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
+  # price: JPY表示額 / prices: 通貨別表示額（usdはドル単位）
   PLANS = {
     trial: {
       name: "トライアル",
+      name_en: "Trial",
       lp_name: "トライアル",
-      description: "まずはAI記事作成を気軽に試したい方へ",
+      description: "#{TRIAL_DAYS}日間。カード不要。終了後はスタンダードへ誘導",
+      description_en: "#{TRIAL_DAYS} days, no card. Then guided to Standard",
       price: 0,
+      prices: { jpy: 0, usd: 0 },
       pillar_articles: 1,
-      child_articles: 3,
+      child_articles: 5,
       title_suggestions: 1,
       title_suggestion_max_per_use: 1,
-      image_generations: 5,
+      image_generations: 8,
       genre_count: 1,
       sub_category_count: 0,
       api_enabled: false,
@@ -43,13 +50,19 @@ class Subscription < ApplicationRecord
       lp_cta: "無料で始める →",
       lp_note: "",
       show_on_lp: true,
-      checkout_selectable: true
+      checkout_selectable: false,
+      purchasable: false,
+      post_trial_plan: :standard,
+      stripe_price_env: nil
     },
     starter: {
       name: "スターター",
+      name_en: "Starter",
       lp_name: "スターター",
-      description: "個人ブロガーや小規模サイトの運営におすすめ",
+      description: "（新規販売停止）",
+      description_en: "(Not available for new purchases)",
       price: 29_800,
+      prices: { jpy: 29_800, usd: 199 },
       pillar_articles: 3,
       child_articles: 45,
       title_suggestions: 3,
@@ -63,15 +76,24 @@ class Subscription < ApplicationRecord
       lp_popular: false,
       lp_featured: false,
       lp_cta: "このプランで始める →",
-      lp_note: "年額払いで20%お得",
-      show_on_lp: true,
-      checkout_selectable: true
+      lp_note: "",
+      show_on_lp: false,
+      checkout_selectable: false,
+      purchasable: false,
+      stripe_price_env: "STRIPE_PRICE_STARTER",
+      stripe_price_envs: {
+        jpy: "STRIPE_PRICE_STARTER",
+        usd: "STRIPE_PRICE_STARTER_USD",
+      }
     },
     standard: {
       name: "スタンダード",
+      name_en: "Standard",
       lp_name: "スタンダード",
       description: "本格的にメディア運用を始めたい方へ",
+      description_en: "For teams starting serious media operations",
       price: 49_800,
+      prices: { jpy: 49_800, usd: 349 },
       pillar_articles: 5,
       child_articles: 75,
       title_suggestions: 5,
@@ -85,15 +107,25 @@ class Subscription < ApplicationRecord
       lp_popular: true,
       lp_featured: false,
       lp_cta: "このプランで始める →",
-      lp_note: "年額払いで20%お得",
+      lp_note: "",
       show_on_lp: true,
-      checkout_selectable: true
+      checkout_selectable: true,
+      purchasable: true,
+      stripe_price_env: "STRIPE_PRICE_STANDARD",
+      stripe_price_envs: {
+        jpy: "STRIPE_PRICE_STANDARD",
+        usd: "STRIPE_PRICE_STANDARD_USD",
+      },
+      intro_coupon_env: "STRIPE_COUPON_STANDARD_INTRO"
     },
     business: {
       name: "ビジネス",
+      name_en: "Business",
       lp_name: "ビジネス",
       description: "複数メディアの運営やチーム利用に最適",
+      description_en: "For multi-site ops and team use",
       price: 98_000,
+      prices: { jpy: 98_000, usd: 699 },
       pillar_articles: 15,
       child_articles: 225,
       title_suggestions: 30,
@@ -107,15 +139,24 @@ class Subscription < ApplicationRecord
       lp_popular: false,
       lp_featured: true,
       lp_cta: "このプランで始める →",
-      lp_note: "年額払いで20%お得",
+      lp_note: "",
       show_on_lp: true,
-      checkout_selectable: true
+      checkout_selectable: true,
+      purchasable: true,
+      stripe_price_env: "STRIPE_PRICE_BUSINESS",
+      stripe_price_envs: {
+        jpy: "STRIPE_PRICE_BUSINESS",
+        usd: "STRIPE_PRICE_BUSINESS_USD",
+      }
     },
     enterprise: {
       name: "エンタープライズ",
+      name_en: "Enterprise",
       lp_name: "エンタープライズ",
       description: "大規模運用・カスタマイズが必要な企業様へ",
+      description_en: "For large-scale ops and customization",
       price: 198_000,
+      prices: { jpy: 198_000, usd: 1_299 },
       pillar_articles: 50,
       child_articles: 750,
       title_suggestions: 100,
@@ -129,9 +170,15 @@ class Subscription < ApplicationRecord
       lp_popular: false,
       lp_featured: false,
       lp_cta: "問い合わせる →",
-      lp_note: "年額払いで20%お得",
+      lp_note: "",
       show_on_lp: true,
-      checkout_selectable: true
+      checkout_selectable: true,
+      purchasable: true,
+      stripe_price_env: "STRIPE_PRICE_ENTERPRISE",
+      stripe_price_envs: {
+        jpy: "STRIPE_PRICE_ENTERPRISE",
+        usd: "STRIPE_PRICE_ENTERPRISE_USD",
+      }
     }
   }.freeze
 
@@ -148,18 +195,61 @@ class Subscription < ApplicationRecord
       PLANS[key] || PLANS[:trial] || {}
     end
 
-    def lp_plans
+    def plan_config(plan_type)
+      return nil if plan_type.blank?
+
+      PLANS[plan_type.to_sym]
+    end
+
+    def public_plans
+      PLANS.select { |_key, config| config[:show_on_lp] }
+    end
+
+    def purchasable_plans
+      PLANS.select { |_key, config| config[:purchasable] }
+    end
+
+    def price_for(plan_type, currency: :jpy)
+      config = plan_config(plan_type) || config_for(plan_type)
+      return 0 if config.blank?
+
+      currency = currency.to_sym
+      config.dig(:prices, currency) || (currency == :jpy ? config[:price] : nil) || config[:price] || 0
+    end
+
+    def intro_price_for(plan_type, currency: :jpy)
+      base = price_for(plan_type, currency: currency).to_f
+      (base * (100 - STANDARD_INTRO_PERCENT_OFF) / 100.0).round
+    end
+
+    def format_price(plan_type, currency: :jpy)
+      amount = price_for(plan_type, currency: currency)
+      return BillingCurrency.symbol(currency) + "0" if amount.to_i.zero?
+
+      case currency.to_sym
+      when :usd
+        "#{BillingCurrency.symbol(currency)}#{amount}"
+      else
+        "¥#{amount.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+      end
+    end
+
+    def lp_plans(currency: :jpy)
+      currency = currency.to_sym
       PLAN_ORDER.filter_map do |key|
         config = PLANS[key]
         next unless config[:show_on_lp]
 
         i18n_key = "drafity.plans.#{key}"
+        monthly = price_for(key, currency: currency)
         {
           key: key,
           name: I18n.t("#{i18n_key}.name", default: config[:lp_name]),
           description: I18n.t("#{i18n_key}.description", default: config[:description]),
-          monthly_price: config[:price],
-          yearly_price: yearly_price_for(config[:price]),
+          monthly_price: monthly,
+          formatted_price: format_price(key, currency: currency),
+          currency: currency,
+          currency_symbol: BillingCurrency.symbol(currency),
           note: I18n.t("#{i18n_key}.note", default: config[:lp_note]),
           cta_text: I18n.t("#{i18n_key}.cta", default: config[:lp_cta]),
           popular: config[:lp_popular],
@@ -170,7 +260,7 @@ class Subscription < ApplicationRecord
     end
 
     def checkout_plans
-      PAID_PLAN_TYPES
+      PAID_PLAN_TYPES.select { |key| PLANS[key][:checkout_selectable] }
     end
 
     def feature_list_for(plan_key)
@@ -212,12 +302,25 @@ class Subscription < ApplicationRecord
       (monthly_price * YEARLY_DISCOUNT_RATE).to_i
     end
 
-    def stripe_price_env_key(plan_key)
-      "STRIPE_PRICE_#{plan_key.to_s.upcase}"
+    def stripe_price_env_key(plan_key, currency: :jpy)
+      config = plan_config(plan_key)
+      return "STRIPE_PRICE_#{plan_key.to_s.upcase}" if config.blank?
+
+      config.dig(:stripe_price_envs, currency.to_sym) || config[:stripe_price_env] || "STRIPE_PRICE_#{plan_key.to_s.upcase}"
     end
 
-    def stripe_price_id_for(plan_key)
-      ENV[stripe_price_env_key(plan_key)]
+    def stripe_price_id_for(plan_key, currency: :jpy)
+      env_key = stripe_price_env_key(plan_key, currency: currency)
+      return nil if env_key.blank?
+
+      ENV[env_key].presence
+    end
+
+    def intro_coupon_id_for(plan_type)
+      env_key = plan_config(plan_type)&.dig(:intro_coupon_env)
+      return nil if env_key.blank?
+
+      ENV[env_key].presence
     end
 
     def sub_category_feature_for(plan_key)
@@ -329,29 +432,21 @@ class Subscription < ApplicationRecord
     trial? && trial_ends_at.present? && trial_ends_at <= Time.current
   end
 
-  def expire_trial_and_upgrade!
+  # 自動課金せず期限切れにする（閲覧継続・有料は手動でスタンダード等へ）
+  def expire_trial_without_charge!
     return unless trial?
     return if trial_ends_at.blank?
     return if trial_ends_at > Time.current
     return if status != "active"
 
-    upgrade_plan = POST_TRIAL_PLAN
+    update!(status: :expired)
+    client.update_columns(
+      subscription_status: "expired",
+      trial_ends_at: trial_ends_at
+    ) if client.has_attribute?(:subscription_status)
+  end
 
-    transaction do
-      update!(status: :expired)
-
-      client.subscriptions.where(status: :active).update_all(status: :cancelled)
-
-      client.subscriptions.create!(
-        plan_type: upgrade_plan,
-        status: :active
-      )
-
-      client.update!(
-        subscription_plan: upgrade_plan.to_s,
-        subscription_status: "active",
-        trial_ends_at: nil
-      )
-    end
+  def expire_trial_and_upgrade!
+    expire_trial_without_charge!
   end
 end

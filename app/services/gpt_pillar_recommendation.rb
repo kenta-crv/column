@@ -19,7 +19,7 @@ require "uri"
 # - 事実が取得できなかった場合、company/recommendation軸では
 #   具体的な数値・機能名を創作せず、一般的なトーンに留める設計。
 # ==========================================================
-class GptPillarGenerator
+class GptPillarRecommendation
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"
@@ -163,7 +163,7 @@ class GptPillarGenerator
       choice: target_category,
       genre: current_genre,
       status: "creating",
-      article_type: "pillar",
+      **(column.article_type.present? ? {} : { article_type: "pillar" }),
       **(column.code.present? ? {} : { code: clean_code })
     )
 
@@ -512,7 +512,7 @@ class GptPillarGenerator
       return nil
     end
 
-    if company_names_match?(strip_domain_hint(company_name), confirmed_name)
+    if company_names_match?(company_name, confirmed_name) || url_suggests_same_brand?(company_name, url)
       Rails.logger.info "✅ 競合検証OK: 期待='#{company_name}' 実際='#{confirmed_name}'"
       facts
     else
@@ -525,11 +525,6 @@ class GptPillarGenerator
   end
 
   # ==========================================================
-  # 社名の簡易一致判定(法人格の表記ゆれ・全角半角・空白を無視して
-  # 部分一致するかを見る)。厳密な同一性ではなく、明らかな別会社を
-  # 弾くための最低限のガードとして使う。
-  # ==========================================================
-  # ==========================================================
   # 社名に付いている「（xxx.com）」のようなドメインヒントの
   # 括弧書きを除去する。discover_competitors_automatically が
   # 社名にドメインを併記することがあり、それをそのまま社名一致
@@ -540,20 +535,48 @@ class GptPillarGenerator
     name.to_s.gsub(/[（(][^（）()]*\.[a-z]{2,}[^（）()]*[）)]/i, "").strip
   end
 
+  # 「SakuSaku（合同会社ドリームアップ）」のように、サービス名と法人名が
+  # 括弧で併記されるケースを分解し、いずれかのトークンで一致判定する。
+  def self.name_match_candidates(name)
+    raw = strip_domain_hint(name)
+    parts = raw.split(/[（()）\/｜|\-–—]/).map(&:strip).reject(&:blank?)
+    without_parens = raw.gsub(/[（(][^）)]*[）)]/, "").strip
+    ([raw, without_parens] + parts).map(&:strip).reject(&:blank?).uniq
+  end
+
+  def self.normalize_company_name(value)
+    value.to_s
+         .gsub(/株式会社|有限会社|合同会社|一般社団法人|Inc\.?|Co\.,?\s*Ltd\.?|Corporation|Corp\.?/i, "")
+         .gsub(/[\s　]/, "")
+         .downcase
+  end
+
+  # 社名の簡易一致判定(法人格の表記ゆれ・全角半角・空白を無視して
+  # 部分一致するかを見る)。厳密な同一性ではなく、明らかな別会社を
+  # 弾くための最低限のガードとして使う。
   def self.company_names_match?(expected, actual)
-    normalize = lambda do |s|
-      s.to_s
-       .gsub(/株式会社|有限会社|合同会社|一般社団法人|Inc\.?|Co\.,?\s*Ltd\.?|Corporation|Corp\.?/i, "")
-       .gsub(/[\s　]/, "")
-       .downcase
+    expected_candidates = name_match_candidates(expected).map { |s| normalize_company_name(s) }.reject { |s| s.length < 2 }
+    actual_candidates = name_match_candidates(actual).map { |s| normalize_company_name(s) }.reject { |s| s.length < 2 }
+
+    return false if expected_candidates.blank? || actual_candidates.blank?
+
+    expected_candidates.any? do |a|
+      actual_candidates.any? do |b|
+        b.include?(a) || a.include?(b)
+      end
     end
+  end
 
-    a = normalize.call(expected)
-    b = normalize.call(actual)
+  # 検索で特定した公式URLのパス/ホストに、ブランド名の英数字が含まれる場合は
+  # 同一サービスの可能性が高いとみなす(括弧併記で本文社名が一致しないケースの救済)。
+  def self.url_suggests_same_brand?(company_name, url)
+    haystack = url.to_s.downcase
+    return false if haystack.blank?
 
-    return false if a.blank? || b.blank?
-
-    b.include?(a) || a.include?(b)
+    name_match_candidates(company_name).any? do |cand|
+      token = cand.downcase.gsub(/[^a-z0-9]/, "")
+      token.length >= 4 && haystack.include?(token)
+    end
   end
 
   # ==========================================================
@@ -569,6 +592,13 @@ class GptPillarGenerator
 
     parts = []
 
+    # 構成生成が「1社1H2」を守れるよう、発見できた社名を先に明示する
+    parts << <<~TEXT
+      【比較対象他社一覧(構成で必須)】
+      以下の他社は比較対象である。原則として1社につき comparison_axis: "company" のH2を1つ割り当てること。
+      #{competitor_facts.keys.map { |n| "- #{n}" }.join("\n")}
+    TEXT
+
     if verified.present?
       parts << "【比較対象他社の確認済み事実(この範囲内でのみ具体的な数値を使ってよい)】"
       verified.each do |name, facts|
@@ -580,7 +610,8 @@ class GptPillarGenerator
       parts << <<~TEXT
         【注意:以下の会社は公式サイトを確認できなかった/社名が一致しなかったため、事実は未取得】
         #{unverified.keys.map { |n| "- #{n}" }.join("\n")}
-        これらの会社について、料金・件数・機能名などの具体的な数値を創作してはならない。
+        これらの会社についても比較対象として見出しは立てること。
+        ただし料金・件数・機能名などの具体的な数値を創作してはならない。
         名前を出す場合も、一般的に知られている範囲・業界内での位置づけ程度の言及に留める。
       TEXT
     end
@@ -704,6 +735,7 @@ class GptPillarGenerator
       - 確認済み事実がない場合、自社(#{company_name})の具体的な数値・機能名を創作しない
       - 情報が不足している旨や、調査プロセスに関する記述(「Web検索で確認できる情報が限定的だった」等)を本文に書かない
       - 自社(#{company_name})への言及は必ずどこか1箇所以上のH2で行うこと
+      - 他社比較の最終着地は自社(#{company_name})の推薦であること。他社を並列の最終候補として並べて終わらないこと
     TEXT
 
     contexts.join("\n")
@@ -791,12 +823,14 @@ class GptPillarGenerator
         - "company": 実在企業名を比較する見出し
         - "method": 手法・方式・条件を比較する見出し
         - "recommendation": 自社サービスへの言及・推薦を行う見出し
-      - 【追加指示】に実在企業名や具体的事実が明記されている場合のみ comparison_axis を "company" にしてよい
-      - 明記がない場合は "company" にせず、下記EEAT強化情報のfeatures(業界特有の比較軸)を使った "method" として構成する
-      - 【追加指示】に複数の比較対象他社(最大5社)の情報がある場合、原則として1社につき1つのH2を割り当てる
-        (例:他社が4社あれば company軸のH2を4つ作る)。無理に1つのH2へ複数社を詰め込まず、
+      - 【追加指示】の【比較対象他社一覧】に載っている他社は、確認済み事実の有無にかかわらず
+        comparison_axis: "company" のH2を原則1社につき1つ割り当てる
+      - 確認済み事実がない他社については、具体的な料金・件数・機能名を創作せず、
+        位置づけ・向き不向きの整理に留める
+      - 【追加指示】に複数の比較対象他社(最大5社)の情報がある場合、無理に1つのH2へ複数社を詰め込まず、
         各社の特徴・違いを個別に掘り下げられる粒度にする
-      - 最後のH2、または「まとめ」に近い位置に、comparison_axis: "recommendation" のH2を必ず1つ含める(自社#{company_name}への言及)
+      - 最後のH2、または「まとめ」に近い位置に、comparison_axis: "recommendation" のH2を必ず1つ含める
+        (見出し自体で自社#{company_name}を選ぶべき理由が分かるようにする。中立的な「選び方の切り分け」だけで終わらせない)
       - 各H2は異なる論点・異なる結論を扱うこと
 
       【業界背景】
@@ -1094,8 +1128,9 @@ class GptPillarGenerator
         <<~TEXT
           【この見出しの内部方針:自社推薦(本文には出さない内部メモ)】
           - #{fact_guard}
-          - 誇張表現は避け、比較の文脈の中で「なぜ合うか」を説明する
-          - 他社を過度に貶める表現は避ける
+          - ここまでの他社比較を踏まえ、最終的に自社(#{company_name})を推す見出しとして書く
+          - 「用途によって他社も候補」で終わらせず、なぜ自社が第一候補かを比較軸に沿って説明する
+          - 誇張表現は避け、他社を過度に貶める表現は使わない
         TEXT
       else
         <<~TEXT
@@ -1199,7 +1234,8 @@ class GptPillarGenerator
       - 「## まとめ」から開始
       - 日本語
       - 300〜500文字
-      - 比較記事として、読者が次に何を確認して選べばよいかを整理して締める
+      - 比較を踏まえた最終着地として、自社サービスを第一候補として推薦して締める
+      - 他社を並列の最終候補として並べて終わらないこと(他社は比較の材料として触れるに留める)
       - 表・チェックリストは使用しない
 
       【業界背景】

@@ -69,6 +69,9 @@ gem 'kaminari'
 
 gem 'devise'
 gem 'omniauth-twitter'
+gem 'omniauth-google-oauth2'
+gem 'omniauth-microsoft_graph'
+gem 'omniauth-rails_csrf_protection'
 
 gem 'meta-tags'
 

@@ -19,7 +19,7 @@ require "uri"
 # - 事実が取得できなかった場合、company/recommendation軸では
 #   具体的な数値・機能名を創作せず、一般的なトーンに留める設計。
 # ==========================================================
-class GptPillarGenerator
+class GptPillarComparison
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"
@@ -123,7 +123,7 @@ class GptPillarGenerator
       choice: target_category,
       genre: current_genre,
       status: "creating",
-      article_type: "pillar",
+      **(column.article_type.present? ? {} : { article_type: "pillar" }),
       **(column.code.present? ? {} : { code: clean_code })
     )
 
@@ -389,6 +389,7 @@ class GptPillarGenerator
       - 確認済み事実がない場合、自社(#{company_name})の具体的な数値・機能名を創作しない
       - 情報が不足している旨や、調査プロセスに関する記述(「Web検索で確認できる情報が限定的だった」等)を本文に書かない
       - 自社(#{company_name})への言及は必ずどこか1箇所以上のH2で行うこと
+      - 他社比較の最終着地は自社(#{company_name})の推薦であること。他社を並列の最終候補として並べて終わらないこと
     TEXT
 
     contexts.join("\n")
@@ -478,7 +479,8 @@ class GptPillarGenerator
         - "recommendation": 自社サービスへの言及・推薦を行う見出し
       - 【追加指示】に実在企業名や具体的事実が明記されている場合のみ comparison_axis を "company" にしてよい
       - 明記がない場合は "company" にせず、下記EEAT強化情報のfeatures(業界特有の比較軸)を使った "method" として構成する
-      - 最後のH2、または「まとめ」に近い位置に、comparison_axis: "recommendation" のH2を必ず1つ含める(自社#{company_name}への言及)
+      - 最後のH2、または「まとめ」に近い位置に、comparison_axis: "recommendation" のH2を必ず1つ含める
+        (見出し自体で自社#{company_name}を選ぶべき理由が分かるようにする。中立的な「選び方の切り分け」だけで終わらせない)
       - 各H2は異なる論点・異なる結論を扱うこと
 
       【業界背景】
@@ -776,8 +778,9 @@ class GptPillarGenerator
         <<~TEXT
           【この見出しの内部方針:自社推薦(本文には出さない内部メモ)】
           - #{fact_guard}
-          - 誇張表現は避け、比較の文脈の中で「なぜ合うか」を説明する
-          - 他社を過度に貶める表現は避ける
+          - ここまでの比較を踏まえ、最終的に自社(#{company_name})を推す見出しとして書く
+          - 「用途によって他社も候補」で終わらせず、なぜ自社が第一候補かを比較軸に沿って説明する
+          - 誇張表現は避け、他社を過度に貶める表現は使わない
         TEXT
       else
         <<~TEXT
@@ -881,7 +884,8 @@ class GptPillarGenerator
       - 「## まとめ」から開始
       - 日本語
       - 300〜500文字
-      - 比較記事として、読者が次に何を確認して選べばよいかを整理して締める
+      - 比較を踏まえた最終着地として、自社サービスを第一候補として推薦して締める
+      - 他社を並列の最終候補として並べて終わらないこと(他社は比較の材料として触れるに留める)
       - 表・チェックリストは使用しない
 
       【業界背景】

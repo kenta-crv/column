@@ -81,7 +81,7 @@ require "uri"
 #    中立的な文言に変更し、言及可否の判断を完全にservice_mention_block
 #    側に委ねるようにした。
 # ==========================================================
-class GptPillarGenerator
+class GptPillarQiita
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"

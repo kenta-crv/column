@@ -39,17 +39,15 @@ class GenerateColumnBodyJob < ApplicationJob
       column.update!(generation_status: "generating")
       broadcast_generation_status(column)
 
-      if column.article_type == "pillar"
-        GptPillarGenerator.generate_full_from_existing_column!(column)
+      result = ColumnBodyGenerator.generate!(column)
+
+      if result == :managed
         column.reload
         column.update!(generation_status: "completed") unless GenerateColumnBodyJob.cancelled?(column_id)
+      elsif result.present? && !result.to_s.include?("生成失敗")
+        column.update!(body: result, status: "completed", generation_status: "completed")
       else
-        body = GptArticleGenerator.generate_body(column)
-        if body.present? && !body.include?("生成失敗")
-          column.update!(body: body, status: "completed", generation_status: "completed")
-        else
-          raise "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
-        end
+        raise "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
       end
 
       column.reload
@@ -68,24 +66,24 @@ class GenerateColumnBodyJob < ApplicationJob
       broadcast_generation_status(column)
       Rails.logger.info("⏹️ Generation stopped for column #{column_id}")
 
-    rescue GptArticleGenerator::GenerationCancelledError,
-           GptPillarGenerator::GenerationCancelledError => e
-      column.update_columns(generation_status: "cancelled")
-      broadcast_generation_status(column)
-      Rails.logger.info("⏹️ Generation cancelled for column #{column_id}: #{e.message}")
-
     rescue => e
-      error_info = "❌ 失敗: #{e.class} - #{e.message}\n場所: #{e.backtrace.first}"
-      column.update_columns(status: "error", body: error_info, generation_status: "failed")
-      broadcast_generation_status(column)
-      Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
+      if ColumnBodyGenerator.cancelled_error?(e)
+        column.update_columns(generation_status: "cancelled")
+        broadcast_generation_status(column)
+        Rails.logger.info("⏹️ Generation cancelled for column #{column_id}: #{e.message}")
+      else
+        error_info = "❌ 失敗: #{e.class} - #{e.message}\n場所: #{e.backtrace.first}"
+        column.update_columns(status: "error", body: error_info, generation_status: "failed")
+        broadcast_generation_status(column)
+        Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
 
-      if autonomous_run_id.present?
-        run = AutonomousContentRun.find_by(id: autonomous_run_id)
-        run&.mark_failed!(error_info)
+        if autonomous_run_id.present?
+          run = AutonomousContentRun.find_by(id: autonomous_run_id)
+          run&.mark_failed!(error_info)
+        end
+
+        raise e
       end
-
-      raise e
 
     ensure
       runtime_mutex.synchronize do

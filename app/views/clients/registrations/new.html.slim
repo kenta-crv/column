@@ -11,6 +11,8 @@
         h2.auth-card__title = t("drafity.auth.signup_title")
         p.auth-card__lead = t("drafity.auth.signup_lead")
 
+      = render "clients/shared/oauth_buttons"
+
       = form_for(resource, as: resource_name, url: client_registration_url_for_locale, html: { class: "auth-signup-form" }) do |f|
         = render "clients/shared/error_messages", resource: resource
         = f.hidden_field :preferred_locale, value: I18n.locale.to_s
@@ -19,7 +21,7 @@
           .auth-form-row.auth-form-row--pair
             .field
               = f.label :company, t("drafity.auth.company")
-              = f.text_field :company, autofocus: true, autocomplete: "organization", class: "input-field", placeholder: t("drafity.auth.ph_company"), required: true
+              = f.text_field :company, autofocus: true, autocomplete: "organization", class: "input-field", placeholder: t("drafity.auth.ph_company")
             .field
               = f.label :name, t("drafity.auth.name")
               = f.text_field :name, autocomplete: "name", class: "input-field", placeholder: t("drafity.auth.ph_name"), required: true

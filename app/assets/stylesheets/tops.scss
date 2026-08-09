@@ -2662,13 +2662,41 @@
     &.featured-name { color: var(--purple); }
   }
   .plan-desc { font-size: 13px; color: var(--ink-lt); margin-top: 6px; line-height: 1.45; min-height: 36px; }
-  .plan-price { margin: 16px 0 4px; }
-  .plan-price-orig { font-size: 12px; color: var(--ink-xlt); text-decoration: line-through; margin-bottom: 2px; }
+  .plan-price {
+    margin: 12px 0 4px;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .plan-price-orig {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-xlt);
+    text-decoration: line-through;
+    line-height: 1.2;
+  }
   .plan-price-main { display: flex; align-items: baseline; }
+  .plan-price-main--sale .price-yen,
+  .plan-price-main--sale .price-num {
+    color: #dc2626;
+  }
   .price-yen { font-size: 18px; font-weight: 600; color: var(--ink-mid); }
   .price-num { font-family: 'Inter', sans-serif; font-size: 36px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; line-height: 1; }
+  .plan-price-main--sale .price-num { font-size: 36px; }
   .price-unit { font-size: 13px; color: var(--ink-lt); margin-left: 2px; }
-  .plan-price-note { font-size: 11.5px; color: var(--blue); font-weight: 500; margin-top: 4px; min-height: 14px; }
+  .plan-price-note { font-size: 11.5px; color: var(--ink-lt); font-weight: 500; margin-top: 4px; min-height: 0; }
+  .plan-price-sale-note {
+    margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #dc2626;
+    line-height: 1.25;
+  }
   
   .plan-cta {
     display: block;

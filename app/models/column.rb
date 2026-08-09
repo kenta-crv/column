@@ -75,6 +75,22 @@ class Column < ApplicationRecord
 
   ALREADY_GENERATED_NOTICE = "すでに記事が作成されています。再実行する場合、記事本文を削除してください".freeze
 
+  # 公開UIで選べる生成スタイル（note/qiita/zenn は社内転用向け・コンソール等で設定）
+  PUBLIC_GENERATION_MODES = %w[default comparison recommendation].freeze
+  ALL_GENERATION_MODES = %w[default comparison recommendation note qiita zenn].freeze
+
+  def self.normalize_generation_mode(mode)
+    value = mode.to_s
+    ALL_GENERATION_MODES.include?(value) ? value : "default"
+  end
+
+  def self.attributes_for_child_generation(parent)
+    {
+      generation_mode: normalize_generation_mode(parent&.generation_mode),
+      prompt: parent&.prompt
+    }
+  end
+
   def generated_body?
     body.to_s.strip.present?
   end

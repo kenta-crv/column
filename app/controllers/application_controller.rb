@@ -12,7 +12,8 @@ class ApplicationController < ActionController::Base
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
-                :pending_review_columns_count, :routable_public_genre_key?, :platform_host?,
+                :pending_review_columns_count, :missing_image_columns_count,
+                :routable_public_genre_key?, :platform_host?,
                 :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales, :locale_switch_path_for
 
   def check_trial_expiration
@@ -147,6 +148,13 @@ class ApplicationController < ActionController::Base
     return 0 unless admin_signed_in? || client_signed_in?
 
     dashboard_columns_base_scope.merge(Column.pending_review).count
+  end
+
+  # サイドバーの「画像一括生成」バッジ用。生成済み画像がない記事数。
+  def missing_image_columns_count
+    return 0 unless admin_signed_in? || client_signed_in?
+
+    dashboard_columns_base_scope.merge(Column.missing_generated_image).count
   end
 
   def current_public_genre_key

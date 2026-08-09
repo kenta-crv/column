@@ -49,7 +49,7 @@ require "uri"
 #    疑問形終わりの連続禁止、見出しへのサービス名混入防止は
 #    そのまま維持している。
 # ==========================================================
-class GptPillarGenerator
+class GptPillarZenn
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"

@@ -1,6 +1,10 @@
 - plan_key = @plan_type.to_s.downcase
-- plan_name = Subscription.display_name_for(plan_key)
-- amount = plan_key == "trial" ? 0 : (Subscription::PLAN_PRICES[plan_key.to_sym] || 0)
+- plan_name = if I18n.locale.to_s == "en"
+    (@plan_config&.dig(:name_en) || @plan_config&.dig(:name) || Subscription.display_name_for(plan_key))
+  else
+    (@plan_config&.dig(:name) || Subscription.display_name_for(plan_key))
+  end
+- amount_label = @formatted_amount.presence || (plan_key == "trial" ? Subscription.format_price(:trial, currency: @billing_currency || :jpy) : Subscription.format_price(plan_key, currency: @billing_currency || :jpy))
 
 .drafify-lp.checkout-confirmation-page data-turbo="false"
   .checkout-confirmation
@@ -11,16 +15,19 @@
             svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
               path d="M12 3l7 4v5c0 4.2-2.9 8-7 9-4.1-1-7-4.8-7-9V7l7-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
               path d="M9.5 12.2l1.8 1.8 3.7-3.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        h1.checkout-confirmation__title お支払い内容の確認
-        p.checkout-confirmation__lead
-          | 選択内容をご確認のうえ、決済へお進みください。
+        h1.checkout-confirmation__title = t("drafity.auth.checkout_title", default: "お支払い内容の確認")
+        p.checkout-confirmation__lead = t("drafity.auth.checkout_subtitle", default: "選択内容をご確認のうえ、決済へお進みください。")
 
       - if plan_key == "trial"
         .checkout-confirmation__notice
-          strong 無料トライアル
-          | の期間は費用は発生しません。
+          strong = t("drafity.auth.checkout_trial_label", default: "無料トライアル")
+          |  
+          = t("drafity.auth.checkout_trial_body", days: Subscription::TRIAL_DAYS, default: "の期間は費用は発生しません。新規アカウントは%{days}日間の無料トライアルが利用できます（カード不要）。")
+      - elsif @intro_discount
+        .checkout-confirmation__notice
+          strong = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "初回%{months}ヶ月 %{percent}% OFF")
           span.checkout-confirmation__notice-sub
-            | 新規アカウントは#{Subscription::TRIAL_DAYS}日間の無料トライアルが利用できます。
+            = t("drafity.auth.intro_discount_note", default: "スタンダードプランの最初の3ヶ月間、月額料金が15%割引になります。")
 
       .checkout-confirmation__details
         .checkout-confirmation__detail
@@ -28,7 +35,7 @@
             svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
               path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           .checkout-confirmation__detail-body
-            span.checkout-confirmation__detail-label 選択プラン
+            span.checkout-confirmation__detail-label = t("drafity.auth.checkout_selected_plan", default: "選択プラン")
             strong.checkout-confirmation__detail-value = plan_name
 
         .checkout-confirmation__detail
@@ -36,13 +43,16 @@
             svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
               path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           .checkout-confirmation__detail-body
-            span.checkout-confirmation__detail-label お支払い金額（税込）
+            span.checkout-confirmation__detail-label = t("drafity.auth.checkout_amount", default: "お支払い金額")
             strong.checkout-confirmation__detail-value
-              = plan_key == "trial" ? "¥0" : "¥#{number_with_delimiter(amount)}"
+              = amount_label
+            - if @billing_currency.present?
+              span.checkout-confirmation__notice-sub
+                = " (#{@billing_currency.to_s.upcase})"
 
       = form_with url: checkout_create_path, method: :post, local: true, class: "checkout-confirmation__form" do |f|
         = hidden_field_tag :plan_type, @plan_type
-        = f.submit (plan_key == "trial" ? "無料トライアルを開始" : "Stripeで決済へ進む"), class: "checkout-confirmation__btn"
+        = f.submit (plan_key == "trial" ? t("drafity.auth.pricing_start_trial", default: "無料トライアルを開始") : t("drafity.auth.checkout_submit", default: "Stripeで決済へ進む")), class: "checkout-confirmation__btn"
 
-      = link_to plans_path, class: "checkout-confirmation__back" do
-        | ← プラン選択に戻る
+      = link_to plans_path_for_locale, class: "checkout-confirmation__back" do
+        = t("drafity.auth.checkout_back", default: "← プラン選択に戻る")

@@ -73,6 +73,24 @@ module ApplicationHelper
     end
   end
 
+  def generation_mode_options_for_select(include_internal: admin_signed_in?)
+    options = [["通常", "default"], ["比較", "comparison"], ["自社宣伝", "recommendation"]]
+    return options unless include_internal
+
+    options + [["Note", "note"], ["Qiita", "qiita"], ["Zenn", "zenn"]]
+  end
+
+  def generation_mode_label(mode)
+    {
+      "default" => "通常",
+      "comparison" => "比較",
+      "recommendation" => "自社宣伝",
+      "note" => "Note",
+      "qiita" => "Qiita",
+      "zenn" => "Zenn"
+    }[Column.normalize_generation_mode(mode)] || "通常"
+  end
+
   def service_genre_sub_category_items(service_genre)
     submitted = params.dig(:service_genre, :sub_categories_items)
     return normalize_sub_category_items(submitted) if submitted.present?
@@ -131,16 +149,15 @@ module ApplicationHelper
       "@context" => "https://schema.org",
       "@type" => "Organization",
       "name" => "Drafity",
-      "legalName" => "合同会社ファクトル",
+      "legalName" => "株式会社J Work",
       "url" => "https://drafity.pro/",
       "logo" => "https://drafity.pro#{image_path('favicon.ico')}",
       "description" => "AI記事生成SaaS「Drafity」の開発・提供。メディア支援・コンテンツマーケティング支援。",
       "address" => {
         "@type" => "PostalAddress",
-        "streetAddress" => "中央新町12-13",
-        "addressLocality" => "天草市",
-        "addressRegion" => "熊本県",
-        "postalCode" => "863-0023",
+        "streetAddress" => "浜松町２丁目２番１５号２Ｆ",
+        "addressLocality" => "港区",
+        "addressRegion" => "東京都",
         "addressCountry" => "JP"
       }
     }.to_json
@@ -155,7 +172,7 @@ module ApplicationHelper
       "inLanguage" => %w[ja en],
       "publisher" => {
         "@type" => "Organization",
-        "name" => "合同会社ファクトル"
+        "name" => "株式会社J Work"
       }
     }.to_json
   end

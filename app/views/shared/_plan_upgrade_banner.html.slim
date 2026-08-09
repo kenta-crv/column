@@ -1,0 +1,32 @@
+- return unless client_signed_in?
+- client = current_client
+- return if controller_name == "plans" || controller_name == "checkout"
+
+- billing_currency = BillingCurrency.resolve(locale: I18n.locale, accept_language: request.env["HTTP_ACCEPT_LANGUAGE"])
+- standard_price = Subscription.format_price(:standard, currency: billing_currency)
+- trial_ends = client.trial_ends_at || client.current_subscription&.trial_ends_at
+- show_trial = client.on_trial?
+- show_expired = client.trial_expired_without_paid?
+- show_usage = !show_expired && client.approaching_limit?(threshold: 0.8)
+
+- if show_expired
+  .plan-upgrade-banner.plan-upgrade-banner--expired role="status"
+    .plan-upgrade-banner__body
+      strong トライアルが終了しました
+      span 閲覧は継続できます。本格運用はスタンダード（#{standard_price}/月・初回3ヶ月15%OFF）へ。
+    = link_to "プランを見る", plans_path, class: "plan-upgrade-banner__cta"
+- elsif show_trial
+  .plan-upgrade-banner.plan-upgrade-banner--trial role="status"
+    .plan-upgrade-banner__body
+      strong 無料トライアル利用中
+      span
+        - if trial_ends.present?
+          | 終了日: #{trial_ends.strftime("%Y/%m/%d")} ／
+        | 上限到達後は閲覧のみ。有料プランへいつでも移行できます。
+    = link_to "プラン・料金", plans_path, class: "plan-upgrade-banner__cta"
+- elsif show_usage
+  .plan-upgrade-banner.plan-upgrade-banner--usage role="status"
+    .plan-upgrade-banner__body
+      strong 利用枠が残りわずかです
+      span 今月の使用量が上限の80%に達しています。プラン変更で枠を増やせます。
+    = link_to "プランを確認", plans_path, class: "plan-upgrade-banner__cta"

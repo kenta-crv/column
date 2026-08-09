@@ -2,7 +2,7 @@ class PlansController < ApplicationController
   before_action :authenticate_client!
 
   def index
-    @is_new_account = current_client.created_at > Subscription::TRIAL_DAYS.days.ago
+    @is_new_account = current_client.new_account?
 
     # =========================
     # 現在のサブスク（必ず実データ）
@@ -29,34 +29,26 @@ class PlansController < ApplicationController
 
   def select
     plan_type = params[:plan_type]
+    config = Subscription.plan_config(plan_type)
 
-    unless Subscription::PLAN_PRICES.key?(plan_type.to_sym)
+    unless config
       redirect_to plans_path_for_locale, alert: t("drafity.auth.invalid_plan")
       return
     end
 
-    # =========================
-    # TRIAL
-    # =========================
-    if plan_type == "trial" && current_client.created_at > Subscription::TRIAL_DAYS.days.ago
+    if plan_type == "trial"
+      unless current_client.new_account? && !current_client.subscriptions.exists?(plan_type: :trial)
+        redirect_to plans_path_for_locale, alert: t("drafity.auth.trial_new_only")
+        return
+      end
 
-      current_client.subscriptions.where(status: :active).update_all(status: :cancelled)
+      current_client.initialize_trial_subscription!
+      redirect_to dashboard_root_path, notice: t("drafity.auth.trial_started", days: Subscription::TRIAL_DAYS, default: "無料トライアルを開始しました。")
+      return
+    end
 
-      trial_end = Subscription::TRIAL_DAYS.days.from_now
-
-      subscription = current_client.subscriptions.create!(
-        plan_type: :trial,
-        status: :active,
-        trial_ends_at: trial_end
-      )
-
-      current_client.update!(
-        subscription_plan: "trial",
-        subscription_status: "active",
-        trial_ends_at: trial_end
-      )
-
-      redirect_to plans_path_for_locale, notice: t("drafity.auth.trial_started", default: "無料トライアルを開始しました。")
+    unless config[:checkout_selectable] || config[:purchasable]
+      redirect_to plans_path_for_locale, alert: t("drafity.auth.invalid_plan")
       return
     end
 

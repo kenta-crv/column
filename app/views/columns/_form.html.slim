@@ -47,6 +47,22 @@
           { class: "form-control" }
 
       .form-group
+        = f.label :generation_mode, "生成スタイル"
+        - mode_options = generation_mode_options_for_select
+        - current_mode = Column.normalize_generation_mode(@column.generation_mode)
+        - if admin_signed_in? && !Column::PUBLIC_GENERATION_MODES.include?(current_mode) && mode_options.none? { |_, v| v == current_mode }
+          - mode_options = mode_options + [[generation_mode_label(current_mode), current_mode]]
+        = f.select :generation_mode,
+          mode_options,
+          { selected: current_mode },
+          { class: "form-control" }
+        p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
+          - if admin_signed_in?
+            | 親で選んだスタイルは子記事にも引き継がれます。Note / Qiita / Zenn は管理者専用です。
+          - else
+            | 親で選んだスタイルは、子記事にも引き継がれます。
+
+      .form-group
         = f.label :parent_id, "parent_id"
         = f.text_field :parent_id, class: "form-control"
 

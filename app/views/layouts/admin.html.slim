@@ -112,6 +112,9 @@ html
                 circle cx="8.5" cy="8.5" r="1.5"
                 polyline points="21 15 16 10 5 21"
               | 画像一括生成
+              - no_image_count = missing_image_columns_count
+              - if no_image_count.positive?
+                span.sidebar-nav-badge = no_image_count
 
             = link_to dashboard_service_genres_path, class: (controller_name == "service_genres" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -131,17 +134,23 @@ html
                   path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                 | クライアント管理
             - elsif client_signed_in?
-              - settings_active = (controller_name == "clients" && action_name == "my_api_settings") || (controller_name == "columns" && action_name == "setting")
+              - settings_active = (controller_name == "clients" && action_name == "my_api_settings") || (controller_name == "columns" && action_name == "setting") || controller_name.in?(%w[plans subscriptions])
               .sidebar-nav-group class=(settings_active ? "is-active" : nil)
                 button.sidebar-nav-group-toggle type="button" aria-haspopup="true" aria-expanded=(settings_active ? "true" : "false")
                   span.sidebar-nav-group-toggle-label
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
-                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                      path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                     | 設定
                   svg.sidebar-nav-group-caret xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     polyline points="6 9 12 15 18 9"
                 .sidebar-submenu
+                  = link_to plans_path, class: (controller_name == "plans" ? "active" : nil) do
+                    svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      rect x="1" y="4" width="22" height="16" rx="2" ry="2"
+                      line x1="1" y1="10" x2="23" y2="10"
+                    | プラン・料金
+
                   = link_to dashboard_api_settings_path, class: (controller_name == "clients" && action_name == "my_api_settings" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
@@ -196,6 +205,8 @@ html
           - next if message.blank?
           .admin-flash-message class="admin-flash-message--#{type == 'notice' ? 'success' : 'danger'}" role="alert"
             = message
+        - if client_signed_in?
+          = render "shared/plan_upgrade_banner"
         = yield
 
     - if client_signed_in?

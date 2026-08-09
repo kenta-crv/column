@@ -1,22 +1,3 @@
-/*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
- * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
- * vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
- *= require_tree .
- *= require_self
- */
-
-
-/* app/assets/stylesheets/admin.css */
-
 /* ==========================================================================
    1. System Tokens & Variable Override
    ========================================================================== */
@@ -929,37 +910,64 @@ body.admin-body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
   margin-bottom: 24px;
 }
 
 .tabs-group {
   display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
   background-color: #e2e8f0;
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.tab-btn {
-  display: inline-flex;
-  align-items: center;
+.filter-control-bar .tabs-group .tab-btn {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
   gap: 6px;
+  flex-shrink: 0;
   padding: 8px 16px;
   border-radius: 9px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted, #64748b);
-  white-space: nowrap; /* 縦並び崩れを防止 */
+  white-space: nowrap;
   transition: all 0.15s;
 }
 
-.tab-btn.active {
-  background-color: #ffffff;
-  color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.filter-control-bar .tabs-group .tab-btn .tab-label,
+.filter-control-bar .tabs-group .tab-btn .count-badge {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
-.count-badge {
+.filter-control-bar .tabs-group .tab-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 55%, #8b5cf6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.22);
+}
+
+.filter-control-bar .tabs-group .tab-btn.active,
+.filter-control-bar .tabs-group .tab-btn.active:hover,
+.filter-control-bar .tabs-group .tab-btn.active:focus,
+.filter-control-bar .tabs-group a.tab-btn.active,
+.filter-control-bar .tabs-group a.tab-btn.active:hover {
+  color: #ffffff;
+}
+
+.filter-control-bar .tabs-group .count-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -970,9 +978,19 @@ body.admin-body {
   color: var(--text-muted, #64748b);
   line-height: 1;
 }
-.count-badge.bg-primary {
-  background-color: #3b82f6;
+
+.filter-control-bar .tabs-group .tab-btn.active .count-badge,
+.filter-control-bar .tabs-group .tab-btn.active .count-badge.bg-primary,
+.filter-control-bar .tabs-group .tab-btn.active .count-badge--highlight {
+  background-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+}
+
+.filter-control-bar .tabs-group .count-badge.bg-primary,
+.filter-control-bar .tabs-group .count-badge--highlight {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
 }
 
 .dropdowns-group {
@@ -981,20 +999,63 @@ body.admin-body {
   gap: 12px;
 }
 
+.filter-select-wrap {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px;
+  }
+
+  .filter-select {
+    background-image: none !important;
+    min-width: 200px;
+    padding: 8px 40px 8px 12px !important;
+  }
+}
+
 .filter-select {
   background-color: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
-  padding: 8px 32px 8px 12px;
+  padding: 8px 40px 8px 12px;
   border-radius: 8px;
   font-size: 13px;
   color: var(--text-dark, #1e293b);
   outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
   background-size: 14px;
   background-repeat: no-repeat;
   background-position: right 12px center;
   height: 38px;
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+.filter-select::-ms-expand {
+  display: none;
+}
+
+.dropdowns-group-form .filter-select {
+  width: auto !important;
+  max-width: none;
+  min-width: 200px;
+  padding: 8px 40px 8px 12px !important;
+  box-sizing: border-box;
 }
 
 /* 絞り込みボタンをプライマリーカラー化 */
@@ -1501,6 +1562,24 @@ body.admin-body {
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.rich-dashboard-table th:nth-child(3),
+.rich-dashboard-table td:nth-child(3) {
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: middle;
+}
+
+.rich-dashboard-table td .status-badge {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  white-space: nowrap !important;
+  max-width: none;
 }
 .status-badge.published { color: #10b981; background: #e6f4ea; }
 .status-badge.review_pending { color: #2563eb; background: #dbeafe; }
@@ -1547,9 +1626,16 @@ body.admin-body {
 .quality-score-radial.high { border: 2px solid #10b981; color: #10b981; }
 
 .actions-cell {
-  display: flex;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.actions-cell-inner {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .btn-row-action {
@@ -1841,7 +1927,7 @@ a:-webkit-any-link {
     display: none !important;
   }
 
-  .actions-cell {
+  .actions-cell-inner {
     flex-wrap: nowrap;
   }
 
@@ -2726,156 +2812,7 @@ body.modal-open {
   background-color: #475569;
 }
 
-
-
-
-
-
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .modal-content {
-    background-color: #fff;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .modal-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #64748b;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-  }
-
-  .modal-close:hover {
-    background-color: #f1f5f9;
-  }
-
-  .modal-body {
-    padding: 24px;
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #334155;
-    font-size: 14px;
-  }
-
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .spinner {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-  }
-
-  .spinner-icon {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .title-option {
-    padding: 12px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-  }
-
-  .title-option:hover {
-    background-color: #f8fafc;
-    border-color: #3b82f6;
-  }
-
-  .title-option input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0 8px 0 0;
-    cursor: pointer;
-  }
-
-  .title-option label {
-    margin: 0;
-    cursor: pointer;
-    flex: 1;
-  }
-
-
-
-
-
-
-
-
-
-
-
-  /* ==========================================================================
+/* ==========================================================================
    API Settings - Code Block Styles (Charcoal Black Theme)
    ========================================================================== */
 
@@ -3336,6 +3273,73 @@ body.modal-open {
 }
 .admin-flash-message--success { background-color: #10b981; }
 .admin-flash-message--danger { background-color: #ef4444; }
+
+/* Plan upgrade / trial banners */
+.plan-upgrade-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+.plan-upgrade-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.plan-upgrade-banner__body strong {
+  font-size: 14px;
+}
+.plan-upgrade-banner__cta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  background: #4f46e5;
+}
+.plan-upgrade-banner__cta:hover {
+  background: #4338ca;
+  color: #fff;
+}
+.plan-upgrade-banner--trial {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #312e81;
+}
+.plan-upgrade-banner--usage {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+.plan-upgrade-banner--usage .plan-upgrade-banner__cta {
+  background: #ea580c;
+}
+.plan-upgrade-banner--expired {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+.plan-upgrade-banner--expired .plan-upgrade-banner__cta {
+  background: #dc2626;
+}
+@media (max-width: 768px) {
+  .plan-upgrade-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 
 /* ==========================================================================
    Migrated from pages.scss (admin sidebar / layout styles)
