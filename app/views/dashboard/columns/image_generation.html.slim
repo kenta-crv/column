@@ -10,10 +10,13 @@
 
     - if @columns.present?
       = form_with url: bulk_generate_images_dashboard_columns_path, method: :post, local: true, data: { turbo: false }, html: { id: "bulk-image-form" } do
+        = hidden_field_tag :run_all, "0", id: "bulk-image-run-all"
         .bulk-action-bar.image-generation-action-bar
           button.btn.btn-primary type="button" id="btn-trigger-bulk-generation"
             span ⚡
             span 選択した記事の画像を生成
+          button.btn.btn-success type="button" id="btn-trigger-run-all-generation"
+            span 全実行
           span.image-generation-selected-count id="selected-image-count" 0件選択中
 
         .table-wrap
@@ -45,11 +48,18 @@
                       span.img-gen-badge-type.img-gen-badge-type--child 子記事
                   td.date-text = column.updated_at.strftime("%Y/%m/%d %H:%M")
 
-        .table-footer-pagination
-          .pagination-info
-            | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
-          .pagination-nav
-            = paginate @columns
+      .table-footer-pagination
+        .pagination-info
+          | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
+        .pagination-nav
+          = paginate @columns, params: { per: @per_page }
+        .per-page-selector
+          span 表示件数
+          = form_with url: image_generation_dashboard_columns_path, method: :get, local: true do
+            = select_tag :per,
+              options_for_select([["50件", 50], ["100件", 100]], @per_page),
+              onchange: "this.form.submit();",
+              "aria-label": "表示件数"
     - else
       p.image-generation-empty 画像未生成の記事はありません
 
@@ -58,6 +68,8 @@
 
 javascript:
   (function() {
+    const missingImageTotal = #{@missing_image_total.to_i};
+
     const updateSelectedCount = () => {
       const countEl = document.getElementById('selected-image-count');
       const selected = document.querySelectorAll('.image-select-checkbox:checked').length;
@@ -66,25 +78,45 @@ javascript:
 
     const initBulkImagePanel = () => {
       const btnTrigger = document.getElementById('btn-trigger-bulk-generation');
+      const btnRunAll = document.getElementById('btn-trigger-run-all-generation');
       const form = document.getElementById('bulk-image-form');
-      if (!btnTrigger || !form) return;
+      const runAllField = document.getElementById('bulk-image-run-all');
+      if (!form || !runAllField) return;
 
       document.querySelectorAll('.image-select-checkbox').forEach((checkbox) => {
         checkbox.addEventListener('change', updateSelectedCount);
       });
 
-      btnTrigger.onclick = function() {
-        const selected = document.querySelectorAll('.image-select-checkbox:checked');
-        if (selected.length === 0) {
-          alert("画像を生成する記事を選択してください。");
-          return;
-        }
+      if (btnTrigger) {
+        btnTrigger.onclick = function() {
+          const selected = document.querySelectorAll('.image-select-checkbox:checked');
+          if (selected.length === 0) {
+            alert("画像を生成する記事を選択してください。");
+            return;
+          }
 
-        const confirmed = confirm(`選択した ${selected.length} 件の記事に画像を生成します。よろしいですか？`);
-        if (confirmed) {
-          form.submit();
-        }
-      };
+          const confirmed = confirm(`選択した ${selected.length} 件の記事に画像を生成します。よろしいですか？`);
+          if (confirmed) {
+            runAllField.value = "0";
+            form.submit();
+          }
+        };
+      }
+
+      if (btnRunAll) {
+        btnRunAll.onclick = function() {
+          if (missingImageTotal <= 0) {
+            alert("画像を生成する記事がありません。");
+            return;
+          }
+
+          const confirmed = confirm(`画像未生成の全 ${missingImageTotal} 件に対して画像生成を実行します。よろしいですか？`);
+          if (confirmed) {
+            runAllField.value = "1";
+            form.submit();
+          }
+        };
+      }
 
       updateSelectedCount();
     };

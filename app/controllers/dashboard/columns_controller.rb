@@ -2,6 +2,7 @@ class Dashboard::ColumnsController < ApplicationController
   helper ColumnsHelper
 
   PER_PAGE_OPTIONS = [30, 50, 100].freeze
+  IMAGE_GENERATION_PER_PAGE_OPTIONS = [50, 100].freeze
 
   before_action :authenticate_admin_or_client!
   before_action :require_admin!, only: [:management]
@@ -115,7 +116,8 @@ class Dashboard::ColumnsController < ApplicationController
 
     scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
-    @columns = scope.with_list_attributes.page(params[:page]).per(30)
+    @per_page = IMAGE_GENERATION_PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 50
+    @columns = scope.with_list_attributes.page(params[:page]).per(@per_page)
   end
 
   def bulk_generate_images
@@ -123,17 +125,29 @@ class Dashboard::ColumnsController < ApplicationController
       return redirect_to image_generation_dashboard_columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
     end
 
-    column_ids = Array(params[:column_ids]).map(&:to_i).uniq
-    if column_ids.blank?
-      return redirect_to image_generation_dashboard_columns_path, alert: "画像を生成する記事を選択してください。"
+    base_scope = dashboard_columns_base_scope
+    run_all = ActiveModel::Type::Boolean.new.cast(params[:run_all])
+
+    if run_all
+      target_scope = image_generation_target_scope(base_scope)
+      Column.reconcile_broken_image_file_refs!(target_scope)
+      target_ids = target_scope.order(updated_at: :desc).pluck(:id)
+    else
+      column_ids = Array(params[:column_ids]).map(&:to_i).uniq
+      if column_ids.blank?
+        return redirect_to image_generation_dashboard_columns_path, alert: "画像を生成する記事を選択してください。"
+      end
+
+      Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
+
+      target_ids = image_generation_target_scope(base_scope).where(id: column_ids).pluck(:id)
+      if target_ids.size < column_ids.size
+        return redirect_to image_generation_dashboard_columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
+      end
     end
 
-    base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
-
-    target_ids = image_generation_target_scope(base_scope).where(id: column_ids).pluck(:id)
-    if target_ids.size < column_ids.size
-      return redirect_to image_generation_dashboard_columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
+    if target_ids.blank?
+      return redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
     end
 
     if client_signed_in?
@@ -166,7 +180,7 @@ class Dashboard::ColumnsController < ApplicationController
         end
       end
 
-      redirect_to dashboard_root_path, notice: "画像生成を開始しました"
+      redirect_to dashboard_root_path, notice: "画像生成を開始しました（#{target_ids.size}件）"
     else
       redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
     end
