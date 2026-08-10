@@ -29,9 +29,13 @@ class ColumnsController < ApplicationController
     @columns = @paginated_columns.to_a
 
     stats_scope = columns_manage_view? ? dashboard_columns_base_scope : columns_list_scope
-    genre_key = current_public_genre_key.presence || default_public_genre_key
-    genre_values = public_genre_filter_values(genre_key, client: client_signed_in? ? current_client : nil)
-    stats_scope = stats_scope.where(genre: genre_values) if genre_values.present?
+    # 管理画面は明示 genre のみ。公開一覧だけ default_public_genre_key を使う。
+    genre_key = current_public_genre_key.presence
+    genre_key ||= default_public_genre_key unless columns_manage_view?
+    if genre_key.present?
+      genre_values = public_genre_filter_values(genre_key, client: client_signed_in? ? current_client : nil)
+      stats_scope = stats_scope.where(genre: genre_values) if genre_values.present?
+    end
 
     if params[:article_type] == "pillar"
       @grouped_columns = @columns.group_by { |c| GenreRegistry.canonical_key(c.genre).presence || c.genre.to_s }
@@ -55,12 +59,30 @@ class ColumnsController < ApplicationController
     end
     base_count_query = base_count_query.where(genre: GenreRegistry.equivalent_keys(params[:selected_genre])) if params[:selected_genre].present?
 
-    @genre_pillar_counts = merge_canonical_genre_counts(
-      base_count_query.where(article_type: "pillar").group(:genre).count
-    )
-    @genre_child_counts  = merge_canonical_genre_counts(
-      base_count_query.where(article_type: %w[child cluster]).group(:genre).count
-    )
+    genre_counts_cache_key = [
+      "columns_index_genre_counts_v1",
+      columns_manage_view? ? "manage" : "public",
+      (admin_signed_in? ? "admin:#{current_admin.id}" : nil),
+      (client_signed_in? ? "client:#{current_client.id}" : "anon"),
+      genre_key,
+      params[:selected_genre],
+      params[:q],
+      params[:article_type]
+    ].compact.join(":")
+
+    genre_counts = Rails.cache.fetch(genre_counts_cache_key, expires_in: 90.seconds) do
+      {
+        pillar: merge_canonical_genre_counts(
+          base_count_query.where(article_type: "pillar").group(:genre).count
+        ),
+        child: merge_canonical_genre_counts(
+          base_count_query.where(article_type: %w[child cluster]).group(:genre).count
+        )
+      }
+    end
+
+    @genre_pillar_counts = genre_counts[:pillar]
+    @genre_child_counts = genre_counts[:child]
 
     @current_genre_key = genre_key
     @columns_manage_view = columns_manage_view?
@@ -73,10 +95,10 @@ class ColumnsController < ApplicationController
 
     if @column.article_type == "pillar"
       if can_manage_column?(@column)
-        @children = @column.children.order(updated_at: :desc)
+        @children = @column.children.with_list_attributes.order(updated_at: :desc)
         @child_article_quota = child_article_quota_for(@column)
       else
-        @children = @column.children.merge(Column.published).order(updated_at: :desc)
+        @children = @column.children.merge(Column.published).with_list_attributes.order(updated_at: :desc)
       end
     else
       @children = []
@@ -250,7 +272,6 @@ class ColumnsController < ApplicationController
     article_type = params[:bulk_article_type]
 
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope)
 
     query = base_scope.merge(Column.missing_generated_image)
     query = query.where(genre: GenreRegistry.equivalent_keys(genre)) if genre.present? && admin_or_allowed_genre?(genre)
@@ -270,7 +291,7 @@ class ColumnsController < ApplicationController
     end
 
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope)
+    Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
 
     target_ids = base_scope.merge(Column.missing_generated_image).where(id: column_ids).pluck(:id)
     if target_ids.size < column_ids.size
@@ -320,8 +341,10 @@ class ColumnsController < ApplicationController
   # ======================
   def draft
     @columns = dashboard_columns_base_scope
-                 .where("body IS NULL OR TRIM(body) = ''")
+                 .merge(Column.without_generated_body)
+                 .with_list_attributes
                  .order(created_at: :desc)
+                 .page(params[:page]).per(50)
   end
 
   def approve

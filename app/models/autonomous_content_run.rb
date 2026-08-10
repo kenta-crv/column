@@ -116,13 +116,13 @@ class AutonomousContentRun < ApplicationRecord
 
   def pending_child_columns
     child_columns
-      .where("body IS NULL OR TRIM(body) = ''")
+      .merge(Column.without_generated_body)
       .where.not(generation_status: %w[failed generating])
       .where.not(status: "error")
   end
 
   def completed_child_count
-    child_columns.where(generation_status: "completed").where.not(body: [nil, ""]).count
+    child_columns.merge(Column.with_generated_body).where(generation_status: "completed").count
   end
 
   def admin_run?

@@ -23,14 +23,15 @@ class Dashboard::ColumnsController < ApplicationController
     @kpi_pending_review_count = @tab_count_pending_review
     @pending_review_columns_count = @tab_count_pending_review
     @missing_image_columns_count = @tab_count_no_image
-    @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
 
     filtered_base = base_scope
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
 
-    @total_count = params[:genre].present? ? filtered_base.count : @tab_count_all
+    assign_dashboard_summary_metrics(base_scope, filtered_base)
+
+    @total_count = params[:genre].present? ? (@filtered_total_count || filtered_base.count) : @tab_count_all
 
     # 生成日時（created_at）表示と並びを一致させる
     scope = filtered_base.order(created_at: :desc)
@@ -63,13 +64,6 @@ class Dashboard::ColumnsController < ApplicationController
                     else
                       {}
                     end
-
-    @genre_pillar_counts = merge_canonical_genre_counts(
-      filtered_base.where(article_type: "pillar").group(:genre).count
-    )
-    @genre_child_counts = merge_canonical_genre_counts(
-      filtered_base.where(article_type: %w[cluster child]).group(:genre).count
-    )
 
     generation_counts = filtered_base
                           .where(generation_status: %w[queued generating])
@@ -105,11 +99,19 @@ class Dashboard::ColumnsController < ApplicationController
       columns: columns.map { |c| { id: c.id, title: c.title, status: c.generation_status } }
     }
   end
+
+  # サイドバーバッジ用。レイアウト同期COUNTを避け、描画後に取得する
+  def sidebar_badges
+    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v1"), expires_in: 2.minutes) do
+      compute_sidebar_badge_counts
+    end
+
+    render json: counts
+  end
   
   
   def image_generation
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope)
 
     scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
@@ -127,7 +129,7 @@ class Dashboard::ColumnsController < ApplicationController
     end
 
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope)
+    Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
 
     target_ids = image_generation_target_scope(base_scope).where(id: column_ids).pluck(:id)
     if target_ids.size < column_ids.size
@@ -172,7 +174,6 @@ class Dashboard::ColumnsController < ApplicationController
 
   def check_bulk_image_count
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope)
 
     query = image_generation_target_scope(base_scope)
     if params[:bulk_genre].present? && admin_or_allowed_genre?(params[:bulk_genre])
@@ -196,7 +197,7 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:scope].present?
       case params[:scope]
       when "draft"
-        scope = scope.where(body: [nil, ""])
+        scope = scope.merge(Column.without_generated_body)
       when "pillar"
         scope = scope.where(article_type: "pillar")
       when "cluster"
@@ -450,17 +451,10 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    # body 全文の TRIM/比較を避け、octet_length で有無だけ見る（TOAST 展開を抑える）
-    counts = scope.unscope(:order).pick(
-      Arel.sql("COUNT(*)"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR octet_length(body) = 0)"),
-      Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
-      Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
-      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
-      Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
-    ) || Array.new(8, 0)
+    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v2")
+    counts = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
+      compute_dashboard_tab_counts(scope)
+    end
 
     @tab_count_all,
     @tab_count_draft,
@@ -472,7 +466,80 @@ class Dashboard::ColumnsController < ApplicationController
     @tab_count_no_image = Array(counts).map { |v| v.to_i }
   end
 
+  def compute_dashboard_tab_counts(scope)
+    scope = scope.unscope(:order)
+
+    if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
+      # body 全文の TRIM/比較を避け、octet_length で有無だけ見る（TOAST 展開を抑える）
+      scope.pick(
+        Arel.sql("COUNT(*)"),
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR octet_length(body) = 0)"),
+        Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
+        Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
+      ) || Array.new(8, 0)
+    else
+      [
+        scope.count,
+        scope.merge(Column.without_generated_body).count,
+        scope.where(article_type: "pillar").count,
+        scope.where(article_type: %w[cluster child]).count,
+        scope.merge(Column.pending_review).count,
+        scope.merge(Column.published).count,
+        scope.where(status: "error").count,
+        scope.merge(Column.missing_generated_image).count
+      ]
+    end
+  end
+
+  def assign_dashboard_summary_metrics(base_scope, filtered_base)
+    genre_key = params[:genre].to_s
+    cache_key = sidebar_column_count_cache_key("dashboard_summary_v1:#{genre_key}")
+
+    summary = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
+      {
+        avg_quality: base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1),
+        filtered_total: genre_key.present? ? filtered_base.count : nil,
+        genre_pillar: merge_canonical_genre_counts(
+          filtered_base.where(article_type: "pillar").group(:genre).count
+        ),
+        genre_child: merge_canonical_genre_counts(
+          filtered_base.where(article_type: %w[cluster child]).group(:genre).count
+        )
+      }
+    end
+
+    @kpi_avg_quality_score = summary[:avg_quality]
+    @filtered_total_count = summary[:filtered_total]
+    @genre_pillar_counts = summary[:genre_pillar]
+    @genre_child_counts = summary[:genre_child]
+  end
+
   def broadcast_generation_status(column)
     GenerationChannelBroadcaster.broadcast(column)
+  end
+
+  def compute_sidebar_badge_counts
+    scope = dashboard_columns_base_scope.unscope(:order)
+
+    if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
+      pending_review, missing_image = scope.pick(
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
+      ) || [0, 0]
+
+      {
+        pending_review: pending_review.to_i,
+        missing_image: missing_image.to_i
+      }
+    else
+      {
+        pending_review: scope.merge(Column.pending_review).count,
+        missing_image: scope.merge(Column.missing_generated_image).count
+      }
+    end
   end
 end

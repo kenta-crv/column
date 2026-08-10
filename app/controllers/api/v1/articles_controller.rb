@@ -63,7 +63,14 @@ class Api::V1::ArticlesController < ApplicationController
       )
       html = append_attribution_html(html, column: @column)
     else
-      @columns = client_articles_scope.order(updated_at: :desc)
+      # embed 向け: 本文なしで最大100件（無制限全文ロードを防止）
+      page = [params[:page].to_i, 1].max
+      per_page = params[:per_page].present? ? params[:per_page].to_i.clamp(1, 100) : 100
+      @columns = client_articles_scope
+                   .with_list_attributes
+                   .order(updated_at: :desc)
+                   .offset((page - 1) * per_page)
+                   .limit(per_page)
 
       html = render_to_string(
         partial: 'api/v1/articles/articles',
@@ -88,7 +95,7 @@ class Api::V1::ArticlesController < ApplicationController
 
   def client_articles_scope
     Column.where(client_id: @client.id)
-          .where.not(body: [nil, ""])
+          .merge(Column.with_generated_body)
           .merge(Column.published)
           .where(genre: allowed_genre_values)
   end

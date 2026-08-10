@@ -139,9 +139,9 @@ class Client < ApplicationRecord
     scope.count
   end
 
-  def reconcile_article_creation_usage_if_drifted!
-    actual_pillar = actual_pillar_count_in_period
-    actual_child = actual_child_count_in_period
+  def reconcile_article_creation_usage_if_drifted!(actual_pillar: nil, actual_child: nil)
+    actual_pillar = actual_pillar_count_in_period if actual_pillar.nil?
+    actual_child = actual_child_count_in_period if actual_child.nil?
     log = current_usage_log
     return if log.pillar_created_count >= actual_pillar && log.child_created_count >= actual_child
 
@@ -313,13 +313,25 @@ class Client < ApplicationRecord
   end
 
   def usage_summary
+    return @usage_summary if defined?(@usage_summary)
+
+    @usage_summary = Rails.cache.fetch("client:#{id}:usage_summary:#{usage_period_key}", expires_in: 60.seconds) do
+      build_usage_summary
+    end
+  end
+
+  def build_usage_summary
     limits = plan_limits
-    reconcile_article_creation_usage_if_drifted!
+    pillar_used = pillar_slots_used
+    child_used = child_slots_used
+    reconcile_article_creation_usage_if_drifted!(actual_pillar: pillar_used, actual_child: child_used)
+
     {
-      pillar: { used: pillar_slots_used, limit: limits[:pillar_articles] },
-      child: { used: child_slots_used, limit: limits[:child_articles] },
-      title_suggestions: { used: title_suggestion_usage_count, limit: limits[:title_suggestions] },
-      image_generations: { used: image_generation_usage_count, limit: limits[:image_generations] },
+      pillar: { used: pillar_used, limit: limits[:pillar_articles] },
+      child: { used: child_used, limit: limits[:child_articles] },
+      title_suggestions: { used: current_usage_log.title_suggestion_count, limit: limits[:title_suggestions] },
+      # サイドバー表示では全件 file COUNT の reconcile を避ける（書き込み時に加算済み）
+      image_generations: { used: current_usage_log.image_generation_count, limit: limits[:image_generations] },
       genres: { used: service_genres.count, limit: limits[:genre_count] },
       sub_categories: { limit: limits[:sub_category_count] },
       api_enabled: limits[:api_enabled],
@@ -329,7 +341,7 @@ class Client < ApplicationRecord
   end
 
   def approaching_limit?(threshold: 0.8)
-    usage_summary.any? do |key, row|
+    usage_summary.any? do |_key, row|
       next false unless row.is_a?(Hash) && row[:limit].present? && row[:limit].to_i.positive? && row.key?(:used)
 
       row[:used].to_f / row[:limit] >= threshold

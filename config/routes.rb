@@ -43,6 +43,7 @@ Rails.application.routes.draw do
         get :export
         get :image_generation
         get :generation_status
+        get :sidebar_badges
         post :bulk_generate_images
         get :check_bulk_image_count
         

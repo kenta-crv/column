@@ -289,13 +289,20 @@ class ApplicationController < ActionController::Base
   end
 
   def columns_list_scope
-    genre_key = current_public_genre_key.presence || default_public_genre_key
+    # 管理画面（/columns）では明示の genre 指定がない限り全件。
+    # default_public_genre_key（drafity.pro では ai_article）を当てると
+    # Admin が自社ジャンル以外を見失うため、公開一覧専用のデフォルトに限定する。
+    manage_view = columns_manage_view?
+    genre_key = current_public_genre_key.presence
+    genre_key ||= default_public_genre_key unless manage_view
     client = current_client if client_signed_in?
 
     if client_signed_in?
-      genre_values = public_genre_filter_values(genre_key, client: client)
       scope = Column.where(client_id: client.id)
-      scope = scope.where(genre: genre_values) if genre_values.present?
+      if genre_key.present?
+        genre_values = public_genre_filter_values(genre_key, client: client)
+        scope = scope.where(genre: genre_values) if genre_values.present?
+      end
 
       case params[:article_type].to_s
       when "pillar"
@@ -311,11 +318,11 @@ class ApplicationController < ActionController::Base
     end
 
     if admin_signed_in?
-      return dashboard_columns_base_scope if genre_key.blank?
-
-      genre_values = public_genre_filter_values(genre_key)
       scope = dashboard_columns_base_scope
-      scope = scope.where(genre: genre_values) if genre_values.present?
+      if genre_key.present?
+        genre_values = public_genre_filter_values(genre_key)
+        scope = scope.where(genre: genre_values) if genre_values.present?
+      end
 
       case params[:article_type].to_s
       when "pillar"
@@ -396,15 +403,16 @@ class ApplicationController < ActionController::Base
     return nil unless can_manage_column?(column)
 
     owner = column.client
+    children_used = children_count_for(column)
     if owner
       limit = owner.plan_limits[:child_articles]
       used = owner.child_usage_count
     else
       limit = column.cluster_limit.presence || 25
-      used = column.children.count
+      used = children_used
     end
 
-    remaining = remaining_child_slots_for(column)
+    remaining = remaining_child_slots_for(column, children_used: children_used)
     { used: used, limit: limit, remaining: remaining }
   end
 
@@ -414,19 +422,25 @@ class ApplicationController < ActionController::Base
     public_column_show_path(column)
   end
 
-  def remaining_child_slots_for(column)
+  def remaining_child_slots_for(column, children_used: nil)
     owner = column.client
+    children_used = children_count_for(column) if children_used.nil?
 
     if owner
       remaining = owner.plan_limits[:child_articles] - owner.child_usage_count
       if column.cluster_limit.present?
-        remaining = [remaining, column.cluster_limit - column.children.count].min
+        remaining = [remaining, column.cluster_limit - children_used].min
       end
       [remaining, 0].max
     else
       cap = column.cluster_limit.presence || 25
-      [cap - column.children.count, 0].max
+      [cap - children_used, 0].max
     end
+  end
+
+  def children_count_for(column)
+    @children_count_by_parent_id ||= {}
+    @children_count_by_parent_id[column.id] ||= column.children.count
   end
 
   def current_client_allowed_genre_keys

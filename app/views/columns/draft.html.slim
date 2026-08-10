@@ -44,7 +44,7 @@
                   td
                     - if column.status == "draft"
                       span.knowhow-status-badge.knowhow-status-badge--pending 未承認
-                    - elsif column.body.blank?
+                    - elsif !column.generated_body?
                       span.knowhow-status-badge.knowhow-status-badge--missing 本文なし
                     - else
                       span.knowhow-status-badge.knowhow-status-badge--processing 生成中
@@ -57,6 +57,10 @@
                         span 編集
                       = link_to column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "knowhow-action-btn knowhow-action-btn--delete", title: "削除" do
                         span 削除
+
+        - if @columns.respond_to?(:total_pages) && @columns.total_pages > 1
+          .knowhow-pagination
+            = paginate @columns
 
     javascript:
       function toggleAll(source) {

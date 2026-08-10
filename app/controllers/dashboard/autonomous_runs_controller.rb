@@ -7,8 +7,20 @@ class Dashboard::AutonomousRunsController < ApplicationController
   layout "admin"
 
   def index
-    AutonomousContentRun.recover_stale_runs!
-    @runs = scoped_runs.recent.limit(50)
+    AutonomousContentRun.recover_stale_runs! if should_recover_stale_runs?
+    @runs = scoped_runs.recent.includes(:client, :pillar_column).limit(50)
+    pillar_ids = @runs.map(&:pillar_column_id).compact
+    @child_total_by_pillar = pillar_ids.any? ? Column.where(parent_id: pillar_ids).group(:parent_id).count : {}
+    @child_completed_by_pillar =
+      if pillar_ids.any?
+        Column.where(parent_id: pillar_ids)
+              .merge(Column.with_generated_body)
+              .where(generation_status: "completed")
+              .group(:parent_id)
+              .count
+      else
+        {}
+      end
     @settings = current_client.autonomous_settings_with_defaults if client_signed_in?
   end
 
@@ -51,7 +63,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def show
-    @child_columns = @run.child_columns
+    @child_columns = @run.child_columns.with_list_attributes
   end
 
   def approve_child_titles
@@ -121,6 +133,25 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   private
+
+  def should_recover_stale_runs?
+    ran = false
+    Rails.cache.fetch("autonomous_recover_stale:#{current_actor_cache_key}", expires_in: 5.minutes) do
+      ran = true
+      true
+    end
+    ran
+  end
+
+  def current_actor_cache_key
+    if admin_signed_in?
+      "admin:#{current_admin.id}"
+    elsif client_signed_in?
+      "client:#{current_client.id}"
+    else
+      "anon"
+    end
+  end
 
   def require_ai_autonomous!
     return if admin_signed_in?

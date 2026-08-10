@@ -66,7 +66,8 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
 
   # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Sidebar badge 等の短命キャッシュ用（memcached 未導入のため file_store）
+  config.cache_store = :file_store, Rails.root.join("tmp/cache")
 
   # Use a real queuing backend for Active Job (and separate queues per environment)
   # config.active_job.queue_adapter     = :resque

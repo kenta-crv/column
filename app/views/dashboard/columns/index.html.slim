@@ -192,7 +192,7 @@
   .tabs-group
     = link_to dashboard_columns_path, class: "tab-btn #{'active' if params[:scope].blank?}" do
       span.tab-label すべて
-      span.count-badge.bg-primary = @tab_count_all
+      span.count-badge = @tab_count_all
     = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
       span.tab-label 下書き
       span.count-badge = @tab_count_draft

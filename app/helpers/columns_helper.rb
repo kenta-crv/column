@@ -45,8 +45,10 @@ module ColumnsHelper
     raw = column.description.to_s.strip
     return raw if raw.present? && raw != column.title.to_s.strip
 
-    excerpt = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip
-    return truncate(excerpt, length: 120, omission: "…") if excerpt.present?
+    if column.has_attribute?(:body)
+      excerpt = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip
+      return truncate(excerpt, length: 120, omission: "…") if excerpt.present?
+    end
 
     column.title.to_s
   end
@@ -112,24 +114,28 @@ module ColumnsHelper
 
   def column_image_src(column)
     return if column.blank?
+    return if column[:file].blank?
 
-    column.repair_image_filename_from_disk! unless column.image_file_stored?
-    return unless column.image_file_stored?
-
-    column.file.to_s.presence || column.file.url
+    # GET表示ではディスク修復しない（一覧で N 回の FS I/O / update が走るため）
+    column.file.to_s.presence || column.file&.url
   end
 
   def column_excerpt(column, length: 120)
     raw = column.description.to_s.strip
-    raw = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip if raw.blank? || raw == column.title.to_s.strip
+    if (raw.blank? || raw == column.title.to_s.strip) && column.has_attribute?(:body)
+      raw = strip_tags(column.body.to_s).to_s.gsub(/\s+/, " ").strip
+    end
     return if raw.blank?
 
     truncate(raw, length: length, omission: "…")
   end
 
-  # 関連記事カード用の抜粋（column_excerpt の別名）
+  # 関連記事カード用の抜粋（本文は絶対に読まない）
   def related_article_excerpt(column, length: 120)
-    column_excerpt(column, length: length)
+    raw = column.description.to_s.strip
+    return if raw.blank? || raw == column.title.to_s.strip
+
+    truncate(raw, length: length, omission: "…")
   end
 
   # 公開記事向け自社CTA（本文途中 + 本文末尾）

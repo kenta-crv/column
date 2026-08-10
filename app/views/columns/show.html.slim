@@ -149,7 +149,7 @@
                       td= child.title
                       td= child.status
                       td
-                        - if child.body.present?
+                        - if child.generated_body?
                           span.pillar-badge.pillar-badge--success あり
                         - else
                           span.pillar-badge.pillar-badge--muted 未生成

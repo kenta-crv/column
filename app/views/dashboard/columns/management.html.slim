@@ -25,7 +25,7 @@
 
             tbody
               - @clients.each do |client|
-                - subscription = client.subscriptions.order(created_at: :desc).first
+                - subscription = client.subscriptions.max_by(&:created_at)
 
                 tr
                   td

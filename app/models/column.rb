@@ -215,7 +215,7 @@ class Column < ApplicationRecord
     end
     scope = scope.where.not(id: exclude_ids.uniq)
 
-    candidates = scope.order(published_at: :desc).limit(60).to_a
+    candidates = scope.with_list_attributes.order(published_at: :desc).limit(60).to_a
     return [] if candidates.empty?
 
     own_sub = column.sub_genre.to_s
@@ -253,6 +253,7 @@ class Column < ApplicationRecord
     return [] if column.blank? || column.parent_id.blank? || limit.to_i <= 0
 
     candidates = published.with_generated_body
+                          .with_list_attributes
                           .where(parent_id: column.parent_id)
                           .where.not(id: column.id)
                           .where.not(code: [nil, ""])

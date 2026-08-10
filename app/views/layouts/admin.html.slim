@@ -70,22 +70,20 @@ html
                 polyline points="10 9 9 9 8 9"
               | 生成管理
 
-            = link_to draft_columns_path do
+            = link_to draft_columns_path, class: (controller_path == "columns" && action_name == "draft" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                 path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
               | ドラフト一覧
 
-            = link_to dashboard_columns_path(scope: "pending_review"), class: (controller_name == "columns" && params[:scope] == "pending_review" ? "active" : nil) do
+            = link_to dashboard_columns_path(scope: "pending_review"), class: (controller_path == "dashboard/columns" && action_name == "index" && params[:scope] == "pending_review" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 circle cx="12" cy="12" r="10"
                 polyline points="12 6 12 12 16 14"
               | レビュー待ち
-              - review_count = pending_review_columns_count
-              - if review_count.positive?
-                span.sidebar-nav-badge = review_count
+              span.sidebar-nav-badge.js-sidebar-badge data-badge="pending_review" hidden="hidden"
 
-            = link_to columns_path(article_type: "pillar"), class: (controller_name == "columns" && action_name == "index" && params[:article_type] == "pillar" ? "active" : nil) do
+            = link_to columns_path(article_type: "pillar"), class: (controller_path == "columns" && action_name == "index" && params[:article_type] == "pillar" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M12 22a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
                 path d="M12 8V2"
@@ -100,21 +98,19 @@ html
                 polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
               | クラスター記事一括生成
 
-            = link_to columns_path, class: (controller_name == "columns" && action_name == "index" && params[:article_type].blank? ? "active" : nil) do
+            = link_to columns_path, class: (controller_path == "columns" && action_name == "index" && params[:article_type].blank? ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
                 polyline points="22 4 12 14.01 9 11.01"
               | 公開済記事
 
-            = link_to image_generation_dashboard_columns_path, class: (controller_name == "columns" && action_name == "image_generation" ? "active" : nil) do
+            = link_to image_generation_dashboard_columns_path, class: (controller_path == "dashboard/columns" && action_name == "image_generation" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 rect x="3" y="3" width="18" height="18" rx="2" ry="2"
                 circle cx="8.5" cy="8.5" r="1.5"
                 polyline points="21 15 16 10 5 21"
               | 画像一括生成
-              - no_image_count = missing_image_columns_count
-              - if no_image_count.positive?
-                span.sidebar-nav-badge = no_image_count
+              span.sidebar-nav-badge.js-sidebar-badge data-badge="missing_image" hidden="hidden"
 
             = link_to dashboard_service_genres_path, class: (controller_name == "service_genres" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -128,13 +124,13 @@ html
                 | AI主導生成
 
             - if admin_signed_in?
-              = link_to dashboard_management_path, class: (controller_name == "dashboards" && action_name == "management" ? "active" : nil) do
+              = link_to dashboard_management_path, class: (controller_path == "dashboard/columns" && action_name == "management" ? "active" : nil) do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   circle cx="12" cy="12" r="3"
                   path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                 | クライアント管理
             - elsif client_signed_in?
-              - settings_active = (controller_name == "clients" && action_name == "my_api_settings") || (controller_name == "columns" && action_name == "setting") || controller_name.in?(%w[plans subscriptions])
+              - settings_active = (controller_path == "dashboard/clients" && action_name == "my_api_settings") || (controller_path == "dashboard/columns" && action_name == "setting") || (controller_path == "dashboard/api_guide") || controller_name.in?(%w[plans subscriptions])
               .sidebar-nav-group class=(settings_active ? "is-active" : nil)
                 button.sidebar-nav-group-toggle type="button" aria-haspopup="true" aria-expanded=(settings_active ? "true" : "false")
                   span.sidebar-nav-group-toggle-label
@@ -151,19 +147,19 @@ html
                       line x1="1" y1="10" x2="23" y2="10"
                     | プラン・料金
 
-                  = link_to dashboard_api_settings_path, class: (controller_name == "clients" && action_name == "my_api_settings" ? "active" : nil) do
+                  = link_to dashboard_api_settings_path, class: (controller_path == "dashboard/clients" && action_name == "my_api_settings" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
                       path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                     | API設定
 
-                  = link_to dashboard_api_guide_path, class: (controller_name == "api_guide" ? "active" : nil) do
+                  = link_to dashboard_api_guide_path, class: (controller_path == "dashboard/api_guide" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
                       path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
                     | API連携ガイド
 
-                  = link_to dashboard_setting_path, class: (controller_name == "columns" && action_name == "setting" ? "active" : nil) do
+                  = link_to dashboard_setting_path, class: (controller_path == "dashboard/columns" && action_name == "setting" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
                       path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
@@ -290,9 +286,40 @@ html
         });
       };
 
+      const initSidebarBadges = () => {
+        const badges = document.querySelectorAll('.js-sidebar-badge');
+        if (!badges.length) return;
+        if (document.body.dataset.sidebarBadgesLoading === '1') return;
+        document.body.dataset.sidebarBadgesLoading = '1';
+
+        fetch('/dashboard/columns/sidebar_badges', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin'
+        }).then((response) => {
+          if (!response.ok) return null;
+          return response.json();
+        }).then((data) => {
+          if (!data) return;
+          badges.forEach((el) => {
+            const count = Number(data[el.dataset.badge] || 0);
+            if (count > 0) {
+              el.textContent = String(count);
+              el.removeAttribute('hidden');
+            } else {
+              el.textContent = '';
+              el.setAttribute('hidden', 'hidden');
+            }
+          });
+        }).catch(() => {}).finally(() => {
+          document.body.dataset.sidebarBadgesLoading = '0';
+        });
+      };
+
       const initAll = () => {
+        document.body.dataset.sidebarBadgesLoading = '0';
         initSidebar();
         initProblemReportModal();
+        initSidebarBadges();
       };
 
       document.addEventListener('turbolinks:load', initAll);

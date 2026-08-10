@@ -26,9 +26,9 @@
         .form-section
           h3.form-section-title 進行状況
           ul
-            li 親記事: #{@run.pillar_column.present? ? (@run.pillar_column.body.present? ? "完了" : "生成中") : "未開始"}
-            li 子タイトル: #{@run.child_columns.count}件
-            li 子記事本文: #{@run.completed_child_count} / #{@run.child_columns.count} 件完了
+            li 親記事: #{@run.pillar_column.present? ? (@run.pillar_column.generated_body? ? "完了" : "生成中") : "未開始"}
+            li 子タイトル: #{@child_columns.size}件
+            li 子記事本文: #{@run.completed_child_count} / #{@child_columns.size} 件完了
 
         - if @run.status == "awaiting_child_title_approval"
           .form-section
