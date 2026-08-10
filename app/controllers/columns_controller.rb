@@ -13,12 +13,7 @@ class ColumnsController < ApplicationController
   @@bulk_image_generating = false
 
   def index
-    columns = columns_list_scope.select(
-      :id, :title, :description,
-      :genre, :article_type, :updated_at,
-      :file, :code, :parent_id, :status,
-      :sub_genre, :client_id
-    )
+    columns = columns_list_scope.with_list_attributes
 
     if params[:q].present?
       columns = columns.where(

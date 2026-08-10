@@ -17,20 +17,20 @@ class Dashboard::ColumnsController < ApplicationController
     base_scope = dashboard_columns_base_scope
     assign_dashboard_tab_counts(base_scope)
 
-    # KPIはタブ集計を流用（同一条件のCOUNTを繰り返さない）
+    # KPI・サイドバーバッジはタブ集計を流用（同一条件のCOUNTを繰り返さない）
     @kpi_published_count = @tab_count_published
     @kpi_draft_count = @tab_count_draft
     @kpi_pending_review_count = @tab_count_pending_review
+    @pending_review_columns_count = @tab_count_pending_review
+    @missing_image_columns_count = @tab_count_no_image
     @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
 
     filtered_base = base_scope
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
-    filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
 
-    genre_or_language_filtered = params[:genre].present? || params[:language].present?
-    @total_count = genre_or_language_filtered ? filtered_base.count : @tab_count_all
+    @total_count = params[:genre].present? ? filtered_base.count : @tab_count_all
 
     # 生成日時（created_at）表示と並びを一致させる
     scope = filtered_base.order(created_at: :desc)
@@ -54,7 +54,8 @@ class Dashboard::ColumnsController < ApplicationController
     end
 
     @per_page = PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 30
-    @columns = scope.page(params[:page]).per(@per_page)
+    # body 全文を読み込まない（一覧表示が明らかに重くなる主因）
+    @columns = scope.with_list_attributes.page(params[:page]).per(@per_page)
 
     pillar_ids = @columns.select(&:pillar?).map(&:id)
     @child_counts = if pillar_ids.any?
@@ -77,6 +78,7 @@ class Dashboard::ColumnsController < ApplicationController
     @queued_count = generation_counts["queued"].to_i
     @generating_count = generation_counts["generating"].to_i
     @generating_columns = filtered_base
+                            .with_list_attributes
                             .where(generation_status: %w[queued generating])
                             .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
                             .limit(30)
@@ -87,13 +89,19 @@ class Dashboard::ColumnsController < ApplicationController
   def generation_status
     base_scope = dashboard_columns_base_scope
     columns = base_scope
+                .select(:id, :title, :generation_status, :updated_at)
                 .where(generation_status: %w[queued generating])
                 .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
                 .limit(30)
 
+    generation_counts = base_scope
+                          .where(generation_status: %w[queued generating])
+                          .group(:generation_status)
+                          .count
+
     render json: {
-      queued_count: base_scope.where(generation_status: "queued").count,
-      generating_count: base_scope.where(generation_status: "generating").count,
+      queued_count: generation_counts["queued"].to_i,
+      generating_count: generation_counts["generating"].to_i,
       columns: columns.map { |c| { id: c.id, title: c.title, status: c.generation_status } }
     }
   end
@@ -105,7 +113,7 @@ class Dashboard::ColumnsController < ApplicationController
 
     scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
-    @columns = scope.page(params[:page]).per(30)
+    @columns = scope.with_list_attributes.page(params[:page]).per(30)
   end
 
   def bulk_generate_images
@@ -442,16 +450,16 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    # 8回のCOUNTを1クエリにまとめる（TRIMは避けて全文スキャンコストを抑える）
+    # body 全文の TRIM/比較を避け、octet_length で有無だけ見る（TOAST 展開を抑える）
     counts = scope.unscope(:order).pick(
       Arel.sql("COUNT(*)"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR body = '')"),
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR octet_length(body) = 0)"),
       Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
       Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND body != '' AND published_at IS NULL)"),
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
       Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
       Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
-      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND body != '' AND (file IS NULL OR file = ''))")
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
     ) || Array.new(8, 0)
 
     @tab_count_all,

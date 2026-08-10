@@ -19,4 +19,16 @@ class ColumnTest < ActiveSupport::TestCase
     assert_not cluster.valid?
     assert_includes cluster.errors.full_messages.join, "親記事の作成上限"
   end
+
+  test "generated_body? uses body_present from list attributes without loading body" do
+    client = create_trial_client
+    with_body = client.columns.create!(title: "With body", article_type: "cluster", genre: "other", status: "draft", body: "# Hello")
+    without_body = client.columns.create!(title: "Without body", article_type: "cluster", genre: "other", status: "draft", body: nil)
+
+    listed = Column.where(id: [with_body.id, without_body.id]).with_list_attributes.index_by(&:id)
+
+    assert_equal true, listed[with_body.id].generated_body?
+    assert_equal false, listed[without_body.id].generated_body?
+    assert_equal false, listed[with_body.id].has_attribute?(:body)
+  end
 end

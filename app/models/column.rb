@@ -68,11 +68,30 @@ class Column < ApplicationRecord
     Rails.logger.warn "[Column #{id}] repair_image_filename_from_disk! failed: #{e.message}"
     false
   end
-  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / = '' に統一
-  scope :without_generated_body, -> { where("body IS NULL OR body = ''") }
-  scope :with_generated_body, -> { where("body IS NOT NULL AND body != ''") }
+  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / octet_length に統一
+  scope :without_generated_body, -> { where("body IS NULL OR octet_length(body) = 0") }
+  scope :with_generated_body, -> { where("body IS NOT NULL AND octet_length(body) > 0") }
   scope :published, -> { where.not(published_at: nil) }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
+
+  # 一覧用: body 全文を転送せず、有無フラグだけ付与する
+  LIST_SELECT_COLUMNS = %w[
+    id title description file code genre sub_genre article_type parent_id
+    published_at created_at updated_at quality_score evaluation_metrics
+    generation_mode generation_status status client_id
+  ].freeze
+
+  scope :with_list_attributes, -> {
+    quoted = LIST_SELECT_COLUMNS.map { |column| "#{table_name}.#{column}" }
+    select(
+      *(quoted + [
+        Arel.sql(
+          "CASE WHEN #{table_name}.body IS NULL OR octet_length(#{table_name}.body) = 0 " \
+          "THEN FALSE ELSE TRUE END AS body_present"
+        )
+      ])
+    )
+  }
 
   ALREADY_GENERATED_NOTICE = "すでに記事が作成されています。再実行する場合、記事本文を削除してください".freeze
 
@@ -93,7 +112,13 @@ class Column < ApplicationRecord
   end
 
   def generated_body?
-    body.to_s.strip.present?
+    if has_attribute?(:body_present)
+      ActiveModel::Type::Boolean.new.cast(self[:body_present])
+    elsif has_attribute?(:body)
+      body.to_s.strip.present?
+    else
+      self.class.where(id: id).merge(self.class.with_generated_body).exists?
+    end
   end
 
   # 本文生成が完了したら公開可能。publish! で一般公開される。
