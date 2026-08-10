@@ -21,6 +21,9 @@
 /storage/*
 !/storage/.keep
 
+# User-generated uploads (must never be git-tracked; reset/clean wipes them)
+/public/uploads/
+
 /node_modules
 /yarn-error.log
 
