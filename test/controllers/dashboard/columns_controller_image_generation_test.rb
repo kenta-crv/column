@@ -31,14 +31,21 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     @missing_total = Column.merge(Column.missing_generated_image).count
   end
 
-  test "image_generation defaults to 50 per page and switches to 100" do
+  test "image_generation defaults to 30 per page and switches to 50 and 100" do
     assert @missing_total > 50, "test requires more than 50 missing-image columns"
 
     get image_generation_dashboard_columns_path
     assert_response :success
-    assert_select "select[name=per] option[value='50'][selected]"
+    assert_select "select[name=per] option[value='30'][selected]"
+    assert_select "select[name=per] option[value='50']"
     assert_select "select[name=per] option[value='100']"
     assert_select "button#btn-trigger-run-all-generation", text: /全実行/
+    assert_select "input.image-select-checkbox", count: 30
+    assert_match %r{1 - 30 / #{@missing_total}件を表示}, response.body
+
+    get image_generation_dashboard_columns_path(per: 50)
+    assert_response :success
+    assert_select "select[name=per] option[value='50'][selected]"
     assert_select "input.image-select-checkbox", count: 50
     assert_match %r{1 - 50 / #{@missing_total}件を表示}, response.body
 
@@ -48,12 +55,6 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     expected_100 = [@missing_total, 100].min
     assert_select "input.image-select-checkbox", count: expected_100
     assert_match %r{1 - #{expected_100} / #{@missing_total}件を表示}, response.body
-    assert expected_100 > 50
-
-    get image_generation_dashboard_columns_path(per: 30)
-    assert_response :success
-    assert_select "select[name=per] option[value='50'][selected]"
-    assert_select "input.image-select-checkbox", count: 50
   end
 
   test "bulk_generate_images run_all processes all missing image targets" do

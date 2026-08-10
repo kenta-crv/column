@@ -2,7 +2,7 @@ class Dashboard::ColumnsController < ApplicationController
   helper ColumnsHelper
 
   PER_PAGE_OPTIONS = [30, 50, 100].freeze
-  IMAGE_GENERATION_PER_PAGE_OPTIONS = [50, 100].freeze
+  IMAGE_GENERATION_PER_PAGE_OPTIONS = [30, 50, 100].freeze
 
   before_action :authenticate_admin_or_client!
   before_action :require_admin!, only: [:management]
@@ -116,7 +116,7 @@ class Dashboard::ColumnsController < ApplicationController
 
     scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
-    @per_page = IMAGE_GENERATION_PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 50
+    @per_page = IMAGE_GENERATION_PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 30
     @columns = scope.with_list_attributes.page(params[:page]).per(@per_page)
   end
 
