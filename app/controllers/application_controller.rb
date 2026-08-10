@@ -147,14 +147,14 @@ class ApplicationController < ActionController::Base
   def pending_review_columns_count
     return 0 unless admin_signed_in? || client_signed_in?
 
-    dashboard_columns_base_scope.merge(Column.pending_review).count
+    @pending_review_columns_count ||= dashboard_columns_base_scope.merge(Column.pending_review).count
   end
 
   # サイドバーの「画像一括生成」バッジ用。生成済み画像がない記事数。
   def missing_image_columns_count
     return 0 unless admin_signed_in? || client_signed_in?
 
-    dashboard_columns_base_scope.merge(Column.missing_generated_image).count
+    @missing_image_columns_count ||= dashboard_columns_base_scope.merge(Column.missing_generated_image).count
   end
 
   def current_public_genre_key

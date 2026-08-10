@@ -8,7 +8,7 @@ class Column < ApplicationRecord
   scope :clusters, -> { where(article_type: "cluster") }
   scope :without_image_file, -> { where("file IS NULL OR file = ''") }
   scope :missing_generated_image, -> {
-    where("body IS NOT NULL AND TRIM(body) != ''").merge(without_image_file)
+    with_generated_body.merge(without_image_file)
   }
   scope :with_article_type_filter, ->(article_type) {
     case article_type.to_s
@@ -68,8 +68,9 @@ class Column < ApplicationRecord
     Rails.logger.warn "[Column #{id}] repair_image_filename_from_disk! failed: #{e.message}"
     false
   end
-  scope :without_generated_body, -> { where("body IS NULL OR TRIM(body) = ''") }
-  scope :with_generated_body, -> { where("body IS NOT NULL AND TRIM(body) != ''") }
+  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / = '' に統一
+  scope :without_generated_body, -> { where("body IS NULL OR body = ''") }
+  scope :with_generated_body, -> { where("body IS NOT NULL AND body != ''") }
   scope :published, -> { where.not(published_at: nil) }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
 

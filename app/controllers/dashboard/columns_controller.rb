@@ -17,38 +17,27 @@ class Dashboard::ColumnsController < ApplicationController
     base_scope = dashboard_columns_base_scope
     assign_dashboard_tab_counts(base_scope)
 
-    @kpi_published_count = base_scope.merge(Column.published).count
-    @kpi_draft_count = base_scope.where("body IS NULL OR TRIM(body) = ''").count
+    # KPIはタブ集計を流用（同一条件のCOUNTを繰り返さない）
+    @kpi_published_count = @tab_count_published
+    @kpi_draft_count = @tab_count_draft
+    @kpi_pending_review_count = @tab_count_pending_review
     @kpi_avg_quality_score = base_scope.where.not(quality_score: nil).where("quality_score > 0").average(:quality_score)&.round(1)
-    @kpi_completed_generation_count = base_scope.where(generation_status: "completed").count
-    @kpi_pending_review_count = base_scope.merge(Column.pending_review).count
 
     filtered_base = base_scope
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
     filtered_base = filtered_base.where(language: params[:language]) if params[:language].present?
-    @total_count        = filtered_base.count
-    @draft_count        = filtered_base.where(body: [nil, ""]).count
-    @pillar_count       = filtered_base.where(article_type: "pillar").count
-    @cluster_count      = filtered_base.where(article_type: %w[cluster child]).count
-    @published_count    = filtered_base.merge(Column.published).count
-    @pending_review_count = filtered_base.merge(Column.pending_review).count
-    @error_count        = filtered_base.where(status: "error").count
-    @no_image_count     = filtered_base.merge(Column.missing_generated_image).count
 
-    # 成功率とクオリティ平均の計算（本文生成の成功率。データがない場合は固定フォールバック）
-    generated_count = filtered_base.merge(Column.with_generated_body).count
-    total_processed = generated_count + @error_count
-    @success_rate = total_processed.positive? ? ((generated_count.to_f / total_processed) * 100).round : 92
-    @avg_quality_score = "4.6" # ロジックが存在する場合はここで `filtered_base.average(:quality_score)` 等を計算
+    genre_or_language_filtered = params[:genre].present? || params[:language].present?
+    @total_count = genre_or_language_filtered ? filtered_base.count : @tab_count_all
 
-    # 2. メイン一覧用のスコープを params[:scope] に応じて条件分岐
-    scope = filtered_base.order(updated_at: :desc)
+    # 生成日時（created_at）表示と並びを一致させる
+    scope = filtered_base.order(created_at: :desc)
     if params[:scope].present?
       case params[:scope]
       when "draft"
-        scope = scope.where(body: [nil, ""])
+        scope = scope.merge(Column.without_generated_body)
       when "pillar"
         scope = scope.where(article_type: "pillar")
       when "cluster"
@@ -64,7 +53,6 @@ class Dashboard::ColumnsController < ApplicationController
       end
     end
 
-    # 3. 最後にページネーションを適用
     @per_page = PER_PAGE_OPTIONS.include?(params[:per].to_i) ? params[:per].to_i : 30
     @columns = scope.page(params[:page]).per(@per_page)
 
@@ -75,24 +63,19 @@ class Dashboard::ColumnsController < ApplicationController
                       {}
                     end
 
-    # 相互互換データの確保
     @genre_pillar_counts = merge_canonical_genre_counts(
       filtered_base.where(article_type: "pillar").group(:genre).count
     )
-    @genre_child_counts   = merge_canonical_genre_counts(
+    @genre_child_counts = merge_canonical_genre_counts(
       filtered_base.where(article_type: %w[cluster child]).group(:genre).count
     )
-    @all_genres = base_scope.distinct.pluck(:genre).compact.map { |g| GenreRegistry.canonical_key(g) || g }.uniq.sort
 
-    # 4. 通知ドロップダウン（ベルマーク用）に表示する直近の実行・変更履歴（最新5件）
-    @recent_columns = filtered_base.order(updated_at: :desc).limit(5)
-
-    # 過去24時間以内に更新されたレコードがある場合、通知ドットをONにする
-    @has_new_notifications = filtered_base.where("updated_at > ?", 24.hours.ago).exists?
-
-    # リアルタイム生成中の記事を取得
-    @queued_count = filtered_base.where(generation_status: "queued").count
-    @generating_count = filtered_base.where(generation_status: "generating").count
+    generation_counts = filtered_base
+                          .where(generation_status: %w[queued generating])
+                          .group(:generation_status)
+                          .count
+    @queued_count = generation_counts["queued"].to_i
+    @generating_count = generation_counts["generating"].to_i
     @generating_columns = filtered_base
                             .where(generation_status: %w[queued generating])
                             .order(Arel.sql("CASE generation_status WHEN 'generating' THEN 0 ELSE 1 END"), updated_at: :desc)
@@ -459,14 +442,26 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    @tab_count_all           = scope.count
-    @tab_count_draft         = scope.where("body IS NULL OR TRIM(body) = ''").count
-    @tab_count_pillar        = scope.where(article_type: "pillar").count
-    @tab_count_cluster       = scope.where(article_type: %w[cluster child]).count
-    @tab_count_pending_review = scope.merge(Column.pending_review).count
-    @tab_count_published     = scope.merge(Column.published).count
-    @tab_count_error         = scope.where(status: "error").count
-    @tab_count_no_image      = scope.merge(Column.missing_generated_image).count
+    # 8回のCOUNTを1クエリにまとめる（TRIMは避けて全文スキャンコストを抑える）
+    counts = scope.unscope(:order).pick(
+      Arel.sql("COUNT(*)"),
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR body = '')"),
+      Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
+      Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND body != '' AND published_at IS NULL)"),
+      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
+      Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
+      Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND body != '' AND (file IS NULL OR file = ''))")
+    ) || Array.new(8, 0)
+
+    @tab_count_all,
+    @tab_count_draft,
+    @tab_count_pillar,
+    @tab_count_cluster,
+    @tab_count_pending_review,
+    @tab_count_published,
+    @tab_count_error,
+    @tab_count_no_image = Array(counts).map { |v| v.to_i }
   end
 
   def broadcast_generation_status(column)

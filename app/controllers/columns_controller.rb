@@ -14,7 +14,7 @@ class ColumnsController < ApplicationController
 
   def index
     columns = columns_list_scope.select(
-      :id, :title, :description, :body,
+      :id, :title, :description,
       :genre, :article_type, :updated_at,
       :file, :code, :parent_id, :status,
       :sub_genre, :client_id
