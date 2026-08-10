@@ -1,0 +1,11 @@
+---
+description: Favicon・ブランド画像の無断変更禁止
+alwaysApply: true
+---
+
+# Favicon / ブランド画像の変更禁止
+
+- `favicon.ico`・`apple-touch-icon`・サイトアイコンなど、ブランド用アイコン画像を**勝手に変更・置換・再生成しない**。
+- SEO・LP・デザイン改善・アセット整理などの作業中でも、Favicon の差し替えは行わない。
+- 変更してよいのは、ユーザーが明示的に「Favicon を変更して」と依頼した場合のみ。
+- 関連ファイル例: `app/assets/images/favicon.ico`、`public/favicon.ico`、`public/assets_ok/favicon-*`
