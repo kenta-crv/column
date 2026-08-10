@@ -2,37 +2,37 @@
   .api-settings-page
     .api-settings-header
       h1.api-settings-title
-        | API設定
+        = t("drafity.dashboard.api.title")
       
       p.api-settings-subtitle
-        = "クライアント: #{@client.email}"
+        = t("drafity.dashboard.api.client_label", email: @client.email)
         span.api-settings-header-sep &middot;
-        = link_to "API連携ガイドを見る", dashboard_api_guide_path, class: "api-settings-header-link"
+        = link_to t("drafity.dashboard.api.guide_link"), dashboard_api_guide_path, class: "api-settings-header-link"
 
     .api-settings-card
       .api-settings-card__body
         = form_with model: @client, url: (admin_signed_in? ? update_api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), local: true, method: :patch do |f|
           .form-section
             h3.form-section-title
-              | 基本設定
+              = t("drafity.dashboard.api.basic")
             
             .form-group
-              = f.label :api_key, "APIキー"
+              = f.label :api_key, t("drafity.dashboard.api.key")
               .api-key-field
                 = f.text_field :api_key, class: "form-control", readonly: true
-                = link_to "再発行する", (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), data: { turbo_method: :post, turbo_confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？", confirm: "APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？" }, class: "btn-gradient"
+                = link_to t("drafity.dashboard.api.regenerate"), (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), data: { turbo_method: :post, turbo_confirm: t("drafity.dashboard.api.confirm_regenerate"), confirm: t("drafity.dashboard.api.confirm_regenerate") }, class: "btn-gradient"
               small.form-text
-                | APIキーは自動生成されます。再発行すると旧キーはすぐに使えなくなります。
+                = t("drafity.dashboard.api.key_hint")
 
             .form-group
               = f.label :webhook_url, "Webhook URL"
               = f.text_field :webhook_url, class: "form-control", placeholder: "https://client-site.com/webhook/articles"
               small.form-text
-                | 記事更新時の通知先URL（オプション）
+                = t("drafity.dashboard.api.webhook")
 
           .form-section
             h3.form-section-title
-              | ジャンル
+              = t("drafity.dashboard.api.genres")
 
             .form-group
               - if @client_service_genres.present?
@@ -42,40 +42,40 @@
                       = genre.ja
                       code.genre-key = genre.key
               - else
-                p.form-text ジャンルが未登録です。
+                p.form-text = t("drafity.dashboard.api.no_genres")
               small.form-text
-                = link_to "サービス・ジャンル管理", dashboard_service_genres_path
-                | で追加・編集します。APIで公開されるジャンルもここで登録したものになります。
+                = link_to t("drafity.dashboard.api.genres_manage_link"), dashboard_service_genres_path
+                = t("drafity.dashboard.api.genres_manage_suffix")
 
           .form-section
             h3.form-section-title
-              | 埋め込み設定
+              = t("drafity.dashboard.api.embed")
             
             .form-group
-              = f.label :embed_settings, "埋め込み設定（JSON）"
+              = f.label :embed_settings, t("drafity.dashboard.api.embed_json")
               - display_value = @client.embed_settings.is_a?(Hash) ? JSON.pretty_generate(@client.embed_settings) : @client.embed_settings.to_s
               = f.text_area :embed_settings, class: "form-control", rows: 5, value: display_value
               small.form-text
-                | カスタム埋め込み設定（オプション）
+                = t("drafity.dashboard.api.embed_custom")
 
           .form-actions
-            = f.submit "設定を保存", class: "btn-gradient"
-            = link_to "キャンセル", (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn-secondary"
+            = f.submit t("drafity.dashboard.api.save"), class: "btn-gradient"
+            = link_to t("drafity.dashboard.common.cancel"), (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn-secondary"
 
     .api-instructions
       h3.api-instructions-title
-        | クライアントへの埋め込み手順
+        = t("drafity.dashboard.api.embed_howto")
       
       .api-instructions-step
         .step-number 1
         .step-content
-          h4 以下のコードを対象のページに貼り付けてください
+          h4 = t("drafity.dashboard.api.embed_step1")
           
           .custom-code-block
             .code-block-header
               span.code-lang HTML
               button.code-copy-btn.js-copy-btn type="button" data-target="embed-code"
-                | コピー
+                = t("drafity.dashboard.common.copy")
             .code-block-body
               pre
                 code#embed-code
@@ -84,9 +84,11 @@
       .api-instructions-step
         .step-number 2
         .step-content
-          h4 指定した場所に記事が自動的に読み込まれます
+          h4 = t("drafity.dashboard.api.embed_step2")
 
+- js_i18n = { copied: t("drafity.dashboard.common.copied"), copy: t("drafity.dashboard.common.copy") }.to_json.html_safe
 javascript:
+  const I18nDash = #{js_i18n};
   document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.querySelector('.js-copy-btn');
     if (!copyBtn) return;
@@ -99,15 +101,15 @@ javascript:
         const textToCopy = codeElement.textContent;
         
         navigator.clipboard.writeText(textToCopy).then(() => {
-          copyBtn.textContent = 'コピー完了';
+          copyBtn.textContent = I18nDash.copied;
           copyBtn.classList.add('copied');
           
           setTimeout(() => {
-            copyBtn.textContent = 'コピー';
+            copyBtn.textContent = I18nDash.copy;
             copyBtn.classList.remove('copied');
           }, 2000);
         }).catch(err => {
-          console.error('コピーに失敗しました: ', err);
+          console.error('Copy failed: ', err);
         });
       }
     });

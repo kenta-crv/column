@@ -3,9 +3,9 @@
     .api-settings-header
       .service-genres-header-row
         div
-          h1.api-settings-title サービス・ジャンル管理
-          p.api-settings-subtitle 記事生成・API連携・記事下部CTA（自社案内）をジャンル単位で管理します
-        = link_to "新規作成", new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
+          h1.api-settings-title = t("drafity.dashboard.genres.title")
+          p.api-settings-subtitle = t("drafity.dashboard.genres.subtitle")
+        = link_to t("drafity.dashboard.genres.new"), new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
 
     .api-settings-card
       .api-settings-card__body
@@ -14,14 +14,14 @@
             table.management-table.service-genres-table
               thead
                 tr
-                  th キー
-                  th 表示名
-                  th サービス名
+                  th = t("drafity.dashboard.labels.key")
+                  th = t("drafity.dashboard.labels.display_name")
+                  th = t("drafity.dashboard.labels.service_name")
                   - if admin_signed_in?
-                    th クライアント
-                  th 中分類数
+                    th = t("drafity.dashboard.labels.client")
+                  th = t("drafity.dashboard.labels.sub_count")
                   th CTA
-                  th 操作
+                  th = t("drafity.dashboard.labels.actions")
               tbody
                 - @service_genres.each do |genre|
                   tr
@@ -35,26 +35,26 @@
                         - if genre.client_id.present?
                           span = genre.client&.email || "Client ##{genre.client_id}"
                         - else
-                          span.empty-text システム
-                    td = "#{genre.sub_categories_count}件"
+                          span.empty-text = t("drafity.dashboard.common.system")
+                    td = t("drafity.dashboard.common.count_items", count: genre.sub_categories_count)
                     td
                       - if genre.column_cta_enabled? && genre.column_cta_for_form[:title].present?
-                        span.status-badge.status-active CTA表示中
+                        span.status-badge.status-active = t("drafity.dashboard.genres.cta_active")
                       - elsif genre.column_cta_enabled?
-                        span.status-badge.status-warning CTA要設定
+                        span.status-badge.status-warning = t("drafity.dashboard.genres.cta_needed")
                       - else
-                        span.status-badge.status-inactive CTA非表示
+                        span.status-badge.status-inactive = t("drafity.dashboard.genres.cta_off")
                     td style="white-space: nowrap; width: 1%;"
                       .service-genres-actions
-                        = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: "編集" do
+                        = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: t("drafity.dashboard.common.edit") do
                           svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                             path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                        = link_to dashboard_service_genre_path(genre), method: :delete, data: { confirm: "「#{genre.ja}」を削除しますか？" }, class: "icon-action-btn icon-action-btn--delete", title: "削除" do
+                        = link_to dashboard_service_genre_path(genre), method: :delete, data: { confirm: t("drafity.dashboard.genres.confirm_delete", name: genre.ja) }, class: "icon-action-btn icon-action-btn--delete", title: t("drafity.dashboard.common.delete") do
                           svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             polyline points="3 6 5 6 21 6"
                             path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
         - else
           .service-genres-empty
-            p まだサービス・ジャンルが登録されていません。
-            = link_to "最初のジャンルを作成", new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
+            p = t("drafity.dashboard.genres.empty")
+            = link_to t("drafity.dashboard.genres.create_first"), new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"

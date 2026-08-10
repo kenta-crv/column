@@ -1,25 +1,26 @@
 module ApplicationHelper
-  ADMIN_PAGE_TITLES = {
-    ["dashboard/columns", "index"] => "記事管理",
-    ["dashboard/columns", "image_generation"] => "画像一括生成",
-    ["dashboard/columns", "management"] => "クライアント管理",
-    ["dashboard/columns", "setting"] => "設定",
-    ["dashboard/service_genres", "index"] => "サービス・ジャンル管理",
-    ["dashboard/service_genres", "new"] => "サービス・ジャンル作成",
-    ["dashboard/service_genres", "edit"] => "サービス・ジャンル編集",
-    ["dashboard/clients", "api_settings"] => "API設定",
-    ["dashboard/clients", "my_api_settings"] => "API設定",
-    ["dashboard/autonomous_runs", "index"] => "AI主導生成",
-    ["dashboard/autonomous_runs", "new"] => "AI主導生成を開始",
-    ["dashboard/autonomous_runs", "show"] => "AI主導生成詳細",
-    ["dashboard/subscriptions", "show"] => "サブスクリプション管理",
-    ["dashboard/subscriptions", "cancel_confirm"] => "サブスクリプション解約",
-    ["admins/sessions", "new"] => "管理者ログイン",
-    ["admins/registrations", "new"] => "管理者アカウント登録",
-    ["admins/passwords", "new"] => "パスワード再設定",
-    ["admins/passwords", "edit"] => "新しいパスワード",
-    ["clients/sessions", "new"] => "ログイン",
-    ["clients/registrations", "new"] => "アカウント登録"
+  ADMIN_PAGE_TITLE_KEYS = {
+    ["dashboard/columns", "index"] => "drafity.dashboard.page_titles.articles",
+    ["dashboard/columns", "image_generation"] => "drafity.dashboard.page_titles.image_generation",
+    ["dashboard/columns", "management"] => "drafity.dashboard.page_titles.management",
+    ["dashboard/columns", "setting"] => "drafity.dashboard.page_titles.setting",
+    ["dashboard/service_genres", "index"] => "drafity.dashboard.page_titles.service_genres",
+    ["dashboard/service_genres", "new"] => "drafity.dashboard.page_titles.service_genres_new",
+    ["dashboard/service_genres", "edit"] => "drafity.dashboard.page_titles.service_genres_edit",
+    ["dashboard/clients", "api_settings"] => "drafity.dashboard.page_titles.api_settings",
+    ["dashboard/clients", "my_api_settings"] => "drafity.dashboard.page_titles.api_settings",
+    ["dashboard/api_guide", "show"] => "drafity.dashboard.page_titles.api_guide",
+    ["dashboard/autonomous_runs", "index"] => "drafity.dashboard.page_titles.autonomous",
+    ["dashboard/autonomous_runs", "new"] => "drafity.dashboard.page_titles.autonomous_new",
+    ["dashboard/autonomous_runs", "show"] => "drafity.dashboard.page_titles.autonomous_show",
+    ["dashboard/subscriptions", "show"] => "drafity.dashboard.page_titles.subscription",
+    ["dashboard/subscriptions", "cancel_confirm"] => "drafity.dashboard.page_titles.subscription_cancel",
+    ["admins/sessions", "new"] => "drafity.auth.meta_login_title",
+    ["admins/registrations", "new"] => "drafity.auth.signup_title",
+    ["admins/passwords", "new"] => "drafity.auth.meta_password_title",
+    ["admins/passwords", "edit"] => "drafity.auth.meta_password_edit_title",
+    ["clients/sessions", "new"] => "drafity.auth.login_title",
+    ["clients/registrations", "new"] => "drafity.auth.signup_title"
   }.freeze
 
   def default_meta_tags
@@ -46,49 +47,43 @@ module ApplicationHelper
     case key
     when ["dashboard/clients", "api_settings"], ["dashboard/clients", "my_api_settings"]
       if defined?(@client) && @client&.email.present?
-        "#{@client.email} - API設定"
+        t("drafity.dashboard.page_titles.with_suffix", name: @client.email, title: t("drafity.dashboard.page_titles.api_settings"))
       else
-        ADMIN_PAGE_TITLES.fetch(key)
+        t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
     when ["dashboard/service_genres", "edit"]
       if defined?(@service_genre) && @service_genre&.ja.present?
-        "#{@service_genre.ja} - サービス・ジャンル編集"
+        t("drafity.dashboard.page_titles.with_suffix", name: @service_genre.ja, title: t("drafity.dashboard.page_titles.service_genres_edit"))
       else
-        ADMIN_PAGE_TITLES.fetch(key)
+        t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
     when ["dashboard/autonomous_runs", "show"]
       if defined?(@run) && @run&.title.present?
-        "#{@run.title} - AI主導生成詳細"
+        t("drafity.dashboard.page_titles.with_suffix", name: @run.title, title: t("drafity.dashboard.page_titles.autonomous_show"))
       else
-        ADMIN_PAGE_TITLES.fetch(key)
+        t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
     when ["dashboard/subscriptions", "show"], ["dashboard/subscriptions", "cancel_confirm"]
       if defined?(@target_client) && @target_client&.email.present?
-        "#{@target_client.email} - #{ADMIN_PAGE_TITLES.fetch(key)}"
+        "#{@target_client.email} - #{t(ADMIN_PAGE_TITLE_KEYS.fetch(key))}"
       else
-        ADMIN_PAGE_TITLES.fetch(key)
+        t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
     else
-      ADMIN_PAGE_TITLES.fetch(key, "Drafity Admin")
+      ADMIN_PAGE_TITLE_KEYS.key?(key) ? t(ADMIN_PAGE_TITLE_KEYS.fetch(key)) : "Drafity Admin"
     end
   end
 
   def generation_mode_options_for_select(include_internal: admin_signed_in?)
-    options = [["通常", "default"], ["比較", "comparison"], ["自社宣伝", "recommendation"]]
+    options = [[t("drafity.dashboard.generation_modes.default"), "default"], [t("drafity.dashboard.generation_modes.comparison"), "comparison"], [t("drafity.dashboard.generation_modes.recommendation"), "recommendation"]]
     return options unless include_internal
 
     options + [["Note", "note"], ["Qiita", "qiita"], ["Zenn", "zenn"]]
   end
 
   def generation_mode_label(mode)
-    {
-      "default" => "通常",
-      "comparison" => "比較",
-      "recommendation" => "自社宣伝",
-      "note" => "Note",
-      "qiita" => "Qiita",
-      "zenn" => "Zenn"
-    }[Column.normalize_generation_mode(mode)] || "通常"
+    key = Column.normalize_generation_mode(mode)
+    I18n.t("drafity.dashboard.generation_modes.#{key}", default: t("drafity.dashboard.generation_modes.default"))
   end
 
   def service_genre_sub_category_items(service_genre)

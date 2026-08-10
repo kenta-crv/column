@@ -1,13 +1,13 @@
 .container-fluid.py-4
   .api-settings-page
     .api-settings-header
-      h1.api-settings-title サービス・ジャンル作成
-      p.api-settings-subtitle 新しいジャンルとサービス情報を登録します
+      h1.api-settings-title = t("drafity.dashboard.genres.new_title")
+      p.api-settings-subtitle = t("drafity.dashboard.genres.new_subtitle")
 
     - if @fallback_templates.present?
       .api-settings-card.genre-template-card
         .api-settings-card__body
-          p.genre-template-card__label 既存テンプレートから読み込む
+          p.genre-template-card__label = t("drafity.dashboard.genres.template_label")
           .genre-template-list
             - @fallback_templates.each do |key, data|
               = link_to new_dashboard_service_genre_path(template: key), class: "genre-template-link #{'is-active' if params[:template].to_s == key.to_s}" do
@@ -16,4 +16,4 @@
 
     .api-settings-card
       .api-settings-card__body
-        = render "form", service_genre: @service_genre, submit_label: "作成する"
+        = render "form", service_genre: @service_genre, submit_label: t("drafity.dashboard.genres.submit_create")

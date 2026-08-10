@@ -4,140 +4,140 @@
   - if service_genre.errors.any?
     .form-section
       .service-genre-errors
-        p 入力内容を確認してください
+        p = t("drafity.dashboard.genres.errors_header")
         ul
           - service_genre.errors.full_messages.each do |message|
             li = message
 
   .form-section
     .form-section__header
-      h3.form-section-title 基本情報
+      h3.form-section-title = t("drafity.dashboard.genres.basic")
       - unless service_genre.persisted?
         button.btn.btn-title-suggest.btn-ai-suggest type="button" onclick="handleGenreAiSuggestClick()"
           svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
-          | AI提案
+          = t("drafity.dashboard.genres.ai_suggest")
 
     - if admin_signed_in?
       .form-group
-        = f.label :client_id, "クライアント"
+        = f.label :client_id, t("drafity.dashboard.labels.client")
         - selected_client_id = service_genre.client_id.presence || ""
-        = f.select :client_id, options_for_select([["システム共通", ""]] + Client.order(:email).map { |c| [c.email, c.id] }, selected_client_id), {}, class: "form-control"
-        small.form-text 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
+        = f.select :client_id, options_for_select([[t("drafity.dashboard.genres.system_shared"), ""]] + Client.order(:email).map { |c| [c.email, c.id] }, selected_client_id), {}, class: "form-control"
+        small.form-text = t("drafity.dashboard.genres.client_hint")
 
     .form-group
-      = f.label :key, "キー（英小文字・URL用）"
-      = f.text_field :key, class: "form-control", placeholder: "例: my_service", readonly: service_genre.persisted?
-      small.form-text 記事の genre 値として使用されます。作成後は変更できません。
+      = f.label :key, t("drafity.dashboard.genres.key_label")
+      = f.text_field :key, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_key"), readonly: service_genre.persisted?
+      small.form-text = t("drafity.dashboard.genres.key_hint")
 
     .form-group
-      = f.label :ja, "表示名（日本語）"
-      = f.text_field :ja, class: "form-control", placeholder: "例: 経営コンサル"
+      = f.label :ja, t("drafity.dashboard.genres.ja_label")
+      = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_ja")
 
     .form-group
-      = f.label :service_name, "サービス名"
-      = f.text_field :service_name, class: "form-control", placeholder: "例: 株式会社リプラス"
+      = f.label :service_name, t("drafity.dashboard.labels.service_name")
+      = f.text_field :service_name, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_service")
 
     .form-group
-      = f.label :strong_points, "強み・訴求ポイント"
+      = f.label :strong_points, t("drafity.dashboard.genres.strong_points")
       = f.text_area :strong_points, class: "form-control", rows: 4
-      small.form-text 親記事・子記事生成時に AI へ渡される訴求情報です。
+      small.form-text = t("drafity.dashboard.genres.strong_hint")
 
   details.form-section.form-section--collapsible
-    summary.form-section-title 連携設定（任意）
+    summary.form-section-title = t("drafity.dashboard.genres.integration")
     p.sub-categories-intro
-      | 記事生成のみの場合は空欄のままで問題ありません。保存時にアクセス中のドメインが自動で登録されます。
+      = t("drafity.dashboard.genres.integration_hint")
 
     .form-group
-      = f.label :hosts_text, "ホスト（ドメイン）"
-      = f.text_area :hosts_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :hosts_text).presence || Array(service_genre.hosts).join("\n"), placeholder: "空欄可（自動登録）"
+      = f.label :hosts_text, t("drafity.dashboard.genres.hosts")
+      = f.text_area :hosts_text, class: "form-control", rows: 2, value: params.dig(:service_genre, :hosts_text).presence || Array(service_genre.hosts).join("\n"), placeholder: t("drafity.dashboard.genres.ph_hosts")
 
     .form-group
-      = f.label :keywords_text, "キーワード"
-      = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: "空欄可"
-      small.form-text AIタイトル提案・記事生成の参考に使われます。
+      = f.label :keywords_text, t("drafity.dashboard.genres.keywords")
+      = f.text_area :keywords_text, class: "form-control", rows: 3, value: params.dig(:service_genre, :keywords_text).presence || Array(service_genre.keywords).join("\n"), placeholder: t("drafity.dashboard.genres.ph_optional")
+      small.form-text = t("drafity.dashboard.genres.keywords_hint")
 
   - cta = (params.dig(:service_genre, :column_cta).presence || service_genre.column_cta_for_form).with_indifferent_access
   - by_sub = (cta[:by_sub_genre] || {}).with_indifferent_access
   .form-section
     .form-section__header
-      h3.form-section-title 記事下部のサービス案内（CTA）
+      h3.form-section-title = t("drafity.dashboard.genres.cta_section")
     p.sub-categories-intro
-      | 公開記事の「関連記事」の直前に表示される自社案内です。Admin / Client どちらも編集できます。
+      = t("drafity.dashboard.genres.cta_hint")
     .form-group
       = hidden_field_tag "service_genre[column_cta][enabled]", "0", id: nil
       label.checkbox-inline
         = check_box_tag "service_genre[column_cta][enabled]", "1", service_genre.column_cta_enabled?, id: "service_genre_column_cta_enabled"
-        |  CTAを表示する
+        = " " + t("drafity.dashboard.genres.cta_show")
     .form-group
-      = label_tag "service_genre_column_cta_theme", "テーマ色"
+      = label_tag "service_genre_column_cta_theme", t("drafity.dashboard.genres.theme")
       = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta::THEME_OPTIONS, cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
     .form-group
-      = label_tag "service_genre_column_cta_badge", "バッジ"
-      = text_field_tag "service_genre[column_cta][badge]", cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: "例: Meetia"
+      = label_tag "service_genre_column_cta_badge", t("drafity.dashboard.genres.badge")
+      = text_field_tag "service_genre[column_cta][badge]", cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: t("drafity.dashboard.genres.ph_badge")
     .form-group
-      = label_tag "service_genre_column_cta_title", "見出し"
-      = text_field_tag "service_genre[column_cta][title]", cta[:title], class: "form-control", id: "service_genre_column_cta_title", placeholder: "例: AIが24時間商談代行"
+      = label_tag "service_genre_column_cta_title", t("drafity.dashboard.genres.heading")
+      = text_field_tag "service_genre[column_cta][title]", cta[:title], class: "form-control", id: "service_genre_column_cta_title", placeholder: t("drafity.dashboard.genres.ph_cta_title")
     .form-group
-      = label_tag "service_genre_column_cta_lead", "リード文"
+      = label_tag "service_genre_column_cta_lead", t("drafity.dashboard.genres.lead")
       = text_area_tag "service_genre[column_cta][lead]", cta[:lead], class: "form-control", id: "service_genre_column_cta_lead", rows: 3
     .form-group
-      = label_tag "service_genre_column_cta_cta_label", "ボタン文言"
-      = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: "例: 無料で体験する"
+      = label_tag "service_genre_column_cta_cta_label", t("drafity.dashboard.genres.button_label")
+      = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button")
     .form-group
-      = label_tag "service_genre_column_cta_path", "遷移先パス（同一ドメイン）"
-      = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: "例: / または /okurite"
-      small.form-text ブランドサイト内のパス。外部URLを使う場合は下の「外部URL」を優先します。
+      = label_tag "service_genre_column_cta_path", t("drafity.dashboard.genres.path")
+      = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: t("drafity.dashboard.genres.ph_path")
+      small.form-text = t("drafity.dashboard.genres.path_hint")
     .form-group
-      = label_tag "service_genre_column_cta_url", "外部URL（任意）"
-      = text_field_tag "service_genre[column_cta][url]", cta[:url], class: "form-control", id: "service_genre_column_cta_url", placeholder: "例: https://lin.ee/xxxx"
-      small.form-text 入力がある場合はパスよりこちらが使われます（LINEなど）。
+      = label_tag "service_genre_column_cta_url", t("drafity.dashboard.genres.external_url")
+      = text_field_tag "service_genre[column_cta][url]", cta[:url], class: "form-control", id: "service_genre_column_cta_url", placeholder: t("drafity.dashboard.genres.ph_url")
+      small.form-text = t("drafity.dashboard.genres.external_hint")
 
     - sub_keys = service_genre.sub_categories_for_form.map { |item| item[:key] }.reject(&:blank?)
     - sub_keys |= by_sub.keys.map(&:to_s)
     - if sub_keys.any?
       details.form-section.form-section--collapsible style="margin-top: 12px;"
-        summary.form-section-title 中分類ごとの上書き（任意）
+        summary.form-section-title = t("drafity.dashboard.genres.sub_override")
         p.sub-categories-intro
-          | 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
+          = t("drafity.dashboard.genres.sub_override_hint")
         - sub_keys.uniq.each do |sub_key|
           - sub_cta = (by_sub[sub_key] || {}).with_indifferent_access
           - sub_name = service_genre.sub_categories_for_form.find { |item| item[:key].to_s == sub_key.to_s }&.dig(:name)
           .form-group style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;"
-            strong = "#{sub_key}#{sub_name.present? ? "（#{sub_name}）" : ""}"
-            = label_tag nil, "テーマ色", style: "display:block;margin-top:8px;"
-            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([["（共通と同じ）", ""]] + ColumnServiceCta::THEME_OPTIONS, sub_cta[:theme]), class: "form-control"
-            = label_tag nil, "バッジ", style: "display:block;margin-top:8px;"
+            strong = "#{sub_key}#{sub_name.present? ? " (#{sub_name})" : ""}"
+            = label_tag nil, t("drafity.dashboard.genres.theme"), style: "display:block;margin-top:8px;"
+            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([[t("drafity.dashboard.genres.theme_same"), ""]] + ColumnServiceCta::THEME_OPTIONS, sub_cta[:theme]), class: "form-control"
+            = label_tag nil, t("drafity.dashboard.genres.badge"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][badge]", sub_cta[:badge], class: "form-control"
-            = label_tag nil, "見出し", style: "display:block;margin-top:8px;"
+            = label_tag nil, t("drafity.dashboard.genres.heading"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][title]", sub_cta[:title], class: "form-control"
-            = label_tag nil, "リード文", style: "display:block;margin-top:8px;"
+            = label_tag nil, t("drafity.dashboard.genres.lead"), style: "display:block;margin-top:8px;"
             = text_area_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][lead]", sub_cta[:lead], class: "form-control", rows: 2
-            = label_tag nil, "ボタン文言", style: "display:block;margin-top:8px;"
+            = label_tag nil, t("drafity.dashboard.genres.button_label"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][cta_label]", sub_cta[:cta_label], class: "form-control"
-            = label_tag nil, "遷移先パス", style: "display:block;margin-top:8px;"
+            = label_tag nil, t("drafity.dashboard.genres.path_short"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][path]", sub_cta[:path], class: "form-control"
-            = label_tag nil, "外部URL", style: "display:block;margin-top:8px;"
+            = label_tag nil, t("drafity.dashboard.genres.url_short"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][url]", sub_cta[:url], class: "form-control"
 
   - if sub_config[:allowed]
     .form-section
-      h3.form-section-title 中分類
+      h3.form-section-title = t("drafity.dashboard.genres.subcategories")
       p.sub-categories-intro
-        | 記事作成時の中分類プルダウンと、親記事・子記事の生成内容の参考情報として使われます。
+        = t("drafity.dashboard.genres.sub_hint")
         - unless sub_config[:unlimited]
-          | お使いのプランでは最大#{sub_config[:max]}件まで登録できます。
+          = t("drafity.dashboard.genres.sub_plan_max", max: sub_config[:max])
 
       .sub-categories-toolbar
         button#suggest-sub-categories.btn.btn-title-suggest.btn-ai-suggest type="button" style="color:#ffffff;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border:none;font-weight:600;box-shadow:0 4px 12px rgba(124,58,237,0.2);"
           svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
-          | AIで中分類を提案
+          = t("drafity.dashboard.genres.sub_ai")
         label.sub-categories-toolbar__count
-          span 提案数
+          span = t("drafity.dashboard.genres.suggest_count")
           input#sub-category-suggestion-count type="number" value=sub_config[:default] min="1" max=(sub_config[:unlimited] ? 10 : sub_config[:max])
         small.form-text.sub-categories-toolbar__hint
-          | キー・表示名・訴求ポイントから中分類を自動生成します。実行すると既存の中分類は置き換わります。
+          = t("drafity.dashboard.genres.sub_ai_hint")
 
       #sub-category-suggest-status.sub-category-suggest-status hidden=true
 
@@ -145,18 +145,18 @@
         - service_genre_sub_category_items(service_genre).each do |item|
           = render "sub_category_fields", item: item
 
-      button#add-sub-category.btn.btn-secondary type="button" + 中分類を追加
+      button#add-sub-category.btn.btn-secondary type="button" = t("drafity.dashboard.genres.add_sub")
 
       template#sub-category-template
         = render "sub_category_fields", item: {}
   - elsif client_signed_in? && !admin_signed_in?
     .form-section
       p.sub-categories-intro
-        | お使いのプランでは中分類は利用できません。大ジャンルの訴求ポイントが記事生成に使われます。中分類が必要な場合はスタンダードプラン以上をご検討ください。
+        = t("drafity.dashboard.genres.sub_unavailable")
 
   .form-actions
     = f.submit submit_label, class: "btn btn-primary"
-    = link_to "一覧に戻る", dashboard_service_genres_path, class: "btn btn-secondary"
+    = link_to t("drafity.dashboard.common.back_to_list"), dashboard_service_genres_path, class: "btn btn-secondary"
 
   - unless service_genre.persisted?
     - if sub_config[:allowed]
@@ -164,8 +164,26 @@
     - else
       = render "genre_draft_plan_notice_modal"
 
+- js_i18n = {
+    needService: t("drafity.dashboard.genres.js_need_service"),
+    suggesting: t("drafity.dashboard.genres.js_suggesting"),
+    suggestFailed: t("drafity.dashboard.genres.js_suggest_failed"),
+    network: t("drafity.dashboard.genres.js_network"),
+    newSub: t("drafity.dashboard.genres.js_new_sub"),
+    needAny: t("drafity.dashboard.genres.js_need_any"),
+    needDisplay: t("drafity.dashboard.genres.js_need_display"),
+    subGenerating: t("drafity.dashboard.genres.js_sub_generating"),
+    parseError: t("drafity.dashboard.genres.js_parse_error"),
+    subFailed: t("drafity.dashboard.genres.js_sub_failed"),
+    subDone: t("drafity.dashboard.genres.js_sub_done", count: "%{count}"),
+    timeout: t("drafity.dashboard.genres.js_timeout"),
+    retryNetwork: t("drafity.dashboard.genres.js_retry_network")
+  }.to_json.html_safe
 javascript:
+  const I18nDash = #{js_i18n};
+  const i18nFmt = (template, vars) => String(template).replace(/%\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
   (function() {
+
     const suggestUrl = "#{suggest_sub_categories_dashboard_service_genres_path}";
     const quickSetupUrl = "#{quick_setup_dashboard_service_genres_path}";
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -234,7 +252,7 @@ javascript:
         if (!serviceName && !strongPoints) {
           if (status) {
             status.hidden = false;
-            status.textContent = 'サービス名または訴求ポイントを入力してください。';
+            status.textContent = I18nDash.needService;
             status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
           }
           return;
@@ -243,7 +261,7 @@ javascript:
         btn.disabled = true;
         if (status) {
           status.hidden = false;
-          status.textContent = 'AIがジャンルを提案しています…';
+          status.textContent = I18nDash.suggesting;
           status.className = 'genre-quick-setup-status genre-quick-setup-status--loading';
         }
 
@@ -260,7 +278,7 @@ javascript:
           const result = await response.json();
           if (!response.ok || !result.success) {
             if (status) {
-              status.textContent = result.error || '提案の生成に失敗しました。';
+              status.textContent = result.error || I18nDash.suggestFailed;
               status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
             }
             return;
@@ -270,7 +288,7 @@ javascript:
           closeGenreDraftModal();
         } catch (error) {
           if (status) {
-            status.textContent = '通信エラーが発生しました。';
+            status.textContent = I18nDash.network;
             status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
           }
         } finally {
@@ -344,7 +362,7 @@ javascript:
           const nameInput = item.querySelector('input[name*="[name]"]');
           const title = item.querySelector('.sub-category-item__title');
           if (!title || !nameInput) return;
-          title.textContent = nameInput.value.trim() || '新しい中分類';
+          title.textContent = nameInput.value.trim() || I18nDash.newSub;
         });
       };
 
@@ -412,18 +430,18 @@ javascript:
           const suggestionCount = document.getElementById('sub-category-suggestion-count')?.value || '1';
 
           if (!key && !serviceName && !ja) {
-            showSuggestStatus('キー・表示名・サービス名のいずれかを入力してください。', 'error');
+            showSuggestStatus(I18nDash.needAny, 'error');
             return;
           }
 
           if (!strongPoints && !ja && !serviceName) {
-            showSuggestStatus('表示名・サービス名・訴求ポイントのいずれかを入力してください。', 'error');
+            showSuggestStatus(I18nDash.needDisplay, 'error');
             return;
           }
 
           suggestInFlight = true;
           suggestBtn.disabled = true;
-          showSuggestStatus('AIが中分類を生成しています…（最大約1分）', 'loading');
+          showSuggestStatus(I18nDash.subGenerating, 'loading');
 
           const controller = new AbortController();
           const timeoutId = window.setTimeout(() => controller.abort(), SUGGEST_TIMEOUT_MS);
@@ -449,11 +467,11 @@ javascript:
 
             const result = await response.json().catch(() => null);
             if (!result) {
-              showSuggestStatus('サーバーからの応答を読み取れませんでした。', 'error');
+              showSuggestStatus(I18nDash.parseError, 'error');
               return;
             }
             if (!response.ok || !result.success) {
-              showSuggestStatus(result.error || '中分類の生成に失敗しました。', 'error');
+              showSuggestStatus(result.error || I18nDash.subFailed, 'error');
               return;
             }
 
@@ -462,12 +480,12 @@ javascript:
               appendSubCategoryItem(item, index === 0);
             });
             updateTitles();
-            showSuggestStatus(`${result.sub_categories.length}件の中分類を提案しました。内容を確認して保存してください。`, 'success');
+            showSuggestStatus(i18nFmt(I18nDash.subDone, { count: result.sub_categories.length }), 'success');
           } catch (error) {
             if (error && error.name === 'AbortError') {
-              showSuggestStatus('生成がタイムアウトしました。提案数を減らすか、時間をおいて再度お試しください。', 'error');
+              showSuggestStatus(I18nDash.timeout, 'error');
             } else {
-              showSuggestStatus('通信エラーが発生しました。時間をおいて再度お試しください。', 'error');
+              showSuggestStatus(I18nDash.retryNetwork, 'error');
             }
           } finally {
             window.clearTimeout(timeoutId);

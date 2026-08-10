@@ -25,10 +25,18 @@ module CrawlPolicy
       User-agent: *
       Allow: /$
       Allow: /sitemap.xml
+      Allow: /plans$
+      Allow: /plans/
       Allow: #{TOPS_PATH}$
       Allow: #{TOPS_PATH}/
       Allow: #{SEO_CHECKER_PATH}$
       Allow: #{SEO_CHECKER_PATH}/
+      Allow: /en$
+      Allow: /en/
+      Allow: /en/plans$
+      Allow: /en/plans/
+      Allow: /en#{TOPS_PATH}$
+      Allow: /en#{TOPS_PATH}/
       Allow: /en#{SEO_CHECKER_PATH}$
       Allow: /en#{SEO_CHECKER_PATH}/
       Allow: /#{GENRE_KEY}/columns

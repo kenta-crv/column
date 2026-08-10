@@ -1,7 +1,7 @@
 .api-settings-page.subscription-page
   .api-settings-header
-    h1.api-settings-title サブスクリプション管理
-    p.api-settings-subtitle 現在のプランと変更・支払い履歴を確認できます
+    h1.api-settings-title = t("drafity.dashboard.subscription.title")
+    p.api-settings-subtitle = t("drafity.dashboard.subscription.subtitle")
 
   - is_trial = (@subscription&.trial?) || (@target_client.subscription_plan == "trial")
   - current_plan_key = (@subscription&.plan_type || @target_client.subscription_plan || "trial").to_sym
@@ -14,57 +14,57 @@
     .api-settings-card
       .api-settings-card__body
         .form-section
-          h3.form-section-title 現在のプラン
+          h3.form-section-title = t("drafity.dashboard.subscription.current")
 
           .subscription-info-grid
             .subscription-info-item
-              span.subscription-info-label プラン名
+              span.subscription-info-label = t("drafity.dashboard.labels.plan_name")
               span.subscription-info-value.subscription-info-value--plan = Subscription.display_name_for(current_plan_key)
 
             .subscription-info-item
-              span.subscription-info-label ステータス
+              span.subscription-info-label = t("drafity.dashboard.labels.status")
               - status_class = is_active ? "active" : "canceled"
               span.status-badge class="status-#{status_class}"
-                = is_trial ? "トライアル中" : @subscription&.status&.capitalize
+                = is_trial ? t("drafity.dashboard.labels.trialing") : @subscription&.status&.capitalize
 
             - if is_trial && trial_ends_at.present?
               .subscription-info-item
-                span.subscription-info-label トライアル終了日
-                span.subscription-info-value = trial_ends_at.strftime("%Y年%m月%d日")
+                span.subscription-info-label = t("drafity.dashboard.subscription.trial_ends")
+                span.subscription-info-value = l(trial_ends_at.to_date)
 
         .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
-          h3.form-section-title プラン変更
-          p.subscription-note プランの変更・比較はプラン選択ページで行えます。
+          h3.form-section-title = t("drafity.dashboard.subscription.change")
+          p.subscription-note = t("drafity.dashboard.subscription.change_note")
           .subscription-actions
             = link_to plans_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--primary" do
-              | プランを変更する
+              = t("drafity.dashboard.subscription.change_cta")
 
     - if is_active
       .subscription-cancel-box
         = link_to cancel_confirm_dashboard_subscription_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--danger", data: { turbo: false } do
-          | サブスクリプションを解約する
+          = t("drafity.dashboard.subscription.cancel_cta")
 
   - else
     .api-settings-card
       .api-settings-card__body.subscription-empty
-        p アクティブなサブスクリプションがありません。
+        p = t("drafity.dashboard.subscription.none")
         = link_to plans_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--warning" do
-          | プランを選択する
+          = t("drafity.dashboard.subscription.select_plan")
 
   .api-settings-card
     .api-settings-card__body
       .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
-        h3.form-section-title 支払い履歴
+        h3.form-section-title = t("drafity.dashboard.subscription.history")
 
         - if @payments.present?
           .management-table-wrap
             table.management-table
               thead
                 tr
-                  th 日付
-                  th 金額
-                  th 説明
-                  th ステータス
+                  th = t("drafity.dashboard.labels.date")
+                  th = t("drafity.dashboard.labels.amount")
+                  th = t("drafity.dashboard.labels.description")
+                  th = t("drafity.dashboard.labels.status")
               tbody
                 - @payments.each do |payment|
                   tr
@@ -77,4 +77,4 @@
                         = payment.status.capitalize
         - else
           .subscription-empty.subscription-empty--compact
-            p 支払い履歴がありません。
+            p = t("drafity.dashboard.subscription.history_empty")

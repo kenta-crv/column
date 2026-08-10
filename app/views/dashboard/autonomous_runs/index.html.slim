@@ -1,28 +1,28 @@
 .container-fluid.py-4
   .api-settings-page
     .api-settings-header
-      h1.api-settings-title AI主導生成
-      p.api-settings-subtitle 自律型コンテンツ生成の履歴と進行状況
+      h1.api-settings-title = t("drafity.dashboard.autonomous.title")
+      p.api-settings-subtitle = t("drafity.dashboard.autonomous.subtitle")
 
     - if client_signed_in? && current_client.ai_autonomous_enabled?
       .api-settings-card style="margin-bottom: 20px;"
         .api-settings-card__body
           = form_with url: update_settings_dashboard_autonomous_runs_path, method: :patch, local: true do
             .form-section
-              h3.form-section-title デフォルト設定
+              h3.form-section-title = t("drafity.dashboard.autonomous.defaults")
 
               .form-group
                 label
                   = check_box_tag :notify_cycle_complete, "1", @settings["notify_on"].include?("cycle_complete")
-                  |  サイクル完了時にメール通知
+                  = " #{t("drafity.dashboard.autonomous.notify_cycle")}"
 
               .form-group
                 label
                   = check_box_tag :pause_for_child_titles, "1", @settings["pause_for_approval_at"] == "child_titles"
-                  |  子タイトル生成後に承認してから本文生成（許可ON時は承認メールを送信）
+                  = " #{t("drafity.dashboard.autonomous.pause_approval")}"
 
               .form-group
-                = label_tag :default_cluster_limit, "デフォルトの子記事数"
+                = label_tag :default_cluster_limit, t("drafity.dashboard.autonomous.default_children")
                 .suggestion-count-control
                   = range_field_tag :default_cluster_limit, @settings["default_cluster_limit"], min: 1, max: 25, class: "form-control-range", id: "defaultClusterLimitRange"
                   .suggestion-count-scale#defaultClusterLimitScale
@@ -30,16 +30,16 @@
                       span class=("is-available #{'is-active' if n == @settings["default_cluster_limit"].to_i}") data-value=n = n
                   .suggestion-count-display
                     span#defaultClusterLimitValue = @settings["default_cluster_limit"]
-                    span.suggestion-count-unit 本
+                    span.suggestion-count-unit = t("drafity.dashboard.common.unit_articles")
 
             .form-actions
-              = submit_tag "設定を保存", class: "btn btn-primary"
+              = submit_tag t("drafity.dashboard.common.save"), class: "btn btn-primary"
 
     .api-settings-card
       .api-settings-card__body
         .form-actions style="margin-bottom: 20px;"
           - if admin_signed_in? || (client_signed_in? && current_client.ai_autonomous_enabled?)
-            = link_to "新しいサイクルを開始", new_dashboard_autonomous_run_path, class: "btn btn-primary"
+            = link_to t("drafity.dashboard.autonomous.new_cycle"), new_dashboard_autonomous_run_path, class: "btn btn-primary"
           - elsif client_signed_in?
             p.form-text = current_client.plan_limit_message(:ai_autonomous)
 
@@ -48,17 +48,17 @@
             thead
               tr
                 - if admin_signed_in?
-                  th クライアント
-                th 親タイトル
-                th ステータス
-                th 子記事
-                th 開始日時
-                th 操作
+                  th = t("drafity.dashboard.labels.client")
+                th = t("drafity.dashboard.labels.pillar_title")
+                th = t("drafity.dashboard.labels.status")
+                th = t("drafity.dashboard.labels.child_articles")
+                th = t("drafity.dashboard.labels.started_at")
+                th = t("drafity.dashboard.labels.actions")
             tbody
               - @runs.each do |run|
                 tr
                   - if admin_signed_in?
-                    td = run.admin_run? ? "管理者" : (run.client&.email || "-")
+                    td = run.admin_run? ? t("drafity.dashboard.common.admin") : (run.client&.email || "-")
                   td = run.title
                   td
                     span.status-badge class=run.status = run.status_label
@@ -69,11 +69,11 @@
                       | -
                   td = run.created_at.strftime("%Y/%m/%d %H:%M")
                   td
-                    = link_to "詳細", dashboard_autonomous_run_path(run), class: "btn btn-sm btn-outline-primary"
+                    = link_to t("drafity.dashboard.common.details"), dashboard_autonomous_run_path(run), class: "btn btn-sm btn-outline-primary"
                     - if admin_signed_in? || (client_signed_in? && run.client_id == current_client.id)
-                      = link_to "削除", dashboard_autonomous_run_path(run), method: :delete, class: "btn btn-sm btn-danger", style: "margin-left: 4px;", data: { confirm: "このサイクルと関連する下書き記事を削除します。よろしいですか？" }
+                      = link_to t("drafity.dashboard.common.delete"), dashboard_autonomous_run_path(run), method: :delete, class: "btn btn-sm btn-danger", style: "margin-left: 4px;", data: { confirm: t("drafity.dashboard.autonomous.confirm_delete_cycle") }
         - else
-          p.form-text まだ自律生成の履歴がありません。
+          p.form-text = t("drafity.dashboard.autonomous.empty")
 
 javascript:
   (function() {

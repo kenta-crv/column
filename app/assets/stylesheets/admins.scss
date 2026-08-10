@@ -3631,6 +3631,11 @@ body.admin-body {
   color: #ffffff;
   background-color: #2563eb;
   border-radius: 10px;
+
+  // display:inline-flex が UA の [hidden]{display:none} を上書きするため明示する
+  &[hidden] {
+    display: none !important;
+  }
 }
 
 /* サイドバー下部固定セクション */
@@ -3638,6 +3643,26 @@ body.admin-body {
   padding: 24px 18px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin-top: auto;
+}
+
+.sidebar-lang-switch {
+  margin-bottom: 14px;
+
+  .lang-switch {
+    width: 100%;
+    justify-content: stretch;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .lang-switch__btn {
+    flex: 1;
+    color: #9aa3c0 !important;
+  }
+
+  .lang-switch__btn:hover {
+    color: #fff !important;
+  }
 }
 
 .sidebar-account-link {

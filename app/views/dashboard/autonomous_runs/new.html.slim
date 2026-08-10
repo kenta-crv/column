@@ -1,28 +1,28 @@
 .container-fluid.py-4
   .api-settings-page
     .api-settings-header
-      h1.api-settings-title AI主導生成を開始
-      p.api-settings-subtitle 親タイトルを入力するだけで、親記事→子タイトル→子記事を自動生成します
+      h1.api-settings-title = t("drafity.dashboard.autonomous.new_title")
+      p.api-settings-subtitle = t("drafity.dashboard.autonomous.new_subtitle")
 
     .api-settings-card
       .api-settings-card__body
         = form_with model: @run, url: dashboard_autonomous_runs_path, local: true do |f|
           .form-section
-            h3.form-section-title 基本設定
+            h3.form-section-title = t("drafity.dashboard.autonomous.basic")
 
             - if admin_signed_in?
-              p.form-text 管理者として直接実行します。プラン制限は適用されません。
+              p.form-text = t("drafity.dashboard.autonomous.admin_note")
 
             .form-group
-              = f.label :title, "親記事タイトル"
-              = f.text_field :title, class: "form-control", required: true, placeholder: "例：オフィス清掃の完全ガイド"
+              = f.label :title, t("drafity.dashboard.autonomous.pillar_title")
+              = f.text_field :title, class: "form-control", required: true, placeholder: t("drafity.dashboard.autonomous.ph_title")
 
             .form-group
-              = f.label :genre, "ジャンル"
-              = f.select :genre, @genre_options, { include_blank: "選択してください" }, class: "form-control", required: true
+              = f.label :genre, t("drafity.dashboard.labels.genre")
+              = f.select :genre, @genre_options, { include_blank: t("drafity.dashboard.common.please_select") }, class: "form-control", required: true
 
             .form-group
-              = f.label :cluster_limit, "子記事数"
+              = f.label :cluster_limit, t("drafity.dashboard.autonomous.child_count")
               .suggestion-count-control
                 = f.range_field :cluster_limit, class: "form-control-range", min: 1, max: 25, value: @run.cluster_limit, id: "clusterLimitRange"
                 .suggestion-count-scale#clusterLimitScale
@@ -30,12 +30,12 @@
                     span class=("is-available #{'is-active' if n == @run.cluster_limit.to_i}") data-value=n = n
                 .suggestion-count-display
                   span#clusterLimitValue = @run.cluster_limit
-                  span.suggestion-count-unit 本
-                small.form-text スライダーで1〜25本の子記事を生成できます。
+                  span.suggestion-count-unit = t("drafity.dashboard.common.unit_articles")
+                small.form-text = t("drafity.dashboard.autonomous.slider_hint")
 
           .form-actions
-            = f.submit "自律生成を開始", class: "btn btn-primary", data: { confirm: "バックグラウンドで生成を開始します。よろしいですか？" }
-            = link_to "キャンセル", dashboard_autonomous_runs_path, class: "btn btn-secondary"
+            = f.submit t("drafity.dashboard.autonomous.start"), class: "btn btn-primary", data: { confirm: t("drafity.dashboard.autonomous.confirm_start") }
+            = link_to t("drafity.dashboard.common.cancel"), dashboard_autonomous_runs_path, class: "btn btn-secondary"
 
 javascript:
   (function() {

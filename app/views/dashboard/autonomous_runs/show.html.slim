@@ -3,16 +3,16 @@
     .api-settings-header
       h1.api-settings-title = @run.title
       p.api-settings-subtitle
-        | ステータス:
+        = t("drafity.dashboard.autonomous.status")
         strong = @run.status_label
         - if admin_signed_in? && @run.admin_run?
-          | 　実行者:
-          strong 管理者
+          = " #{t("drafity.dashboard.autonomous.runner")}"
+          strong = t("drafity.dashboard.common.admin")
         - elsif admin_signed_in? && @run.client
-          | 　クライアント:
+          = " #{t("drafity.dashboard.autonomous.client_label")}"
           strong = @run.client.email
         - if @run.pillar_column
-          | 　親記事:
+          = " #{t("drafity.dashboard.autonomous.pillar_label")}"
           - if @run.pillar_column.code.present?
             = link_to @run.pillar_column.title, public_column_show_path(@run.pillar_column), target: "_blank"
           - else
@@ -24,43 +24,44 @@
     .api-settings-card
       .api-settings-card__body
         .form-section
-          h3.form-section-title 進行状況
+          h3.form-section-title = t("drafity.dashboard.autonomous.progress")
+          - pillar_status = @run.pillar_column.present? ? (@run.pillar_column.generated_body? ? t("drafity.dashboard.labels.completed") : t("drafity.dashboard.labels.generating")) : t("drafity.dashboard.labels.not_started")
           ul
-            li 親記事: #{@run.pillar_column.present? ? (@run.pillar_column.generated_body? ? "完了" : "生成中") : "未開始"}
-            li 子タイトル: #{@child_columns.size}件
-            li 子記事本文: #{@run.completed_child_count} / #{@child_columns.size} 件完了
+            li = t("drafity.dashboard.autonomous.progress_pillar", status: pillar_status)
+            li = t("drafity.dashboard.autonomous.progress_child_titles", count: @child_columns.size)
+            li = t("drafity.dashboard.autonomous.progress_child_bodies", done: @run.completed_child_count, total: @child_columns.size)
 
         - if @run.status == "awaiting_child_title_approval"
           .form-section
-            h3.form-section-title 子タイトル一覧（承認待ち）
-            p.form-text 不要なタイトルは削除してから「本文生成を開始」を押してください。
+            h3.form-section-title = t("drafity.dashboard.autonomous.awaiting_titles")
+            p.form-text = t("drafity.dashboard.autonomous.awaiting_hint")
 
             - if @child_columns.any?
               table.rich-dashboard-table
                 thead
                   tr
-                    th タイトル
+                    th = t("drafity.dashboard.labels.title")
                     th
                 tbody
                   - @child_columns.each do |child|
                     tr
                       td = child.title
                       td
-                        = link_to "削除", destroy_child_dashboard_autonomous_run_path(@run, child_id: child.id), method: :delete, class: "btn btn-sm btn-danger", data: { confirm: "この子タイトルを削除しますか？" }
+                        = link_to t("drafity.dashboard.common.delete"), destroy_child_dashboard_autonomous_run_path(@run, child_id: child.id), method: :delete, class: "btn btn-sm btn-danger", data: { confirm: t("drafity.dashboard.autonomous.confirm_delete_child") }
 
-              = button_to "本文生成を開始", approve_child_titles_dashboard_autonomous_run_path(@run), method: :post, class: "btn btn-primary", data: { confirm: "残った子タイトルで本文生成を開始しますか？" }
+              = button_to t("drafity.dashboard.autonomous.start_bodies"), approve_child_titles_dashboard_autonomous_run_path(@run), method: :post, class: "btn btn-primary", data: { confirm: t("drafity.dashboard.autonomous.confirm_start_bodies") }
             - else
-              p.form-text 子タイトルがありません。
+              p.form-text = t("drafity.dashboard.autonomous.no_child_titles")
 
         - elsif @run.status == "completed" && @run.next_pillar_titles.present?
           .form-section
-            h3.form-section-title 次の親記事タイトル案
+            h3.form-section-title = t("drafity.dashboard.autonomous.next_titles")
             ol
               - Array(@run.next_pillar_titles).each do |title|
                 li = title
-            = link_to "新しいサイクルを開始", new_dashboard_autonomous_run_path, class: "btn btn-primary"
+            = link_to t("drafity.dashboard.autonomous.new_cycle"), new_dashboard_autonomous_run_path, class: "btn btn-primary"
 
         .form-actions style="margin-top: 20px;"
           - if %w[failed paused generating_pillar].include?(@run.status)
-            = button_to "生成を再開", retry_dashboard_autonomous_run_path(@run), method: :post, class: "btn btn-primary", data: { confirm: "生成を再開しますか？" }
-          = link_to "一覧に戻る", dashboard_autonomous_runs_path, class: "btn btn-secondary"
+            = button_to t("drafity.dashboard.autonomous.resume"), retry_dashboard_autonomous_run_path(@run), method: :post, class: "btn btn-primary", data: { confirm: t("drafity.dashboard.autonomous.confirm_resume") }
+          = link_to t("drafity.dashboard.common.back_to_list"), dashboard_autonomous_runs_path, class: "btn btn-secondary"

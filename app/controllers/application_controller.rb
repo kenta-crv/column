@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   layout :layout_for_request
 
   before_action :set_locale
+  before_action :stash_omniauth_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
 
@@ -73,6 +74,15 @@ class ApplicationController < ActionController::Base
     session[:ui_locale] = locale.to_s
   end
 
+  # OAuth は /clients/auth/*（/en 外）へ飛ぶため、開始時点の UI locale を session に残す
+  def stash_omniauth_locale
+    return unless request.path.to_s.start_with?("/clients/auth/")
+    return if request.path.to_s.include?("/callback")
+
+    locale = session[:ui_locale].presence || I18n.locale.to_s
+    session[:omniauth_locale] = locale if Client::LOCALES.include?(locale)
+  end
+
   def resolve_ui_locale
     requested = params[:locale].presence.to_s
     return requested.to_sym if Client::LOCALES.include?(requested)
@@ -110,14 +120,14 @@ class ApplicationController < ActionController::Base
     return if admin_signed_in?
     return if client_signed_in?
 
-    flash[:alert] = "ログインが必要です。"
+    flash[:alert] = t("drafity.auth.login_required")
     redirect_to root_path
   end
 
   def require_admin!
     return if admin_signed_in?
 
-    flash[:alert] = "管理者権限が必要です。"
+    flash[:alert] = t("drafity.dashboard.flashes.admin_required")
     redirect_to dashboard_root_path
   end
 

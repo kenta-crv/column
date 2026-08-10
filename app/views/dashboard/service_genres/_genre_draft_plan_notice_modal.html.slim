@@ -1,11 +1,11 @@
 #genre-draft-plan-notice-modal.modal-overlay style="display: none;"
   .modal-content
     .modal-header
-      h3 AI提案
+      h3 = t("drafity.dashboard.genres.plan_notice_title")
       button.modal-close type="button" onclick="closeGenreDraftPlanNoticeModal()" ✕
     .modal-body
       p.genre-draft-plan-notice__message
-        | スタンダードプランからご利用いただけます。
+        = t("drafity.dashboard.genres.plan_notice_body")
       .genre-draft-plan-notice__actions
-        = link_to "プランを確認する", plans_path, class: "btn btn-primary"
-        button.btn.btn-secondary type="button" onclick="closeGenreDraftPlanNoticeModal()" 閉じる
+        = link_to t("drafity.dashboard.genres.plan_notice_cta"), plans_path, class: "btn btn-primary"
+        button.btn.btn-secondary type="button" onclick="closeGenreDraftPlanNoticeModal()" = t("drafity.dashboard.common.close")

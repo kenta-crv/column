@@ -27,6 +27,11 @@ class Clients::RegistrationsController < Devise::RegistrationsController
 
   before_action :configure_sign_up_params, only: [:create]
   before_action :configure_account_update_params, only: [:update]
+  before_action :stash_oauth_locale_from_auth_page, only: [:new]
+
+  def new
+    super
+  end
 
   def create
     build_resource(sign_up_params)
@@ -56,6 +61,10 @@ class Clients::RegistrationsController < Devise::RegistrationsController
   end
 
   private
+
+  def stash_oauth_locale_from_auth_page
+    session[:omniauth_locale] = I18n.locale.to_s if Client::LOCALES.include?(I18n.locale.to_s)
+  end
 
   def resolved_signup_locale
     locale = I18n.locale.to_s

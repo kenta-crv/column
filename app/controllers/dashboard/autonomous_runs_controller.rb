@@ -32,14 +32,14 @@ class Dashboard::AutonomousRunsController < ApplicationController
 
   def create
     unless client_signed_in? || admin_signed_in?
-      redirect_to dashboard_autonomous_runs_path, alert: "ログインしてください。"
+      redirect_to dashboard_autonomous_runs_path, alert: t("drafity.dashboard.flashes.login_please")
       return
     end
 
     owner_client = client_signed_in? ? current_client : nil
 
     unless genre_allowed_for_run?(owner_client, run_params[:genre])
-      redirect_to new_dashboard_autonomous_run_path, alert: "指定されたジャンルにはアクセスできません。"
+      redirect_to new_dashboard_autonomous_run_path, alert: t("drafity.dashboard.flashes.genre_access_denied")
       return
     end
 
@@ -55,7 +55,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
       cluster_limit: run_params[:cluster_limit]
     )
 
-    redirect_to dashboard_autonomous_runs_path, notice: "AI主導生成を開始しました。バックグラウンドで処理を開始しました。"
+    redirect_to dashboard_autonomous_runs_path, notice: t("drafity.dashboard.flashes.autonomous_started")
   rescue ActiveRecord::RecordInvalid => e
     @run = AutonomousContentRun.new(run_params)
     flash.now[:alert] = e.record.errors.full_messages.join(", ")
@@ -68,34 +68,34 @@ class Dashboard::AutonomousRunsController < ApplicationController
 
   def approve_child_titles
     if @run.approve_child_titles!
-      redirect_to dashboard_autonomous_run_path(@run), notice: "子記事の本文生成を開始しました。"
+      redirect_to dashboard_autonomous_run_path(@run), notice: t("drafity.dashboard.flashes.child_body_started")
     else
-      redirect_to dashboard_autonomous_run_path(@run), alert: @run.error_message.presence || "承認できませんでした。"
+      redirect_to dashboard_autonomous_run_path(@run), alert: @run.error_message.presence || t("drafity.dashboard.flashes.approve_failed")
     end
   end
 
   def retry
     if @run.retry!
-      redirect_to dashboard_autonomous_run_path(@run), notice: "生成を再開しました。"
+      redirect_to dashboard_autonomous_run_path(@run), notice: t("drafity.dashboard.flashes.resumed")
     else
-      redirect_to dashboard_autonomous_run_path(@run), alert: "再開できない状態です。"
+      redirect_to dashboard_autonomous_run_path(@run), alert: t("drafity.dashboard.flashes.resume_unavailable")
     end
   end
 
   def destroy_child
     child = @run.child_columns.find_by(id: params[:child_id])
     unless child
-      redirect_to dashboard_autonomous_run_path(@run), alert: "子記事が見つかりません。"
+      redirect_to dashboard_autonomous_run_path(@run), alert: t("drafity.dashboard.flashes.child_not_found")
       return
     end
 
     if @run.status != "awaiting_child_title_approval"
-      redirect_to dashboard_autonomous_run_path(@run), alert: "承認待ちのときのみ削除できます。"
+      redirect_to dashboard_autonomous_run_path(@run), alert: t("drafity.dashboard.flashes.delete_only_awaiting")
       return
     end
 
     child.destroy
-    redirect_to dashboard_autonomous_run_path(@run), notice: "子タイトルを削除しました。"
+    redirect_to dashboard_autonomous_run_path(@run), notice: t("drafity.dashboard.flashes.child_title_deleted")
   end
 
   def destroy
@@ -109,12 +109,12 @@ class Dashboard::AutonomousRunsController < ApplicationController
       @run.destroy!
     end
 
-    redirect_to dashboard_autonomous_runs_path, notice: "自律生成サイクルを削除しました。"
+    redirect_to dashboard_autonomous_runs_path, notice: t("drafity.dashboard.flashes.cycle_deleted")
   end
 
   def update_settings
     unless client_signed_in?
-      redirect_to dashboard_autonomous_runs_path, alert: "設定の変更はクライアントアカウントでログインしてください。"
+      redirect_to dashboard_autonomous_runs_path, alert: t("drafity.dashboard.flashes.settings_client_only")
       return
     end
 
@@ -129,7 +129,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
       default_cluster_limit: params[:default_cluster_limit]
     )
 
-    redirect_to dashboard_autonomous_runs_path, notice: "設定を保存しました。"
+    redirect_to dashboard_autonomous_runs_path, notice: t("drafity.dashboard.flashes.settings_saved")
   end
 
   private
@@ -157,7 +157,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
     return if admin_signed_in?
     return if client_signed_in? && current_client.ai_autonomous_enabled?
 
-    redirect_to dashboard_root_path, alert: current_client&.plan_limit_message(:ai_autonomous) || "AI主導生成はビジネスプラン以上で利用できます。"
+    redirect_to dashboard_root_path, alert: current_client&.plan_limit_message(:ai_autonomous) || t("drafity.dashboard.flashes.autonomous_plan_required")
   end
 
   def scoped_runs
@@ -176,7 +176,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
     return if admin_signed_in?
     return if @run.client_id == current_client.id
 
-    redirect_to dashboard_autonomous_runs_path, alert: "アクセスできません。"
+    redirect_to dashboard_autonomous_runs_path, alert: t("drafity.dashboard.flashes.access_denied")
   end
 
   def assign_genre_options

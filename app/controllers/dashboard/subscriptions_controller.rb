@@ -16,7 +16,7 @@ module Dashboard
       new_plan_type = params[:plan_type]
 
       unless Subscription::PLAN_PRICES.key?(new_plan_type.to_sym)
-        redirect_to dashboard_subscription_path(client_id: params[:client_id]), alert: "無効なプランです。"
+        redirect_to dashboard_subscription_path(client_id: params[:client_id]), alert: t("drafity.dashboard.flashes.invalid_plan")
         return
       end
 
@@ -24,13 +24,13 @@ module Dashboard
       if @subscription&.trial? || new_plan_type != @target_client.subscription_plan
         redirect_to checkout_confirmation_path(plan_type: new_plan_type, client_id: params[:client_id])
       else
-        redirect_to dashboard_subscription_path(client_id: params[:client_id]), notice: "同じプランです。"
+        redirect_to dashboard_subscription_path(client_id: params[:client_id]), notice: t("drafity.dashboard.flashes.same_plan")
       end
     end
 
     def cancel_confirm
       unless @subscription&.status == 'active'
-        redirect_to dashboard_subscription_path(client_id: params[:client_id]), alert: "現在有効なサブスクリプションはありません。"
+        redirect_to dashboard_subscription_path(client_id: params[:client_id]), alert: t("drafity.dashboard.flashes.no_active_subscription")
         return
       end
 
@@ -68,7 +68,7 @@ module Dashboard
     def cancel
       unless @subscription&.status == 'active'
         redirect_to dashboard_subscription_path(client_id: params[:client_id]),
-                    alert: "サブスクリプションが存在しません。"
+                    alert: t("drafity.dashboard.flashes.subscription_missing")
         return
       end
 
@@ -87,17 +87,17 @@ module Dashboard
           )
 
           redirect_to dashboard_subscription_path(client_id: params[:client_id]),
-                      notice: "解約手続きが完了しました。期間終了日まで継続してご利用いただけます。"
+                      notice: t("drafity.dashboard.flashes.cancel_done")
         else
           redirect_to dashboard_subscription_path(client_id: params[:client_id]),
-                      alert: "解約処理に失敗しました。"
+                      alert: t("drafity.dashboard.flashes.cancel_failed")
         end
 
       rescue Stripe::StripeError => e
         Rails.logger.error "Stripe cancel error: #{e.class} - #{e.message}"
 
         redirect_to dashboard_subscription_path(client_id: params[:client_id]),
-                    alert: "Stripe側のキャンセル処理に失敗しました。"
+                    alert: t("drafity.dashboard.flashes.stripe_cancel_failed")
       end
     end
 
@@ -105,7 +105,7 @@ module Dashboard
 
     def authenticate_any!
       unless admin_signed_in? || client_signed_in?
-        redirect_to root_path, alert: "権限がありません。"
+        redirect_to root_path, alert: t("drafity.dashboard.flashes.forbidden")
       end
     end
 
@@ -114,7 +114,7 @@ module Dashboard
         if params[:client_id].present?
           @target_client = Client.find(params[:client_id])
         else
-          redirect_to root_path, alert: "クライアントを指定してください。"
+          redirect_to root_path, alert: t("drafity.dashboard.flashes.client_required")
         end
       else
         @target_client = current_client

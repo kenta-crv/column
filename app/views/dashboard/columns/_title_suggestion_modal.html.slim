@@ -2,58 +2,58 @@
 #title-suggestion-modal.modal-overlay style="display: none;"
   .modal-content
     .modal-header
-      h3 AIタイトル提案
+      h3 = t("drafity.dashboard.title_suggest.title")
       button.modal-close onclick="closeTitleSuggestionModal()" ✕
     .modal-body
       #title-suggestion-form
         .form-group
-          label キーワード1 *
-          input type="text" id="keyword1" placeholder="例: 荷物" required
+          label = t("drafity.dashboard.title_suggest.keyword1")
+          input type="text" id="keyword1" placeholder=t("drafity.dashboard.title_suggest.ph_keyword1") required
         .form-group
-          label キーワード2 *
-          input type="text" id="keyword2" placeholder="例: 配送" required
+          label = t("drafity.dashboard.title_suggest.keyword2")
+          input type="text" id="keyword2" placeholder=t("drafity.dashboard.title_suggest.ph_keyword2") required
         - if @needs_genre_setup
           #genre-quick-setup-panel.genre-quick-setup-panel
             p.genre-quick-setup-panel__lead
-              | ジャンルが未登録です。タイトル提案の前に、サービス情報をAIで登録してください。
+              = t("drafity.dashboard.title_suggest.no_genre")
             .form-group
-              label サービス名 *
-              input#quick-genre-service-name type="text" placeholder="例: 株式会社リプラス"
+              label = t("drafity.dashboard.title_suggest.service_name")
+              input#quick-genre-service-name type="text" placeholder=t("drafity.dashboard.title_suggest.ph_service")
             .form-group
-              label 自社の強み・訴求ポイント *
-              textarea#quick-genre-strong-points rows="3" placeholder="例: BtoB向けに〇〇を提供。導入実績100社以上。"
+              label = t("drafity.dashboard.title_suggest.strong_points")
+              textarea#quick-genre-strong-points rows="3" placeholder=t("drafity.dashboard.title_suggest.ph_strong")
             button#quick-genre-create-btn.btn.btn-secondary type="button" style="width: 100%; margin-bottom: 12px;"
-              | AIでジャンルを登録して続行
+              = t("drafity.dashboard.title_suggest.register_genre")
             #quick-genre-status.genre-quick-setup-status hidden=true
         .form-group
-          label ターゲット層
+          label = t("drafity.dashboard.title_suggest.target")
           select id="target_layer"
-            option value="big" ビッグキーワード（広範なユーザー層）
-            option value="middle" ミドルキーワード（特定のニーズ層）
-            option value="small" スモールキーワード（購買意欲の高い層）
+            option value="big" = t("drafity.dashboard.title_suggest.target_big")
+            option value="middle" = t("drafity.dashboard.title_suggest.target_middle")
+            option value="small" = t("drafity.dashboard.title_suggest.target_small")
         .form-group
-          label ジャンル *
+          label = t("drafity.dashboard.title_suggest.genre")
           select id="genre-select-modal" required=(!@needs_genre_setup)
-            option value="" 選択してください
+            option value="" = t("drafity.dashboard.common.please_select")
             - (@dashboard_genre_options || []).each do |label, key|
               option value=key = label
           - if @needs_genre_setup
-            small.form-text 上の「AIでジャンルを登録」後に選択できます。
+            small.form-text = t("drafity.dashboard.title_suggest.genre_after_ai")
         .form-group
-          label 中分類（任意）
+          label = t("drafity.dashboard.title_suggest.sub_optional")
           select#sub-genre-select-modal disabled=true data-master-data=(@dashboard_sub_categories_json || '{}')
-            option value="" ジャンルを先に選択してください
-          small.form-text 選択すると、その中分類の切り口に寄せたタイトルを提案します。
+            option value="" = t("drafity.dashboard.columns.sub_select_genre_first")
+          small.form-text = t("drafity.dashboard.title_suggest.sub_hint")
         .form-group
-          label 自由入力（任意）
-          textarea#custom-prompt rows="4" placeholder="例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。"
+          label = t("drafity.dashboard.title_suggest.custom")
+          textarea#custom-prompt rows="4" placeholder=t("drafity.dashboard.title_suggest.ph_custom")
         .form-group
           - suggestion_config = @title_suggestion_config || { default: 1, max: 5, bar_max: 5, remaining: nil }
           - scale_ticks = suggestion_config[:bar_max] <= 10 ? (1..suggestion_config[:bar_max]).to_a : ([1] + (5..suggestion_config[:bar_max]).step(5).to_a).uniq
-          label 提案数
+          label = t("drafity.dashboard.title_suggest.count")
           - if suggestion_config[:remaining]
             small.form-text style="display: block; margin-bottom: 8px;"
-              | 今月の残り回数: #{suggestion_config[:remaining]} / #{suggestion_config[:monthly_limit]}
+              = t("drafity.dashboard.title_suggest.remaining", remaining: suggestion_config[:remaining], limit: suggestion_config[:monthly_limit])
           .suggestion-count-control class=("is-plan-capped" if suggestion_config[:max] < suggestion_config[:bar_max]) style="--plan-max: #{suggestion_config[:max]}; --bar-max: #{suggestion_config[:bar_max]};"
             input type="range" id="suggestion-count" min="1" max=suggestion_config[:bar_max] value=suggestion_config[:default] data-plan-max=suggestion_config[:max] data-bar-max=suggestion_config[:bar_max]
             .suggestion-count-scale
@@ -61,24 +61,23 @@
                 span class=("is-available" if n <= suggestion_config[:max]) = n
             .suggestion-count-display
               span#suggestion-count-value = suggestion_config[:default]
-              span.suggestion-count-unit 件
+              span.suggestion-count-unit = t("drafity.dashboard.common.unit_count")
           small.form-text
-            | 1〜#{suggestion_config[:bar_max]}件から選択（お使いのプラン: 最大#{suggestion_config[:max]}件）
+            = t("drafity.dashboard.title_suggest.count_hint", bar_max: suggestion_config[:bar_max], max: suggestion_config[:max])
         button.btn.btn-primary onclick="generateTitles()" style="width: 100%; margin-top: 16px; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"
           svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
-          span style="letter-spacing: 0.3px;" タイトルを生成
+          span style="letter-spacing: 0.3px;" = t("drafity.dashboard.title_suggest.generate")
       #title-suggestion-loading style="display: none; text-align: center; padding: 40px;"
         .spinner
           svg.spinner-icon viewBox="0 0 50 50"
             circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
-        p AIがタイトルを生成中...
+        p = t("drafity.dashboard.title_suggest.generating")
       #title-suggestion-results style="display: none;"
-        h4 タイトル候補
+        h4 = t("drafity.dashboard.title_suggest.candidates")
         #titles-list style="max-height: 400px; overflow-y: auto; margin-top: 16px;"
         button.btn.btn-primary onclick="createSelectedColumns()" style="width: 100%; margin-top: 16px; height: 38px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"
-          span 選択したタイトルを登録
+          span = t("drafity.dashboard.title_suggest.register_selected")
         button.btn.btn-secondary onclick="backToForm()" style="width: 100%; margin-top: 8px; height: 38px; display: inline-flex; align-items: center; justify-content: center; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #475569; font-weight: 500; cursor: pointer; transition: background-color 0.2s, border-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.backgroundColor='#fff'; this.style.borderColor='#e2e8f0';"
-          span 入力画面に戻る
+          span = t("drafity.dashboard.title_suggest.back")
     .modal-footer
-

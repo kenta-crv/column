@@ -1,27 +1,27 @@
 .api-settings-page.subscription-page.subscription-page--cancel
   .api-settings-header
-    h1.api-settings-title サブスクリプション解約
-    p.api-settings-subtitle 解約手続きの確認
+    h1.api-settings-title = t("drafity.dashboard.subscription.cancel_title")
+    p.api-settings-subtitle = t("drafity.dashboard.subscription.cancel_subtitle")
 
   .api-settings-card
     .api-settings-card__body.subscription-cancel-card
-      h2.subscription-cancel-title 本当にサブスクリプションを解約しますか？
+      h2.subscription-cancel-title = t("drafity.dashboard.subscription.cancel_confirm_q")
 
       p.subscription-cancel-text
-        | 解約手続きを完了すると、自動更新が停止されます。
+        = t("drafity.dashboard.subscription.cancel_body")
         br
         strong.subscription-cancel-date
-          | 最終利用可能日： #{@available_until.strftime("%Y年%m月%d日")}
+          = t("drafity.dashboard.subscription.cancel_until", date: l(@available_until.to_date))
         br
-        span.subscription-cancel-note この日付まで、すべての有料機能を引き続きご利用いただけます。
+        span.subscription-cancel-note = t("drafity.dashboard.subscription.cancel_note")
 
       .subscription-cancel-plan
-        span.subscription-info-label 現在のプラン
+        span.subscription-info-label = t("drafity.dashboard.subscription.current")
         span.plan-badge class="plan-#{@target_client.subscription_plan || @subscription&.plan_type || 'trial'}"
           = Subscription.display_name_for(@target_client.subscription_plan || @subscription&.plan_type || "trial")
 
       .subscription-actions.subscription-actions--center
-        = link_to "設定へ戻る", dashboard_setting_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--primary"
+        = link_to t("drafity.dashboard.subscription.back_settings"), dashboard_setting_path(client_id: params[:client_id]), class: "subscription-btn subscription-btn--primary"
 
         = form_with url: cancel_dashboard_subscription_path(client_id: params[:client_id]), method: :post, local: true, data: { turbo: false }, html: { class: "subscription-cancel-form" } do |f|
-          = f.submit "解約を確定する", class: "subscription-btn subscription-btn--danger"
+          = f.submit t("drafity.dashboard.subscription.confirm_cancel"), class: "subscription-btn subscription-btn--danger"

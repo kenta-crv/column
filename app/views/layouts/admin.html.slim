@@ -1,5 +1,5 @@
 doctype html
-html
+html lang=current_locale
   head
     - page_title = admin_page_title
     title = [page_title, "Drafity Admin"].compact.join(" | ")
@@ -14,26 +14,26 @@ html
       - usage_used = nil
       - usage_limit = nil
       - usage_current_label = "∞"
-      - usage_total_label = "/ 無制限"
+      - usage_total_label = t("drafity.dashboard.layout.usage_unlimited")
       - usage_progress_width = "100%"
     - elsif client_signed_in?
       - usage_summary = current_client.usage_summary
       - usage_used = usage_summary[:pillar][:used].to_i + usage_summary[:child][:used].to_i
       - usage_limit = usage_summary[:pillar][:limit].to_i + usage_summary[:child][:limit].to_i
       - usage_current_label = usage_used.to_s
-      - usage_total_label = "/ #{usage_limit} 記事"
+      - usage_total_label = t("drafity.dashboard.layout.usage_articles", count: usage_limit)
       - usage_ratio = usage_limit.positive? ? ((usage_used.to_f / usage_limit) * 100).round : 0
       - usage_progress_width = "#{usage_ratio.clamp(0, 100)}%"
     - else
       - usage_used = 0
       - usage_limit = 0
       - usage_current_label = "0"
-      - usage_total_label = "/ 0 記事"
+      - usage_total_label = t("drafity.dashboard.layout.usage_zero")
       - usage_progress_width = "0%"
 
     .admin-sidebar-overlay#sidebarOverlay
     header.admin-mobile-header
-      button.admin-sidebar-toggle#sidebarToggle type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="adminSidebar"
+      button.admin-sidebar-toggle#sidebarToggle type="button" aria-label=t("drafity.dashboard.layout.open_menu") aria-expanded="false" aria-controls="adminSidebar"
         svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           line x1="3" y1="6" x2="21" y2="6"
           line x1="3" y1="12" x2="21" y2="12"
@@ -52,14 +52,14 @@ html
             svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               line x1="12" y1="5" x2="12" y2="19"
               line x1="5" y1="12" x2="19" y2="12"
-            | 親記事の作成開始
+            = t("drafity.dashboard.layout.create_pillar")
 
           nav.sidebar-nav
             /= link_to dashboard_root_path, class: (controller_name == "columns" && action_name == "dashboard_index" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
                 polyline points="9 22 9 12 15 12 15 22"
-              | ダッシュボード
+              = t("drafity.dashboard.layout.nav.dashboard")
 
             /= link_to dashboard_columns_path, class: (controller_name == "columns" && action_name == "index" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -68,19 +68,19 @@ html
                 line x1="16" y1="13" x2="8" y2="13"
                 line x1="16" y1="17" x2="8" y2="17"
                 polyline points="10 9 9 9 8 9"
-              | 生成管理
+              = t("drafity.dashboard.layout.nav.generation")
 
             = link_to draft_columns_path, class: (controller_path == "columns" && action_name == "draft" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                 path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-              | ドラフト一覧
+              = t("drafity.dashboard.layout.nav.drafts")
 
             = link_to dashboard_columns_path(scope: "pending_review"), class: (controller_path == "dashboard/columns" && action_name == "index" && params[:scope] == "pending_review" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 circle cx="12" cy="12" r="10"
                 polyline points="12 6 12 12 16 14"
-              | レビュー待ち
+              = t("drafity.dashboard.layout.nav.pending_review")
               span.sidebar-nav-badge.js-sidebar-badge data-badge="pending_review" hidden="hidden"
 
             = link_to columns_path(article_type: "pillar"), class: (controller_path == "columns" && action_name == "index" && params[:article_type] == "pillar" ? "active" : nil) do
@@ -91,44 +91,44 @@ html
                 path d="M22 12h-3"
                 path d="M16.5 7.5L19 5"
                 path d="M7.5 7.5L5 5"
-              | クラスタータイトル生成
+              = t("drafity.dashboard.layout.nav.cluster_titles")
 
             /= link_to columns_path(article_type: "pillar") do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-              | クラスター記事一括生成
+              = t("drafity.dashboard.layout.nav.cluster_bulk")
 
             = link_to columns_path, class: (controller_path == "columns" && action_name == "index" && params[:article_type].blank? ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
                 polyline points="22 4 12 14.01 9 11.01"
-              | 公開済記事
+              = t("drafity.dashboard.layout.nav.published")
 
             = link_to image_generation_dashboard_columns_path, class: (controller_path == "dashboard/columns" && action_name == "image_generation" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 rect x="3" y="3" width="18" height="18" rx="2" ry="2"
                 circle cx="8.5" cy="8.5" r="1.5"
                 polyline points="21 15 16 10 5 21"
-              | 画像一括生成
+              = t("drafity.dashboard.layout.nav.image_generation")
               span.sidebar-nav-badge.js-sidebar-badge data-badge="missing_image" hidden="hidden"
 
             = link_to dashboard_service_genres_path, class: (controller_name == "service_genres" ? "active" : nil) do
               svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-              | サービス・ジャンル管理
+              = t("drafity.dashboard.layout.nav.service_genres")
 
             - if admin_signed_in? || (client_signed_in? && current_client.ai_autonomous_enabled?)
               = link_to dashboard_autonomous_runs_path, class: (controller_name == "autonomous_runs" ? "active" : nil) do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                | AI主導生成
+                = t("drafity.dashboard.layout.nav.autonomous")
 
             - if admin_signed_in?
               = link_to dashboard_management_path, class: (controller_path == "dashboard/columns" && action_name == "management" ? "active" : nil) do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   circle cx="12" cy="12" r="3"
                   path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                | クライアント管理
+                = t("drafity.dashboard.layout.nav.management")
             - elsif client_signed_in?
               - settings_active = (controller_path == "dashboard/clients" && action_name == "my_api_settings") || (controller_path == "dashboard/columns" && action_name == "setting") || (controller_path == "dashboard/api_guide") || controller_name.in?(%w[plans subscriptions])
               .sidebar-nav-group class=(settings_active ? "is-active" : nil)
@@ -137,7 +137,7 @@ html
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
                       path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                    | 設定
+                    = t("drafity.dashboard.layout.nav.settings")
                   svg.sidebar-nav-group-caret xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     polyline points="6 9 12 15 18 9"
                 .sidebar-submenu
@@ -145,32 +145,32 @@ html
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       rect x="1" y="4" width="22" height="16" rx="2" ry="2"
                       line x1="1" y1="10" x2="23" y2="10"
-                    | プラン・料金
+                    = t("drafity.dashboard.layout.nav.plans")
 
                   = link_to dashboard_api_settings_path, class: (controller_path == "dashboard/clients" && action_name == "my_api_settings" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
                       path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                    | API設定
+                    = t("drafity.dashboard.layout.nav.api_settings")
 
                   = link_to dashboard_api_guide_path, class: (controller_path == "dashboard/api_guide" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
                       path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                    | API連携ガイド
+                    = t("drafity.dashboard.layout.nav.api_guide")
 
                   = link_to dashboard_setting_path, class: (controller_path == "dashboard/columns" && action_name == "setting" ? "active" : nil) do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       circle cx="12" cy="12" r="3"
                       path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                    | アカウント設定
+                    = t("drafity.dashboard.layout.nav.account")
 
                   = link_to "#", onclick: "event.preventDefault(); openProblemReportModal();" do
                     svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
                       line x1="12" y1="9" x2="12" y2="13"
                       line x1="12" y1="17" x2="12.01" y2="17"
-                    | 問題報告
+                    = t("drafity.dashboard.layout.nav.problem_report")
 
             - if admin_signed_in?
               = link_to destroy_admin_session_path, method: :delete, class: "logout-link" do
@@ -178,18 +178,20 @@ html
                   path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
                   polyline points="16 17 21 12 16 7"
                   line x1="21" y1="12" x2="9" y2="12"
-                | ログアウト (管理者)
+                = t("drafity.dashboard.layout.logout_admin")
             - elsif client_signed_in?
               = link_to destroy_client_session_path, method: :delete, class: "logout-link" do
                 svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
                   polyline points="16 17 21 12 16 7"
                   line x1="21" y1="12" x2="9" y2="12"
-                | ログアウト
+                = t("drafity.dashboard.layout.logout")
 
         .sidebar-bottom
+          .sidebar-lang-switch
+            = render "shared/lang_switch"
           .usage-container
-            .usage-header 今月の使用状況
+            .usage-header = t("drafity.dashboard.layout.usage_header")
             .usage-stats
               span.usage-current = usage_current_label
               span.usage-total = usage_total_label

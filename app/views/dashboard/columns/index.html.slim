@@ -9,18 +9,18 @@
         = hidden_field_tag :genre, params[:genre]
       - if params[:language].present?
         = hidden_field_tag :language, params[:language]
-      = select_tag :export_format, options_for_select([["テキストのみ抽出", "text"], ["HTML構造を維持", "html"]]), class: "filter-select dashboard-toolbar__export-select"
+      = select_tag :export_format, options_for_select([[t("drafity.dashboard.columns.export_text"), "text"], [t("drafity.dashboard.columns.export_html"), "html"]]), class: "filter-select dashboard-toolbar__export-select"
       = button_tag type: "submit", class: "btn btn-export dashboard-toolbar__export-btn" do
         svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
           polyline points="17 8 12 3 7 8"
           line x1="12" y1="3" x2="12" y2="15"
-        span エクスポート
+        span = t("drafity.dashboard.columns.export")
 
     button.btn.btn-title-suggest type="button" onclick="openTitleSuggestionModal()"
       svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
-      span AIタイトル提案
+      span = t("drafity.dashboard.columns.suggest_titles")
 
     = form_with url: columns_path, method: :get, local: true, html: { target: "_blank", class: "search-box-form dashboard-toolbar__search-form" } do |f|
       .search-box-wrapper
@@ -28,7 +28,7 @@
           svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"
             circle cx="11" cy="11" r="8"
             line x1="21" y1="21" x2="16.65" y2="16.65"
-        input type="text" name="q" placeholder="記事タイトル・キーワードで検索" class="search-input" value=params[:q]
+        input type="text" name="q" placeholder=t("drafity.dashboard.columns.search_placeholder") class="search-input" value=params[:q]
         span.search-shortcut ⌘ K
 
   .dashboard-toolbar__actions
@@ -37,7 +37,7 @@
         svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           circle cx="12" cy="12" r="3"
           path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z
-        span API設定
+        span = t("drafity.dashboard.layout.nav.api_settings")
 
     button.btn-icon-badge
       svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -53,7 +53,7 @@
           path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
       .language-menu#languageMenu style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); z-index: 50; min-width: 140px; padding: 4px 0;"
         a href="?lang=ja" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
-          | 日本語
+          = t("drafity.dashboard.columns.language_ja")
         a href="?lang=ko" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
           | 한국어
         a href="?lang=en" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
@@ -70,13 +70,13 @@
           .kpi-icon.icon-blue
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               polygon points="12 2 2 7 12 12 22 7 12 2"
-          span.label 総生成数
+          span.label = t("drafity.dashboard.columns.kpi.total")
       .kpi-body
         .trend.up
           span ↑ 23.5%
         .value-row
           .value = @total_count
-          .comparison （前月比）
+          .comparison = t("drafity.dashboard.columns.kpi.mom")
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
             path d="M0,20 Q15,14 30,18 T60,8 T90,4 T100,2" fill="none" stroke="#3b82f6" stroke-width="2"
@@ -93,13 +93,13 @@
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
               polyline points="22 4 12 14.01 9 11.01"
-          span.label 公開済
+          span.label = t("drafity.dashboard.columns.kpi.published")
       .kpi-body
         .trend.up
           span ↑ 18.7%
         .value-row
           .value = @kpi_published_count
-          .comparison （前月比）
+          .comparison = t("drafity.dashboard.columns.kpi.mom")
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
             path d="M0,22 Q20,16 40,20 T70,10 T100,4" fill="none" stroke="#10b981" stroke-width="2"
@@ -116,13 +116,13 @@
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
               polyline points="14 2 14 8 20 8"
-          span.label 下書き
+          span.label = t("drafity.dashboard.columns.kpi.draft")
       .kpi-body
         .trend.down
           span ↓ 5.2%
         .value-row
           .value = @kpi_draft_count
-          .comparison （前月比）
+          .comparison = t("drafity.dashboard.columns.kpi.mom")
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
             path d="M0,4 Q25,10 50,6 T75,18 T100,14" fill="none" stroke="#f59e0b" stroke-width="2"
@@ -139,13 +139,13 @@
             svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               circle cx="12" cy="12" r="10"
               polyline points="12 6 12 12 16 14"
-          span.label レビュー待ち
+          span.label = t("drafity.dashboard.columns.kpi.pending")
       .kpi-body
         .trend.up
           span ↑ 12.1%
         .value-row
           .value = @kpi_pending_review_count
-          .comparison （生成済み・未公開）
+          .comparison = t("drafity.dashboard.columns.kpi.pending_hint")
         .kpi-chart
           svg viewBox="0 0 100 24" class="mini-graph"
             path d="M0,18 Q20,20 40,12 T80,14 T100,4" fill="none" stroke="#8b5cf6" stroke-width="2"
@@ -160,10 +160,10 @@
     - quality_percent = quality_score.present? ? ((quality_score <= 5.0 ? (quality_score * 20.0) : quality_score).round(1).clamp(0.0, 100.0)) : nil
     .success-left
       .success-title
-        span 平均AIスコア
+        span = t("drafity.dashboard.columns.kpi.avg_score")
         svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           polyline points="9 18 15 12 9 6"
-      .success-meta 高品質で生成
+      .success-meta = t("drafity.dashboard.columns.kpi.quality")
     .success-right
       .progress-circle-box
         svg viewBox="0 0 36 36" class="circular-chart"
@@ -175,7 +175,7 @@
 - summary_genres = ((@genre_pillar_counts&.keys || []) + (@genre_child_counts&.keys || [])).uniq.compact
 - if summary_genres.present?
   .genre-summary-section
-    .genre-summary-title 【ジャンル別記事総数】
+    .genre-summary-title = t("drafity.dashboard.columns.genre_summary")
     .genre-summary-grid
       - summary_genres.each do |genre|
         .genre-summary-item
@@ -191,22 +191,22 @@
 .filter-control-bar
   .tabs-group
     = link_to dashboard_columns_path, class: "tab-btn #{'active' if params[:scope].blank?}" do
-      span.tab-label すべて
+      span.tab-label = t("drafity.dashboard.labels.all")
       span.count-badge = @tab_count_all
     = link_to dashboard_columns_path(scope: "draft"), class: "tab-btn #{'active' if params[:scope] == 'draft'}" do
-      span.tab-label 下書き
+      span.tab-label = t("drafity.dashboard.labels.draft")
       span.count-badge = @tab_count_draft
     = link_to dashboard_columns_path(scope: "pillar"), class: "tab-btn #{'active' if params[:scope] == 'pillar'}" do
-      span.tab-label 親記事
+      span.tab-label = t("drafity.dashboard.labels.pillar")
       span.count-badge = @tab_count_pillar
     = link_to dashboard_columns_path(scope: "cluster"), class: "tab-btn #{'active' if params[:scope] == 'cluster'}" do
-      span.tab-label 子記事
+      span.tab-label = t("drafity.dashboard.labels.child")
       span.count-badge = @tab_count_cluster
     = link_to dashboard_columns_path(scope: "published"), class: "tab-btn #{'active' if params[:scope] == 'published'}" do
-      span.tab-label 公開済
+      span.tab-label = t("drafity.dashboard.labels.published")
       span.count-badge = @tab_count_published
     = link_to dashboard_columns_path(scope: "error"), class: "tab-btn #{'active' if params[:scope] == 'error'}" do
-      span.tab-label エラー
+      span.tab-label = t("drafity.dashboard.labels.error")
       span.count-badge = @tab_count_error
 
   = form_with url: dashboard_columns_path, method: :get, local: true, class: "dropdowns-group-form" do |f|
@@ -218,18 +218,18 @@
       .filter-select-wrap
         = f.select :genre,
           @dashboard_genre_options,
-          { include_blank: "すべてのカテゴリ", selected: params[:genre] },
+          { include_blank: t("drafity.dashboard.columns.all_categories"), selected: params[:genre] },
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
 
 / リアルタイム生成状況パネル
 .realtime-generation-panel
-  h3 🔄 リアルタイム生成状況
+  h3 = t("drafity.dashboard.columns.realtime_title")
   .generation-stats
     .stat-item
-      .stat-label 生成中
+      .stat-label = t("drafity.dashboard.columns.realtime_generating")
       .stat-value id="generating-count" = @queued_count + @generating_count
     .stat-item
-      .stat-label 今回の完了
+      .stat-label = t("drafity.dashboard.columns.realtime_completed")
       .stat-value id="completed-count" 0
   .generation-list id="generation-list"
     - if @generating_columns.present?
@@ -240,33 +240,33 @@
               circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4"
           .generation-info
             .generation-title = c.title
-            .generation-status 生成中
+            .generation-status = t("drafity.dashboard.columns.realtime_generating")
           = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbolinks: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
-            = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: "この記事の生成を停止しますか？" }, title: "生成停止" do
-              span 停止
+            = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: t("drafity.dashboard.columns.confirm_stop") }, title: t("drafity.dashboard.columns.stop_title") do
+              span = t("drafity.dashboard.columns.stop")
     - else
       .no-generation
-        | 現在生成中の記事はありません
+        = t("drafity.dashboard.columns.no_generating")
 
 / 5. リッチなデータテーブル一覧
 .table-wrap
   = form_with url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbo: false } do |bulk_f|
     .bulk-action-bar
-      = bulk_f.button "選択項目を承認・本文生成", name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" }
-      = bulk_f.button "選択項目を公開", name: "action_type", value: "publish_bulk", class: "btn btn-success", type: "submit", data: { confirm: "選択された記事をレビュー済みとして公開しますか？" }
-      = bulk_f.button "本文を削除", name: "action_type", value: "reset_content_bulk", class: "btn btn-secondary", type: "submit", data: { confirm: "選択された記事の本文・説明文を削除し、下書きに戻しますか？この操作は取り消せません。" }
-      = bulk_f.button "選択項目を削除", name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: "本当に削除しますか？" }
+      = bulk_f.button t("drafity.dashboard.columns.bulk_approve"), name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_approve") }
+      = bulk_f.button t("drafity.dashboard.columns.bulk_publish"), name: "action_type", value: "publish_bulk", class: "btn btn-success", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_publish") }
+      = bulk_f.button t("drafity.dashboard.columns.bulk_reset"), name: "action_type", value: "reset_content_bulk", class: "btn btn-secondary", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_reset") }
+      = bulk_f.button t("drafity.dashboard.columns.bulk_delete"), name: "action_type", value: "delete_bulk", class: "btn btn-danger", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_delete") }
 
     table.rich-dashboard-table
       thead
         tr
           th width="40"
             input type="checkbox" class="table-checkbox" id="select-all-columns" onclick="toggleAllColumns(this)"
-          th 記事タイトル
-          th ステータス
-          th 生成日時
-          th AIスコア
-          th 操作
+          th = t("drafity.dashboard.csv.headers.title")
+          th = t("drafity.dashboard.labels.status")
+          th = t("drafity.dashboard.labels.created_at")
+          th = t("drafity.dashboard.labels.ai_score")
+          th = t("drafity.dashboard.labels.actions")
       tbody
         - if @columns.present?
           - @columns.each do |c|
@@ -285,66 +285,66 @@
                       = link_to column_path(link_target), class: "article-link" do
                         span.article-title = c.title
                     - else
-                      = link_to "javascript:void(0)", class: "article-link", onclick: "alert('本文がまだありません。先に本文生成を行ってください。'); return false;" do
+                      = link_to "javascript:void(0)", class: "article-link", onclick: "alert(I18nDash.noBodyAlert); return false;" do
                         span.article-title = c.title
                     .article-tags
-                      span.tag-item = c.article_type == "pillar" ? "親記事" : "子記事"
+                      span.tag-item = c.article_type == "pillar" ? t("drafity.dashboard.labels.pillar") : t("drafity.dashboard.labels.child")
                       - if c.pillar?
-                        span.tag-item 子記事 #{@child_counts[c.id] || 0}件
+                        span.tag-item = t("drafity.dashboard.columns.child_count", count: @child_counts[c.id] || 0)
                       - elsif c.parent_id.present?
-                        span.tag-item 親ID: #{c.parent_id}
+                        span.tag-item = t("drafity.dashboard.columns.parent_id", id: c.parent_id)
                       - if c.genre.present?
                         span.tag-item = c.genre
               td
                 - if c.published?
-                  span.status-badge.published 公開済
+                  span.status-badge.published = t("drafity.dashboard.labels.published")
                 - elsif c.generated_body?
-                  span.status-badge.review_pending レビュー待ち
+                  span.status-badge.review_pending = t("drafity.dashboard.labels.pending_review")
                 - else
-                  span.status-badge.draft 下書き
+                  span.status-badge.draft = t("drafity.dashboard.labels.draft")
               td.date-text = c.created_at.strftime("%Y/%m/%d %H:%M")
               td
                 = quality_score_cell(c)
               td.actions-cell
                 .actions-cell-inner
                   - unless c.generated_body?
-                    = link_to approve_column_path(c), method: :patch, data: { turbolinks: false, confirm: "この記事の本文生成を開始しますか？（生成スタイル: #{generation_mode_label(c.generation_mode)}）" }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: "承認して本文生成" do
+                    = link_to approve_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_approve", mode: generation_mode_label(c.generation_mode)) }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: t("drafity.dashboard.columns.generate_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                         polygon points="5 3 19 12 5 21 5 3"
-                      | 生成
+                      = t("drafity.dashboard.columns.generate")
                   - if c.generated_body? && !c.published?
-                    = link_to publish_column_path(c), method: :patch, data: { turbolinks: false, confirm: "この記事をレビュー済みとして公開しますか？" }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #10b981; border: 1px solid #0ea672; color: #fff;", title: "公開する" do
+                    = link_to publish_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_publish") }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #10b981; border: 1px solid #0ea672; color: #fff;", title: t("drafity.dashboard.columns.publish_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                         path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
                         polyline points="22 4 12 14.01 9 11.01"
-                      | 公開
+                      = t("drafity.dashboard.columns.publish")
                   - elsif c.published?
-                    = link_to unpublish_column_path(c), method: :patch, data: { turbolinks: false, confirm: "この記事を下書き（レビュー待ち）に戻しますか？公開サイトから非表示になります。" }, class: "btn-row-action", title: "公開を取り下げる" do
+                    = link_to unpublish_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_unpublish") }, class: "btn-row-action", title: t("drafity.dashboard.columns.unpublish_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         path d="M17 2.1l4 4-4 4"
                         path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8"
                         path d="M7 21.9l-4-4 4-4"
                         path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"
-                  = link_to edit_column_path(c), class: "btn-row-action", title: "編集" do
+                  = link_to edit_column_path(c), class: "btn-row-action", title: t("drafity.dashboard.common.edit") do
                     svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                       path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"
-                  = link_to column_path(c), method: :delete, data: { confirm: "削除しますか？" }, class: "btn-row-menu", title: "物理削除" do
+                  = link_to column_path(c), method: :delete, data: { confirm: t("drafity.dashboard.common.confirm_delete") }, class: "btn-row-menu", title: t("drafity.dashboard.columns.delete_title") do
                     svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       polyline points="3 6 5 6 21 6"
                       path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
         - else
           tr
             td colspan="6" style="padding: 32px; text-align: center; color: #64748b;"
-              | 該当する記事がありません
+              = t("drafity.dashboard.columns.empty")
 
 / 6. 下部フッター・ページネーションエリア
 .table-footer-pagination
   .pagination-info
     - if @columns.respond_to?(:current_page)
-      | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
+      = t("drafity.dashboard.common.showing_range", from: @columns.offset_value + 1, to: @columns.offset_value + @columns.length, total: @columns.total_count)
     - else
-      | #{@columns.size}件を表示
+      = t("drafity.dashboard.common.showing_count", count: @columns.size)
   .pagination-nav
     - if @columns.respond_to?(:current_page)
       = paginate @columns
@@ -365,7 +365,7 @@
         span.page.last
           a href="#" Last »
   .per-page-selector
-    span 表示件数
+    span = t("drafity.dashboard.common.per_page_label")
     = form_with url: dashboard_columns_path, method: :get, local: true do
       - if params[:scope].present?
         = hidden_field_tag :scope, params[:scope]
@@ -374,9 +374,9 @@
       - if params[:language].present?
         = hidden_field_tag :language, params[:language]
       = select_tag :per,
-        options_for_select([["30件", 30], ["50件", 50], ["100件", 100]], @per_page),
+        options_for_select([[t("drafity.dashboard.common.per_page_option", count: 30), 30], [t("drafity.dashboard.common.per_page_option", count: 50), 50], [t("drafity.dashboard.common.per_page_option", count: 100), 100]], @per_page),
         onchange: "this.form.submit();",
-        "aria-label": "表示件数"
+        "aria-label": t("drafity.dashboard.common.per_page_label")
 
 = link_to new_column_path, class: "floating-sparkle-btn" do
   svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -385,7 +385,40 @@
 
 = render "title_suggestion_modal"
 
+- js_i18n = {
+    realtimeGenerating: t("drafity.dashboard.columns.realtime_generating"),
+    stop: t("drafity.dashboard.columns.stop"),
+    noGenerating: t("drafity.dashboard.columns.no_generating"),
+    scorePending: t("drafity.dashboard.columns.score_pending"),
+    scoreStructure: t("drafity.dashboard.columns.score_structure"),
+    scoreSeo: t("drafity.dashboard.columns.score_seo"),
+    scoreReadability: t("drafity.dashboard.columns.score_readability"),
+    scoreUsefulness: t("drafity.dashboard.columns.score_usefulness"),
+    scoreOriginality: t("drafity.dashboard.columns.score_originality"),
+    scoreOverall: t("drafity.dashboard.columns.score_overall", score: "%{score}"),
+    confirmStop: t("drafity.dashboard.columns.confirm_stop"),
+    stopFailed: t("drafity.dashboard.columns.stop_request_failed"),
+    subOptional: t("drafity.dashboard.columns.sub_optional"),
+    subSelectGenreFirst: t("drafity.dashboard.columns.sub_select_genre_first"),
+    subNone: t("drafity.dashboard.columns.sub_none"),
+    genreNeedInput: t("drafity.dashboard.columns.genre_need_input"),
+    genreRegistering: t("drafity.dashboard.columns.genre_registering"),
+    genreRegisterFailed: t("drafity.dashboard.columns.genre_register_failed"),
+    genreRegistered: t("drafity.dashboard.columns.genre_registered"),
+    networkError: t("drafity.dashboard.columns.network_error"),
+    keywordsGenreRequired: t("drafity.dashboard.columns.keywords_genre_required"),
+    parseError: t("drafity.dashboard.columns.parse_error"),
+    genericError: t("drafity.dashboard.columns.generic_error"),
+    selectTitles: t("drafity.dashboard.columns.select_titles"),
+    confirmRegisterTitles: t("drafity.dashboard.columns.confirm_register_titles", count: "%{count}"),
+    createdArticles: t("drafity.dashboard.columns.created_articles", count: "%{count}"),
+    errorPrefix: t("drafity.dashboard.columns.error_prefix", message: "%{message}"),
+    noBodyAlert: t("drafity.dashboard.columns.no_body_alert")
+  }.to_json.html_safe
 javascript:
+  const I18nDash = #{js_i18n};
+  const i18nFmt = (template, vars) => String(template).replace(/%\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
+
   let sessionCompletedCount = 0;
   let generationPollTimer = null;
 
@@ -405,10 +438,10 @@ javascript:
         </div>
         <div class="generation-info">
           <div class="generation-title">${escapeHtml(column.title)}</div>
-          <div class="generation-status">生成中</div>
+          <div class="generation-status">${I18nDash.realtimeGenerating}</div>
         </div>
         <button type="button" class="generation-stop-btn" style="margin-left:auto;background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;" onclick="stopGeneration(${column.id})">
-          <span>停止</span>
+          <span>${I18nDash.stop}</span>
         </button>
       </div>`;
   }
@@ -424,7 +457,7 @@ javascript:
     if (completedCount) completedCount.textContent = sessionCompletedCount;
 
     if (!data.columns || data.columns.length === 0) {
-      generationList.innerHTML = '<div class="no-generation">現在生成中の記事はありません</div>';
+      generationList.innerHTML = '<div class="no-generation">' + I18nDash.noGenerating + '</div>';
       return;
     }
 
@@ -544,7 +577,7 @@ javascript:
   function buildQualityScoreCellHtml(score, metrics) {
     const value = parseFloat(score);
     if (!value || value <= 0) {
-      return '<div class="quality-score-pending">評価待ち</div>';
+      return '<div class="quality-score-pending">' + I18nDash.scorePending + '</div>';
     }
 
     const levelClass = value >= 80 ? 'score-high' : (value >= 60 ? 'score-mid' : 'score-low');
@@ -570,13 +603,13 @@ javascript:
     const data = metrics || {};
     const axes = data.axes || {};
     const axisLabels = {
-      structure: '構成',
-      seo: 'SEO',
-      readability: '読みやすさ',
-      usefulness: '有用性',
-      originality: '独自性'
+      structure: I18nDash.scoreStructure,
+      seo: I18nDash.scoreSeo,
+      readability: I18nDash.scoreReadability,
+      usefulness: I18nDash.scoreUsefulness,
+      originality: I18nDash.scoreOriginality
     };
-    const lines = [{ kind: 'overall', text: `総合: ${score.toFixed(1)}点` }];
+    const lines = [{ kind: 'overall', text: i18nFmt(I18nDash.scoreOverall, { score: score.toFixed(1) }) }];
 
     Object.keys(axisLabels).forEach(key => {
       const axis = axes[key];
@@ -601,7 +634,7 @@ javascript:
   }
 
   function stopGeneration(columnId) {
-    if (!confirm('この記事の生成を停止しますか？')) return;
+    if (!confirm(I18nDash.confirmStop)) return;
 
     fetch(`/dashboard/columns/${columnId}/stop_generation`, {
       method: 'PATCH',
@@ -610,7 +643,7 @@ javascript:
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       }
     }).catch(() => {
-      alert('停止リクエストに失敗しました');
+      alert(I18nDash.stopFailed);
     });
   }
 
@@ -670,7 +703,7 @@ javascript:
     if (selectedGenre && subCategories[selectedGenre] && subCategories[selectedGenre].length > 0) {
       const defaultOption = document.createElement('option');
       defaultOption.value = '';
-      defaultOption.textContent = '選択しない（任意）';
+      defaultOption.textContent = I18nDash.subOptional;
       subSelect.appendChild(defaultOption);
 
       subCategories[selectedGenre].forEach((sub) => {
@@ -683,13 +716,13 @@ javascript:
     } else if (!selectedGenre) {
       const emptyOption = document.createElement('option');
       emptyOption.value = '';
-      emptyOption.textContent = 'ジャンルを先に選択してください';
+      emptyOption.textContent = I18nDash.subSelectGenreFirst;
       subSelect.appendChild(emptyOption);
       subSelect.disabled = true;
     } else {
       const emptyOption = document.createElement('option');
       emptyOption.value = '';
-      emptyOption.textContent = '中分類はありません';
+      emptyOption.textContent = I18nDash.subNone;
       subSelect.appendChild(emptyOption);
       subSelect.disabled = true;
     }
@@ -720,7 +753,7 @@ javascript:
       if (!serviceName && !strongPoints) {
         if (status) {
           status.hidden = false;
-          status.textContent = 'サービス名または訴求ポイントを入力してください。';
+          status.textContent = I18nDash.genreNeedInput;
           status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
         }
         return;
@@ -729,7 +762,7 @@ javascript:
       btn.disabled = true;
       if (status) {
         status.hidden = false;
-        status.textContent = 'AIがジャンルを登録しています…';
+        status.textContent = I18nDash.genreRegistering;
         status.className = 'genre-quick-setup-status genre-quick-setup-status--loading';
       }
 
@@ -751,7 +784,7 @@ javascript:
         const result = await response.json();
         if (!response.ok || !result.success) {
           if (status) {
-            status.textContent = result.error || 'ジャンルの登録に失敗しました。';
+            status.textContent = result.error || I18nDash.genreRegisterFailed;
             status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
           }
           return;
@@ -775,12 +808,12 @@ javascript:
         if (panel) panel.style.display = 'none';
 
         if (status) {
-          status.textContent = 'ジャンルを登録しました。このままタイトル生成に進めます。';
+          status.textContent = I18nDash.genreRegistered;
           status.className = 'genre-quick-setup-status genre-quick-setup-status--success';
         }
       } catch (error) {
         if (status) {
-          status.textContent = '通信エラーが発生しました。';
+          status.textContent = I18nDash.networkError;
           status.className = 'genre-quick-setup-status genre-quick-setup-status--error';
         }
       } finally {
@@ -812,7 +845,7 @@ javascript:
     const suggestionCount = clampSuggestionCount(document.getElementById('suggestion-count').value);
 
     if (!keyword1 || !keyword2 || !genre) {
-      alert('キーワードとジャンルを入力してください');
+      alert(I18nDash.keywordsGenreRequired);
       return;
     }
 
@@ -846,7 +879,7 @@ javascript:
       document.getElementById('title-suggestion-results').style.display  = 'block';
 
       if (!data) {
-        document.getElementById('titles-list').innerHTML = '<p style="color: red;">サーバーからの応答を読み取れませんでした。ページを再読み込みして再度お試しください。</p>';
+        document.getElementById('titles-list').innerHTML = '<p style="color: red;">' + I18nDash.parseError + '</p>';
         return;
       }
 
@@ -869,14 +902,14 @@ javascript:
     .catch(() => {
       document.getElementById('title-suggestion-loading').style.display = 'none';
       document.getElementById('title-suggestion-results').style.display = 'block';
-      document.getElementById('titles-list').innerHTML = '<p style="color: red;">エラーが発生しました</p>';
+      document.getElementById('titles-list').innerHTML = '<p style="color: red;">' + I18nDash.genericError + '</p>';
     });
   }
 
   function createSelectedColumns() {
     const checkboxes = document.querySelectorAll('.title-checkbox:checked');
     if (checkboxes.length === 0) {
-      alert('タイトルを選択してください');
+      alert(I18nDash.selectTitles);
       return;
     }
 
@@ -884,7 +917,7 @@ javascript:
     const genre  = document.getElementById('genre-select-modal').value;
     const subGenre = document.getElementById('sub-genre-select-modal')?.value || '';
 
-    if (!confirm(`${titles.length}件のタイトルを登録しますか？`)) return;
+    if (!confirm(i18nFmt(I18nDash.confirmRegisterTitles, { count: titles.length }))) return;
 
     const payload = { titles, genre };
     if (subGenre) payload.sub_genre = subGenre;
@@ -901,13 +934,13 @@ javascript:
     .then(data => {
       if (data.success) {
         closeTitleSuggestionModal();
-        alert(`${data.created_count}件の記事を作成しました`);
+        alert(i18nFmt(I18nDash.createdArticles, { count: data.created_count }));
         location.reload();
       } else {
-        alert('エラー: ' + data.error);
+        alert(i18nFmt(I18nDash.errorPrefix, { message: data.error }));
       }
     })
-    .catch(() => { alert('エラーが発生しました'); });
+    .catch(() => { alert(I18nDash.genericError); });
   }
 
   function backToForm() {

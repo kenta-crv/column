@@ -3,6 +3,11 @@
 class Clients::SessionsController < Devise::SessionsController
   layout "auth"
 
+  def new
+    session[:omniauth_locale] = I18n.locale.to_s if Client::LOCALES.include?(I18n.locale.to_s)
+    super
+  end
+
   def create
     self.resource = warden.authenticate!(auth_options)
     set_flash_message!(:notice, :signed_in)

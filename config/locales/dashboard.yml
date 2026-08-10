@@ -1,0 +1,1199 @@
+---
+ja:
+  drafity:
+    dashboard:
+      layout:
+        open_menu: メニューを開く
+        create_pillar: 親記事の作成開始
+        nav:
+          dashboard: ダッシュボード
+          generation: 生成管理
+          drafts: ドラフト一覧
+          pending_review: レビュー待ち
+          cluster_titles: クラスタータイトル生成
+          cluster_bulk: クラスター記事一括生成
+          published: 公開済記事
+          image_generation: 画像一括生成
+          service_genres: サービス・ジャンル管理
+          autonomous: AI主導生成
+          management: クライアント管理
+          settings: 設定
+          plans: プラン・料金
+          api_settings: API設定
+          api_guide: API連携ガイド
+          account: アカウント設定
+          problem_report: 問題報告
+        logout_admin: ログアウト (管理者)
+        logout: ログアウト
+        usage_header: 今月の使用状況
+        usage_unlimited: "/ 無制限"
+        usage_articles: "/ %{count} 記事"
+        usage_zero: "/ 0 記事"
+      common:
+        edit: 編集
+        delete: 削除
+        cancel: キャンセル
+        save: 設定を保存
+        close: 閉じる
+        copy: コピー
+        copied: コピー完了
+        back_to_list: 一覧に戻る
+        back_to_dashboard: "← Dashboardに戻る"
+        details: 詳細
+        please_select: 選択してください
+        optional: 任意
+        system: システム
+        admin: 管理者
+        client: クライアント
+        count_items: "%{count}件"
+        count_selected: "%{count}件選択中"
+        per_page_label: 表示件数
+        per_page_option: "%{count}件"
+        showing_range: "%{from} - %{to} / %{total}件を表示"
+        showing_count: "%{count}件を表示"
+        confirm_delete: 削除しますか？
+        unit_articles: 本
+        unit_count: 件
+      page_titles:
+        articles: 記事管理
+        image_generation: 画像一括生成
+        management: クライアント管理
+        setting: 設定
+        service_genres: サービス・ジャンル管理
+        service_genres_new: サービス・ジャンル作成
+        service_genres_edit: サービス・ジャンル編集
+        api_settings: API設定
+        api_guide: API連携ガイド
+        autonomous: AI主導生成
+        autonomous_new: AI主導生成を開始
+        autonomous_show: AI主導生成詳細
+        subscription: サブスクリプション管理
+        subscription_cancel: サブスクリプション解約
+        with_suffix: "%{name} - %{title}"
+      generation_modes:
+        default: 通常
+        comparison: 比較
+        recommendation: 自社宣伝
+        note: Note
+        qiita: Qiita
+        zenn: Zenn
+      flashes:
+        admin_required: 管理者権限が必要です。
+        login_please: ログインしてください。
+        genre_access_denied: 指定されたジャンルにはアクセスできません。
+        column_access_denied: 指定された記事にアクセスできません。
+        image_busy: 現在、別の一括画像生成タスクが実行中です。完了までお待ちください。
+        image_select_required: 画像を生成する記事を選択してください。
+        image_invalid_selection: 選択された記事の一部にアクセスできないか、画像生成の対象外です。
+        image_none_found: 対象となる画像未設定の記事が見つかりませんでした。
+        image_started: 画像生成を開始しました（%{count}件）
+        stop_only_generating: 生成中または待機中の記事のみ停止できます
+        generation_stopped: 生成を停止しました
+        api_updated: API設定を更新しました
+        api_update_failed: 更新に失敗しました
+        api_key_regenerated: APIキーを再発行しました。旧APIキーは無効になっています。埋め込みコードやWebhook連携先に反映してください。
+        own_settings_only: 自分の設定のみ変更できます。
+        invalid_plan: 無効なプランです。
+        same_plan: 同じプランです。
+        no_active_subscription: 現在有効なサブスクリプションはありません。
+        subscription_missing: サブスクリプションが存在しません。
+        cancel_done: 解約手続きが完了しました。期間終了日まで継続してご利用いただけます。
+        cancel_failed: 解約処理に失敗しました。
+        stripe_cancel_failed: Stripe側のキャンセル処理に失敗しました。
+        forbidden: 権限がありません。
+        client_required: クライアントを指定してください。
+        genre_created: サービス・ジャンルを作成しました
+        genre_updated: サービス・ジャンルを更新しました
+        genre_deleted: サービス・ジャンルを削除しました
+        genre_key_unavailable: このジャンルキーは利用できません。
+        template_unavailable: このテンプレートは利用できません。
+        genre_access_denied_short: このサービス・ジャンルにはアクセスできません
+        plan_standard_required: スタンダードプランからご利用いただけます
+        autonomous_started: AI主導生成を開始しました。バックグラウンドで処理を開始しました。
+        child_body_started: 子記事の本文生成を開始しました。
+        approve_failed: 承認できませんでした。
+        resumed: 生成を再開しました。
+        resume_unavailable: 再開できない状態です。
+        child_not_found: 子記事が見つかりません。
+        delete_only_awaiting: 承認待ちのときのみ削除できます。
+        child_title_deleted: 子タイトルを削除しました。
+        cycle_deleted: 自律生成サイクルを削除しました。
+        settings_client_only: 設定の変更はクライアントアカウントでログインしてください。
+        settings_saved: 設定を保存しました。
+        autonomous_plan_required: AI主導生成はビジネスプラン以上で利用できます。
+        access_denied: アクセスできません。
+        title_genre_required: タイトルとジャンルを指定してください
+        column_create_failed: '記事を作成できませんでした: %{errors}'
+        sub_key_required: 中分類のキーを入力してください
+        sub_key_invalid: 中分類キー「%{key}」は英小文字・数字・アンダースコアのみ使用できます
+        sub_key_duplicate: 中分類キー「%{key}」が重複しています
+        sub_name_required: 中分類「%{key}」の名称を入力してください
+      csv:
+        headers:
+          id: ID
+          title: 記事タイトル
+          genre: ジャンル
+          article_type: 記事タイプ
+          status: ステータス
+          body: 本文
+          updated_at: 更新日時
+      labels:
+        pillar: 親記事
+        child: 子記事
+        draft: 下書き
+        published: 公開済
+        pending_review: レビュー待ち
+        generating: 生成中
+        completed: 完了
+        not_started: 未開始
+        error: エラー
+        all: すべて
+        trialing: トライアル中
+        genre: ジャンル
+        title: タイトル
+        status: ステータス
+        actions: 操作
+        type: タイプ
+        updated_at: 更新日時
+        created_at: 生成日時
+        ai_score: AIスコア
+        client: クライアント
+        child_articles: 子記事
+        started_at: 開始日時
+        pillar_title: 親タイトル
+        key: キー
+        display_name: 表示名
+        service_name: サービス名
+        sub_count: 中分類数
+        date: 日付
+        amount: 金額
+        description: 説明
+        plan_name: プラン名
+      management:
+        count_unit: "%{count} 件"
+        count_of: " / %{count} 件"
+        api_settings: API設定
+      setting:
+        plan_manage_hint: 現在のプランを変更・管理できます
+      image_generation:
+        title: 画像一括自動生成
+        subtitle: 一覧から画像未設定の記事を選択し、API経由で画像を生成します。
+        list_title: 画像未生成一覧
+        generate_selected: 選択した記事の画像を生成
+        generate_all: 全実行
+        empty: 画像未生成の記事はありません
+        confirm_selected: 選択した %{count} 件の記事に画像を生成します。よろしいですか？
+        confirm_all: 画像未生成の全 %{count} 件に対して画像生成を実行します。よろしいですか？
+        none_to_generate: 画像を生成する記事がありません。
+      columns:
+        suggest_titles: AIタイトル提案
+        export: エクスポート
+        export_text: テキストのみ抽出
+        export_html: HTML構造を維持
+        search_placeholder: 記事タイトル・キーワードで検索
+        language_ja: 日本語
+        kpi:
+          total: 総生成数
+          published: 公開済
+          draft: 下書き
+          pending: レビュー待ち
+          mom: "（前月比）"
+          pending_hint: "（生成済み・未公開）"
+          avg_score: 平均AIスコア
+          quality: 高品質で生成
+        genre_summary: "【ジャンル別記事総数】"
+        all_categories: すべてのカテゴリ
+        realtime_title: "\U0001F504 リアルタイム生成状況"
+        realtime_generating: 生成中
+        realtime_completed: 今回の完了
+        stop: 停止
+        stop_title: 生成停止
+        confirm_stop: この記事の生成を停止しますか？
+        no_generating: 現在生成中の記事はありません
+        bulk_approve: 選択項目を承認・本文生成
+        bulk_publish: 選択項目を公開
+        bulk_reset: 本文を削除
+        bulk_delete: 選択項目を削除
+        confirm_bulk_approve: 選択された記事を承認して本文生成を開始しますか？
+        confirm_bulk_publish: 選択された記事をレビュー済みとして公開しますか？
+        confirm_bulk_reset: 選択された記事の本文・説明文を削除し、下書きに戻しますか？この操作は取り消せません。
+        confirm_bulk_delete: 本当に削除しますか？
+        no_body_alert: 本文がまだありません。先に本文生成を行ってください。
+        child_count: 子記事 %{count}件
+        parent_id: '親ID: %{id}'
+        generate: 生成
+        generate_title: 承認して本文生成
+        confirm_approve: 'この記事の本文生成を開始しますか？（生成スタイル: %{mode}）'
+        publish: 公開
+        publish_title: 公開する
+        confirm_publish: この記事をレビュー済みとして公開しますか？
+        unpublish_title: 公開を取り下げる
+        confirm_unpublish: この記事を下書き（レビュー待ち）に戻しますか？公開サイトから非表示になります。
+        delete_title: 物理削除
+        empty: 該当する記事がありません
+        score_pending: 評価待ち
+        score_structure: 構成
+        score_seo: SEO
+        score_readability: 読みやすさ
+        score_usefulness: 有用性
+        score_originality: 独自性
+        score_overall: '総合: %{score}点'
+        stop_request_failed: 停止リクエストに失敗しました
+        sub_optional: 選択しない（任意）
+        sub_select_genre_first: ジャンルを先に選択してください
+        sub_none: 中分類はありません
+        genre_need_input: サービス名または訴求ポイントを入力してください。
+        genre_registering: AIがジャンルを登録しています…
+        genre_register_failed: ジャンルの登録に失敗しました。
+        genre_registered: ジャンルを登録しました。このままタイトル生成に進めます。
+        network_error: 通信エラーが発生しました。
+        keywords_genre_required: キーワードとジャンルを入力してください
+        parse_error: サーバーからの応答を読み取れませんでした。ページを再読み込みして再度お試しください。
+        generic_error: エラーが発生しました
+        select_titles: タイトルを選択してください
+        confirm_register_titles: "%{count}件のタイトルを登録しますか？"
+        created_articles: "%{count}件の記事を作成しました"
+        error_prefix: 'エラー: %{message}'
+      workflow:
+        title: 記事作成フロー
+        genres: ジャンル・サービス管理
+        titles: AIタイトル提案
+        pillar_body: 親記事本文作成
+        child_titles: 子記事タイトル作成
+        child_body: 子記事本文作成
+        pillar_body_hint: 下の一覧から親記事の本文生成を行います
+        child_titles_hint: 子記事タイトルはAI提案または一覧から登録します
+        child_body_hint: 下の一覧から子記事の本文生成を行います
+      title_suggest:
+        title: AIタイトル提案
+        keyword1: キーワード1 *
+        keyword2: キーワード2 *
+        ph_keyword1: '例: 荷物'
+        ph_keyword2: '例: 配送'
+        no_genre: ジャンルが未登録です。タイトル提案の前に、サービス情報をAIで登録してください。
+        service_name: サービス名 *
+        ph_service: '例: 株式会社リプラス'
+        strong_points: 自社の強み・訴求ポイント *
+        ph_strong: '例: BtoB向けに〇〇を提供。導入実績100社以上。'
+        register_genre: AIでジャンルを登録して続行
+        target: ターゲット層
+        target_big: ビッグキーワード（広範なユーザー層）
+        target_middle: ミドルキーワード（特定のニーズ層）
+        target_small: スモールキーワード（購買意欲の高い層）
+        genre: ジャンル *
+        genre_after_ai: 上の「AIでジャンルを登録」後に選択できます。
+        sub_optional: 中分類（任意）
+        sub_hint: 選択すると、その中分類の切り口に寄せたタイトルを提案します。
+        custom: 自由入力（任意）
+        ph_custom: '例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。'
+        count: 提案数
+        remaining: '今月の残り回数: %{remaining} / %{limit}'
+        count_hint: '1〜%{bar_max}件から選択（お使いのプラン: 最大%{max}件）'
+        generate: タイトルを生成
+        generating: AIがタイトルを生成中...
+        candidates: タイトル候補
+        register_selected: 選択したタイトルを登録
+        back: 入力画面に戻る
+      autonomous:
+        title: AI主導生成
+        subtitle: 自律型コンテンツ生成の履歴と進行状況
+        defaults: デフォルト設定
+        notify_cycle: サイクル完了時にメール通知
+        pause_approval: 子タイトル生成後に承認してから本文生成（許可ON時は承認メールを送信）
+        default_children: デフォルトの子記事数
+        new_cycle: 新しいサイクルを開始
+        empty: まだ自律生成の履歴がありません。
+        confirm_delete_cycle: このサイクルと関連する下書き記事を削除します。よろしいですか？
+        new_title: AI主導生成を開始
+        new_subtitle: 親タイトルを入力するだけで、親記事→子タイトル→子記事を自動生成します
+        basic: 基本設定
+        admin_note: 管理者として直接実行します。プラン制限は適用されません。
+        pillar_title: 親記事タイトル
+        ph_title: 例：オフィス清掃の完全ガイド
+        child_count: 子記事数
+        slider_hint: スライダーで1〜25本の子記事を生成できます。
+        start: 自律生成を開始
+        confirm_start: バックグラウンドで生成を開始します。よろしいですか？
+        status: 'ステータス:'
+        runner: '実行者:'
+        client_label: 'クライアント:'
+        pillar_label: '親記事:'
+        progress: 進行状況
+        progress_pillar: '親記事: %{status}'
+        progress_child_titles: '子タイトル: %{count}件'
+        progress_child_bodies: '子記事本文: %{done} / %{total} 件完了'
+        awaiting_titles: 子タイトル一覧（承認待ち）
+        awaiting_hint: 不要なタイトルは削除してから「本文生成を開始」を押してください。
+        confirm_delete_child: この子タイトルを削除しますか？
+        start_bodies: 本文生成を開始
+        confirm_start_bodies: 残った子タイトルで本文生成を開始しますか？
+        no_child_titles: 子タイトルがありません。
+        next_titles: 次の親記事タイトル案
+        resume: 生成を再開
+        confirm_resume: 生成を再開しますか？
+        statuses:
+          queued: 待機中
+          generating_pillar: 親記事生成中
+          generating_child_titles: 子タイトル生成中
+          awaiting_child_title_approval: 子タイトル承認待ち
+          generating_children: 子記事生成中
+          completed: 完了
+          failed: 失敗
+          paused: 一時停止（上限到達）
+      genres:
+        title: サービス・ジャンル管理
+        subtitle: 記事生成・API連携・記事下部CTA（自社案内）をジャンル単位で管理します
+        new: 新規作成
+        create_first: 最初のジャンルを作成
+        empty: まだサービス・ジャンルが登録されていません。
+        cta_active: CTA表示中
+        cta_needed: CTA要設定
+        cta_off: CTA非表示
+        confirm_delete: "「%{name}」を削除しますか？"
+        new_title: サービス・ジャンル作成
+        new_subtitle: 新しいジャンルとサービス情報を登録します
+        edit_title: サービス・ジャンル編集
+        template_label: 既存テンプレートから読み込む
+        submit_create: 作成する
+        submit_update: 更新する
+        errors_header: 入力内容を確認してください
+        basic: 基本情報
+        ai_suggest: AI提案
+        system_shared: システム共通
+        client_hint: 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
+        key_label: キー（英小文字・URL用）
+        ph_key: '例: my_service'
+        key_hint: 記事の genre 値として使用されます。作成後は変更できません。
+        ja_label: 表示名（日本語）
+        ph_ja: '例: 経営コンサル'
+        ph_service: '例: 株式会社リプラス'
+        strong_points: 強み・訴求ポイント
+        strong_hint: 親記事・子記事生成時に AI へ渡される訴求情報です。
+        integration: 連携設定（任意）
+        integration_hint: 記事生成のみの場合は空欄のままで問題ありません。保存時にアクセス中のドメインが自動で登録されます。
+        hosts: ホスト（ドメイン）
+        ph_hosts: 空欄可（自動登録）
+        keywords: キーワード
+        ph_optional: 空欄可
+        keywords_hint: AIタイトル提案・記事生成の参考に使われます。
+        cta_section: 記事下部のサービス案内（CTA）
+        cta_hint: 公開記事の「関連記事」の直前に表示される自社案内です。Admin / Client どちらも編集できます。
+        cta_show: CTAを表示する
+        theme: テーマ色
+        badge: バッジ
+        heading: 見出し
+        lead: リード文
+        button_label: ボタン文言
+        path: 遷移先パス（同一ドメイン）
+        path_hint: ブランドサイト内のパス。外部URLを使う場合は下の「外部URL」を優先します。
+        external_url: 外部URL（任意）
+        external_hint: 入力がある場合はパスよりこちらが使われます（LINEなど）。
+        ph_badge: '例: Meetia'
+        ph_cta_title: '例: AIが24時間商談代行'
+        ph_cta_button: '例: 無料で体験する'
+        ph_path: '例: / または /okurite'
+        ph_url: '例: https://lin.ee/xxxx'
+        sub_override: 中分類ごとの上書き（任意）
+        sub_override_hint: 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
+        theme_same: "（共通と同じ）"
+        path_short: 遷移先パス
+        url_short: 外部URL
+        subcategories: 中分類
+        sub_hint: 記事作成時の中分類プルダウンと、親記事・子記事の生成内容の参考情報として使われます。
+        sub_plan_max: お使いのプランでは最大%{max}件まで登録できます。
+        sub_ai: AIで中分類を提案
+        suggest_count: 提案数
+        sub_ai_hint: キー・表示名・訴求ポイントから中分類を自動生成します。実行すると既存の中分類は置き換わります。
+        add_sub: "+ 中分類を追加"
+        sub_unavailable: お使いのプランでは中分類は利用できません。大ジャンルの訴求ポイントが記事生成に使われます。中分類が必要な場合はスタンダードプラン以上をご検討ください。
+        js_need_service: サービス名または訴求ポイントを入力してください。
+        js_suggesting: AIがジャンルを提案しています…
+        js_suggest_failed: 提案の生成に失敗しました。
+        js_network: 通信エラーが発生しました。
+        js_new_sub: 新しい中分類
+        js_need_any: キー・表示名・サービス名のいずれかを入力してください。
+        js_need_display: 表示名・サービス名・訴求ポイントのいずれかを入力してください。
+        js_sub_generating: AIが中分類を生成しています…（最大約1分）
+        js_parse_error: サーバーからの応答を読み取れませんでした。
+        js_sub_failed: 中分類の生成に失敗しました。
+        js_sub_done: "%{count}件の中分類を提案しました。内容を確認して保存してください。"
+        js_timeout: 生成がタイムアウトしました。提案数を減らすか、時間をおいて再度お試しください。
+        js_retry_network: 通信エラーが発生しました。時間をおいて再度お試しください。
+        draft_title: AIジャンル提案
+        draft_lead: サービス名と訴求ポイントを入力すると、キー・表示名・訴求文をAIが提案します。
+        draft_sub_max: 中分類も最大%{max}件まで提案できます。
+        draft_sub_off: お使いのプランでは中分類は利用できません（大ジャンルの訴求情報のみ登録されます）。
+        draft_service: サービス名 *
+        draft_ph_service: '例: レストランコンサルティング'
+        draft_strong: 訴求ポイント・自社の強み *
+        draft_ph_strong: '例: BtoB向けに〇〇を提供。△△の課題を解決し、導入実績100社以上。'
+        draft_apply: 基本情報に反映する
+        plan_notice_title: AI提案
+        plan_notice_body: スタンダードプランからご利用いただけます。
+        plan_notice_cta: プランを確認する
+        unlimited: 無制限
+        draft_sub_unlimited: 中分類も最大無制限まで提案できます。
+      sub:
+        new_title: 新しい中分類
+        delete: 削除
+        key: キー（英小文字）
+        ph_key: '例: daily_standard'
+        key_hint: 記事の sub_genre 値として使用されます
+        name: 名称 *
+        ph_name: '例: 日常清掃'
+        target: ターゲット
+        ph_target: '例: 清掃美化を外注したい企業や施設'
+        target_hint: 誰向けのサービスか（記事生成時に AI へ渡されます）
+        description: 説明
+        ph_description: サービス内容の説明
+        description_hint: サービス内容の概要（記事生成時に AI へ渡されます）
+        features: 特徴
+        ph_one_per_line: 1行1件
+        features_hint: 1行1件。記事に反映したいサービス特徴
+        keywords: キーワード
+        keywords_hint: 1行1件。関連キーワードのヒント
+        price: 料金目安
+        ph_price: '例: 要お見積り'
+        price_hint: 記事内で料金感を伝えるための参考情報
+        area: 対応エリア
+        ph_area: '例: 全国対応'
+        area_hint: 対応地域の参考情報
+        strengths: 強み
+        ph_strengths: この中分類の強み
+        strengths_hint: 自社の強み・差別化ポイント
+        industry: 業界課題・差別化
+        ph_industry: 業界の課題と自社の立ち位置
+        industry_hint: 業界の一般的な課題と、それに対する自社の立ち位置
+      api:
+        title: API設定
+        client_label: 'クライアント: %{email}'
+        guide_link: API連携ガイドを見る
+        basic: 基本設定
+        key: APIキー
+        regenerate: 再発行する
+        confirm_regenerate: APIキーを再発行すると、現在のAPIキーは即時に無効になります。埋め込みコードやシステム連携先の設定を必ず更新してください。よろしいですか？
+        key_hint: APIキーは自動生成されます。再発行すると旧キーはすぐに使えなくなります。
+        webhook: 記事更新時の通知先URL（オプション）
+        genres: ジャンル
+        no_genres: ジャンルが未登録です。
+        genres_manage_link: サービス・ジャンル管理
+        genres_manage_suffix: で追加・編集します。APIで公開されるジャンルもここで登録したものになります。
+        embed: 埋め込み設定
+        embed_json: 埋め込み設定（JSON）
+        embed_custom: カスタム埋め込み設定（オプション）
+        save: 設定を保存
+        embed_howto: クライアントへの埋め込み手順
+        embed_step1: 以下のコードを対象のページに貼り付けてください
+        embed_step2: 指定した場所に記事が自動的に読み込まれます
+      api_guide:
+        title: API連携ガイド
+        subtitle_before: 記事データを自社サイトに取り込む方法をまとめています。APIキーの確認・再発行は
+        settings_link: API設定ページ
+        subtitle_after: から行えます。
+        methods_title: 方法は3つあります。どれを使えばいいか
+        col_method: 方法
+        col_when: こんな時におすすめ
+        col_skill: 必要な技術力
+        col_param: パラメータ
+        col_error: エラー
+        embed_name: 埋め込みタグ（embed.js）
+        embed_when: スクリプトを1行貼るだけで、自社サイトに記事一覧・記事を表示したい
+        embed_skill: ほぼ不要（HTMLに1行追加するだけ）
+        json_when: 自社のCMSやシステムに記事データを取り込み、自分たちのページとして表示・加工したい
+        json_skill: 必要（プログラムでAPIを呼び出せるエンジニアが必要）
+        webhook_name: Webhook通知
+        webhook_when: 記事が公開・更新されたタイミングを自動で受け取り、自社システム側の処理をトリガーしたい
+        webhook_skill: 必要（受信用のエンドポイントを用意できること）
+        embed_section: 1. 埋め込みタグを貼るだけの方法（推奨・最も簡単）
+        embed_lead: 表示したい場所にコンテナを置き、スクリプトタグを1つ追加するだけで記事が自動的に表示されます。
+        embed_li1_before: 表示場所を変えたい場合は
+        embed_li1_mid: を追加し、コンテナの
+        embed_li1_after: も合わせてください。
+        embed_li2: 記事タイトル・本文・画像・ジャンル・キーワード・更新日時などが自動的に表示されます。
+        embed_li3_before: 見た目を調整したい場合は
+        embed_li3_after: などのCSSクラスにスタイルを当ててください。
+        json_section: 2. JSON APIで記事データを取得する方法
+        json_lead_before: 自社のシステムに記事データを取り込みたい場合は、以下のエンドポイントを使用します。すべてのリクエストに
+        json_lead_mid: ヘッダー（または
+        json_lead_after: パラメータ）でAPIキーを渡してください。
+        list_title: 記事一覧取得
+        param_genre: ジャンル（key または日本語名）で絞り込み
+        param_type: 記事タイプで絞り込み（pillar / child / cluster）
+        param_updated: この日時以降に更新された記事のみ取得（差分同期に便利。ISO8601形式）
+        param_page: 'ページ番号（デフォルト: 1）'
+        param_per: '1ページあたりの件数（デフォルト: 50、最大: 100）'
+        single_title: 単一記事取得
+        single_note: 記事はIDではなくcode（記事のスラッグ）で指定します。
+        webhook_section: 3. Webhook通知（記事の更新を自動で受け取る）
+        webhook_lead: "「API設定」ページでWebhook URLを設定すると、記事が公開・更新・非公開化されたタイミングで、そのURLへ自動的にHTTP
+          POST通知が送信されます。定期的にAPIを取得しに行く必要がなくなります。"
+        col_event: イベント
+        col_when_event: 発生する場面
+        ev_created: 記事が新しく公開された時
+        ev_updated: 公開済みの記事のタイトル・本文などが変更された時
+        ev_deleted: 記事が非公開に戻された時、または削除された時
+        webhook_note_before: 送信に失敗した場合は最大3回まで再送されます。確実な同期のために、Webhookと合わせて
+        webhook_note_after: パラメータでの定期取得も併用することを推奨します。
+        help_title: 困ったときは
+        col_meaning: 意味・対処
+        err_401: APIキーが間違っています。「API設定」ページで確認してください。
+        err_403: 現在のプランではAPIを利用できません。プランのアップグレードが必要です。
+        err_404: 記事が存在しない、または許可されたジャンル・公開範囲外です。
+        err_429_before: アクセス回数の上限（1分間にAPIキーごと60回）を超えました。レスポンスの
+        err_429_after: ヘッダーに記載の秒数待って再試行してください。
+        footer_note: 記事が表示されない場合は、記事が公開済み（published）になっているか、対象のジャンルが「サービス・ジャンル管理」で許可されているかをご確認ください。
+      subscription:
+        title: サブスクリプション管理
+        subtitle: 現在のプランと変更・支払い履歴を確認できます
+        current: 現在のプラン
+        trial_ends: トライアル終了日
+        change: プラン変更
+        change_note: プランの変更・比較はプラン選択ページで行えます。
+        change_cta: プランを変更する
+        cancel_cta: サブスクリプションを解約する
+        none: アクティブなサブスクリプションがありません。
+        select_plan: プランを選択する
+        history: 支払い履歴
+        history_empty: 支払い履歴がありません。
+        cancel_title: サブスクリプション解約
+        cancel_subtitle: 解約手続きの確認
+        cancel_confirm_q: 本当にサブスクリプションを解約しますか？
+        cancel_body: 解約手続きを完了すると、自動更新が停止されます。
+        cancel_until: 最終利用可能日： %{date}
+        cancel_note: この日付まで、すべての有料機能を引き続きご利用いただけます。
+        back_settings: 設定へ戻る
+        confirm_cancel: 解約を確定する
+      problem:
+        title: 問題報告
+        close: 閉じる
+        lead: サービスに関する不具合やご要望があればご報告ください。内容を確認のうえ対応します。
+        company: 会社名
+        email: メールアドレス
+        image: 添付画像
+        image_hint: スクリーンショットなどがあると調査がスムーズです。
+        body: 内容
+        ph_body: 発生した状況、再現手順、期待する動作などを記入してください
+        submit: 報告する
+        ph_company: 株式会社〇〇〇〇
+      banner:
+        trial_ended_title: トライアルが終了しました
+        trial_ended_body: 閲覧は継続できます。本格運用はスタンダード（%{price}/月・初回3ヶ月15%OFF）へ。
+        view_plans: プランを見る
+        trialing_title: 無料トライアル利用中
+        trial_ends: '終了日: %{date} ／'
+        trialing_body: 上限到達後は閲覧のみ。有料プランへいつでも移行できます。
+        plans_billing: プラン・料金
+        quota_title: 利用枠が残りわずかです
+        quota_body: 今月の使用量が上限の80%に達しています。プラン変更で枠を増やせます。
+        check_plans: プランを確認
+en:
+  drafity:
+    dashboard:
+      layout:
+        open_menu: Open menu
+        create_pillar: Create pillar article
+        nav:
+          dashboard: Dashboard
+          generation: Generation
+          drafts: Drafts
+          pending_review: Pending review
+          cluster_titles: Cluster titles
+          cluster_bulk: Bulk cluster articles
+          published: Published
+          image_generation: Image generation
+          service_genres: Genres
+          autonomous: Autonomous runs
+          management: Management
+          settings: Settings
+          plans: Billing
+          api_settings: API
+          api_guide: API guide
+          account: Account
+          problem_report: Report a problem
+        logout_admin: Sign out (admin)
+        logout: Sign out
+        usage_header: This month's usage
+        usage_unlimited: "/ Unlimited"
+        usage_articles: "/ %{count} articles"
+        usage_zero: "/ 0 articles"
+      common:
+        edit: Edit
+        delete: Delete
+        cancel: Cancel
+        save: Save settings
+        close: Close
+        copy: Copy
+        copied: Copied
+        back_to_list: Back to list
+        back_to_dashboard: "← Back to dashboard"
+        details: Details
+        please_select: Please select
+        optional: Optional
+        system: System
+        admin: Admin
+        client: Client
+        count_items: "%{count}"
+        count_selected: "%{count} selected"
+        per_page_label: Per page
+        per_page_option: "%{count}"
+        showing_range: Showing %{from}–%{to} of %{total}
+        showing_count: Showing %{count}
+        confirm_delete: Delete this item?
+        unit_articles: ''
+        unit_count: ''
+      page_titles:
+        articles: Articles
+        image_generation: Image generation
+        management: Management
+        setting: Settings
+        service_genres: Genres
+        service_genres_new: New genre
+        service_genres_edit: Edit genre
+        api_settings: API settings
+        api_guide: API guide
+        autonomous: Autonomous runs
+        autonomous_new: Start autonomous run
+        autonomous_show: Autonomous run
+        subscription: Billing
+        subscription_cancel: Cancel subscription
+        with_suffix: "%{name} - %{title}"
+      generation_modes:
+        default: Standard
+        comparison: Comparison
+        recommendation: Promotion
+        note: Note
+        qiita: Qiita
+        zenn: Zenn
+      flashes:
+        admin_required: Admin access required.
+        login_please: Please sign in.
+        genre_access_denied: You cannot access that genre.
+        column_access_denied: You cannot access that article.
+        image_busy: Another image generation job is running. Please wait.
+        image_select_required: Select articles to generate images for.
+        image_invalid_selection: Some selected articles are inaccessible or not eligible
+          for image generation.
+        image_none_found: No articles without images were found.
+        image_started: Started image generation (%{count})
+        stop_only_generating: Only generating or queued articles can be stopped.
+        generation_stopped: Generation stopped.
+        api_updated: API settings updated.
+        api_update_failed: Update failed.
+        api_key_regenerated: API key regenerated. The old key is invalid — update
+          embeds and webhooks.
+        own_settings_only: You can only change your own settings.
+        invalid_plan: Invalid plan.
+        same_plan: You are already on this plan.
+        no_active_subscription: No active subscription.
+        subscription_missing: Subscription not found.
+        cancel_done: Cancellation scheduled. You can use the plan until the period
+          ends.
+        cancel_failed: Cancellation failed.
+        stripe_cancel_failed: Stripe cancellation failed.
+        forbidden: You do not have permission.
+        client_required: Please specify a client.
+        genre_created: Genre created.
+        genre_updated: Genre updated.
+        genre_deleted: Genre deleted.
+        genre_key_unavailable: This genre key is unavailable.
+        template_unavailable: This template is unavailable.
+        genre_access_denied_short: You cannot access this genre.
+        plan_standard_required: Available on Standard plan or higher.
+        autonomous_started: Autonomous run started in the background.
+        child_body_started: Started generating child article bodies.
+        approve_failed: Could not approve.
+        resumed: Generation resumed.
+        resume_unavailable: Cannot resume in the current state.
+        child_not_found: Child article not found.
+        delete_only_awaiting: Can only delete while awaiting approval.
+        child_title_deleted: Child title deleted.
+        cycle_deleted: Autonomous cycle deleted.
+        settings_client_only: Sign in as a client to change settings.
+        settings_saved: Settings saved.
+        autonomous_plan_required: Autonomous runs require Business plan or higher.
+        access_denied: Access denied.
+        title_genre_required: Title and genre are required.
+        column_create_failed: 'Could not create article: %{errors}'
+        sub_key_required: Enter a subcategory key.
+        sub_key_invalid: Subcategory key "%{key}" may only use lowercase letters,
+          numbers, and underscores.
+        sub_key_duplicate: Subcategory key "%{key}" is duplicated.
+        sub_name_required: Enter a name for subcategory "%{key}".
+      csv:
+        headers:
+          id: ID
+          title: Title
+          genre: Genre
+          article_type: Type
+          status: Status
+          body: Body
+          updated_at: Updated at
+      labels:
+        pillar: Pillar
+        child: Child
+        draft: Draft
+        published: Published
+        pending_review: Pending review
+        generating: Generating
+        completed: Done
+        not_started: Not started
+        error: Error
+        all: All
+        trialing: Trialing
+        genre: Genre
+        title: Title
+        status: Status
+        actions: Actions
+        type: Type
+        updated_at: Updated
+        created_at: Created
+        ai_score: AI score
+        client: Client
+        child_articles: Children
+        started_at: Started
+        pillar_title: Pillar title
+        key: Key
+        display_name: Display name
+        service_name: Service name
+        sub_count: Subcategories
+        date: Date
+        amount: Amount
+        description: Description
+        plan_name: Plan
+      management:
+        count_unit: "%{count}"
+        count_of: " / %{count}"
+        api_settings: API
+      setting:
+        plan_manage_hint: Change or manage your current plan.
+      image_generation:
+        title: Bulk image generation
+        subtitle: Select articles without images and generate via API.
+        list_title: Missing images
+        generate_selected: Generate selected
+        generate_all: Run all
+        empty: No articles missing images
+        confirm_selected: Generate images for %{count} selected articles?
+        confirm_all: Generate images for all %{count} articles without images?
+        none_to_generate: No articles to generate images for.
+      columns:
+        suggest_titles: AI title suggestions
+        export: Export
+        export_text: Text only
+        export_html: Keep HTML structure
+        search_placeholder: Search titles or keywords
+        language_ja: Japanese
+        kpi:
+          total: Total generated
+          published: Published
+          draft: Drafts
+          pending: Pending review
+          mom: "(vs last month)"
+          pending_hint: "(generated, unpublished)"
+          avg_score: Avg. AI score
+          quality: High-quality output
+        genre_summary: Articles by genre
+        all_categories: All categories
+        realtime_title: "\U0001F504 Live generation"
+        realtime_generating: Generating
+        realtime_completed: Completed this session
+        stop: Stop
+        stop_title: Stop generation
+        confirm_stop: Stop generating this article?
+        no_generating: No articles generating
+        bulk_approve: Approve & generate
+        bulk_publish: Publish selected
+        bulk_reset: Clear body
+        bulk_delete: Delete selected
+        confirm_bulk_approve: Approve selected articles and start body generation?
+        confirm_bulk_publish: Publish selected articles as reviewed?
+        confirm_bulk_reset: Clear body/description and revert to draft? This cannot
+          be undone.
+        confirm_bulk_delete: Really delete?
+        no_body_alert: No body yet. Generate the body first.
+        child_count: "%{count} children"
+        parent_id: 'Parent ID: %{id}'
+        generate: Generate
+        generate_title: Approve & generate
+        confirm_approve: 'Start body generation? (style: %{mode})'
+        publish: Publish
+        publish_title: Publish
+        confirm_publish: Publish this article as reviewed?
+        unpublish_title: Unpublish
+        confirm_unpublish: Revert to draft (pending review)? It will be hidden from
+          the public site.
+        delete_title: Permanently delete
+        empty: No matching articles
+        score_pending: Pending score
+        score_structure: Structure
+        score_seo: SEO
+        score_readability: Readability
+        score_usefulness: Usefulness
+        score_originality: Originality
+        score_overall: 'Overall: %{score}'
+        stop_request_failed: Stop request failed.
+        sub_optional: None (optional)
+        sub_select_genre_first: Select a genre first
+        sub_none: No subcategories
+        genre_need_input: Enter a service name or value proposition.
+        genre_registering: AI is registering the genre…
+        genre_register_failed: Failed to register genre.
+        genre_registered: Genre registered. Continue to title generation.
+        network_error: Network error.
+        keywords_genre_required: Enter keywords and genre.
+        parse_error: Could not read the server response. Reload and try again.
+        generic_error: An error occurred
+        select_titles: Select titles.
+        confirm_register_titles: Register %{count} titles?
+        created_articles: Created %{count} articles
+        error_prefix: 'Error: %{message}'
+      workflow:
+        title: Article workflow
+        genres: Genres
+        titles: AI titles
+        pillar_body: Pillar body
+        child_titles: Child titles
+        child_body: Child body
+        pillar_body_hint: Generate pillar bodies from the list below
+        child_titles_hint: Register child titles via AI or the list
+        child_body_hint: Generate child bodies from the list below
+      title_suggest:
+        title: AI title suggestions
+        keyword1: Keyword 1 *
+        keyword2: Keyword 2 *
+        ph_keyword1: e.g. logistics
+        ph_keyword2: e.g. delivery
+        no_genre: No genres yet. Register service info with AI before suggesting titles.
+        service_name: Service name *
+        ph_service: e.g. Acme Inc.
+        strong_points: Strengths / value prop *
+        ph_strong: e.g. B2B solution with 100+ customers.
+        register_genre: Register genre with AI & continue
+        target: Audience
+        target_big: Broad keywords (wide audience)
+        target_middle: Mid keywords (specific needs)
+        target_small: Narrow keywords (high intent)
+        genre: Genre *
+        genre_after_ai: Available after registering a genre with AI above.
+        sub_optional: Subcategory (optional)
+        sub_hint: Titles will lean toward the selected subcategory.
+        custom: Freeform (optional)
+        ph_custom: e.g. Target B2B executives; prefer comparison and case-study titles.
+        count: Suggestions
+        remaining: 'Remaining this month: %{remaining} / %{limit}'
+        count_hint: 'Choose 1–%{bar_max} (plan max: %{max})'
+        generate: Generate titles
+        generating: AI is generating titles…
+        candidates: Title candidates
+        register_selected: Register selected
+        back: Back to input
+      autonomous:
+        title: Autonomous runs
+        subtitle: History and progress of autonomous content generation
+        defaults: Defaults
+        notify_cycle: Email when a cycle completes
+        pause_approval: Approve child titles before body generation (sends approval
+          email when enabled)
+        default_children: Default child count
+        new_cycle: Start new cycle
+        empty: No autonomous runs yet.
+        confirm_delete_cycle: Delete this cycle and related draft articles?
+        new_title: Start autonomous run
+        new_subtitle: Enter a pillar title to auto-generate pillar → child titles
+          → child articles
+        basic: Basics
+        admin_note: Running as admin. Plan limits do not apply.
+        pillar_title: Pillar title
+        ph_title: e.g. Complete guide to office cleaning
+        child_count: Child articles
+        slider_hint: Use the slider to generate 1–25 child articles.
+        start: Start autonomous run
+        confirm_start: Start generation in the background?
+        status: 'Status:'
+        runner: 'Runner:'
+        client_label: 'Client:'
+        pillar_label: 'Pillar:'
+        progress: Progress
+        progress_pillar: 'Pillar: %{status}'
+        progress_child_titles: 'Child titles: %{count}'
+        progress_child_bodies: 'Child bodies: %{done} / %{total} done'
+        awaiting_titles: Child titles (awaiting approval)
+        awaiting_hint: Delete unwanted titles, then start body generation.
+        confirm_delete_child: Delete this child title?
+        start_bodies: Start body generation
+        confirm_start_bodies: Start body generation for remaining child titles?
+        no_child_titles: No child titles.
+        next_titles: Next pillar title ideas
+        resume: Resume generation
+        confirm_resume: Resume generation?
+        statuses:
+          queued: Queued
+          generating_pillar: Generating pillar
+          generating_child_titles: Generating child titles
+          awaiting_child_title_approval: Awaiting title approval
+          generating_children: Generating children
+          completed: Completed
+          failed: Failed
+          paused: Paused (limit reached)
+      genres:
+        title: Genres
+        subtitle: Manage article generation, API, and footer CTAs by genre
+        new: New
+        create_first: Create your first genre
+        empty: No genres yet.
+        cta_active: CTA on
+        cta_needed: CTA needed
+        cta_off: CTA off
+        confirm_delete: Delete "%{name}"?
+        new_title: New genre
+        new_subtitle: Register a new genre and service info
+        edit_title: Edit genre
+        template_label: Load from template
+        submit_create: Create
+        submit_update: Update
+        errors_header: Please check your input
+        basic: Basics
+        ai_suggest: AI suggest
+        system_shared: System-wide
+        client_hint: Leave blank for admin-wide genres. Selecting a client also adds
+          it to API-allowed genres.
+        key_label: Key (lowercase, URL)
+        ph_key: e.g. my_service
+        key_hint: Used as the article genre value. Cannot change after create.
+        ja_label: Display name (Japanese)
+        ph_ja: e.g. Management consulting
+        ph_service: e.g. Acme Inc.
+        strong_points: Strengths / value prop
+        strong_hint: Passed to AI when generating pillar and child articles.
+        integration: Integrations (optional)
+        integration_hint: Leave blank for article generation only. The current domain
+          is registered on save.
+        hosts: Hosts (domains)
+        ph_hosts: Optional (auto-registered)
+        keywords: Keywords
+        ph_optional: Optional
+        keywords_hint: Used for AI title suggestions and article generation.
+        cta_section: Footer service CTA
+        cta_hint: Shown before related articles on public pages. Editable by admin
+          or client.
+        cta_show: Show CTA
+        theme: Theme color
+        badge: Badge
+        heading: Headline
+        lead: Lead
+        button_label: Button label
+        path: Path (same domain)
+        path_hint: Path on the brand site. External URL below takes priority when
+          set.
+        external_url: External URL (optional)
+        external_hint: Used instead of the path when set (e.g. LINE).
+        ph_badge: e.g. Meetia
+        ph_cta_title: e.g. AI sales 24/7
+        ph_cta_button: e.g. Try free
+        ph_path: e.g. / or /okurite
+        ph_url: e.g. https://lin.ee/xxxx
+        sub_override: Per-subcategory override (optional)
+        sub_override_hint: Blank subcategories use the shared CTA above.
+        theme_same: "(same as shared)"
+        path_short: Path
+        url_short: External URL
+        subcategories: Subcategories
+        sub_hint: Used in the subcategory dropdown and as context for generation.
+        sub_plan_max: Your plan allows up to %{max} subcategories.
+        sub_ai: Suggest subcategories with AI
+        suggest_count: Suggestions
+        sub_ai_hint: Auto-generate from key, display name, and value prop. Replaces
+          existing subcategories.
+        add_sub: "+ Add subcategory"
+        sub_unavailable: Subcategories are not available on your plan. Genre-level
+          value props are used. Upgrade to Standard+ for subcategories.
+        js_need_service: Enter a service name or value proposition.
+        js_suggesting: AI is suggesting a genre…
+        js_suggest_failed: Failed to generate suggestion.
+        js_network: Network error.
+        js_new_sub: New subcategory
+        js_need_any: Enter a key, display name, or service name.
+        js_need_display: Enter a display name, service name, or value prop.
+        js_sub_generating: AI is generating subcategories… (up to ~1 min)
+        js_parse_error: Could not read the server response.
+        js_sub_failed: Failed to generate subcategories.
+        js_sub_done: Suggested %{count} subcategories. Review and save.
+        js_timeout: Timed out. Try fewer suggestions or retry later.
+        js_retry_network: Network error. Please try again later.
+        draft_title: AI genre suggestion
+        draft_lead: Enter service name and value prop; AI suggests key, display name,
+          and copy.
+        draft_sub_max: Subcategories can also be suggested (up to %{max}).
+        draft_sub_off: Subcategories unavailable on your plan (genre-level value props
+          only).
+        draft_service: Service name *
+        draft_ph_service: e.g. Restaurant consulting
+        draft_strong: Value prop / strengths *
+        draft_ph_strong: e.g. B2B offering solving X, 100+ customers.
+        draft_apply: Apply to basics
+        plan_notice_title: AI suggest
+        plan_notice_body: Available on Standard plan or higher.
+        plan_notice_cta: View plans
+        unlimited: Unlimited
+        draft_sub_unlimited: Subcategories can also be suggested with no limit.
+      sub:
+        new_title: New subcategory
+        delete: Delete
+        key: Key (lowercase)
+        ph_key: e.g. daily_standard
+        key_hint: Used as the article sub_genre value
+        name: Name *
+        ph_name: e.g. Daily cleaning
+        target: Audience
+        ph_target: e.g. Facilities that outsource cleaning
+        target_hint: Who it is for (passed to AI)
+        description: Description
+        ph_description: Describe the service
+        description_hint: Service overview (passed to AI)
+        features: Features
+        ph_one_per_line: One per line
+        features_hint: One per line. Features to reflect in articles
+        keywords: Keywords
+        keywords_hint: One per line. Related keyword hints
+        price: Pricing hint
+        ph_price: e.g. Contact for quote
+        price_hint: Pricing context for articles
+        area: Service area
+        ph_area: e.g. Nationwide
+        area_hint: Coverage area context
+        strengths: Strengths
+        ph_strengths: Strengths for this subcategory
+        strengths_hint: Differentiators
+        industry: Industry gaps / differentiation
+        ph_industry: Industry challenges and your position
+        industry_hint: Typical industry issues and your stance
+      api:
+        title: API settings
+        client_label: 'Client: %{email}'
+        guide_link: View API guide
+        basic: Basics
+        key: API key
+        regenerate: Regenerate
+        confirm_regenerate: Regenerating invalidates the current key immediately.
+          Update embeds and integrations. Continue?
+        key_hint: API keys are auto-generated. Regenerating disables the old key immediately.
+        webhook: Webhook URL on article updates (optional)
+        genres: Genres
+        no_genres: No genres registered.
+        genres_manage_link: Genres
+        genres_manage_suffix: " — add/edit there. API-exposed genres come from the
+          same list."
+        embed: Embed settings
+        embed_json: Embed settings (JSON)
+        embed_custom: Custom embed settings (optional)
+        save: Save settings
+        embed_howto: Embed instructions
+        embed_step1: Paste this code into the target page
+        embed_step2: Articles load automatically in the specified place
+      api_guide:
+        title: API guide
+        subtitle_before: 'How to pull article data into your site. Check or regenerate
+          your API key on the '
+        settings_link: API settings page
+        subtitle_after: "."
+        methods_title: Three options — which to use
+        col_method: Method
+        col_when: Best when
+        col_skill: Skill needed
+        col_param: Parameter
+        col_error: Error
+        embed_name: Embed tag (embed.js)
+        embed_when: You want article lists/pages with one script tag
+        embed_skill: Minimal (add one HTML line)
+        json_when: You want to ingest data into your CMS/system
+        json_skill: Required (engineer who can call APIs)
+        webhook_name: Webhooks
+        webhook_when: You want publish/update events to trigger your systems
+        webhook_skill: Required (receive endpoint)
+        embed_section: 1. Embed tag (recommended, easiest)
+        embed_lead: Place a container and one script tag; articles render automatically.
+        embed_li1_before: 'To change the mount point, add '
+        embed_li1_mid: " and match the container "
+        embed_li1_after: "."
+        embed_li2: Title, body, image, genre, keywords, and updated time render automatically.
+        embed_li3_before: 'To style, target CSS classes like '
+        embed_li3_after: "."
+        json_section: 2. Fetch articles via JSON API
+        json_lead_before: 'Use these endpoints to ingest articles. Pass the API key
+          via '
+        json_lead_mid: " header (or "
+        json_lead_after: " parameter) on every request."
+        list_title: List articles
+        param_genre: Filter by genre (key or Japanese name)
+        param_type: Filter by article type (pillar / child / cluster)
+        param_updated: Only articles updated since this time (ISO8601; good for sync)
+        param_page: 'Page number (default: 1)'
+        param_per: 'Per page (default: 50, max: 100)'
+        single_title: Get one article
+        single_note: Articles are identified by code (slug), not ID.
+        webhook_section: 3. Webhooks (auto updates)
+        webhook_lead: Set a webhook URL on API settings to receive HTTP POSTs on publish/update/unpublish
+          — no polling needed.
+        col_event: Event
+        col_when_event: When it fires
+        ev_created: When an article is newly published
+        ev_updated: When a published article’s title/body changes
+        ev_deleted: When an article is unpublished or deleted
+        webhook_note_before: 'Failed deliveries retry up to 3 times. For reliable
+          sync, also poll with '
+        webhook_note_after: "."
+        help_title: Troubleshooting
+        col_meaning: Meaning / fix
+        err_401: Wrong API key. Check API settings.
+        err_403: API unavailable on your plan. Upgrade required.
+        err_404: Article missing or outside allowed genres/visibility.
+        err_429_before: 'Rate limit exceeded (60/min per API key). Wait the seconds
+          in '
+        err_429_after: " and retry."
+        footer_note: If articles don’t show, confirm they are published and the genre
+          is allowed under Genres.
+      subscription:
+        title: Billing
+        subtitle: Review your plan, changes, and payment history
+        current: Current plan
+        trial_ends: Trial ends
+        change: Change plan
+        change_note: Compare and change plans on the plans page.
+        change_cta: Change plan
+        cancel_cta: Cancel subscription
+        none: No active subscription.
+        select_plan: Choose a plan
+        history: Payment history
+        history_empty: No payment history.
+        cancel_title: Cancel subscription
+        cancel_subtitle: Confirm cancellation
+        cancel_confirm_q: Really cancel your subscription?
+        cancel_body: Cancelling stops automatic renewal.
+        cancel_until: 'Access until: %{date}'
+        cancel_note: You keep all paid features until this date.
+        back_settings: Back to settings
+        confirm_cancel: Confirm cancellation
+      problem:
+        title: Report a problem
+        close: Close
+        lead: Report bugs or requests. We’ll review and follow up.
+        company: Company
+        email: Email
+        image: Attachment
+        image_hint: Screenshots help investigation.
+        body: Details
+        ph_body: Describe what happened, steps to reproduce, and expected behavior
+        submit: Submit
+        ph_company: Acme Inc.
+      banner:
+        trial_ended_title: Your trial has ended
+        trial_ended_body: You can still browse. For full use, upgrade to Standard
+          (%{price}/mo · 15% off first 3 months).
+        view_plans: View plans
+        trialing_title: Free trial active
+        trial_ends: 'Ends: %{date} / '
+        trialing_body: After limits, browse-only. Upgrade anytime.
+        plans_billing: Billing
+        quota_title: Usage nearly full
+        quota_body: You've used 80% of this month's quota. Upgrade for more.
+        check_plans: Check plans

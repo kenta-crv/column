@@ -12,21 +12,21 @@
 - if show_expired
   .plan-upgrade-banner.plan-upgrade-banner--expired role="status"
     .plan-upgrade-banner__body
-      strong トライアルが終了しました
-      span 閲覧は継続できます。本格運用はスタンダード（#{standard_price}/月・初回3ヶ月15%OFF）へ。
-    = link_to "プランを見る", plans_path, class: "plan-upgrade-banner__cta"
+      strong = t("drafity.dashboard.banner.trial_ended_title")
+      span = t("drafity.dashboard.banner.trial_ended_body", price: standard_price)
+    = link_to t("drafity.dashboard.banner.view_plans"), plans_path, class: "plan-upgrade-banner__cta"
 - elsif show_trial
   .plan-upgrade-banner.plan-upgrade-banner--trial role="status"
     .plan-upgrade-banner__body
-      strong 無料トライアル利用中
+      strong = t("drafity.dashboard.banner.trialing_title")
       span
         - if trial_ends.present?
-          | 終了日: #{trial_ends.strftime("%Y/%m/%d")} ／
-        | 上限到達後は閲覧のみ。有料プランへいつでも移行できます。
-    = link_to "プラン・料金", plans_path, class: "plan-upgrade-banner__cta"
+          = t("drafity.dashboard.banner.trial_ends", date: trial_ends.strftime("%Y/%m/%d"))
+        = t("drafity.dashboard.banner.trialing_body")
+    = link_to t("drafity.dashboard.banner.plans_billing"), plans_path, class: "plan-upgrade-banner__cta"
 - elsif show_usage
   .plan-upgrade-banner.plan-upgrade-banner--usage role="status"
     .plan-upgrade-banner__body
-      strong 利用枠が残りわずかです
-      span 今月の使用量が上限の80%に達しています。プラン変更で枠を増やせます。
-    = link_to "プランを確認", plans_path, class: "plan-upgrade-banner__cta"
+      strong = t("drafity.dashboard.banner.quota_title")
+      span = t("drafity.dashboard.banner.quota_body")
+    = link_to t("drafity.dashboard.banner.check_plans"), plans_path, class: "plan-upgrade-banner__cta"

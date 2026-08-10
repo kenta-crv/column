@@ -32,13 +32,13 @@ class Dashboard::ServiceGenresController < ApplicationController
       @service_genre.errors.add(:base, sub_category_error)
       render :new, status: :unprocessable_entity
     elsif unauthorized_genre_key?(@service_genre.key)
-      @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
+      @service_genre.errors.add(:base, t("drafity.dashboard.flashes.genre_key_unavailable"))
       render :new, status: :unprocessable_entity
     elsif (limit_error = sub_category_limit_error(@service_genre.sub_categories, owner_client: @service_genre.client))
       @service_genre.errors.add(:base, limit_error)
       render :new, status: :unprocessable_entity
     elsif apply_service_genre_flags!(@service_genre) && @service_genre.save
-      redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを作成しました"
+      redirect_to dashboard_service_genres_path, notice: t("drafity.dashboard.flashes.genre_created")
     else
       render :new, status: :unprocessable_entity
     end
@@ -54,13 +54,13 @@ class Dashboard::ServiceGenresController < ApplicationController
       @service_genre.errors.add(:base, sub_category_error)
       render :edit, status: :unprocessable_entity
     elsif unauthorized_genre_key?(attrs[:key], except: @service_genre.key)
-      @service_genre.errors.add(:base, "このジャンルキーは利用できません。")
+      @service_genre.errors.add(:base, t("drafity.dashboard.flashes.genre_key_unavailable"))
       render :edit, status: :unprocessable_entity
     elsif (limit_error = sub_category_limit_error(attrs[:sub_categories], owner_client: @service_genre.client))
       @service_genre.errors.add(:base, limit_error)
       render :edit, status: :unprocessable_entity
     elsif apply_service_genre_flags!(@service_genre) && @service_genre.update(attrs)
-      redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを更新しました"
+      redirect_to dashboard_service_genres_path, notice: t("drafity.dashboard.flashes.genre_updated")
     else
       render :edit, status: :unprocessable_entity
     end
@@ -68,7 +68,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def destroy
     @service_genre.destroy
-    redirect_to dashboard_service_genres_path, notice: "サービス・ジャンルを削除しました"
+    redirect_to dashboard_service_genres_path, notice: t("drafity.dashboard.flashes.genre_deleted")
   end
 
   def suggest_sub_categories
@@ -95,7 +95,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def quick_setup
     if sub_category_not_allowed_error
-      return render json: { success: false, error: "スタンダードプランからご利用いただけます" }, status: :forbidden
+      return render json: { success: false, error: t("drafity.dashboard.flashes.plan_standard_required") }, status: :forbidden
     end
 
     result = GenreQuickSetupService.call(
@@ -133,7 +133,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
     draft = result[:draft]
     if unauthorized_genre_key?(draft[:key])
-      return render json: { success: false, error: "このジャンルキーは利用できません。" }, status: :unprocessable_entity
+      return render json: { success: false, error: t("drafity.dashboard.flashes.genre_key_unavailable") }, status: :unprocessable_entity
     end
 
     sub_categories = sub_categories_hash_from_draft(draft[:sub_categories])
@@ -185,7 +185,7 @@ class Dashboard::ServiceGenresController < ApplicationController
     return if admin_signed_in?
     return if @fallback_templates.key?(params[:template].to_sym)
 
-    redirect_to new_dashboard_service_genre_path, alert: "このテンプレートは利用できません。"
+    redirect_to new_dashboard_service_genre_path, alert: t("drafity.dashboard.flashes.template_unavailable")
   end
 
   def unauthorized_genre_key?(key, except: nil)
@@ -213,7 +213,7 @@ class Dashboard::ServiceGenresController < ApplicationController
     return if admin_signed_in?
     return if @service_genre.client_id == current_client.id
 
-    redirect_to dashboard_service_genres_path, alert: "このサービス・ジャンルにはアクセスできません"
+    redirect_to dashboard_service_genres_path, alert: t("drafity.dashboard.flashes.genre_access_denied_short")
   end
 
   def service_genre_attributes
@@ -319,21 +319,21 @@ class Dashboard::ServiceGenresController < ApplicationController
       key = item[:key].to_s.strip.downcase
 
       if key.blank?
-        return [{}, "中分類のキーを入力してください"]
+        return [{}, t("drafity.dashboard.flashes.sub_key_required")]
       end
 
       unless key.match?(/\A[a-z0-9_]+\z/)
-        return [{}, "中分類キー「#{key}」は英小文字・数字・アンダースコアのみ使用できます"]
+        return [{}, t("drafity.dashboard.flashes.sub_key_invalid", key: key)]
       end
 
       if keys_seen.include?(key)
-        return [{}, "中分類キー「#{key}」が重複しています"]
+        return [{}, t("drafity.dashboard.flashes.sub_key_duplicate", key: key)]
       end
 
       keys_seen << key
 
       if item[:name].to_s.strip.blank?
-        return [{}, "中分類「#{key}」の名称を入力してください"]
+        return [{}, t("drafity.dashboard.flashes.sub_name_required", key: key)]
       end
 
       result[key] = {

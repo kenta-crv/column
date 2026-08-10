@@ -1,12 +1,12 @@
 .image-generation-page
   .dashboard-page-header
-    h1 画像一括自動生成
-    p.dashboard-page-subtitle 一覧から画像未設定の記事を選択し、API経由で画像を生成します。
+    h1 = t("drafity.dashboard.image_generation.title")
+    p.dashboard-page-subtitle = t("drafity.dashboard.image_generation.subtitle")
 
   .image-generation-list-panel
     .image-generation-list-header
-      h3 画像未生成一覧
-      span.image-generation-list-count = "#{@missing_image_total}件"
+      h3 = t("drafity.dashboard.image_generation.list_title")
+      span.image-generation-list-count = t("drafity.dashboard.common.count_items", count: @missing_image_total)
 
     - if @columns.present?
       = form_with url: bulk_generate_images_dashboard_columns_path, method: :post, local: true, data: { turbo: false }, html: { id: "bulk-image-form" } do
@@ -14,10 +14,10 @@
         .bulk-action-bar.image-generation-action-bar
           button.btn.btn-primary type="button" id="btn-trigger-bulk-generation"
             span ⚡
-            span 選択した記事の画像を生成
+            span = t("drafity.dashboard.image_generation.generate_selected")
           button.btn.btn-success type="button" id="btn-trigger-run-all-generation"
-            span 全実行
-          span.image-generation-selected-count id="selected-image-count" 0件選択中
+            span = t("drafity.dashboard.image_generation.generate_all")
+          span.image-generation-selected-count id="selected-image-count" = t("drafity.dashboard.common.count_selected", count: 0)
 
         .table-wrap
           table.rich-dashboard-table.image-generation-table
@@ -26,10 +26,10 @@
                 th width="40"
                   input type="checkbox" class="table-checkbox" id="select-all-image-columns" onclick="toggleAllImageColumns(this)"
                 th ID
-                th 記事タイトル
-                th ジャンル
-                th タイプ
-                th 更新日時
+                th = t("drafity.dashboard.csv.headers.title")
+                th = t("drafity.dashboard.labels.genre")
+                th = t("drafity.dashboard.labels.type")
+                th = t("drafity.dashboard.labels.updated_at")
             tbody
               - @columns.each do |column|
                 tr
@@ -43,37 +43,46 @@
                     span.img-gen-badge-genre = column.genre.presence || "—"
                   td
                     - if column.article_type == "pillar"
-                      span.img-gen-badge-type.img-gen-badge-type--pillar 親記事
+                      span.img-gen-badge-type.img-gen-badge-type--pillar = t("drafity.dashboard.labels.pillar")
                     - else
-                      span.img-gen-badge-type.img-gen-badge-type--child 子記事
+                      span.img-gen-badge-type.img-gen-badge-type--child = t("drafity.dashboard.labels.child")
                   td.date-text = column.updated_at.strftime("%Y/%m/%d %H:%M")
 
       .table-footer-pagination
         .pagination-info
-          | #{@columns.offset_value + 1} - #{@columns.offset_value + @columns.length} / #{@columns.total_count}件を表示
+          = t("drafity.dashboard.common.showing_range", from: @columns.offset_value + 1, to: @columns.offset_value + @columns.length, total: @columns.total_count)
         .pagination-nav
           = paginate @columns, params: { per: @per_page }
         .per-page-selector
-          span 表示件数
+          span = t("drafity.dashboard.common.per_page_label")
           = form_with url: image_generation_dashboard_columns_path, method: :get, local: true do
               = select_tag :per,
-                options_for_select([["30件", 30], ["50件", 50], ["100件", 100]], @per_page),
+                options_for_select([[t("drafity.dashboard.common.per_page_option", count: 30), 30], [t("drafity.dashboard.common.per_page_option", count: 50), 50], [t("drafity.dashboard.common.per_page_option", count: 100), 100]], @per_page),
                 onchange: "this.form.submit();",
-                "aria-label": "表示件数"
+                "aria-label": t("drafity.dashboard.common.per_page_label")
     - else
-      p.image-generation-empty 画像未生成の記事はありません
+      p.image-generation-empty = t("drafity.dashboard.image_generation.empty")
 
   .dashboard-back-link
-    = link_to "← Dashboardに戻る", dashboard_root_path
+    = link_to t("drafity.dashboard.common.back_to_dashboard"), dashboard_root_path
 
+- js_i18n = {
+    countSelected: t("drafity.dashboard.common.count_selected", count: "%{count}"),
+    selectRequired: t("drafity.dashboard.flashes.image_select_required"),
+    confirmSelected: t("drafity.dashboard.image_generation.confirm_selected", count: "%{count}"),
+    noneToGenerate: t("drafity.dashboard.image_generation.none_to_generate"),
+    confirmAll: t("drafity.dashboard.image_generation.confirm_all", count: "%{count}")
+  }.to_json.html_safe
 javascript:
   (function() {
+    const I18nDash = #{js_i18n};
     const missingImageTotal = #{@missing_image_total.to_i};
+    const fmt = (template, count) => String(template).replace(/%\{count\}/g, String(count));
 
     const updateSelectedCount = () => {
       const countEl = document.getElementById('selected-image-count');
       const selected = document.querySelectorAll('.image-select-checkbox:checked').length;
-      if (countEl) countEl.textContent = `${selected}件選択中`;
+      if (countEl) countEl.textContent = fmt(I18nDash.countSelected, selected);
     };
 
     const initBulkImagePanel = () => {
@@ -91,11 +100,11 @@ javascript:
         btnTrigger.onclick = function() {
           const selected = document.querySelectorAll('.image-select-checkbox:checked');
           if (selected.length === 0) {
-            alert("画像を生成する記事を選択してください。");
+            alert(I18nDash.selectRequired);
             return;
           }
 
-          const confirmed = confirm(`選択した ${selected.length} 件の記事に画像を生成します。よろしいですか？`);
+          const confirmed = confirm(fmt(I18nDash.confirmSelected, selected.length));
           if (confirmed) {
             runAllField.value = "0";
             form.submit();
@@ -106,11 +115,11 @@ javascript:
       if (btnRunAll) {
         btnRunAll.onclick = function() {
           if (missingImageTotal <= 0) {
-            alert("画像を生成する記事がありません。");
+            alert(I18nDash.noneToGenerate);
             return;
           }
 
-          const confirmed = confirm(`画像未生成の全 ${missingImageTotal} 件に対して画像生成を実行します。よろしいですか？`);
+          const confirmed = confirm(fmt(I18nDash.confirmAll, missingImageTotal));
           if (confirmed) {
             runAllField.value = "1";
             form.submit();

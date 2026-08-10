@@ -96,16 +96,7 @@ class AutonomousContentRun < ApplicationRecord
   end
 
   def status_label
-    {
-      "queued" => "待機中",
-      "generating_pillar" => "親記事生成中",
-      "generating_child_titles" => "子タイトル生成中",
-      "awaiting_child_title_approval" => "子タイトル承認待ち",
-      "generating_children" => "子記事生成中",
-      "completed" => "完了",
-      "failed" => "失敗",
-      "paused" => "一時停止（上限到達）"
-    }[status] || status
+    I18n.t("drafity.dashboard.autonomous.statuses.#{status}", default: status.to_s)
   end
 
   def child_columns

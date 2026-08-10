@@ -25,9 +25,9 @@ class Dashboard::ClientsController < ApplicationController
       webhook_url: params[:client][:webhook_url],
       embed_settings: embed_settings
     )
-      redirect_to (admin_signed_in? ? api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), notice: "API設定を更新しました"
+      redirect_to (admin_signed_in? ? api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), notice: t("drafity.dashboard.flashes.api_updated")
     else
-      render :api_settings, alert: "更新に失敗しました"
+      render :api_settings, alert: t("drafity.dashboard.flashes.api_update_failed")
     end
   end
 
@@ -43,20 +43,20 @@ class Dashboard::ClientsController < ApplicationController
       webhook_url: params[:client][:webhook_url],
       embed_settings: embed_settings
     )
-      redirect_to dashboard_api_settings_path, notice: "API設定を更新しました"
+      redirect_to dashboard_api_settings_path, notice: t("drafity.dashboard.flashes.api_updated")
     else
-      render :api_settings, alert: "更新に失敗しました"
+      render :api_settings, alert: t("drafity.dashboard.flashes.api_update_failed")
     end
   end
 
   def regenerate_api_key
     @client.regenerate_api_key!
-    redirect_to api_settings_dashboard_client_path(@client), notice: "APIキーを再発行しました。旧APIキーは無効になっています。埋め込みコードやWebhook連携先に反映してください。"
+    redirect_to api_settings_dashboard_client_path(@client), notice: t("drafity.dashboard.flashes.api_key_regenerated")
   end
 
   def regenerate_my_api_key
     @client.regenerate_api_key!
-    redirect_to dashboard_api_settings_path, notice: "APIキーを再発行しました。旧APIキーは無効になっています。埋め込みコードやWebhook連携先に反映してください。"
+    redirect_to dashboard_api_settings_path, notice: t("drafity.dashboard.flashes.api_key_regenerated")
   end
 
   private
@@ -77,7 +77,7 @@ class Dashboard::ClientsController < ApplicationController
 
   def ensure_own_client
     unless current_client == @client
-      flash[:alert] = "自分の設定のみ変更できます。"
+      flash[:alert] = t("drafity.dashboard.flashes.own_settings_only")
       redirect_to root_path
     end
   end

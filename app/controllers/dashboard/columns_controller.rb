@@ -122,7 +122,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   def bulk_generate_images
     if @@bulk_image_generating
-      return redirect_to image_generation_dashboard_columns_path, alert: "現在、別の一括画像生成タスクが実行中です。完了までお待ちください。"
+      return redirect_to image_generation_dashboard_columns_path, alert: t("drafity.dashboard.flashes.image_busy")
     end
 
     base_scope = dashboard_columns_base_scope
@@ -135,19 +135,19 @@ class Dashboard::ColumnsController < ApplicationController
     else
       column_ids = Array(params[:column_ids]).map(&:to_i).uniq
       if column_ids.blank?
-        return redirect_to image_generation_dashboard_columns_path, alert: "画像を生成する記事を選択してください。"
+        return redirect_to image_generation_dashboard_columns_path, alert: t("drafity.dashboard.flashes.image_select_required")
       end
 
       Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
 
       target_ids = image_generation_target_scope(base_scope).where(id: column_ids).pluck(:id)
       if target_ids.size < column_ids.size
-        return redirect_to image_generation_dashboard_columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
+        return redirect_to image_generation_dashboard_columns_path, alert: t("drafity.dashboard.flashes.image_invalid_selection")
       end
     end
 
     if target_ids.blank?
-      return redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
+      return redirect_to image_generation_dashboard_columns_path, alert: t("drafity.dashboard.flashes.image_none_found")
     end
 
     if client_signed_in?
@@ -180,9 +180,9 @@ class Dashboard::ColumnsController < ApplicationController
         end
       end
 
-      redirect_to dashboard_root_path, notice: "画像生成を開始しました（#{target_ids.size}件）"
+      redirect_to dashboard_root_path, notice: t("drafity.dashboard.flashes.image_started", count: target_ids.size)
     else
-      redirect_to image_generation_dashboard_columns_path, alert: "対象となる画像未設定の記事が見つかりませんでした。"
+      redirect_to image_generation_dashboard_columns_path, alert: t("drafity.dashboard.flashes.image_none_found")
     end
   end
 
@@ -248,7 +248,7 @@ class Dashboard::ColumnsController < ApplicationController
     # 3. 大容量データストリーミング
     self.response_body = Enumerator.new do |yielder|
       yielder << "\xEF\xBB\xBF"
-      yielder << ::CSV.generate_line(["ID", "記事タイトル", "ジャンル", "記事タイプ", "ステータス", "本文", "更新日時"])
+      yielder << ::CSV.generate_line([t("drafity.dashboard.csv.headers.id"), t("drafity.dashboard.csv.headers.title"), t("drafity.dashboard.csv.headers.genre"), t("drafity.dashboard.csv.headers.article_type"), t("drafity.dashboard.csv.headers.status"), t("drafity.dashboard.csv.headers.body"), t("drafity.dashboard.csv.headers.updated_at")])
 
       scope.find_in_batches(batch_size: 1000) do |batch|
         batch.each do |c|
@@ -277,7 +277,7 @@ class Dashboard::ColumnsController < ApplicationController
 
     redirect_to dashboard_columns_path
   rescue ActiveRecord::RecordNotFound
-    redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
+    redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
   end
 
   def stop_generation
@@ -285,14 +285,14 @@ class Dashboard::ColumnsController < ApplicationController
     Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
     unless %w[generating queued].include?(column.generation_status)
-      return redirect_to dashboard_columns_path, alert: "生成中または待機中の記事のみ停止できます"
+      return redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.stop_only_generating")
     end
 
     GenerateColumnBodyJob.request_stop!(column.id)
     column.update!(generation_status: "cancelled")
-    redirect_to dashboard_columns_path, notice: "生成を停止しました"
+    redirect_to dashboard_columns_path, notice: t("drafity.dashboard.flashes.generation_stopped")
   rescue ActiveRecord::RecordNotFound
-    redirect_to dashboard_columns_path, alert: "指定された記事にアクセスできません。"
+    redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
   end
 
   def setting; end
@@ -303,7 +303,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   def suggest_titles
     unless admin_or_allowed_genre?(params[:genre])
-      return render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
+      return render json: { success: false, error: t("drafity.dashboard.flashes.genre_access_denied") }
     end
 
     if client_signed_in? && !current_client.can_suggest_titles?
@@ -368,12 +368,12 @@ class Dashboard::ColumnsController < ApplicationController
     sub_genre = sanitize_sub_genre_param(genre, params[:sub_genre], client: client)
 
     if titles.blank? || genre.blank?
-      render json: { success: false, error: "タイトルとジャンルを指定してください" }
+      render json: { success: false, error: t("drafity.dashboard.flashes.title_genre_required") }
       return
     end
 
     unless admin_or_allowed_genre?(genre)
-      render json: { success: false, error: "指定されたジャンルにはアクセスできません。" }
+      render json: { success: false, error: t("drafity.dashboard.flashes.genre_access_denied") }
       return
     end
 
@@ -407,7 +407,7 @@ class Dashboard::ColumnsController < ApplicationController
     elsif remaining_slots <= 0 && client_signed_in?
       render json: { success: false, error: current_client.plan_limit_message(:pillar) }
     else
-      render json: { success: false, error: "記事を作成できませんでした: #{errors.join(', ')}" }
+      render json: { success: false, error: t("drafity.dashboard.flashes.column_create_failed", errors: errors.join(", ")) }
     end
   end
 
@@ -440,7 +440,7 @@ class Dashboard::ColumnsController < ApplicationController
     return if params[:genre].blank?
     return if admin_or_allowed_genre?(params[:genre])
 
-    redirect_to dashboard_columns_path(scope: params[:scope]), alert: "指定されたジャンルにはアクセスできません。"
+    redirect_to dashboard_columns_path(scope: params[:scope]), alert: t("drafity.dashboard.flashes.genre_access_denied")
   end
 
   def assign_dashboard_genre_options
