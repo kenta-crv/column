@@ -71,27 +71,43 @@ class ApplicationController < ActionController::Base
   def set_locale
     locale = resolve_ui_locale
     I18n.locale = locale
-    session[:ui_locale] = locale.to_s
+    persist_ui_locale!(locale)
   end
 
   # OAuth は /clients/auth/*（/en 外）へ飛ぶため、開始時点の UI locale を session に残す
   def stash_omniauth_locale
     return unless request.path.to_s.start_with?("/clients/auth/")
     return if request.path.to_s.include?("/callback")
+    return if Client::LOCALES.include?(session[:omniauth_locale].to_s)
 
-    locale = session[:ui_locale].presence || I18n.locale.to_s
+    locale = I18n.locale.to_s
     session[:omniauth_locale] = locale if Client::LOCALES.include?(locale)
   end
 
-  def resolve_ui_locale
-    requested = params[:locale].presence.to_s
-    return requested.to_sym if Client::LOCALES.include?(requested)
+  def persist_ui_locale!(locale)
+    value = locale.to_s
+    return unless Client::LOCALES.include?(value)
 
-    # /en なしの公開URLは明示的に日本語（session に en が残っていても上書き）
-    path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
-    path = "/" if path.blank?
-    return :ja if public_switchable_path?(path)
+    session[:ui_locale] = value
+    cookies[:ui_locale] = {
+      value: value,
+      expires: 1.year,
+      path: "/",
+      same_site: :lax
+    }
+  end
 
+  def adopt_request_locale!(client, locale: I18n.locale)
+    value = locale.to_s
+    return unless client && Client::LOCALES.include?(value)
+
+    persist_ui_locale!(value)
+    client.update(preferred_locale: value) if client.preferred_locale != value
+    I18n.locale = value.to_sym
+  end
+
+  # ユーザーが選んでいるUI言語（パス強制の影響を受けない）
+  def preferred_ui_locale
     if client_signed_in? && current_client.preferred_locale.present?
       return current_client.ui_locale
     end
@@ -99,7 +115,27 @@ class ApplicationController < ActionController::Base
     session_locale = session[:ui_locale].to_s
     return session_locale.to_sym if Client::LOCALES.include?(session_locale)
 
+    cookie_locale = cookies[:ui_locale].to_s
+    return cookie_locale.to_sym if Client::LOCALES.include?(cookie_locale)
+
     :ja
+  end
+
+  def resolve_ui_locale
+    requested = params[:locale].presence.to_s
+    return requested.to_sym if Client::LOCALES.include?(requested)
+
+    # /en なしの公開URLは日本語表示。アカウント言語はログイン時・言語切替時に合わせる
+    path = request_path_without_locale
+    return :ja if public_switchable_path?(path)
+
+    preferred_ui_locale
+  end
+
+  def request_path_without_locale
+    path = request.path.to_s.sub(%r{\A/en(?=/|$)}, "")
+    path = "/" if path.blank?
+    path
   end
 
 
@@ -113,7 +149,13 @@ class ApplicationController < ActionController::Base
       path.start_with?("/tools/seo-checker") ||
       path.start_with?("/clients/sign_in") ||
       path.start_with?("/clients/sign_up") ||
-      path.start_with?("/clients/password")
+      path.start_with?("/clients/password") ||
+      public_genre_columns_path?(path)
+  end
+
+  # /ai_article/columns など公開記事一覧・詳細（ /columns 管理画面は除外）
+  def public_genre_columns_path?(path)
+    path.to_s.split("?", 2).first.to_s.match?(%r{\A/[a-z0-9_]+/columns(?:/|\z)})
   end
 
   def authenticate_admin_or_client!
