@@ -7,8 +7,8 @@
   <div class="auth-forms">
     <div class="auth-card auth-card--signup auth-card--login">
       <div class="auth-card__header">
-        <%= link_to locale_root_href do %>
-          <%= image_tag drafity_logo_image, alt: "Drafity", width: "120" %>
+        <%= link_to locale_root_href, class: "auth-card__logo-link" do %>
+          <%= image_tag drafity_logo_image, alt: "Drafity", class: "auth-card__logo" %>
         <% end %>
         <h2 class="auth-card__title"><%= t("drafity.auth.password_forgot_title") %></h2>
         <p class="auth-card__lead"><%= t("drafity.auth.password_forgot_lead") %></p>

@@ -6,8 +6,8 @@
   .auth-forms
     .auth-card.auth-card--signup
       .auth-card__header
-        = link_to locale_root_href do
-          = image_tag drafity_logo_image, alt: "Drafity", width: "120"
+        = link_to locale_root_href, class: "auth-card__logo-link" do
+          = image_tag drafity_logo_image, alt: "Drafity", class: "auth-card__logo"
         h2.auth-card__title = t("drafity.auth.signup_title")
         p.auth-card__lead = t("drafity.auth.signup_lead")
 

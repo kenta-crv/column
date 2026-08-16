@@ -456,9 +456,22 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
       }
 
       .auth-card__header {
-        padding-top: 32px;
-        padding-bottom: 4px;
+        padding-top: 40px;
+        padding-bottom: 8px;
         text-align: center;
+      }
+
+      .auth-card__logo-link {
+        display: inline-block;
+        line-height: 0;
+        margin-bottom: 12px;
+      }
+
+      .auth-card__logo {
+        display: block;
+        width: 168px;
+        max-width: 100%;
+        height: auto;
       }
 
       .auth-card__title {
@@ -729,7 +742,21 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
 }
 
 .auth-wrapper--signup .auth-card--signup .auth-card__header {
-  padding-top: 32px;
+  padding-top: 40px;
+  padding-bottom: 8px;
+}
+
+.auth-wrapper--signup .auth-card--signup .auth-card__logo-link {
+  display: inline-block;
+  line-height: 0;
+  margin-bottom: 12px;
+}
+
+.auth-wrapper--signup .auth-card--signup .auth-card__logo {
+  display: block;
+  width: 168px;
+  max-width: 100%;
+  height: auto;
 }
 
 .auth-wrapper--signup .auth-card--signup .auth-card__footer {

@@ -34,6 +34,11 @@ class CrawlableSitemap
   end
 
   def self.ensure_fresh!(max_age: 1.hour)
-    refresh! unless SITEMAP_PATH.exist? && SITEMAP_PATH.mtime > max_age.ago
+    return if SITEMAP_PATH.exist? && SITEMAP_PATH.mtime > max_age.ago
+
+    refresh!
+  rescue StandardError => e
+    Rails.logger.error("[CrawlableSitemap] refresh failed: #{e.class}: #{e.message}")
+    raise unless SITEMAP_PATH.exist?
   end
 end

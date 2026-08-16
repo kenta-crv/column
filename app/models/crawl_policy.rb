@@ -10,8 +10,17 @@ module CrawlPolicy
     GenreRegistry.resolve_key(genre).to_s == GENRE_KEY
   end
 
+  def crawlable_genre_values
+    keys = GenreRegistry.equivalent_keys(GENRE_KEY)
+    ja = GenreRegistry.to_ja(GENRE_KEY)
+    (keys + [ja, GENRE_KEY]).compact.map(&:to_s).uniq.reject(&:blank?)
+  end
+
   def crawlable_columns
-    Column.where(genre: GENRE_KEY).merge(Column.published).merge(Column.with_generated_body)
+    Column.where(genre: crawlable_genre_values)
+          .merge(Column.published)
+          .merge(Column.with_generated_body)
+          .where.not(code: [nil, ""])
   end
 
   def column_path(column)
