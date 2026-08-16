@@ -12,6 +12,7 @@ class Api::V1::ArticlesController < ApplicationController
     columns = client_articles_scope.order(updated_at: :desc)
     columns = columns.where(genre: filter_genre_values) if params[:genre].present?
     columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+    columns = columns.where(language: Column.normalize_language(params[:language])) if params[:language].present?
     columns = columns.where(updated_at: parsed_updated_since..) if params[:updated_since].present?
 
     page = [params[:page].to_i, 1].max
@@ -53,8 +54,8 @@ class Api::V1::ArticlesController < ApplicationController
         return
       end
 
-      @column_body_with_ids = @column.body
-      @headings = extract_headings(@column.body)
+      @column_body_with_ids = GptGenerationLocale.rewrite_structure_headings(@column.body, language: @column.language)
+      @headings = extract_headings(@column_body_with_ids)
       @children = client_articles_scope.where(article_type: %w[child cluster], parent_id: @column.id)
 
       html = render_to_string(
@@ -133,10 +134,13 @@ class Api::V1::ArticlesController < ApplicationController
     html = Kramdown::Document.new(body.to_s).to_html
     fragment = Nokogiri::HTML::DocumentFragment.parse(html)
 
-    fragment.css('h2, h3, h4').map do |node|
+    fragment.css('h2, h3, h4').filter_map do |node|
+      text = node.text.strip
+      next if GptGenerationLocale.toc_heading?(text)
+
       {
         level: node.name[1].to_i,
-        text:  node.text.strip,
+        text:  text,
         id:    node['id']
       }
     end
@@ -161,12 +165,13 @@ class Api::V1::ArticlesController < ApplicationController
     payload = {
       id: column.id,
       title: column.title,
-      body: column.body,
+      body: GptGenerationLocale.rewrite_structure_headings(column.body, language: column.language),
       description: column.description,
       genre: column.genre,
       sub_genre: column.sub_genre,
       code: column.code,
       keyword: column.keyword,
+      language: column.language,
       status: column.status,
       article_type: column.article_type,
       file_url: column.file&.url,

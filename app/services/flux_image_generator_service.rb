@@ -18,11 +18,21 @@ class FluxImageGeneratorService
     Blank surfaces, plain walls, and unmarked objects only.
   TEXT
 
+  FLUX_FILENAME_RE = /\Acolumn_\d+_[0-9a-f]{16}\.(webp|jpe?g)\z/i
+
+  def self.already_generated?(column)
+    column.present? && stored_filename(column).match?(FLUX_FILENAME_RE)
+  end
+
+  def self.stored_filename(column)
+    column.read_attribute(:file).to_s
+  end
+
   def self.generate!(column)
     raise 'Column not found' if column.nil?
 
-    if column.file.present?
-      Rails.logger.info "[FluxImageGeneration] column #{column.id}: image already exists, skip"
+    if already_generated?(column)
+      Rails.logger.info "[FluxImageGeneration] column #{column.id}: flux image already exists, skip"
       return false
     end
 
@@ -112,7 +122,7 @@ class FluxImageGeneratorService
     scene = visual_scene_description(column)
 
     <<~PROMPT.squish
-      Photorealistic hero image for a Japanese business blog article.
+      Photorealistic hero image for a #{column.try(:english_article?) ? 'English-language' : 'Japanese'} business blog article.
       Scene: #{scene}
       Style: cinematic natural lighting, professional atmosphere, modern composition,
       highly detailed, clean design, natural colors, high quality, 16:9 landscape.

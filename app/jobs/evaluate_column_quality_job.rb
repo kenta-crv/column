@@ -34,7 +34,9 @@ class EvaluateColumnQualityJob < ApplicationJob
 
   def evaluate_article_quality(column)
     structure = analyze_body_structure(column.body)
-    prompt = build_evaluation_prompt(column, structure)
+    prompt = GptGenerationLocale.with_language(column) do
+      GptGenerationLocale.prepare_user_prompt(build_evaluation_prompt(column, structure))
+    end
 
     response_text = call_openai_api(prompt)
     parse_evaluation_response(response_text)

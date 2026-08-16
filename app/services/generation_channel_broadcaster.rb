@@ -12,7 +12,11 @@ module GenerationChannelBroadcaster
     {
       column_id: column.id,
       status: column.generation_status,
-      title: column.title
+      title: column.title,
+      generated_body: column.generated_body?,
+      published: column.published?,
+      path: "/columns/#{column.code.presence || column.id}",
+      file_url: column[:file].present? ? column.file.to_s : nil
     }
   end
 end

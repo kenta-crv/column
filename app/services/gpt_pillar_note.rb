@@ -53,6 +53,8 @@ require "uri"
 #    解消することに絞った(プロンプト文面自体の書き換えは最小限)。
 # ==========================================================
 class GptPillarNote
+  include GptPillarOwnService
+
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"
@@ -61,12 +63,6 @@ class GptPillarNote
   CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
   CLAUDE_MODEL   = "claude-sonnet-4-6"
 
-  # ----------------------------------------------------------
-  # 【直書き設定】自社サービスのURL。差し替えれば別サービスの
-  # 記事も同じ仕組みで作れる。
-  # ----------------------------------------------------------
-  OWN_SERVICE_URL  = "https://drafity.pro"
-  OWN_SERVICE_NAME = "Drafity"
 
   # article_type のデフォルト値。旧版は "pillar"(SEO専用語)を
   # 無条件で入れていたが、この生成器はジャンルを問わず使うため
@@ -144,6 +140,13 @@ class GptPillarNote
   # ==========================================================
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
+
+    with_own_service_for(column) do
+      generate_full_from_existing_column_impl!(column)
+    end
+  end
+
+  def self.generate_full_from_existing_column_impl!(column)
     ensure_not_cancelled!(column)
 
     client = column.client
@@ -159,7 +162,7 @@ class GptPillarNote
     # ----------------------------------------------------------
     # 自社事実の取得(web_fetchで直接取得。失敗しても記事は続行する)
     # ----------------------------------------------------------
-    own_facts = fetch_web_facts_strict(OWN_SERVICE_URL)
+    own_facts = fetch_web_facts_strict(own_service_url)
     puts(own_facts.present? ? "✅ 自社事実の取得に成功" : "ℹ️ 自社事実は取得できず。サービス名のみで軽く触れる")
 
     effective_prompt = build_effective_prompt(column, own_facts)
@@ -306,13 +309,6 @@ class GptPillarNote
     ensure_not_cancelled!(column)
     column.update!(body: body_content, status: "completed")
 
-    begin
-      FluxImageGeneratorService.generate!(column)
-    rescue => e
-      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
-    end
-
     puts "✅ 生成完了(汎用版): #{clean_code}"
 
     true
@@ -441,11 +437,11 @@ class GptPillarNote
     parts = []
     parts << column.prompt if column.prompt.present?
 
-    parts << "サービス名：#{OWN_SERVICE_NAME}(#{OWN_SERVICE_URL})"
+    parts << "サービス名：#{own_service_name}(#{own_service_url})"
 
     if own_facts.present?
       parts << <<~TEXT
-        【#{OWN_SERVICE_NAME}のWeb直接取得による確認済み事実(この範囲内でのみ使用可)】
+        【#{own_service_name}のWeb直接取得による確認済み事実(この範囲内でのみ使用可)】
         #{own_facts}
 
         (注意: この事実の中の数値・機能名は、記事全体を通じて基本的に1回だけ触れれば十分。
@@ -453,7 +449,7 @@ class GptPillarNote
         後述の【既出の具体的数値】ブロックで随時知らされる)
       TEXT
     else
-      parts << "【注意】具体的な事実は取得できていない。数値・機能名は創作せず、サービス名(#{OWN_SERVICE_NAME})に触れる程度に留める。"
+      parts << "【注意】具体的な事実は取得できていない。数値・機能名は創作せず、サービス名(#{own_service_name})に触れる程度に留める。"
     end
 
     parts.join("\n")
@@ -481,7 +477,7 @@ class GptPillarNote
       - 個人の視点・経験・葛藤が伝わる書き方にする
       - 断定しすぎず、迷いや気づきのプロセスも書いてよい
       - 宣伝色は抑える。ただし記事全体を通じて最低1箇所は、
-        【追加指示】に書かれたサービス名(#{OWN_SERVICE_NAME})に自然に触れること。
+        【追加指示】に書かれたサービス名(#{own_service_name})に自然に触れること。
         固有名詞を一切出さないまま終わるのは禁止(何の話か読者に伝わらなくなるため)
       - 読者に語りかけるような、対話的なトーンにする
     TEXT
@@ -762,6 +758,7 @@ class GptPillarNote
   end
 
   def self.call_gpt_api(prompt, json_mode: false)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
 
     req = Net::HTTP::Post.new(uri)
@@ -804,6 +801,8 @@ class GptPillarNote
       system_content += "\nJSON禁止。"
       system_content += "\n見出し出力禁止。"
     end
+
+    system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
     payload = {
       model: MODEL_NAME,
@@ -988,10 +987,7 @@ class GptPillarNote
   end
 
   def self.extract_gist(section_body)
-    return "" if section_body.blank?
-
-    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
-    sentences.last(2).join("").truncate(180)
+    GptGenerationLocale.extract_gist(section_body)
   end
 
   # ==========================================================

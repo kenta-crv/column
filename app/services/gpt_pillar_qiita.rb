@@ -82,6 +82,8 @@ require "uri"
 #    側に委ねるようにした。
 # ==========================================================
 class GptPillarQiita
+  include GptPillarOwnService
+
   class GenerationCancelledError < StandardError; end
 
   MODEL_NAME = "gpt-5.4-nano"
@@ -90,12 +92,6 @@ class GptPillarQiita
   CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
   CLAUDE_MODEL   = "claude-sonnet-4-6"
 
-  # ----------------------------------------------------------
-  # 【直書き設定】自社サービスのURL。差し替えれば別サービスの
-  # 記事も同じ仕組みで作れる。
-  # ----------------------------------------------------------
-  OWN_SERVICE_URL  = "https://drafity.pro"
-  OWN_SERVICE_NAME = "Drafity"
 
   # article_type のデフォルト値。Qiita向けのため技術記事を示す
   # 汎用語に変更。既に値が入っている場合は上書きしない。
@@ -108,7 +104,7 @@ class GptPillarQiita
   # (導入部・各見出し・まとめを合わせた総数でカウントする)
   MAX_QUESTION_ENDINGS = 2
 
-  # 記事全体を通じて許容する「サービス名(#{OWN_SERVICE_NAME})への言及」の最大回数。
+  # 記事全体を通じて許容する「サービス名(#{own_service_name})への言及」の最大回数。
   # 旧版は「最低1箇所は触れること」という指示を全セクション共通で
   # 静的に渡していたため、各セクションが独立にこの指示を満たそうとして
   # 記事全体で何度も(実例では6回)言及される事態が発生した。
@@ -174,6 +170,13 @@ class GptPillarQiita
   # ==========================================================
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
+
+    with_own_service_for(column) do
+      generate_full_from_existing_column_impl!(column)
+    end
+  end
+
+  def self.generate_full_from_existing_column_impl!(column)
     ensure_not_cancelled!(column)
 
     client = column.client
@@ -189,7 +192,7 @@ class GptPillarQiita
     # ----------------------------------------------------------
     # 自社事実の取得(web_fetchで直接取得。失敗しても記事は続行する)
     # ----------------------------------------------------------
-    own_facts = fetch_web_facts_strict(OWN_SERVICE_URL)
+    own_facts = fetch_web_facts_strict(own_service_url)
     puts(own_facts.present? ? "✅ 自社事実の取得に成功" : "ℹ️ 自社事実は取得できず。サービス名のみで軽く触れる")
 
     effective_prompt = build_effective_prompt(column, own_facts)
@@ -375,17 +378,10 @@ class GptPillarQiita
     # 一目でわかってしまう書式だった(実際のレビューで指摘あり)。
     # Qiitaの記事でよくある「参考」フッター的な体裁(Markdownリンク+
     # 軽い一言)に変更し、本文の流れから浮かないようにする。
-    body_content += "\n\n---\n参考: [#{OWN_SERVICE_NAME}](#{OWN_SERVICE_URL})"
+    body_content += "\n\n---\n参考: [#{own_service_name}](#{own_service_url})"
 
     ensure_not_cancelled!(column)
     column.update!(body: body_content, status: "completed")
-
-    begin
-      FluxImageGeneratorService.generate!(column)
-    rescue => e
-      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
-    end
 
     puts "✅ 生成完了(Qiita版): #{clean_code}"
 
@@ -516,7 +512,7 @@ class GptPillarQiita
     parts << column.prompt if column.prompt.present?
 
     parts << <<~TEXT
-      サービス名：#{OWN_SERVICE_NAME}
+      サービス名：#{own_service_name}
       (注意: 本文中に生のURL文字列(https://...)を書かないこと。
       URLはシステム側で記事末尾に1回だけ自動的に付与するため、
       本文内でリンクや完全なURLを書く必要はない。サービス名に触れる場合は
@@ -526,7 +522,7 @@ class GptPillarQiita
 
     if own_facts.present?
       parts << <<~TEXT
-        【#{OWN_SERVICE_NAME}のWeb直接取得による確認済み事実(この範囲内でのみ使用可)】
+        【#{own_service_name}のWeb直接取得による確認済み事実(この範囲内でのみ使用可)】
         #{own_facts}
 
         (注意: この事実の中の数値・機能名は、記事全体を通じて基本的に1回だけ触れれば十分。
@@ -534,7 +530,7 @@ class GptPillarQiita
         後述の【既出の具体的数値】ブロックで随時知らされる)
       TEXT
     else
-      parts << "【注意】具体的な事実は取得できていない。数値・機能名は創作せず、サービス名(#{OWN_SERVICE_NAME})に触れる程度に留める。"
+      parts << "【注意】具体的な事実は取得できていない。数値・機能名は創作せず、サービス名(#{own_service_name})に触れる程度に留める。"
     end
 
     parts.join("\n")
@@ -658,7 +654,7 @@ class GptPillarQiita
   def self.count_service_mentions(text)
     return 0 if text.blank?
 
-    text.scan(OWN_SERVICE_NAME).length
+    text.scan(own_service_name).length
   end
 
   # 見出し(h2_title)は generate_structure という別のAPI呼び出しで生成され、
@@ -668,13 +664,22 @@ class GptPillarQiita
   # 見出しが生成された)、機械的に除去する安全網を用意する。
   def self.sanitize_heading_of_service_name(title)
     return title if title.blank?
-    return title unless title.include?(OWN_SERVICE_NAME)
+    return title unless title.include?(own_service_name)
 
     puts "⚠️ 見出しにサービス名が含まれていたため除去: 「#{title}」"
 
     cleaned = title.dup
+    if GptGenerationLocale.english?
+      cleaned.gsub!(/\b#{Regexp.escape(own_service_name)}(?:['’]s)?\b/i, "")
+      cleaned.gsub!(/\A[,:\-\s]+/, "")
+      cleaned.gsub!(/[,:]{2,}/, ",")
+      cleaned.strip!
+      cleaned = "What I learned in practice" if cleaned.blank?
+      return cleaned
+    end
+
     # 「Drafityで」「Drafityの」のような助詞付きパターンをまとめて除去
-    cleaned.gsub!(/#{Regexp.escape(OWN_SERVICE_NAME)}(で|の|を|に|と|から|による|のような)?/, "")
+    cleaned.gsub!(/#{Regexp.escape(own_service_name)}(で|の|を|に|と|から|による|のような)?/, "")
     cleaned.gsub!(/\A[、,・\s]+/, "")   # 除去した結果、先頭に残った読点等だけを取り除く
     cleaned.gsub!(/[、,]{2,}/, "、")    # 除去の結果連続してしまった読点を1つにまとめる
     cleaned.strip!
@@ -686,21 +691,21 @@ class GptPillarQiita
     if mention_count >= MAX_SERVICE_NAME_MENTIONS
       <<~TEXT
         【サービス名の言及について(厳守)】
-        #{OWN_SERVICE_NAME}は、この記事内で既に#{mention_count}回言及されています。
+        #{own_service_name}は、この記事内で既に#{mention_count}回言及されています。
         このセクションでは新たにサービス名を出さず、内容そのもの(手順・原因・対策)に
         集中してください。URLも書かないでください。
       TEXT
     elsif force_mention
       <<~TEXT
         【サービス名の言及について(必須)】
-        この記事ではまだ#{OWN_SERVICE_NAME}という名前に一度も触れていません。
+        この記事ではまだ#{own_service_name}という名前に一度も触れていません。
         このセクションで、自然な文脈で1回だけ触れてください
         (URLは書かず、名前のみで十分です)。
       TEXT
     else
       <<~TEXT
         【サービス名の言及について】
-        #{OWN_SERVICE_NAME}に触れてもよい残り回数は#{MAX_SERVICE_NAME_MENTIONS - mention_count}回です。
+        #{own_service_name}に触れてもよい残り回数は#{MAX_SERVICE_NAME_MENTIONS - mention_count}回です。
         無理に毎セクション触れる必要はありません。触れる場合も名前のみで十分で、
         URLは書かないでください。
       TEXT
@@ -820,7 +825,7 @@ class GptPillarQiita
         自然な思考の流れを作る見出しにする
       - 各見出しは、内容が一目でわかる具体的な言い回しにする
       - 各見出しは異なる話題・異なる気づきを扱うこと(同じ話の繰り返し禁止)
-      - 見出し(h2_title)にサービス名(#{OWN_SERVICE_NAME})を含めないこと。
+      - 見出し(h2_title)にサービス名(#{own_service_name})を含めないこと。
         サービス名への言及は本文中でのみ、別途上限回数の指示に従って行う。
         見出しはあくまで扱う話題(手順・比較・落とし穴など)を表す言い回しにする
 
@@ -935,6 +940,7 @@ class GptPillarQiita
   end
 
   def self.call_gpt_api(prompt, json_mode: false)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
 
     req = Net::HTTP::Post.new(uri)
@@ -981,6 +987,8 @@ class GptPillarQiita
       system_content += "\nJSON禁止。"
       system_content += "\n見出し出力禁止。"
     end
+
+    system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
     payload = {
       model: MODEL_NAME,
@@ -1178,10 +1186,7 @@ class GptPillarQiita
   end
 
   def self.extract_gist(section_body)
-    return "" if section_body.blank?
-
-    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
-    sentences.last(2).join("").truncate(180)
+    GptGenerationLocale.extract_gist(section_body)
   end
 
   # ==========================================================

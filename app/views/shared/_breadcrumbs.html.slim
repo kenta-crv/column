@@ -6,7 +6,7 @@
     | .breadcrumbs__current{background:transparent!important}
     | body{position:relative}
 
-nav.breadcrumbs aria-label="パンくず"
+nav.breadcrumbs aria-label=t("drafity.columns.breadcrumb.aria")
   - breadcrumbs.each_with_index do |crumb, i|
     - is_last = (i == breadcrumbs.size - 1)
     - if !is_last && crumb[:path].present?

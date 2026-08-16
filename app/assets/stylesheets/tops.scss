@@ -192,7 +192,7 @@
 
     &-copy,
     &-cards,
-    &-actions {
+    &-cta-block {
       @media (min-width: 901px) {
         position: relative;
         z-index: 2;
@@ -220,7 +220,7 @@
       }
     }
 
-    &-actions {
+    &-cta-block {
       grid-column: 1;
       grid-row: 3;
 
@@ -243,10 +243,11 @@
       @media (min-width: 901px) {
         position: absolute;
         top: 50%;
-        right: 0;
+        /* 中央寄せコンテナの右端ではなく、画面右端まで寄せる */
+        right: calc(50% - 50vw);
         transform: translateY(-50%);
-        width: 60%;
-        max-width: 780px;
+        width: min(58vw, 820px);
+        max-width: none;
         z-index: 1;
         pointer-events: none;
         grid-column: auto;
@@ -336,12 +337,21 @@
       flex-wrap: wrap;
     }
 
+    &-cta-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      margin-top: 36px;
+      min-width: 0;
+    }
+
     &-actions {
       display: flex;
       align-items: center;
       gap: 14px;
-      margin-top: 36px;
       flex-wrap: wrap;
+      min-width: 0;
 
       .btn-purple {
         background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%);
@@ -353,6 +363,35 @@
           background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
           color: var(--white);
           box-shadow: 0 10px 26px rgba(99, 102, 241, 0.34);
+        }
+      }
+    }
+
+    &-trial-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 0 16px !important;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748B;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+
+      &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #ECFDF5;
+        color: #059669;
+        flex-shrink: 0;
+
+        svg {
+          width: 12px;
+          height: 12px;
         }
       }
     }
@@ -395,10 +434,39 @@
         max-width: 100%;
       }
 
-      &-actions {
+      &-cta-block {
         order: 4;
         margin-top: 0;
         max-width: 100%;
+        width: 100%;
+      }
+
+      &-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+
+        .btn-primary-lg,
+        .btn-ghost,
+        .btn-purple {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          justify-content: center;
+          padding: 14px 20px;
+          font-size: 15px;
+          white-space: normal;
+          text-align: center;
+        }
+
+        .btn-ghost,
+        .btn-purple {
+          padding: 13px 20px;
+        }
+      }
+
+      &-trial-note {
+        margin: 0 0 0 16px !important;
       }
 
       &-copy {
@@ -457,29 +525,6 @@
         }
       }
 
-      &-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 12px;
-
-        .btn-primary-lg,
-        .btn-ghost,
-        .btn-purple {
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
-          justify-content: center;
-          padding: 14px 20px;
-          font-size: 15px;
-          white-space: normal;
-          text-align: center;
-        }
-
-        .btn-ghost,
-        .btn-purple {
-          padding: 13px 20px;
-        }
-      }
     }
 
     &-social {
@@ -3295,13 +3340,9 @@
   /* 3つの特徴グリッド */
   .trial-features-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-bottom: 40px;
-
-    @media (min-width: 641px) {
-      grid-template-columns: repeat(3, 1fr);
-    }
     @media (max-width: 1024px) {
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;

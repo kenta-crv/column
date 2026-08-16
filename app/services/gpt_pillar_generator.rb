@@ -132,8 +132,7 @@ class GptPillarGenerator
 
     body_content += "\n\n"
 
-    # 目次
-    body_content += "## 目次\n\n"
+    body_content += "## #{GptGenerationLocale.toc_heading}\n\n"
 
     structure_data["structure"].each do |section|
       ensure_not_cancelled!(column)
@@ -202,13 +201,6 @@ class GptPillarGenerator
       body: body_content,
       status: "completed"
     )
-
-    begin
-      FluxImageGeneratorService.generate!(column)
-    rescue => e
-      Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
-    end
 
     puts "✅ 生成完了: #{clean_code}"
 
@@ -479,6 +471,7 @@ class GptPillarGenerator
   end
 
   def self.call_gpt_api(prompt, json_mode: false)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
 
     req = Net::HTTP::Post.new(uri)
@@ -521,6 +514,8 @@ class GptPillarGenerator
       system_content += "\nJSON禁止。"
       system_content += "\n見出し出力禁止。"
     end
+
+    system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
     payload = {
       model: MODEL_NAME,
@@ -741,10 +736,7 @@ class GptPillarGenerator
   # 末尾1〜2文を要旨として採用する
   # ==========================================================
   def self.extract_gist(section_body)
-    return "" if section_body.blank?
-
-    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
-    sentences.last(2).join("").truncate(180)
+    GptGenerationLocale.extract_gist(section_body)
   end
 
   # ==========================================================

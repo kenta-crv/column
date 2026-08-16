@@ -92,7 +92,7 @@ class GptArticleGenerator
       "導入",
       intro_prompt_text,
       column,
-      min_length: 600,
+    min_length: GptGenerationLocale.min_length(600),
       json_mode: false
     )
     full_article += intro_content + "\n\n"
@@ -110,7 +110,7 @@ class GptArticleGenerator
         h2["h2_title"],
         h2_prompt_text,
         column,
-        min_length: 800,
+        min_length: GptGenerationLocale.min_length(800),
         json_mode: false
       )
 
@@ -131,7 +131,7 @@ class GptArticleGenerator
       "まとめ",
       conclusion_prompt_text,
       column,
-      min_length: 300,
+      min_length: GptGenerationLocale.min_length(300),
       json_mode: false
     )
 
@@ -141,18 +141,8 @@ class GptArticleGenerator
     full_article += "\n\n{::options auto_ids=\"false\" /}"
 
     column.assign_attributes(body: full_article)
-    generate_article_image!(column)
 
     full_article
-  end
-
-  def self.generate_article_image!(column)
-    return if column.file.present?
-
-    FluxImageGeneratorService.generate!(column)
-  rescue => e
-    Rails.logger.error "[FluxImageGeneration] column #{column.id}: #{e.message}"
-    Rails.logger.error e.backtrace.first(5).join("\n")
   end
 
   def self.generate_section_content_with_retry(name, prompt, column, min_length: 50, json_mode: false)
@@ -168,7 +158,7 @@ class GptArticleGenerator
       Rails.logger.warn("#{name} の本文が抽出できない、または文字数が足りないためリトライします（制限: #{min_length}文字以上） (#{i+1}/#{MAX_RETRIES})")
       sleep(1)
     end
-    "（#{name}の本文生成に失敗しました。再生成してください。）"
+    GptGenerationLocale.section_failure_message(name)
   end
 
   def self.ensure_not_cancelled!(column)
@@ -518,10 +508,7 @@ class GptArticleGenerator
   # 末尾1〜2文を要旨として採用する
   # ==========================================================
   def self.extract_gist(section_body)
-    return "" if section_body.blank?
-
-    sentences = section_body.split(/(?<=。)/).map(&:strip).reject(&:blank?)
-    sentences.last(2).join("").truncate(180)
+    GptGenerationLocale.extract_gist(section_body)
   end
 
   # ==========================================================
@@ -615,6 +602,7 @@ class GptArticleGenerator
   # GPT API
   # ==========================================================
   def self.call_gpt_api(prompt, json_mode: false)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
 
@@ -656,6 +644,8 @@ class GptArticleGenerator
       system_content += "\nJSON禁止。"
       system_content += "\n見出し出力禁止（指示された場合を除く）。"
     end
+
+    system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
     payload = {
       model: MODEL_NAME,

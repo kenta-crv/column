@@ -45,22 +45,6 @@
         path d="M13.73 21a2 2 0 0 1-3.46 0"
       span.notification-dot
 
-    .language-dropdown-wrapper style="position: relative; display: inline-block;"
-      button.btn-icon-action#languageDropdownBtn type="button" style="cursor: pointer;"
-        svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          circle cx="12" cy="12" r="10"
-          line x1="2" y1="12" x2="22" y2="12"
-          path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-      .language-menu#languageMenu style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); z-index: 50; min-width: 140px; padding: 4px 0;"
-        a href="?lang=ja" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
-          = t("drafity.dashboard.columns.language_ja")
-        a href="?lang=ko" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
-          | 한국어
-        a href="?lang=en" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
-          | English
-        a href="?lang=de" style="display: block; padding: 8px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"
-          | Deutsch
-
 / 2. KPIグリッド
 .kpi-main-grid
   .kpi-stat-cards
@@ -220,6 +204,11 @@
           @dashboard_genre_options,
           { include_blank: t("drafity.dashboard.columns.all_categories"), selected: params[:genre] },
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
+      .filter-select-wrap
+        = f.select :language,
+          [[t("drafity.dashboard.columns.language_ja"), "ja"], [t("drafity.dashboard.columns.language_en"), "en"]],
+          { include_blank: t("drafity.dashboard.columns.all_languages"), selected: params[:language] },
+          { class: "filter-select", id: "language-select", onchange: "this.form.submit();" }
 
 / リアルタイム生成状況パネル
 .realtime-generation-panel
@@ -295,6 +284,7 @@
                         span.tag-item = t("drafity.dashboard.columns.parent_id", id: c.parent_id)
                       - if c.genre.present?
                         span.tag-item = c.genre
+                      span.tag-item = article_language_label(c.language)
               td
                 - if c.published?
                   span.status-badge.published = t("drafity.dashboard.labels.published")
@@ -385,8 +375,11 @@
 
 = render "title_suggestion_modal"
 
-- js_i18n = {
+ruby:
+  js_i18n = {
     realtimeGenerating: t("drafity.dashboard.columns.realtime_generating"),
+    realtimeDone: t("drafity.dashboard.columns.realtime_done"),
+    pendingReview: t("drafity.dashboard.labels.pending_review"),
     stop: t("drafity.dashboard.columns.stop"),
     noGenerating: t("drafity.dashboard.columns.no_generating"),
     scorePending: t("drafity.dashboard.columns.score_pending"),
@@ -421,6 +414,7 @@ javascript:
 
   let sessionCompletedCount = 0;
   let generationPollTimer = null;
+  let lastInProgressCount = null;
 
   function escapeHtml(text) {
     const div = document.createElement('div');
@@ -472,13 +466,13 @@ javascript:
       .then((data) => {
         if (!data) return;
         const inProgress = (data.queued_count || 0) + (data.generating_count || 0);
-        const wasPolling = !!generationPollTimer;
+        const previous = lastInProgressCount;
+        lastInProgressCount = inProgress;
         renderGenerationPanel(data);
         configureGenerationPolling(inProgress > 0);
 
-        // 生成がすべて終わったら一覧の公開ステータスを反映するためリロード
-        if (wasPolling && inProgress === 0 && sessionCompletedCount > 0) {
-          window.setTimeout(function() { window.location.reload(); }, 800);
+        if (previous > 0 && inProgress === 0) {
+          window.setTimeout(function() { window.location.reload(); }, 600);
         }
       })
       .catch(() => {});
@@ -514,22 +508,6 @@ javascript:
 
   (function() {
     const initAll = () => {
-      const btn  = document.getElementById('languageDropdownBtn');
-      const menu = document.getElementById('languageMenu');
-      if (btn && menu) {
-        const freshBtn = btn.cloneNode(true);
-        btn.replaceWith(freshBtn);
-        freshBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        });
-        document.addEventListener('click', (e) => {
-          if (!menu.contains(e.target) && e.target !== freshBtn) {
-            menu.style.display = 'none';
-          }
-        });
-      }
-
       initGenerationTracking();
     };
 
@@ -555,12 +533,61 @@ javascript:
   function updateGenerationStatus(data) {
     if (data.status === 'completed') {
       sessionCompletedCount += 1;
+      markGenerationItemDone(data);
+      applyGeneratedRow(data);
+      const completedCount = document.getElementById('completed-count');
+      if (completedCount) completedCount.textContent = sessionCompletedCount;
     }
 
     syncGenerationPanelFromServer();
 
     if (data.status === 'evaluated' && data.quality_score) {
       updateTableRowScore(data.column_id, data.quality_score, data.evaluation_metrics);
+    }
+  }
+
+  function markGenerationItemDone(data) {
+    const item = document.getElementById('generation-item-' + data.column_id);
+    if (!item) return;
+
+    item.dataset.status = 'completed';
+    const statusEl = item.querySelector('.generation-status');
+    if (statusEl) statusEl.textContent = I18nDash.realtimeDone;
+    const spinner = item.querySelector('.generation-spinner');
+    if (spinner) spinner.innerHTML = '<span style="color:#16a34a;font-weight:700;">✓</span>';
+    const stopBtn = item.querySelector('.generation-stop-btn');
+    if (stopBtn) stopBtn.remove();
+  }
+
+  function applyGeneratedRow(data) {
+    const row = document.querySelector(`tr[data-column-id="${data.column_id}"]`);
+    if (!row) return;
+
+    const badge = row.querySelector('.status-badge');
+    if (badge && !badge.classList.contains('published')) {
+      badge.className = 'status-badge review_pending';
+      badge.textContent = I18nDash.pendingReview;
+    }
+
+    const titleEl = row.querySelector('.article-title');
+    const link = titleEl && titleEl.closest('a.article-link');
+    if (link && data.path) {
+      link.setAttribute('href', data.path);
+      link.removeAttribute('onclick');
+      link.onclick = null;
+    }
+
+    if (data.file_url) {
+      const placeholder = row.querySelector('.article-thumb-placeholder');
+      if (placeholder) {
+        const img = document.createElement('img');
+        img.src = data.file_url;
+        img.className = 'article-thumb';
+        placeholder.replaceWith(img);
+      } else {
+        const img = row.querySelector('img.article-thumb');
+        if (img) img.src = data.file_url;
+      }
     }
   }
 
@@ -842,6 +869,7 @@ javascript:
     const genre       = document.getElementById('genre-select-modal').value;
     const subGenre    = document.getElementById('sub-genre-select-modal')?.value || '';
     const customPrompt = document.getElementById('custom-prompt').value;
+    const articleLanguage = document.getElementById('article-language-select')?.value || 'ja';
     const suggestionCount = clampSuggestionCount(document.getElementById('suggestion-count').value);
 
     if (!keyword1 || !keyword2 || !genre) {
@@ -864,6 +892,9 @@ javascript:
     }
     if (customPrompt.trim()) {
       params.set('custom_prompt', customPrompt.trim());
+    }
+    if (articleLanguage) {
+      params.set('language', articleLanguage);
     }
 
     fetch(`/dashboard/columns/suggest?${params.toString()}`, {
@@ -921,6 +952,8 @@ javascript:
 
     const payload = { titles, genre };
     if (subGenre) payload.sub_genre = subGenre;
+    const articleLanguage = document.getElementById('article-language-select')?.value || 'ja';
+    if (articleLanguage) payload.language = articleLanguage;
 
     fetch('/dashboard/columns/bulk_create_from_suggestions', {
       method: 'POST',

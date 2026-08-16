@@ -112,4 +112,28 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     column = Column.new(genre: "unknown_genre_xyz")
     assert_nil ColumnServiceCta.resolve(column)
   end
+
+  test "uses English CTA copy for English articles" do
+    column = Column.new(genre: "ai_article", language: "en", title: "AI articles")
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_includes cta[:title], "AI article"
+    assert_equal "See the service", cta[:cta_label]
+    assert_not_includes cta[:title], "加速"
+  end
+
+  test "uses English recruit CTA for English cargo driver articles" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "driver_recruitment",
+      language: "en",
+      title: "Amazon delivery driver jobs",
+      keyword: "Amazon delivery driver"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "For job seekers", cta[:badge]
+    assert_includes cta[:title], "LINE"
+    assert_not_includes cta[:badge], "求職"
+  end
 end

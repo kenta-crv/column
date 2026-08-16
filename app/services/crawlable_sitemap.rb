@@ -22,6 +22,7 @@ class CrawlableSitemap
       add "/en#{CrawlPolicy::TOPS_PATH}", changefreq: "weekly", priority: 0.8
       add "/en#{CrawlPolicy::SEO_CHECKER_PATH}", changefreq: "weekly", priority: 0.7
       add "/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.9
+      add "/en/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.8
 
       CrawlPolicy.crawlable_columns.find_each do |column|
         add CrawlPolicy.column_path(column),

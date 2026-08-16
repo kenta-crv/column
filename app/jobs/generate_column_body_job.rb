@@ -1,3 +1,5 @@
+require_dependency "flux_image_generator_service"
+
 class GenerateColumnBodyJob < ApplicationJob
   queue_as :article_generation
 
@@ -17,6 +19,7 @@ class GenerateColumnBodyJob < ApplicationJob
     return unless column
 
     if column.article_type == "pillar" && column.body.present?
+      ensure_column_image!(column)
       run_quality_evaluation!(column.id) unless quality_score_present?(column)
       if autonomous_run_id.present?
         AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
@@ -25,6 +28,7 @@ class GenerateColumnBodyJob < ApplicationJob
     end
 
     if column.generated_body?
+      ensure_column_image!(column)
       return
     end
 
@@ -44,7 +48,7 @@ class GenerateColumnBodyJob < ApplicationJob
       if result == :managed
         column.reload
         column.update!(generation_status: "completed") unless GenerateColumnBodyJob.cancelled?(column_id)
-      elsif result.present? && !result.to_s.include?("生成失敗")
+      elsif result.present? && !GptGenerationLocale.failed_output?(result)
         column.update!(body: result, status: "completed", generation_status: "completed")
       else
         raise "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
@@ -52,6 +56,8 @@ class GenerateColumnBodyJob < ApplicationJob
 
       column.reload
       broadcast_generation_status(column)
+      ensure_column_image!(column)
+      broadcast_generation_status(column.reload)
       Rails.logger.info("[GenerateColumnBodyJob] completed column_id=#{column_id}")
 
       if autonomous_run_id.present?
@@ -143,6 +149,18 @@ class GenerateColumnBodyJob < ApplicationJob
 
   def quality_score_present?(column)
     column.quality_score.present? && column.quality_score.to_f.positive?
+  end
+
+  def ensure_column_image!(column)
+    column.reload
+    return if FluxImageGeneratorService.already_generated?(column)
+
+    Rails.logger.info("[GenerateColumnBodyJob] image start column_id=#{column.id}")
+    FluxImageGeneratorService.generate!(column)
+  rescue => e
+    Rails.logger.error("[GenerateColumnBodyJob] image column_id=#{column.id} #{e.class}: #{e.message}")
+    column.reload
+    column.assign_stock_image_if_missing!
   end
 
   def run_quality_evaluation!(column_id)

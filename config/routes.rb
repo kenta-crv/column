@@ -100,6 +100,15 @@ Rails.application.routes.draw do
     get "tools/seo-checker", to: "seo_checkers#show", as: :localized_seo_checker
     post "tools/seo-checker", to: "seo_checkers#create"
 
+    # /en/columns をジャンルキー "en" として解釈させない
+    get "columns", to: redirect("/en/ai_article/columns"), as: :localized_columns_root
+
+    # Public article index/show under /en/:genre/columns (must stay inside /en scope)
+    scope ":genre/columns", constraints: { genre: /(?!en$)[a-z0-9_]+/ } do
+      get "/", to: "columns#index", as: :localized_columns_index
+      get "/:id", to: "columns#show", as: :localized_columns_show
+    end
+
     devise_scope :client do
       get "clients/sign_in", to: "clients/sessions#new", as: :new_client_session_en
       post "clients/sign_in", to: "clients/sessions#create", as: :client_session_en
@@ -117,7 +126,7 @@ Rails.application.routes.draw do
   # --- 1. 最優先：公開用マルチドメイン対応ルート ---
   # カスタムサービスジャンル（DB登録）も許可するため、起動時の固定キー一覧ではなくキー形式で制約する。
   # 実在・アクセス可否の判定はコントローラ側（accessible_public_genre? 等）で行う。
-  scope ':genre/columns', constraints: { genre: /[a-z0-9_]+/ } do
+  scope ':genre/columns', constraints: { genre: /(?!en$)[a-z0-9_]+/ } do
     get '/',    to: 'columns#index', as: :columns_index
     get '/:id', to: 'columns#show',  as: :columns_show
   end

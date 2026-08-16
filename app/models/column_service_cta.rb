@@ -11,7 +11,12 @@ class ColumnServiceCta
       title: "資料をアップロードするだけ。AIが24時間商談代行",
       lead: "営業担当の代わりにAIアバター「ミーティア」が即時商談。見込み度分析から自動追客まで一気通貫です。",
       cta_label: "無料で商談体験",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Upload your deck. AI runs meetings 24/7",
+        lead: "Meetia, an AI avatar, takes meetings for your sales team—from lead scoring to automated follow-up.",
+        cta_label: "Try a meeting free"
+      }
     },
     app: {
       enabled: true,
@@ -20,7 +25,12 @@ class ColumnServiceCta
       title: "AI×プロで、営業成果を仕組み化する",
       lead: "フォーム営業・テレアポ・インサイドセールスまで。低コストで大量アプローチできる営業代行です。",
       cta_label: "Okuriteのサービスを見る",
-      path: "/okurite"
+      path: "/okurite",
+      en: {
+        title: "Turn sales results into a system with AI + pros",
+        lead: "From form outreach and cold calls to inside sales. High-volume outreach at a lower cost.",
+        cta_label: "See Okurite"
+      }
     },
     cargo: {
       enabled: true,
@@ -30,6 +40,11 @@ class ColumnServiceCta
       lead: "ドライバー採用や業務請負について、まずはお気軽にご相談ください。",
       cta_label: "新規取引相談（LINE）",
       url: "https://lin.ee/NZBWRrsD",
+      en: {
+        title: "Amazon delivery staffing & operations—chat on LINE",
+        lead: "Talk to us about driver hiring or contracted delivery operations.",
+        cta_label: "New partnership (LINE)"
+      },
       by_sub_genre: {
         driver_recruitment: {
           theme: "jwork-recruit",
@@ -37,7 +52,13 @@ class ColumnServiceCta
           title: "Amazon配送ドライバーのお仕事はLINEで",
           lead: "未経験歓迎。お仕事情報をLINEで受け取れます。",
           cta_label: "お仕事の応募（LINE）",
-          url: "https://lin.ee/8pGADE1"
+          url: "https://lin.ee/8pGADE1",
+          en: {
+            badge: "For job seekers",
+            title: "Amazon delivery driver jobs on LINE",
+            lead: "No experience required. Get job updates on LINE.",
+            cta_label: "Apply via LINE"
+          }
         }
       }
     },
@@ -48,7 +69,12 @@ class ColumnServiceCta
       title: "自動販売機の設置・購入を無料相談",
       lead: "無料設置から本体購入まで。立地や運営方針に合わせた最適なプランをご提案します。",
       cta_label: "設置・購入について相談する",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Free consult for vending machine placement or purchase",
+        lead: "From free placement to buying your own machine. We propose a plan that fits the site and how you want to operate.",
+        cta_label: "Talk about placement or purchase"
+      }
     },
     cleaning: {
       enabled: true,
@@ -57,7 +83,12 @@ class ColumnServiceCta
       title: "日常清掃・オフィス清掃はOK清掃へ",
       lead: "20〜50代中心のスタッフ体制で、施設の美観と衛生を安定運用します。",
       cta_label: "清掃サービスを見る",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Daily and office cleaning with OK Cleaning",
+        lead: "Staffed mainly by people in their 20s–50s, we keep facilities looking and feeling clean.",
+        cta_label: "See cleaning services"
+      }
     },
     housekeeping: {
       enabled: true,
@@ -66,7 +97,12 @@ class ColumnServiceCta
       title: "家事代行・ハウスクリーニングはクラセラ",
       lead: "掃除・洗濯・片付けなど、暮らしの家事負担をプロがサポートします。",
       cta_label: "クラセラのサービスを見る",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Housekeeping and home cleaning with Kurasera",
+        lead: "Pros handle cleaning, laundry, and tidying so everyday chores take less of your time.",
+        cta_label: "See Kurasera"
+      }
     },
     ai_interview: {
       enabled: true,
@@ -75,7 +111,12 @@ class ColumnServiceCta
       title: "一次面接をAIが代行。採用スピードを上げる",
       lead: "求職者が好きな時間にAI面接を受診。評価結果を可視化し、面接工数を削減します。",
       cta_label: "Recrivoを見る",
-      path: "/"
+      path: "/",
+      en: {
+        title: "AI runs first-round interviews so hiring moves faster",
+        lead: "Candidates take an AI interview on their own schedule. Scores are visible, and interview hours drop.",
+        cta_label: "See Recrivo"
+      }
     },
     ai_article_generation: {
       enabled: true,
@@ -84,7 +125,12 @@ class ColumnServiceCta
       title: "SEO記事を、ピラー／クラスターで自動生成",
       lead: "検索需要に沿った高品質記事を短時間で生成。オウンドメディアの資産化を加速します。",
       cta_label: "Drafityを始める",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Generate SEO articles with a pillar / cluster structure",
+        lead: "High-quality articles aligned with search demand, in less time. Grow owned media as an asset.",
+        cta_label: "Start Drafity"
+      }
     },
     ai_article: {
       enabled: true,
@@ -93,7 +139,12 @@ class ColumnServiceCta
       title: "AI記事生成でコンテンツSEOを加速",
       lead: "親記事・子記事の設計から生成まで。検索流入につながる記事運用を支援します。",
       cta_label: "サービスを見る",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Speed up content SEO with AI article generation",
+        lead: "From pillar and cluster design through generation. We help you run articles that earn search traffic.",
+        cta_label: "See the service"
+      }
     },
     emergency_cleaning: {
       enabled: true,
@@ -102,7 +153,12 @@ class ColumnServiceCta
       title: "特殊清掃・緊急対応のご相談",
       lead: "専門機材とプロの技術で、迅速かつ丁寧に対応します。",
       cta_label: "特殊清掃について相談する",
-      path: "/"
+      path: "/",
+      en: {
+        title: "Specialized and emergency cleaning",
+        lead: "Professional equipment and technique for a fast, careful response.",
+        cta_label: "Talk about specialized cleaning"
+      }
     }
   }.freeze
 
@@ -131,7 +187,7 @@ class ColumnServiceCta
 
     sub_key = GenreRegistry.resolve_sub_category_key(column, key)
     override = dig_sub_genre(base, sub_key)
-    merge_cta(base, override)
+    apply_locale_copy(merge_cta(base, override), column, key, sub_key, base, override)
   end
 
   def self.default_payload_for(key)
@@ -142,8 +198,6 @@ class ColumnServiceCta
   end
 
   def self.stringify_payload(payload)
-    return {} if payload.blank?
-
     case payload
     when Hash
       payload.each_with_object({}) do |(k, v), result|
@@ -157,8 +211,6 @@ class ColumnServiceCta
   end
 
   def self.symbolize_payload(payload)
-    return {} if payload.blank?
-
     case payload
     when Hash
       payload.each_with_object({}) do |(k, v), result|
@@ -211,6 +263,8 @@ class ColumnServiceCta
     by_sub[sub_key.to_s].presence || by_sub[sub_key.to_sym].presence
   end
 
+  COPY_KEYS = %i[title lead cta_label badge].freeze
+
   def self.merge_cta(base, override)
     data = base.except(:by_sub_genre, "by_sub_genre")
     data = symbolize_payload(data)
@@ -218,5 +272,33 @@ class ColumnServiceCta
 
     data.merge(symbolize_payload(override).except(:by_sub_genre))
   end
-  private_class_method :merge_cta, :dig_sub_genre, :disabled?, :blank_payload?
+
+  def self.apply_locale_copy(payload, column, key, sub_key, base, override)
+    return payload unless Column.english_language?(column&.language)
+
+    default = default_payload_for(key)
+    en_copy = extract_en_copy(default)
+    en_copy = en_copy.merge(extract_en_copy(base))
+    if sub_key.present?
+      en_copy = en_copy.merge(extract_en_copy(dig_sub_genre(default, sub_key)))
+      en_copy = en_copy.merge(extract_en_copy(override))
+    end
+
+    data = symbolize_payload(payload.except(:en, "en", :by_sub_genre, "by_sub_genre"))
+    COPY_KEYS.each do |copy_key|
+      data[copy_key] = en_copy[copy_key] if en_copy[copy_key].present?
+    end
+    data
+  end
+
+  def self.extract_en_copy(payload)
+    return {} if payload.blank?
+
+    en = payload.with_indifferent_access[:en]
+    return {} unless en.is_a?(Hash)
+
+    symbolize_payload(en).slice(*COPY_KEYS).compact
+  end
+  private_class_method :merge_cta, :dig_sub_genre, :disabled?, :blank_payload?,
+                       :apply_locale_copy, :extract_en_copy
 end

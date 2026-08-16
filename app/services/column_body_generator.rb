@@ -19,23 +19,25 @@ class ColumnBodyGenerator
   # :managed = サービス側で column を更新済み
   # String  = 子記事通常生成の本文（呼び出し側で保存）
   def self.generate!(column)
-    mode = Column.normalize_generation_mode(column.generation_mode)
+    GptGenerationLocale.with_language(column) do
+      mode = Column.normalize_generation_mode_for(column.generation_mode, language: column.language)
 
-    if mode == "default"
-      if column.article_type == "pillar"
-        GptPillarGenerator.generate_full_from_existing_column!(column)
-        return :managed
+      if mode == "default"
+        if column.article_type == "pillar"
+          GptPillarGenerator.generate_full_from_existing_column!(column)
+          return :managed
+        end
+
+        return GptArticleGenerator.generate_body(column)
       end
 
-      return GptArticleGenerator.generate_body(column)
+      MODE_SERVICES.fetch(mode).constantize.generate_full_from_existing_column!(column)
+      :managed
     end
-
-    MODE_SERVICES.fetch(mode).constantize.generate_full_from_existing_column!(column)
-    :managed
   end
 
   def self.service_class_for(column)
-    mode = Column.normalize_generation_mode(column.generation_mode)
+    mode = Column.normalize_generation_mode_for(column.generation_mode, language: column.language)
 
     if mode == "default"
       return column.article_type == "pillar" ? GptPillarGenerator : GptArticleGenerator

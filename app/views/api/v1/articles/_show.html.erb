@@ -11,7 +11,7 @@
 
     <% if @headings.present? && @headings.any? %>
       <div class="toc" style="background: #f0f4ff !important; border: 1px solid #c7d2fe !important; border-radius: 12px !important; padding: 25px 30px !important; margin-bottom: 50px !important; font-size: 15px !important; line-height: 1.7 !important; box-sizing: border-box !important; display: block !important;">
-        <div class="toc-title" style="font-size: 20px !important; font-weight: 700 !important; color: #3b82f6 !important; margin-bottom: 12px !important; display: block !important;">目次</div>
+        <div class="toc-title" style="font-size: 20px !important; font-weight: 700 !important; color: #3b82f6 !important; margin-bottom: 12px !important; display: block !important;"><%= t("drafity.columns.show.toc", locale: (@column.english_article? ? :en : :ja)) %></div>
         <ul class="toc-list" style="list-style: none !important; padding-left: 0 !important; margin: 0 !important; display: block !important;">
           <% @headings.each do |h| %>
             <% 

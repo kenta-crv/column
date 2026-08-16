@@ -25,7 +25,7 @@ module TopsHelper
   end
 
   def ai_article_columns_index_path
-    AI_ARTICLE_COLUMNS_INDEX
+    lp_english? ? "/en#{AI_ARTICLE_COLUMNS_INDEX}" : AI_ARTICLE_COLUMNS_INDEX
   end
 
   def featured_ai_article_columns(limit: 5)
@@ -36,7 +36,7 @@ module TopsHelper
       next if column.code.blank?
       next unless GenreRegistry.equivalent_keys(column.genre).include?(CrawlPolicy::GENRE_KEY)
 
-      { title: column.title, path: CrawlPolicy.column_path(column) }
+      { title: column.title, path: lp_public_path(CrawlPolicy.column_path(column)) }
     end
 
     return live if live.any?
@@ -47,7 +47,14 @@ module TopsHelper
   end
 
   def featured_fallback
-    lp_english? ? AI_ARTICLE_FEATURED_FALLBACK_EN : AI_ARTICLE_FEATURED_FALLBACK
+    rows = lp_english? ? AI_ARTICLE_FEATURED_FALLBACK_EN : AI_ARTICLE_FEATURED_FALLBACK
+    rows.map { |item| item.merge(path: lp_public_path(item[:path])) }
+  end
+
+  def lp_public_path(path)
+    p = path.to_s
+    return p unless lp_english?
+    p.start_with?("/en") ? p : "/en#{p}"
   end
 
   def lp_whats_features
@@ -107,17 +114,17 @@ module TopsHelper
   def lp_ea_steps
     if lp_english?
       [
-        { num: "01", title: "Set genre & theme", desc: "Define the topic area once. The agent uses it as the brief.", icon: "target" },
+        { num: "01", title: "Set genre & CTA", desc: "Define the topic, strengths, and article footer CTA once.", icon: "target" },
         { num: "02", title: "Design & write pillars", desc: "AI proposes SEO-strong parent titles and generates the bodies.", icon: "pen" },
-        { num: "03", title: "Expand to clusters", desc: "Related child titles and drafts fill out comprehensive coverage.", icon: "layers" },
-        { num: "04", title: "Notify when done", desc: "Email/SMS alerts — even if the browser is closed.", icon: "bell" }
+        { num: "03", title: "Approve child titles", desc: "Review cluster titles, then approve to generate bodies.", icon: "layers" },
+        { num: "04", title: "Notify when done", desc: "Email alerts — even if the browser is closed.", icon: "bell" }
       ]
     else
       [
-        { num: "01", title: "ジャンル・テーマを設定", desc: "扱う領域を一度定義。以降の生成の指針になります。", icon: "target" },
+        { num: "01", title: "ジャンル・CTAを設定", desc: "扱う領域・強み・記事下部CTAを一度定義します。", icon: "target" },
         { num: "02", title: "ピラーを設計・生成", desc: "検索意図に沿った親タイトルを提案し、本文まで自動で書き上げます。", icon: "pen" },
-        { num: "03", title: "クラスターへ展開", desc: "関連する子タイトル・本文まで一連で網羅的に生成します。", icon: "layers" },
-        { num: "04", title: "完了を通知", desc: "ブラウザを閉じても進行。完了はメール／SMSで知らせます。", icon: "bell" }
+        { num: "03", title: "子タイトルを承認", desc: "クラスタータイトルを確認し、承認後に本文生成へ進めます。", icon: "layers" },
+        { num: "04", title: "完了をメール通知", desc: "ブラウザを閉じても進行。完了はメールで知らせます。", icon: "bell" }
       ]
     end
   end
@@ -127,13 +134,13 @@ module TopsHelper
       [
         { icon: "zap", text: "End-to-end automation" },
         { icon: "cpu", text: "Runs in the background" },
-        { icon: "mail", text: "Email / SMS alerts" }
+        { icon: "mail", text: "Email completion alerts" }
       ]
     else
       [
         { icon: "zap", text: "一連を自動で実行" },
         { icon: "cpu", text: "バックグラウンド進行" },
-        { icon: "mail", text: "メール／SMSで完了通知" }
+        { icon: "mail", text: "メールで完了通知" }
       ]
     end
   end
@@ -142,13 +149,13 @@ module TopsHelper
     if lp_english?
       [
         {
-          num: "01", title: "AI target definition", desc: "AI refines ideal audience profiles so marketing teams can set precise targeting quickly.",
-          mock_header: "Keyword ideas",
-          kw_head: %w[Keyword Competition],
+          num: "01", title: "Genre & CTA setup", desc: "Manage strengths, keywords, and footer CTAs per genre — your owned-media brief in one place.",
+          mock_header: "Genre brief",
+          kw_head: %w[Item Value],
           kw_rows: [
-            { kw: "AI article generation", vol: "12,100", b_class: "low", b_text: "Low" },
-            { kw: "SEO strategy", vol: "8,900", b_class: "mid", b_text: "Mid" },
-            { kw: "Content marketing", vol: "6,600", b_class: "low", b_text: "Low" }
+            { kw: "Strengths", vol: "3 set", b_class: "low", b_text: "Ready" },
+            { kw: "Keywords", vol: "12", b_class: "mid", b_text: "Active" },
+            { kw: "Footer CTA", vol: "On", b_class: "low", b_text: "Live" }
           ]
         },
         {
@@ -171,29 +178,29 @@ module TopsHelper
           num: "04", title: "Auto image generation", desc: "AI generates and suggests images and eye-catchers that match the article."
         },
         {
-          num: "05", title: "Cluster titles & drafts", desc: "From a parent title, AI proposes ~15 child titles to scale comprehensive coverage.",
-          mock_header: "Improvement tips",
+          num: "05", title: "Cluster titles & drafts", desc: "From a parent title, AI proposes ~15 child titles. Approve them, then generate bodies.",
+          mock_header: "Cluster titles",
           suggestions: [
-            "Including keywords in headings works well",
-            "A more concrete intro can lower bounce rate",
-            "We recommend adding internal links"
+            "How to choose an AI writing tool",
+            "Pillar vs cluster SEO structure",
+            "Measuring content quality scores"
           ]
         },
         {
-          num: "06", title: "Publish & integrate", desc: "One-click WordPress publishing that fits in-house editorial workflows.",
-          wp_text: "Connecting to WordPress..."
+          num: "06", title: "Publish via embed / API", desc: "Ship with embed.js (one script tag), JSON API sync, or Webhooks — fit your CMS, not locked to WordPress.",
+          wp_text: "Connecting embed.js / API..."
         }
       ]
     else
       [
         {
-          num: "01", title: "AIターゲット定義", desc: "AIが理想顧客・読者像を詳細化するので、マーケチームが的確な定義設計を素早く進められます。",
-          mock_header: "キーワード候補",
-          kw_head: %w[キーワード 競合性],
+          num: "01", title: "ジャンル・CTA設計", desc: "強み・キーワード・記事下部CTAをジャンル単位で管理。オウンドメディアの設計台として使えます。",
+          mock_header: "ジャンル設定",
+          kw_head: %w[項目 状態],
           kw_rows: [
-            { kw: "AI 記事生成", vol: "12,100", b_class: "low", b_text: "低" },
-            { kw: "SEO対策", vol: "8,900", b_class: "mid", b_text: "中" },
-            { kw: "コンテンツマーケティング", vol: "6,600", b_class: "low", b_text: "低" }
+            { kw: "強み", vol: "3件", b_class: "low", b_text: "設定済" },
+            { kw: "キーワード", vol: "12", b_class: "mid", b_text: "活用中" },
+            { kw: "記事下部CTA", vol: "ON", b_class: "low", b_text: "公開" }
           ]
         },
         {
@@ -207,16 +214,16 @@ module TopsHelper
           editor_p2: "本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。"
         },
         {
-          num: "04", title: "画像の自動生成", desc: "記事内容に合った画像やアイキャッチをAIが自動で生成・提案。"
+          num: "04", title: "画像の自動生成", desc: "記事内容に合った画像やアイキャッチをAIが自動で生成・提案。一括生成にも対応。"
         },
         {
-          num: "05", title: "クラスタータイトル・記事の自動提案・作成", desc: "親タイトル・記事から最適な構成になる子タイトルを平均15個自動で提案し、網羅的な増量を支援。",
-          mock_header: "改善提案",
-          suggestions: %w[見出しにキーワードを含めると効果的です 導入文をより具体的にすると離脱率が下がります 内部リンクの追加をおすすめします]
+          num: "05", title: "クラスター展開・品質スコア", desc: "親から子タイトルを平均15個提案。承認後に本文生成。構成／SEO／読みやすさなど5軸の品質スコアで査定。",
+          mock_header: "クラスタータイトル",
+          suggestions: %w[AI記事生成ツールの選び方 ピラーとクラスターの設計 品質スコアの見方]
         },
         {
-          num: "06", title: "公開・連携", desc: "WordPress連携でワンクリック公開。社内の入稿・運用フローに組み込みやすい。",
-          wp_text: "WordPressに接続中..."
+          num: "06", title: "embed.js / API / Webhook公開", desc: "embed.jsの1行埋め込み、JSON API同期、Webhook通知で自社サイトへ配信。WordPress専用ではありません。",
+          wp_text: "embed.js / API 連携中..."
         }
       ]
     end
@@ -243,17 +250,17 @@ module TopsHelper
   def lp_dashboard_features
     if lp_english?
       [
-        { class: "icon-blue", type: "pie", label: "Key metrics in real time", desc: "See total generations, published, drafts, and success rate at a glance." },
+        { class: "icon-blue", type: "pie", label: "Key metrics at a glance", desc: "See total generations, published, drafts, and average AI quality score." },
         { class: "icon-amber", type: "folder", label: "Genre-level article status", desc: "Totals and Pillar / Cluster breakdowns to refine content strategy." },
         { class: "icon-indigo", type: "filter", label: "Filter by status instantly", desc: "Switch statuses in one click and find the articles you need." },
-        { class: "icon-purple", type: "clock", label: "Live generation progress", desc: "Track AI generation as it happens — completions and progress included." }
+        { class: "icon-purple", type: "clock", label: "Live generation progress", desc: "Track AI generation as it happens — stop runs when needed." }
       ]
     else
       [
-        { class: "icon-blue", type: "pie", label: "重要指標をリアルタイムで把握", desc: "総生成数・公開済・下書き・成功率など、主要な情報をひと目で確認できます。" },
+        { class: "icon-blue", type: "pie", label: "重要指標をひと目で把握", desc: "総生成数・公開済・下書き・平均AI品質スコアなど、主要な情報を確認できます。" },
         { class: "icon-amber", type: "folder", label: "ジャンルごとの記事状況を可視化", desc: "ジャンル別の記事総数と、Pillar / Clusterの内訳を確認。コンテンツ戦略の最適化に役立ちます。" },
         { class: "icon-indigo", type: "filter", label: "ステータスごとに簡単フィルタ", desc: "すべてのステータスをワンクリックで切り替え、必要な記事をすぐに検索・管理できます。" },
-        { class: "icon-purple", type: "clock", label: "リアルタイム生成状況を確認", desc: "AI生成の進行状況をリアルタイムで確認。完了数や進捗をすぐに把握できます。" }
+        { class: "icon-purple", type: "clock", label: "リアルタイム生成状況を確認", desc: "AI生成の進行状況をリアルタイムで確認。必要なら生成を停止できます。" }
       ]
     end
   end
@@ -275,8 +282,8 @@ module TopsHelper
         {
           avatar_class: "avatar-editor", badge_class: "badge-cyan", badge_text: "Editorial studio",
           name: "Agency director", stars: "★★★★★", rating: "5.0",
-          quote: "“Writer QC and rewrites became dramatically smoother.”",
-          body: "Quality varied by writer. Drafity’s outlines and rewrite suggestions let us ship consistent, high-quality content at volume.",
+          quote: "“Writer QC became dramatically smoother.”",
+          body: "Quality varied by writer. Drafity’s outlines and five-axis quality scores help us ship consistent content at volume.",
           metrics: [
             { type: "shield", label: "Edit / proof time", val_class: "val-down", val: "-45%" },
             { type: "chart", label: "Monthly deliveries", val_class: "val-up", val: "+180%" }
@@ -287,7 +294,7 @@ module TopsHelper
           avatar_class: "avatar-manager", badge_class: "badge-indigo", badge_text: "B2B marketing",
           name: "Owned-media lead", stars: "★★★★★", rating: "5.0",
           quote: "“Target keywords climbed — and CV followed.”",
-          body: "Competitive analysis and live SEO scoring are excellent. More top rankings on strategic keywords drove stronger leads.",
+          body: "Pillar/cluster coverage plus quality scoring kept our publish cadence. More top rankings on strategic keywords drove stronger leads.",
           metrics: [
             { type: "team", label: "Leads won", val_class: "val-up", val: "+250%" },
             { type: "search", label: "Top-rank KWs", val_class: "val-up", val: "+145%" }
@@ -322,8 +329,8 @@ module TopsHelper
         {
           avatar_class: "avatar-editor", badge_class: "badge-cyan", badge_text: "編集プロダクション",
           name: "受託制作 ディレクター", stars: "★★★★★", rating: "5.0",
-          quote: "「外注ライターの品質管理とリライトが極めてスムーズに。」",
-          body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と校正・リライト提案機能により、均一で高品質なコンテンツを安定量産できています。",
+          quote: "「外注ライターの品質管理が極めてスムーズに。」",
+          body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と品質スコア（5軸）により、均一で高品質なコンテンツを安定量産できています。",
           metrics: [
             { type: "shield", label: "編集・校正時間", val_class: "val-down", val: "-45%" },
             { type: "chart", label: "月間納品本数", val_class: "val-up", val: "+180%" }
@@ -334,7 +341,7 @@ module TopsHelper
           avatar_class: "avatar-manager", badge_class: "badge-indigo", badge_text: "B2Bマーケティング",
           name: "オウンドメディア運営責任者", stars: "★★★★★", rating: "5.0",
           quote: "「狙った重点キーワードで上位獲得。CV増加に直結！」",
-          body: "競合分析やリアルタイムのSEOスコア機能が極めて優秀です。狙いすました戦略的キーワードで検索上位表示が増え、質の高いホワイトペーパーDLや問い合わせに繋がっています。",
+          body: "ピラー／クラスターの網羅と品質スコアで公開ペースを維持できています。狙いすました戦略的キーワードで検索上位表示が増え、質の高い問い合わせに繋がっています。",
           metrics: [
             { type: "team", label: "獲得リード数", val_class: "val-up", val: "+250%" },
             { type: "search", label: "上位表示KW数", val_class: "val-up", val: "+145%" }
@@ -382,13 +389,13 @@ module TopsHelper
     if lp_english?
       [
         { icon: "polyline", label: "Start free", desc: "Try article generation, SEO analysis, image gen, and more" },
-        { icon: "calendar", label: "Commercial use OK", desc: "Trial articles are yours for business use" },
+        { icon: "credit-card", label: "No credit card", desc: "Start the trial without a card. No auto-charge when it ends." },
         { icon: "shield", label: "Cancel anytime", desc: "Cancel during the trial and you pay nothing" }
       ]
     else
       [
         { icon: "polyline", label: "まずは無料で検証", desc: "記事生成・SEO分析・画像生成など、法人導入前に主要機能を体験" },
-        { icon: "calendar", label: "商用利用OK", desc: "トライアル期間でも作成記事はそのまま業務利用できます" },
+        { icon: "credit-card", label: "クレジットカード不要", desc: "カード登録なしでトライアル開始。終了後の自動課金もありません。" },
         { icon: "shield", label: "いつでも解約可能", desc: "トライアル期間中に解約すれば料金は一切かかりません" }
       ]
     end
@@ -410,10 +417,10 @@ module TopsHelper
 
   FAQ_ITEMS = [
     # service
-    { category: "service", q: "Drafityはどんなサービスですか？", a: "法人のオウンドメディア・コンテンツマーケ向けに、SEO構成から本文・画像・リライト・効果測定までを一つの画面で進めるAIコンテンツ増量プラットフォームです。親記事（ピラー）と子記事（クラスター）の設計にも対応しています。" },
-    { category: "service", q: "SEOスコアはどう出ますか？", a: "見出し構成やキーワード比率などをもとに、AIが100点満点で自動査定します。生成後にエディタで直しながらスコアを確認できます。" },
-    { category: "service", q: "記事生成中にブラウザを閉じても大丈夫ですか？", a: "はい。サーバー側で処理が続くため、画面を閉じても生成は止まりません。" },
-    { category: "service", q: "WordPressやAPI連携はできますか？", a: "はい。WordPressへのワンクリック公開やCMS向けエクスポートに対応しています。API利用はスタンダード以上です（トライアルでは不可）。" },
+    { category: "service", q: "Drafityはどんなサービスですか？", a: "法人のオウンドメディア・コンテンツマーケ向けに、SEO構成から本文・画像生成、品質スコア査定、API／embed公開までを一つの画面で進めるAIコンテンツ増量プラットフォームです。親記事（ピラー）と子記事（クラスター）の設計にも対応しています。" },
+    { category: "service", q: "品質スコアはどう出ますか？", a: "構成・SEO・読みやすさ・有用性・独自性などをもとにAIが査定し、一覧で確認できます。生成後にエディタで手直ししながら運用できます。" },
+    { category: "service", q: "記事生成中にブラウザを閉じても大丈夫ですか？", a: "はい。サーバー側で処理が続くため、画面を閉じても生成は止まりません。Business以上のAI主導生成では完了をメールで通知します。" },
+    { category: "service", q: "自社サイトへの公開・連携はできますか？", a: "はい。embed.jsの1行埋め込み、JSON API、Webhook通知に対応しています。HTML／テキストのエクスポートも可能です。API利用はスタンダード以上です（トライアルでは不可）。WordPress専用のワンクリック公開機能はありません。" },
     { category: "service", q: "生成した記事の著作権は誰のものですか？", a: "トライアル期間を含め、生成した記事はお客様のコンテンツとしてご利用いただけます。" },
 
     # pricing
@@ -423,22 +430,22 @@ module TopsHelper
     { category: "pricing", q: "プラン変更や請求書払いはできますか？", a: "プラン変更はダッシュボードの契約管理から可能です。請求書払いは契約形態により案内します。法人でのご利用・請求書払いをご希望の場合はお問い合わせください。" },
 
     # setup
-    { category: "setup", q: "申し込みから最初の記事までの手順は？", a: "①「無料で始める」からアカウント登録→②登録完了と同時にトライアル開始（カード不要）→③キーワード入力から構成・本文を生成→④エディタで編集し、公開またはWordPress連携。必要になったら料金プラン画面から有料プランへCheckoutできます。" },
-    { category: "setup", q: "始めるときに用意するものは？", a: "特別な準備は不要です。狙いたいキーワードやテーマが決まっていればすぐ生成できます。プログラミング知識も不要です。" },
+    { category: "setup", q: "申し込みから最初の記事までの手順は？", a: "①「無料で始める」からアカウント登録→②登録完了と同時にトライアル開始（カード不要）→③ジャンル設定・キーワードから構成・本文を生成→④エディタで編集し公開。自社サイトへはembed.js／API／Webhookで配信できます。必要になったら料金プラン画面から有料プランへCheckoutできます。" },
+    { category: "setup", q: "始めるときに用意するものは？", a: "特別な準備は不要です。狙いたいキーワードやテーマが決まっていればすぐ生成できます。プログラミング知識も不要です（embedはHTMLに1行追加するだけ）。" },
     { category: "setup", q: "有料プランへの切り替え方は？", a: "ダッシュボードの料金プラン（/plans）からプランを選び、クレジットカードでCheckoutします。エンタープライズは問い合わせ導線もあります。" },
 
     # usage
-    { category: "usage", q: "既存記事のリライトはできますか？", a: "はい。既存コンテンツのSEO改善・リライトに対応し、スコアを見ながら直せます。" },
-    { category: "usage", q: "複数メディアを1アカウントで運用できますか？", a: "はい。プランに応じて複数プロジェクトを管理でき、マーケ・SEOチームでの共同運用にも対応しています。" },
-    { category: "usage", q: "AI自律生成はどのプランからですか？", a: "ビジネスおよびエンタープライズです。スタンダードには含まれません。" }
+    { category: "usage", q: "既存記事の修正はできますか？", a: "はい。生成後のエディタで本文を手直しできます。専用のリライト提案機能はありませんが、再生成や品質スコアを見ながらの編集が可能です。" },
+    { category: "usage", q: "複数メディアを1アカウントで運用できますか？", a: "はい。サービス・ジャンル単位で複数のメディア領域を管理できます。招待制のチーム共同編集ワークスペースはありません。" },
+    { category: "usage", q: "AI自律生成はどのプランからですか？", a: "ビジネスおよびエンタープライズです。子タイトル承認後に本文生成するゲートや、完了メール通知を利用できます。スタンダードには含まれません。" }
   ].freeze
 
   FAQ_ITEMS_EN = [
     # service
-    { category: "service", q: "What is Drafity?", a: "An AI content-volume platform for corporate owned media and content marketing—SEO outlines, article generation, images, rewrites, and measurement in one place, including pillar/cluster structures." },
-    { category: "service", q: "How is the SEO score calculated?", a: "AI scores headings, keyword balance, and more out of 100. Edit in the editor while watching the score." },
-    { category: "service", q: "Can I close the browser while generating?", a: "Yes. Generation continues server-side even if you leave the page." },
-    { category: "service", q: "Does it support WordPress and API?", a: "Yes—one-click WordPress publish and CMS export. API is available on Standard and above (not on Trial)." },
+    { category: "service", q: "What is Drafity?", a: "An AI content-volume platform for corporate owned media—SEO outlines, article and image generation, quality scoring, and publish via embed/API/Webhooks in one place, including pillar/cluster structures." },
+    { category: "service", q: "How is the quality score calculated?", a: "AI scores structure, SEO, readability, usefulness, and originality. Review scores in the list and edit in the editor after generation." },
+    { category: "service", q: "Can I close the browser while generating?", a: "Yes. Generation continues server-side. On Business+, autonomous runs also email you when complete." },
+    { category: "service", q: "How do I publish to my site?", a: "Use embed.js (one script tag), JSON API sync, or Webhooks. HTML/text export is also available. API requires Standard+. There is no WordPress-only one-click publisher." },
     { category: "service", q: "Who owns generated content?", a: "Articles you generate—including during the trial—are yours to use." },
 
     # pricing
@@ -448,14 +455,14 @@ module TopsHelper
     { category: "pricing", q: "Can I change plans or pay by invoice?", a: "Yes—change plans from dashboard billing. Invoice payment depends on contract type; contact us for company billing." },
 
     # setup
-    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Enter keywords to generate outline and body → 4) Edit, then publish or push to WordPress. Upgrade later from /plans when ready." },
-    { category: "setup", q: "What do I need to prepare?", a: "Nothing special—just target keywords or themes. No coding skills required." },
+    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Set genre and generate outline/body from keywords → 4) Edit and publish; deliver to your site via embed.js / API / Webhooks. Upgrade later from /plans when ready." },
+    { category: "setup", q: "What do I need to prepare?", a: "Nothing special—just target keywords or themes. No coding skills required (embed is one HTML line)." },
     { category: "setup", q: "How do I switch to a paid plan?", a: "Choose a plan on /plans and complete Stripe Checkout. Enterprise also has a contact CTA." },
 
     # usage
-    { category: "usage", q: "Can I rewrite existing articles?", a: "Yes. Improve SEO and rewrite while watching the score." },
-    { category: "usage", q: "Can one account run multiple media sites?", a: "Yes. Depending on your plan, manage multiple projects and collaborate with marketing and SEO teams." },
-    { category: "usage", q: "Which plans include AI autonomous generation?", a: "Business and Enterprise only—not Standard." }
+    { category: "usage", q: "Can I edit existing articles?", a: "Yes—edit in the post-generation editor. There is no dedicated rewrite-suggestion feature, but you can regenerate and refine while watching quality scores." },
+    { category: "usage", q: "Can one account run multiple media sites?", a: "Yes—manage multiple topic areas via service genres. There is no invite-based shared team workspace." },
+    { category: "usage", q: "Which plans include AI autonomous generation?", a: "Business and Enterprise only—with child-title approval gates and email completion alerts. Not on Standard." }
   ].freeze
 
   def lp_faq_categories

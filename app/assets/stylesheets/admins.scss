@@ -2968,6 +2968,45 @@ body.modal-open {
   margin: 0 0 16px;
 }
 
+.settings-locale-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+.settings-locale-switch__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #6b7280;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #111827;
+  }
+
+  &.is-active {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(139, 92, 246, 0.25);
+  }
+}
+
 .api-settings-page .form-group {
   margin-bottom: 18px;
 }
@@ -3501,10 +3540,13 @@ body.admin-body {
   background: transparent;
   border: none;
   appearance: none;
+  -webkit-appearance: none;
   color: #7e84a3;
   padding: 12px 14px;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
+  line-height: inherit;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3512,7 +3554,6 @@ body.admin-body {
   border-radius: 10px;
   transition: all 0.2s ease;
   cursor: pointer;
-  font: inherit;
   text-align: left;
 }
 
@@ -3587,12 +3628,13 @@ body.admin-body {
 .sidebar-submenu a {
   color: #cbd5e1;
   text-decoration: none;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 12px 14px;
+  font-size: 14px;
   font-weight: 500;
+  line-height: inherit;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -3643,26 +3685,6 @@ body.admin-body {
   padding: 24px 18px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin-top: auto;
-}
-
-.sidebar-lang-switch {
-  margin-bottom: 14px;
-
-  .lang-switch {
-    width: 100%;
-    justify-content: stretch;
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-  }
-
-  .lang-switch__btn {
-    flex: 1;
-    color: #9aa3c0 !important;
-  }
-
-  .lang-switch__btn:hover {
-    color: #fff !important;
-  }
 }
 
 .sidebar-account-link {

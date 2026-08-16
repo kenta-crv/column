@@ -19,9 +19,9 @@ section class=wrapper_classes.join(" ") data-column-service-cta="1"
         p.column-service-cta__lead = cta[:lead]
       - if external
         = link_to href, class: "column-service-cta__btn", target: "_blank", rel: "noopener noreferrer" do
-          span = cta[:cta_label].presence || "詳しく見る"
+          span = cta[:cta_label].presence || t("drafity.columns.cta.learn_more")
           span.column-service-cta__btn-arrow aria-hidden="true" →
       - else
         = link_to href, class: "column-service-cta__btn" do
-          span = cta[:cta_label].presence || "詳しく見る"
+          span = cta[:cta_label].presence || t("drafity.columns.cta.learn_more")
           span.column-service-cta__btn-arrow aria-hidden="true" →

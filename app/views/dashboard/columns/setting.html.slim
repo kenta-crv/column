@@ -1,84 +1,78 @@
-/ ==========================================
-/ app/views/dashboard/columns/setting.html.slim (修正版全文)
-/ ==========================================
+.api-settings-page
+  .api-settings-header
+    h1.api-settings-title = t("drafity.dashboard.setting.title")
+    p.api-settings-subtitle = t("drafity.dashboard.setting.subtitle")
 
-#okurite-client-portal
-  .wrapper
-    / 1. レイアウトファイル（application）側にサイドバーがあるため、ここの重複エラーの原因となる render を削除してレイアウトを統一します
+  .api-settings-card
+    .api-settings-card__body
 
-    #content
-      .api-settings-page
-        .api-settings-header
-          h1.api-settings-title
-            | Settings
-          
-          p.api-settings-subtitle
-            | Account Settings & Configuration
+      .form-section
+        h3.form-section-title = t("drafity.dashboard.setting.language_title")
+        p.form-text = t("drafity.dashboard.setting.language_hint")
+        .settings-locale-switch role="group" aria-label=t("drafity.dashboard.setting.language_title")
+          = link_to t("drafity.dashboard.setting.language_ja"), locale_switch_path_for(:ja, return_to: dashboard_setting_path), class: "settings-locale-switch__btn#{' is-active' if current_locale.to_s == 'ja'}", "aria-pressed": (current_locale.to_s == "ja").to_s
+          = link_to t("drafity.dashboard.setting.language_en"), locale_switch_path_for(:en, return_to: dashboard_setting_path), class: "settings-locale-switch__btn#{' is-active' if current_locale.to_s == 'en'}", "aria-pressed": (current_locale.to_s == "en").to_s
 
-        .api-settings-card
-          .api-settings-card__body
+      - if client_signed_in?
+        .form-section
+          h3.form-section-title = t("drafity.dashboard.setting.email_title")
+          = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+            .form-group
+              = f.label :email, t("drafity.dashboard.setting.email_label")
+              = f.email_field :email, class: "form-control", value: current_client.email
+            .form-group
+              = f.password_field :current_password, placeholder: t("drafity.dashboard.setting.current_password_required"), class: "form-control"
+            .form-actions style="border-top: none; padding-top: 0;"
+              = f.submit t("drafity.dashboard.setting.update_email"), class: "btn btn-primary btn-sm"
 
-            / ===== メール変更 =====
-            .form-section
-              h3.form-section-title Email Address
-              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-                .form-group
-                  = f.label :email, "Email Address"
-                  = f.email_field :email, class: 'form-control', value: current_client.email
-                .form-group
-                  = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
-                .form-actions style="border-top: none; padding-top: 0;"
-                  = f.submit 'Update Email', class: 'btn btn-primary btn-sm'
+        .form-section
+          h3.form-section-title = t("drafity.dashboard.setting.password_title")
+          = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+            .form-group
+              = f.label :current_password, t("drafity.dashboard.setting.current_password")
+              = f.password_field :current_password, placeholder: t("drafity.dashboard.setting.current_password"), class: "form-control"
+            .form-group
+              = f.label :password, t("drafity.dashboard.setting.new_password")
+              = f.password_field :password, placeholder: t("drafity.dashboard.setting.new_password"), class: "form-control"
+            .form-group
+              = f.label :password_confirmation, t("drafity.dashboard.setting.confirm_password")
+              = f.password_field :password_confirmation, placeholder: t("drafity.dashboard.setting.confirm_password"), class: "form-control"
+            .form-actions style="border-top: none; padding-top: 0;"
+              = f.submit t("drafity.dashboard.setting.change_password"), class: "btn btn-primary btn-sm"
 
-            / ===== パスワード変更 =====
-            .form-section
-              h3.form-section-title Change Password
-              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-                .form-group
-                  = f.label :current_password, "Current Password"
-                  = f.password_field :current_password, placeholder: 'Current Password', class: 'form-control'
-                .form-group
-                  = f.label :password, "New Password"
-                  = f.password_field :password, placeholder: 'New Password', class: 'form-control'
-                .form-group
-                  = f.label :password_confirmation, "Confirm Password"
-                  = f.password_field :password_confirmation, placeholder: 'Confirm Password', class: 'form-control'
-                .form-actions style="border-top: none; padding-top: 0;"
-                  = f.submit 'Change Password', class: 'btn btn-primary btn-sm'
+        .form-section
+          h3.form-section-title = t("drafity.dashboard.setting.company_title")
+          = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
+            .form-group
+              = f.label :company, t("drafity.dashboard.setting.company")
+              = f.text_field :company, placeholder: t("drafity.dashboard.setting.company"), class: "form-control"
+            .form-group
+              = f.label :name, t("drafity.dashboard.setting.name")
+              = f.text_field :name, placeholder: t("drafity.dashboard.setting.name"), class: "form-control"
+            .form-group
+              = f.label :tel, t("drafity.dashboard.setting.tel")
+              = f.text_field :tel, placeholder: t("drafity.dashboard.setting.tel"), class: "form-control"
+            .form-group
+              = f.label :address, t("drafity.dashboard.setting.address")
+              = f.text_field :address, placeholder: t("drafity.dashboard.setting.address"), class: "form-control"
+            .form-group
+              = f.label :url, t("drafity.dashboard.setting.url")
+              = f.text_field :url, placeholder: t("drafity.dashboard.setting.url"), class: "form-control"
+            .form-group
+              = f.password_field :current_password, placeholder: t("drafity.dashboard.setting.current_password_required"), class: "form-control"
+            .form-actions style="border-top: none; padding-top: 0;"
+              = f.submit t("drafity.dashboard.setting.update_company"), class: "btn btn-primary btn-sm"
 
-            / ===== 会社情報 =====
-            .form-section
-              h3.form-section-title Company Information
-              = form_for(current_client, url: registration_path(:client), html: { method: :put }) do |f|
-                .form-group
-                  = f.label :company, "Company"
-                  = f.text_field :company, placeholder: 'Company', class: 'form-control'
-                .form-group
-                  = f.label :name, "Name"
-                  = f.text_field :name, placeholder: 'Name', class: 'form-control'
-                .form-group
-                  = f.label :tel, "Tel"
-                  = f.text_field :tel, placeholder: 'Tel', class: 'form-control'
-                .form-group
-                  = f.label :address, "Address"
-                  = f.text_field :address, placeholder: 'Address', class: 'form-control'
-                .form-group
-                  = f.label :url, "URL"
-                  = f.text_field :url, placeholder: 'URL', class: 'form-control'
-                .form-group
-                  = f.password_field :current_password, placeholder: 'Current Password (Required to update)', class: 'form-control'
-                .form-actions style="border-top: none; padding-top: 0;"
-                  = f.submit 'Update Company Info', class: 'btn btn-primary btn-sm'
+        .form-section
+          h3.form-section-title = t("drafity.dashboard.setting.subscription_title")
+          .form-group
+            p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 1rem;" = t("drafity.dashboard.setting.plan_manage_hint")
+            = link_to t("drafity.dashboard.setting.manage_plan"), dashboard_subscription_path, class: "btn btn-sm", style: "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;font-weight:600;text-decoration:none;"
 
-            / ===== プラン変更 =====
-            .form-section
-              h3.form-section-title Subscription
-              .form-group
-                p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 1rem;" = t("drafity.dashboard.setting.plan_manage_hint")
-                = link_to 'Manage Plan', dashboard_subscription_path, class: 'btn btn-sm', style: 'display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#8b5cf6;color:#fff;border:1px solid #7c3aed;font-weight:600;text-decoration:none;'
-
-            / ===== ログアウト =====
-            .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
-              h3.form-section-title Logout
-              .form-group
-                = link_to 'Logout', destroy_client_session_path, method: :delete, class: 'btn btn-sm', style: 'display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;'
+      .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
+        h3.form-section-title = t("drafity.dashboard.setting.logout_title")
+        .form-group
+          - if admin_signed_in?
+            = link_to t("drafity.dashboard.layout.logout_admin"), destroy_admin_session_path, method: :delete, class: "btn btn-sm", style: "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;"
+          - else
+            = link_to t("drafity.dashboard.setting.logout"), destroy_client_session_path, method: :delete, class: "btn btn-sm", style: "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;"

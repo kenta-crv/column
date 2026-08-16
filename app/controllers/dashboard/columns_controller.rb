@@ -29,6 +29,9 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
+    if params[:language].present?
+      filtered_base = filtered_base.where(language: Column.normalize_language(params[:language]))
+    end
 
     assign_dashboard_summary_metrics(base_scope, filtered_base)
 
@@ -328,7 +331,8 @@ class Dashboard::ColumnsController < ApplicationController
       custom_prompt: params[:custom_prompt],
       suggestion_count: params[:suggestion_count],
       max_suggestion_count: max_per_use,
-      client: client
+      client: client,
+      language: params[:language]
     )
 
     if result[:success]
@@ -350,7 +354,8 @@ class Dashboard::ColumnsController < ApplicationController
       article_type: "pillar",
       genre: params[:genre],
       sub_genre: sanitize_sub_genre_param(params[:genre], params[:sub_genre], client: client),
-      status: "draft"
+      status: "draft",
+      language: Column.normalize_language(params[:language])
     )
     assign_column_client!(@column)
 
@@ -391,7 +396,8 @@ class Dashboard::ColumnsController < ApplicationController
         article_type: "pillar",
         genre: genre,
         sub_genre: sub_genre,
-        status: "draft"
+        status: "draft",
+        language: Column.normalize_language(params[:language])
       )
       assign_column_client!(column)
 

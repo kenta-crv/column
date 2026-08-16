@@ -22,7 +22,7 @@
       .form-group
         = f.label :client_id, t("drafity.dashboard.labels.client")
         - selected_client_id = service_genre.client_id.presence || ""
-        = f.select :client_id, options_for_select([[t("drafity.dashboard.genres.system_shared"), ""]] + Client.order(:email).map { |c| [c.email, c.id] }, selected_client_id), {}, class: "form-control"
+        = f.select :client_id, options_for_select([[t("drafity.dashboard.genres.system_shared"), ""]] + Client.order(:email).pluck(:email, :id), selected_client_id), {}, class: "form-control"
         small.form-text = t("drafity.dashboard.genres.client_hint")
 
     .form-group
@@ -33,6 +33,10 @@
     .form-group
       = f.label :ja, t("drafity.dashboard.genres.ja_label")
       = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_ja")
+    .form-group
+      = f.label :en, t("drafity.dashboard.genres.en_label")
+      = f.text_field :en, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_en")
+      p.form-text = t("drafity.dashboard.genres.en_hint")
 
     .form-group
       = f.label :service_name, t("drafity.dashboard.labels.service_name")
@@ -84,6 +88,21 @@
     .form-group
       = label_tag "service_genre_column_cta_cta_label", t("drafity.dashboard.genres.button_label")
       = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button")
+    - cta_en = (cta[:en] || {}).with_indifferent_access
+    p.sub-categories-intro
+      = t("drafity.dashboard.genres.cta_en_hint")
+    .form-group
+      = label_tag "service_genre_column_cta_en_title", t("drafity.dashboard.genres.heading_en")
+      = text_field_tag "service_genre[column_cta][en][title]", cta_en[:title], class: "form-control", id: "service_genre_column_cta_en_title", placeholder: t("drafity.dashboard.genres.ph_cta_title_en")
+    .form-group
+      = label_tag "service_genre_column_cta_en_lead", t("drafity.dashboard.genres.lead_en")
+      = text_area_tag "service_genre[column_cta][en][lead]", cta_en[:lead], class: "form-control", id: "service_genre_column_cta_en_lead", rows: 3
+    .form-group
+      = label_tag "service_genre_column_cta_en_cta_label", t("drafity.dashboard.genres.button_label_en")
+      = text_field_tag "service_genre[column_cta][en][cta_label]", cta_en[:cta_label], class: "form-control", id: "service_genre_column_cta_en_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button_en")
+    .form-group
+      = label_tag "service_genre_column_cta_en_badge", t("drafity.dashboard.genres.badge_en")
+      = text_field_tag "service_genre[column_cta][en][badge]", cta_en[:badge], class: "form-control", id: "service_genre_column_cta_en_badge"
     .form-group
       = label_tag "service_genre_column_cta_path", t("drafity.dashboard.genres.path")
       = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: t("drafity.dashboard.genres.ph_path")
@@ -164,7 +183,8 @@
     - else
       = render "genre_draft_plan_notice_modal"
 
-- js_i18n = {
+ruby:
+  js_i18n = {
     needService: t("drafity.dashboard.genres.js_need_service"),
     suggesting: t("drafity.dashboard.genres.js_suggesting"),
     suggestFailed: t("drafity.dashboard.genres.js_suggest_failed"),
@@ -224,7 +244,8 @@ javascript:
               if (field) field.value = value || '';
             };
             set('input[name*="[key]"]', item.key);
-            set('input[name*="[name]"]', item.name);
+            set('input[name$="[name]"]', item.name);
+            set('input[name*="[name_en]"]', item.name_en);
             set('input[name*="[target]"]', item.target);
             set('textarea[name*="[description]"]', item.description);
             set('textarea[name*="[features_text]"]', item.features_text);
@@ -359,7 +380,7 @@ javascript:
 
       const updateTitles = () => {
         list.querySelectorAll('.sub-category-item').forEach((item) => {
-          const nameInput = item.querySelector('input[name*="[name]"]');
+          const nameInput = item.querySelector('input[name$="[name]"]');
           const title = item.querySelector('.sub-category-item__title');
           if (!title || !nameInput) return;
           title.textContent = nameInput.value.trim() || I18nDash.newSub;
@@ -379,7 +400,8 @@ javascript:
         if (!item) return;
 
         setFieldValue(item, 'input[name*="[key]"]', data.key);
-        setFieldValue(item, 'input[name*="[name]"]', data.name);
+        setFieldValue(item, 'input[name$="[name]"]', data.name);
+        setFieldValue(item, 'input[name*="[name_en]"]', data.name_en);
         setFieldValue(item, 'input[name*="[target]"]', data.target);
         setFieldValue(item, 'textarea[name*="[description]"]', data.description);
         setFieldValue(item, 'textarea[name*="[features_text]"]', data.features_text);
@@ -523,7 +545,7 @@ javascript:
       });
 
       list.addEventListener('input', (event) => {
-        if (event.target.matches('input[name*="[name]"]')) {
+        if (event.target.matches('input[name$="[name]"]')) {
           updateTitles();
         }
       });

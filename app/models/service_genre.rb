@@ -19,6 +19,7 @@ class ServiceGenre < ApplicationRecord
   def to_registry_hash
     {
       ja: ja,
+      en: (has_attribute?(:en) ? self[:en].to_s.presence : nil),
       host: Array(hosts),
       service_name: service_name.to_s,
       keywords: Array(keywords),
@@ -37,6 +38,14 @@ class ServiceGenre < ApplicationRecord
     return {} if raw.blank?
 
     raw
+  end
+
+  def column_cta_index_state
+    raw = has_attribute?(:column_cta) ? self[:column_cta] : nil
+    stored = raw.is_a?(Hash) ? raw.with_indifferent_access : {}.with_indifferent_access
+    enabled = !(stored[:enabled] == false || stored[:enabled].to_s == "0")
+    title = stored[:title].presence || ColumnServiceCta::CTAS.dig(key.to_sym, :title)
+    { enabled: enabled, title_present: title.present? }
   end
 
   def column_cta_enabled?
@@ -121,6 +130,7 @@ class ServiceGenre < ApplicationRecord
       {
         key: key.to_s,
         name: data[:name],
+        name_en: data[:name_en],
         target: data[:target],
         description: data[:description],
         features_text: Array(data[:features]).join("\n"),
@@ -148,6 +158,7 @@ class ServiceGenre < ApplicationRecord
       images: Array(data[:images]),
       sub_categories: stringify_nested(data[:sub_categories] || {})
     }
+    attrs[:en] = data[:en] if attribute_names.include?("en") && data[:en].present?
     if attribute_names.include?("columns_index_description")
       attrs[:columns_index_description] = data[:columns_index_description]
     end

@@ -63,4 +63,24 @@ class GenreRegistryTest < ActiveSupport::TestCase
 
     assert_includes column.service_profile, "Amazonの配送員として働きたい個人・求職者"
   end
+
+  test "sub_category_label uses name_en for English locale" do
+    assert_equal "Routine cleaning",
+                 GenreRegistry.sub_category_label("cleaning", "daily_standard", locale: :en)
+    assert_equal "日常清掃",
+                 GenreRegistry.sub_category_label("cleaning", "daily_standard", locale: :ja)
+  end
+
+  test "cargo fallback includes a stock image file that exists" do
+    images = GenreRegistry::FALLBACK_GENRES.dig(:cargo, :images)
+    assert_includes images, "stock/cargo.jpg"
+    assert File.exist?(Rails.root.join("app/assets/images/stock/cargo.jpg"))
+  end
+
+  test "fallback templates for admin are labels only and do not copy the full registry" do
+    templates = GenreRegistry.fallback_templates_for
+    assert templates[:cleaning].key?(:ja)
+    refute templates[:cleaning].key?(:sub_categories)
+    assert_equal "清掃", GenreRegistry::FALLBACK_GENRES.dig(:cleaning, :ja)
+  end
 end

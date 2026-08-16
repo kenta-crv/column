@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_08_08_220000) do
+ActiveRecord::Schema.define(version: 2026_08_15_140000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -37,6 +37,7 @@ ActiveRecord::Schema.define(version: 2026_08_08_220000) do
     t.text "error_message"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "language", default: "ja", null: false
     t.index ["client_id", "status"], name: "index_autonomous_content_runs_on_client_id_and_status"
     t.index ["client_id"], name: "index_autonomous_content_runs_on_client_id"
     t.index ["pillar_column_id"], name: "index_autonomous_content_runs_on_pillar_column_id"
@@ -114,11 +115,15 @@ ActiveRecord::Schema.define(version: 2026_08_08_220000) do
     t.integer "client_id"
     t.datetime "published_at"
     t.string "generation_mode", default: "default", null: false
+    t.string "own_service_key"
+    t.string "language", default: "ja", null: false
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["client_id"], name: "index_columns_on_client_id"
     t.index ["code"], name: "index_columns_on_code", unique: true
     t.index ["generation_mode"], name: "index_columns_on_generation_mode"
     t.index ["generation_status"], name: "index_columns_on_generation_status"
+    t.index ["language"], name: "index_columns_on_language"
+    t.index ["own_service_key"], name: "index_columns_on_own_service_key"
     t.index ["parent_id"], name: "index_columns_on_parent_id"
     t.index ["published_at"], name: "index_columns_on_published_at"
     t.index ["service_type"], name: "index_columns_on_service_type"
@@ -190,6 +195,7 @@ ActiveRecord::Schema.define(version: 2026_08_08_220000) do
     t.datetime "updated_at", precision: 6, null: false
     t.text "columns_index_description"
     t.json "column_cta", default: {}
+    t.string "en"
     t.index ["client_id", "key"], name: "index_service_genres_on_client_id_and_key", unique: true
     t.index ["client_id"], name: "index_service_genres_on_client_id"
   end

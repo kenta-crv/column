@@ -26,7 +26,8 @@ class Dashboard::AutonomousRunsController < ApplicationController
 
   def new
     @run = AutonomousContentRun.new(
-      cluster_limit: current_client&.default_cluster_limit || AutonomousContentRun::DEFAULT_CLUSTER_LIMIT
+      cluster_limit: current_client&.default_cluster_limit || AutonomousContentRun::DEFAULT_CLUSTER_LIMIT,
+      language: I18n.locale.to_s == "en" ? "en" : "ja"
     )
   end
 
@@ -52,7 +53,8 @@ class Dashboard::AutonomousRunsController < ApplicationController
       client: owner_client,
       title: run_params[:title],
       genre: GenreRegistry.resolve_key(run_params[:genre], client: owner_client).presence || run_params[:genre],
-      cluster_limit: run_params[:cluster_limit]
+      cluster_limit: run_params[:cluster_limit],
+      language: run_params[:language]
     )
 
     redirect_to dashboard_autonomous_runs_path, notice: t("drafity.dashboard.flashes.autonomous_started")
@@ -192,6 +194,6 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def run_params
-    params.require(:autonomous_content_run).permit(:title, :genre, :cluster_limit)
+    params.require(:autonomous_content_run).permit(:title, :genre, :cluster_limit, :language)
   end
 end

@@ -1,77 +1,96 @@
 .section-knowhow
   .container
     h1.section-title
-      | 新規記事作成
+      = @column.persisted? ? t("drafity.columns.form.edit_title") : t("drafity.columns.form.new_title")
 
     = form_with model: @column, local: true, html: { multipart: true } do |f|
       .form-group
-        = f.label :title, "タイトル"
+        = f.label :title, t("drafity.columns.form.title")
         = f.text_field :title, class: "form-control"
 
       .form-group
-        = f.label :code, "URL用英字コード（SEO用）"
+        = f.label :code, t("drafity.columns.form.code")
         = f.text_field :code, class: "form-control", placeholder: "example-article-slug"
 
       .form-group
-        = f.label :file, "画像"
+        = f.label :file, t("drafity.columns.form.image")
         = f.file_field :file, accept: "image/*", class: "form-control"
 
       .form-group
-        = f.label :description, "説明（概要）"
+        = f.label :description, t("drafity.columns.form.description")
         = f.text_area :description, rows: 4, class: "form-control"
 
       .form-group
-        = f.label :body, "本文"
+        = f.label :body, t("drafity.columns.form.body")
         = f.text_area :body, rows: 12, class: "form-control"
 
       .form-group
-        = f.label :genre, "ジャンル（大分類）"
-        / GenreRegistry::GENRES のトップレベルの項目（ja）をそのまま大分類として表示します
+        = f.label :genre, t("drafity.columns.form.genre")
         = f.select :genre,
           @column_form_genre_options,
-          { include_blank: "選択してください" },
+          { include_blank: t("drafity.columns.form.select_please") },
           { class: "form-control", id: "genre-select" }
 
       .form-group
-        = f.label :sub_genre, "中分類（サブカテゴリ）"
+        = f.label :sub_genre, t("drafity.columns.form.sub_genre")
         = f.select :sub_genre,
           [],
-          { include_blank: "選択してください" },
-          { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: @column_form_sub_categories_json } }
+          { include_blank: t("drafity.columns.form.select_please") },
+          { class: "form-control", id: "sub-genre-select", disabled: true, data: { saved_value: @column&.sub_genre, master_data: @column_form_sub_categories_json, placeholder_select: t("drafity.columns.form.select_please"), placeholder_empty: t("drafity.columns.form.no_sub_genre") } }
 
       .form-group
-        = f.label :article_type, "タイプ"
+        = f.label :article_type, t("drafity.columns.form.article_type")
         = f.select :article_type,
-          [["親記事", "pillar"], ["子記事", "cluster"]],
-          { include_blank: "選択してください", selected: @column.new_record? ? nil : @column.article_type },
+          [[t("drafity.columns.form.type_pillar"), "pillar"], [t("drafity.columns.form.type_cluster"), "cluster"]],
+          { include_blank: t("drafity.columns.form.select_please"), selected: @column.new_record? ? nil : @column.article_type },
           { class: "form-control" }
 
       .form-group
-        = f.label :generation_mode, "生成スタイル"
-        - mode_options = generation_mode_options_for_select
-        - current_mode = Column.normalize_generation_mode(@column.generation_mode)
-        - if admin_signed_in? && !Column::PUBLIC_GENERATION_MODES.include?(current_mode) && mode_options.none? { |_, v| v == current_mode }
+        = f.label :generation_mode, t("drafity.columns.form.generation_mode")
+        - include_internal_modes = admin_signed_in? && !Column.english_language?(@column.language.presence || default_article_language)
+        - mode_options = generation_mode_options_for_select(include_internal: include_internal_modes)
+        - current_mode = Column.normalize_generation_mode_for(@column.generation_mode, language: @column.language)
+        - if include_internal_modes && !Column::PUBLIC_GENERATION_MODES.include?(current_mode) && mode_options.none? { |_, v| v == current_mode }
           - mode_options = mode_options + [[generation_mode_label(current_mode), current_mode]]
         = f.select :generation_mode,
           mode_options,
           { selected: current_mode },
-          { class: "form-control" }
+          { class: "form-control", id: "column_generation_mode" }
         p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
           - if admin_signed_in?
-            | 親で選んだスタイルは子記事にも引き継がれます。Note / Qiita / Zenn は管理者専用です。
+            = t("drafity.columns.form.mode_hint_admin")
           - else
-            | 親で選んだスタイルは、子記事にも引き継がれます。
+            = t("drafity.columns.form.mode_hint")
+
+      - parent_for_language = @column.parent.presence || (@column.parent_id.present? ? Column.find_by(id: @column.parent_id) : nil)
+      .form-group
+        = f.label :language, t("drafity.columns.form.language")
+        - if parent_for_language
+          = f.hidden_field :language, value: Column.normalize_language(parent_for_language.language)
+          = f.select :language,
+            article_language_options_for_select,
+            { selected: Column.normalize_language(parent_for_language.language) },
+            { class: "form-control", disabled: true }
+          p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
+            = t("drafity.columns.form.language_inherited")
+        - else
+          = f.select :language,
+            article_language_options_for_select,
+            { selected: Column.normalize_language(@column.language.presence || default_article_language) },
+            { class: "form-control", id: "column_language" }
+          p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
+            = t("drafity.columns.form.language_hint")
 
       .form-group
-        = f.label :parent_id, "parent_id"
+        = f.label :parent_id, t("drafity.columns.form.parent_id")
         = f.text_field :parent_id, class: "form-control"
 
       .form-group
-        = f.label :prompt, "AI生成指示（任意・最優先）"
-        = f.text_area :prompt, rows: 6, class: "form-control", placeholder: "この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい"
+        = f.label :prompt, t("drafity.columns.form.prompt")
+        = f.text_area :prompt, rows: 6, class: "form-control", placeholder: t("drafity.columns.form.prompt_placeholder")
 
       .form-actions.mt-4
-        = f.submit "保存する", class: "btn btn-primary"
+        = f.submit t("drafity.columns.form.save"), class: "btn btn-primary"
 
 javascript:
   (function() {
@@ -91,7 +110,7 @@ javascript:
         if (selectedGenre && subCategories[selectedGenre] && subCategories[selectedGenre].length > 0) {
           const defaultOption = document.createElement('option');
           defaultOption.value = "";
-          defaultOption.textContent = "選択してください";
+          defaultOption.textContent = subGenreSelect.dataset.placeholderSelect || "";
           subGenreSelect.appendChild(defaultOption);
 
           subCategories[selectedGenre].forEach(sub => {
@@ -109,7 +128,7 @@ javascript:
           // 中分類（sub_categories）が元々定義されていないジャンルの場合
           const emptyOption = document.createElement('option');
           emptyOption.value = "";
-          emptyOption.textContent = "中分類はありません";
+          emptyOption.textContent = subGenreSelect.dataset.placeholderEmpty || "";
           subGenreSelect.appendChild(emptyOption);
           subGenreSelect.disabled = true;
         }
@@ -125,10 +144,32 @@ javascript:
       }
     };
 
+    const initLanguageMode = () => {
+      const languageSelect = document.getElementById('column_language');
+      const modeSelect = document.getElementById('column_generation_mode');
+      if (!languageSelect || !modeSelect) return;
+
+      const internalModes = ['note', 'qiita', 'zenn'];
+      const sync = () => {
+        const isEn = languageSelect.value === 'en';
+        internalModes.forEach((mode) => {
+          const option = modeSelect.querySelector(`option[value="${mode}"]`);
+          if (option) option.hidden = isEn;
+        });
+        if (isEn && internalModes.includes(modeSelect.value)) {
+          modeSelect.value = 'default';
+        }
+      };
+
+      languageSelect.addEventListener('change', sync);
+      sync();
+    };
+
     // Turbolinks環境対応
     document.removeEventListener('turbolinks:load', initGenreSelect);
     document.addEventListener('turbolinks:load', initGenreSelect);
     document.removeEventListener('DOMContentLoaded', initGenreSelect);
     document.addEventListener('DOMContentLoaded', initGenreSelect);
     initGenreSelect();
+    initLanguageMode();
   })();

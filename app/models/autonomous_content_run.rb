@@ -23,6 +23,7 @@ class AutonomousContentRun < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
 
   before_validation :normalize_genre_key
+  before_validation :normalize_language_value
 
   scope :recent, -> { order(created_at: :desc) }
 
@@ -43,17 +44,19 @@ class AutonomousContentRun < ApplicationRecord
       end
   end
 
-  def self.start!(title:, genre:, cluster_limit:, client: nil, pause_for_approval_at: nil, notify_on: nil)
+  def self.start!(title:, genre:, cluster_limit:, client: nil, pause_for_approval_at: nil, notify_on: nil, language: nil)
     settings = client&.autonomous_settings_with_defaults || Client::DEFAULT_AUTONOMOUS_SETTINGS
     limit = cluster_limit.to_i
     limit = DEFAULT_CLUSTER_LIMIT if limit <= 0
     limit = [[limit, MIN_CLUSTER_LIMIT].max, MAX_CLUSTER_LIMIT].min
+    article_language = Column.normalize_language(language)
 
     run = create!(
       client: client,
       title: title.strip,
       genre: genre,
       cluster_limit: limit,
+      language: article_language,
       status: "queued",
       pause_for_approval_at: pause_for_approval_at.nil? ? settings["pause_for_approval_at"] : pause_for_approval_at,
       notify_on: notify_on.nil? ? settings["notify_on"] : notify_on
@@ -140,7 +143,8 @@ class AutonomousContentRun < ApplicationRecord
         genre: genre,
         status: "draft",
         cluster_limit: cluster_limit,
-        client_id: client_id
+        client_id: client_id,
+        language: Column.normalize_language(language)
       )
 
       update!(pillar_column_id: pillar.id, status: "generating_pillar")
@@ -303,6 +307,10 @@ class AutonomousContentRun < ApplicationRecord
     self.genre = resolved if resolved.present?
   end
 
+  def normalize_language_value
+    self.language = Column.normalize_language(language)
+  end
+
   def build_next_pillar_suggestions
     return [] unless pillar_column
     return [] if plan_limited? && !client.can_suggest_titles?
@@ -315,7 +323,8 @@ class AutonomousContentRun < ApplicationRecord
       target_layer: "middle",
       genre: genre,
       suggestion_count: suggestion_count,
-      client: client
+      client: client,
+      language: language
     )
 
     return [] unless result[:success]

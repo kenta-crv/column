@@ -1,47 +1,52 @@
 - item = (item || {}).with_indifferent_access
+- item_title = item[:name].presence || t("drafity.dashboard.sub.new_title")
 .sub-category-item
   .sub-category-item__header role="button" tabindex="0" aria-expanded="false"
-    h4.sub-category-item__title = item[:name].presence || t("drafity.dashboard.sub.new_title")
+    h4.sub-category-item__title = item_title
     span.sub-category-item__toggle aria-hidden="true"
     button.sub-category-remove type="button" = t("drafity.dashboard.sub.delete")
   .sub-category-item__body
     .sub-category-grid
       .form-group
         label = t("drafity.dashboard.sub.key")
-        input.form-control type="text" name="service_genre[sub_categories_items][][key]" value=item[:key] placeholder=t("drafity.dashboard.sub.ph_key")
+        input.form-control type="text" name="service_genre[sub_categories_items][][key]" value=item[:key] placeholder=(t("drafity.dashboard.sub.ph_key"))
         small.form-text = t("drafity.dashboard.sub.key_hint")
       .form-group
         label = t("drafity.dashboard.sub.name")
-        input.form-control type="text" name="service_genre[sub_categories_items][][name]" value=item[:name] placeholder=t("drafity.dashboard.sub.ph_name")
+        input.form-control type="text" name="service_genre[sub_categories_items][][name]" value=item[:name] placeholder=(t("drafity.dashboard.sub.ph_name"))
+      .form-group
+        label = t("drafity.dashboard.sub.name_en")
+        input.form-control type="text" name="service_genre[sub_categories_items][][name_en]" value=item[:name_en] placeholder=(t("drafity.dashboard.sub.ph_name_en"))
+        small.form-text = t("drafity.dashboard.sub.name_en_hint")
       .form-group.sub-category-grid__full
         label = t("drafity.dashboard.sub.target")
-        input.form-control type="text" name="service_genre[sub_categories_items][][target]" value=item[:target] placeholder=t("drafity.dashboard.sub.ph_target")
+        input.form-control type="text" name="service_genre[sub_categories_items][][target]" value=item[:target] placeholder=(t("drafity.dashboard.sub.ph_target"))
         small.form-text = t("drafity.dashboard.sub.target_hint")
       .form-group.sub-category-grid__full
         label = t("drafity.dashboard.sub.description")
-        textarea.form-control name="service_genre[sub_categories_items][][description]" rows="3" placeholder=t("drafity.dashboard.sub.ph_description") = item[:description]
+        textarea.form-control name="service_genre[sub_categories_items][][description]" rows="3" placeholder=(t("drafity.dashboard.sub.ph_description")) = item[:description]
         small.form-text = t("drafity.dashboard.sub.description_hint")
       .form-group
         label = t("drafity.dashboard.sub.features")
-        textarea.form-control name="service_genre[sub_categories_items][][features_text]" rows="3" placeholder=t("drafity.dashboard.sub.ph_one_per_line") = item[:features_text]
+        textarea.form-control name="service_genre[sub_categories_items][][features_text]" rows="3" placeholder=(t("drafity.dashboard.sub.ph_one_per_line")) = item[:features_text]
         small.form-text = t("drafity.dashboard.sub.features_hint")
       .form-group
         label = t("drafity.dashboard.sub.keywords")
-        textarea.form-control name="service_genre[sub_categories_items][][keywords_text]" rows="3" placeholder=t("drafity.dashboard.sub.ph_one_per_line") = item[:keywords_text]
+        textarea.form-control name="service_genre[sub_categories_items][][keywords_text]" rows="3" placeholder=(t("drafity.dashboard.sub.ph_one_per_line")) = item[:keywords_text]
         small.form-text = t("drafity.dashboard.sub.keywords_hint")
       .form-group
         label = t("drafity.dashboard.sub.price")
-        input.form-control type="text" name="service_genre[sub_categories_items][][price_hint]" value=item[:price_hint] placeholder=t("drafity.dashboard.sub.ph_price")
+        input.form-control type="text" name="service_genre[sub_categories_items][][price_hint]" value=item[:price_hint] placeholder=(t("drafity.dashboard.sub.ph_price"))
         small.form-text = t("drafity.dashboard.sub.price_hint")
       .form-group
         label = t("drafity.dashboard.sub.area")
-        input.form-control type="text" name="service_genre[sub_categories_items][][area]" value=item[:area] placeholder=t("drafity.dashboard.sub.ph_area")
+        input.form-control type="text" name="service_genre[sub_categories_items][][area]" value=item[:area] placeholder=(t("drafity.dashboard.sub.ph_area"))
         small.form-text = t("drafity.dashboard.sub.area_hint")
       .form-group.sub-category-grid__full
         label = t("drafity.dashboard.sub.strengths")
-        textarea.form-control name="service_genre[sub_categories_items][][strengths]" rows="2" placeholder=t("drafity.dashboard.sub.ph_strengths") = item[:strengths]
+        textarea.form-control name="service_genre[sub_categories_items][][strengths]" rows="2" placeholder=(t("drafity.dashboard.sub.ph_strengths")) = item[:strengths]
         small.form-text = t("drafity.dashboard.sub.strengths_hint")
       .form-group.sub-category-grid__full
         label = t("drafity.dashboard.sub.industry")
-        textarea.form-control name="service_genre[sub_categories_items][][industry_weakness]" rows="2" placeholder=t("drafity.dashboard.sub.ph_industry") = item[:industry_weakness]
+        textarea.form-control name="service_genre[sub_categories_items][][industry_weakness]" rows="2" placeholder=(t("drafity.dashboard.sub.ph_industry")) = item[:industry_weakness]
         small.form-text = t("drafity.dashboard.sub.industry_hint")

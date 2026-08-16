@@ -1,10 +1,11 @@
-- plan_key = @plan_type.to_s.downcase
-- plan_name = if I18n.locale.to_s == "en"
+ruby:
+  plan_key = @plan_type.to_s.downcase
+  plan_name = if I18n.locale.to_s == "en"
     (@plan_config&.dig(:name_en) || @plan_config&.dig(:name) || Subscription.display_name_for(plan_key))
   else
     (@plan_config&.dig(:name) || Subscription.display_name_for(plan_key))
   end
-- amount_label = @formatted_amount.presence || (plan_key == "trial" ? Subscription.format_price(:trial, currency: @billing_currency || :jpy) : Subscription.format_price(plan_key, currency: @billing_currency || :jpy))
+  amount_label = @formatted_amount.presence || (plan_key == "trial" ? Subscription.format_price(:trial, currency: @billing_currency || :jpy) : Subscription.format_price(plan_key, currency: @billing_currency || :jpy))
 
 .drafify-lp.checkout-confirmation-page data-turbo="false"
   .checkout-confirmation

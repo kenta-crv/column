@@ -15,7 +15,8 @@ module CrawlPolicy
   end
 
   def column_path(column)
-    "/#{GENRE_KEY}/columns/#{column.code}"
+    path = "/#{GENRE_KEY}/columns/#{column.code}"
+    column.try(:english_article?) ? "/en#{path}" : path
   end
 
   def robots_txt_body
@@ -41,6 +42,8 @@ module CrawlPolicy
       Allow: /en#{SEO_CHECKER_PATH}/
       Allow: /#{GENRE_KEY}/columns
       Allow: /#{GENRE_KEY}/columns/
+      Allow: /en/#{GENRE_KEY}/columns
+      Allow: /en/#{GENRE_KEY}/columns/
       Disallow: /
 
       Sitemap: #{SITEMAP_HOST}/sitemap.xml

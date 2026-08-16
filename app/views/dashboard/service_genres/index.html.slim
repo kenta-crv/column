@@ -38,9 +38,10 @@
                           span.empty-text = t("drafity.dashboard.common.system")
                     td = t("drafity.dashboard.common.count_items", count: genre.sub_categories_count)
                     td
-                      - if genre.column_cta_enabled? && genre.column_cta_for_form[:title].present?
+                      - cta_state = genre.column_cta_index_state
+                      - if cta_state[:enabled] && cta_state[:title_present]
                         span.status-badge.status-active = t("drafity.dashboard.genres.cta_active")
-                      - elsif genre.column_cta_enabled?
+                      - elsif cta_state[:enabled]
                         span.status-badge.status-warning = t("drafity.dashboard.genres.cta_needed")
                       - else
                         span.status-badge.status-inactive = t("drafity.dashboard.genres.cta_off")

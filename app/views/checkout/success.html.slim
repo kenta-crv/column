@@ -1,5 +1,6 @@
-- currency_code = (@session&.currency.presence || "jpy").to_s.downcase
-- amount_display = if @amount.present? && @amount.to_i > 0
+ruby:
+  currency_code = (@session&.currency.presence || "jpy").to_s.downcase
+  amount_display = if @amount.present? && @amount.to_i > 0
     if currency_code == "jpy"
       "¥#{number_with_delimiter(@amount.to_i)}"
     else
@@ -7,7 +8,7 @@
       "$#{number_with_delimiter(format('%.2f', major))}"
     end
   end
-- plan_label = if I18n.locale.to_s == "en" && @plan_type.present?
+  plan_label = if I18n.locale.to_s == "en" && @plan_type.present?
     (Subscription::PLAN_CATALOG.dig(@plan_type.to_sym, :name_en) || @plan_name)
   else
     @plan_name

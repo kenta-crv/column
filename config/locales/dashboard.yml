@@ -21,7 +21,7 @@ ja:
           plans: プラン・料金
           api_settings: API設定
           api_guide: API連携ガイド
-          account: アカウント設定
+          account: アカウント・言語
           problem_report: 問題報告
         logout_admin: ログアウト (管理者)
         logout: ログアウト
@@ -174,7 +174,33 @@ ja:
         count_of: " / %{count} 件"
         api_settings: API設定
       setting:
+        title: 設定
+        subtitle: アカウント設定
+        language_title: 表示言語
+        language_hint: ダッシュボードの表示言語を選択します。変更はすぐに反映されます。
+        language_ja: 日本語
+        language_en: English
+        email_title: メールアドレス
+        email_label: メールアドレス
+        current_password_required: 現在のパスワード（変更時必須）
+        update_email: メールアドレスを更新
+        password_title: パスワード変更
+        current_password: 現在のパスワード
+        new_password: 新しいパスワード
+        confirm_password: 新しいパスワード（確認）
+        change_password: パスワードを変更
+        company_title: 会社情報
+        company: 会社名
+        name: 担当者名
+        tel: 電話番号
+        address: 住所
+        url: URL
+        update_company: 会社情報を更新
+        subscription_title: プラン
         plan_manage_hint: 現在のプランを変更・管理できます
+        manage_plan: プランを管理
+        logout_title: ログアウト
+        logout: ログアウト
       image_generation:
         title: 画像一括自動生成
         subtitle: 一覧から画像未設定の記事を選択し、API経由で画像を生成します。
@@ -203,9 +229,14 @@ ja:
           quality: 高品質で生成
         genre_summary: "【ジャンル別記事総数】"
         all_categories: すべてのカテゴリ
+        all_languages: すべての言語
+        language_filter: 記事の言語
+        language_ja: 日本語
+        language_en: English
         realtime_title: "\U0001F504 リアルタイム生成状況"
         realtime_generating: 生成中
         realtime_completed: 今回の完了
+        realtime_done: 完了
         stop: 停止
         stop_title: 生成停止
         confirm_stop: この記事の生成を停止しますか？
@@ -286,6 +317,8 @@ ja:
         sub_hint: 選択すると、その中分類の切り口に寄せたタイトルを提案します。
         custom: 自由入力（任意）
         ph_custom: '例: ターゲットはBtoB企業の経営者。比較記事や導入事例を意識したタイトルにしてください。'
+        language: 記事の言語
+        language_hint: 提案タイトルと、登録後の本文生成に使います。
         count: 提案数
         remaining: '今月の残り回数: %{remaining} / %{limit}'
         count_hint: '1〜%{bar_max}件から選択（お使いのプラン: 最大%{max}件）'
@@ -312,6 +345,8 @@ ja:
         ph_title: 例：オフィス清掃の完全ガイド
         child_count: 子記事数
         slider_hint: スライダーで1〜25本の子記事を生成できます。
+        language: 記事の言語
+        language_hint: 親記事・子記事・タイトル提案をこの言語で生成します。
         start: 自律生成を開始
         confirm_start: バックグラウンドで生成を開始します。よろしいですか？
         status: 'ステータス:'
@@ -366,9 +401,12 @@ ja:
         key_hint: 記事の genre 値として使用されます。作成後は変更できません。
         ja_label: 表示名（日本語）
         ph_ja: '例: 経営コンサル'
+        en_label: 表示名（英語）
+        ph_en: 'e.g. Management consulting'
+        en_hint: 英語UI・英語公開一覧で使います。空欄なら日本語名を表示します。
         ph_service: '例: 株式会社リプラス'
         strong_points: 強み・訴求ポイント
-        strong_hint: 親記事・子記事生成時に AI へ渡される訴求情報です。
+        strong_hint: 親記事・子記事生成時に AI へ渡される訴求情報です。英語記事ではモデルが訳して使います。
         integration: 連携設定（任意）
         integration_hint: 記事生成のみの場合は空欄のままで問題ありません。保存時にアクセス中のドメインが自動で登録されます。
         hosts: ホスト（ドメイン）
@@ -393,6 +431,13 @@ ja:
         ph_cta_button: '例: 無料で体験する'
         ph_path: '例: / または /okurite'
         ph_url: '例: https://lin.ee/xxxx'
+        cta_en_hint: 英語記事向けのコピーです。空欄ならデフォルトの英訳を使います。
+        heading_en: 見出し（英語）
+        lead_en: リード文（英語）
+        button_label_en: ボタン文言（英語）
+        badge_en: バッジ（英語・任意）
+        ph_cta_title_en: 'e.g. AI sales 24/7'
+        ph_cta_button_en: 'e.g. Try free'
         sub_override: 中分類ごとの上書き（任意）
         sub_override_hint: 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
         theme_same: "（共通と同じ）"
@@ -441,6 +486,9 @@ ja:
         key_hint: 記事の sub_genre 値として使用されます
         name: 名称 *
         ph_name: '例: 日常清掃'
+        name_en: 名称（英語）
+        ph_name_en: 'e.g. Routine cleaning'
+        name_en_hint: 英語UIの中分類プルダウンで使います。空欄なら日本語名を表示します。
         target: ターゲット
         ph_target: '例: 清掃美化を外注したい企業や施設'
         target_hint: 誰向けのサービスか（記事生成時に AI へ渡されます）
@@ -608,7 +656,7 @@ en:
           plans: Billing
           api_settings: API
           api_guide: API guide
-          account: Account
+          account: Account & language
           problem_report: Report a problem
         logout_admin: Sign out (admin)
         logout: Sign out
@@ -765,7 +813,33 @@ en:
         count_of: " / %{count}"
         api_settings: API
       setting:
+        title: Settings
+        subtitle: Account settings
+        language_title: Display language
+        language_hint: Choose the dashboard UI language. Changes apply immediately.
+        language_ja: 日本語
+        language_en: English
+        email_title: Email address
+        email_label: Email address
+        current_password_required: Current password (required to update)
+        update_email: Update email
+        password_title: Change password
+        current_password: Current password
+        new_password: New password
+        confirm_password: Confirm password
+        change_password: Change password
+        company_title: Company information
+        company: Company
+        name: Name
+        tel: Phone
+        address: Address
+        url: URL
+        update_company: Update company info
+        subscription_title: Subscription
         plan_manage_hint: Change or manage your current plan.
+        manage_plan: Manage plan
+        logout_title: Logout
+        logout: Log out
       image_generation:
         title: Bulk image generation
         subtitle: Select articles without images and generate via API.
@@ -794,9 +868,14 @@ en:
           quality: High-quality output
         genre_summary: Articles by genre
         all_categories: All categories
+        all_languages: All languages
+        language_filter: Article language
+        language_ja: Japanese
+        language_en: English
         realtime_title: "\U0001F504 Live generation"
         realtime_generating: Generating
         realtime_completed: Completed this session
+        realtime_done: Done
         stop: Stop
         stop_title: Stop generation
         confirm_stop: Stop generating this article?
@@ -879,6 +958,8 @@ en:
         sub_hint: Titles will lean toward the selected subcategory.
         custom: Freeform (optional)
         ph_custom: e.g. Target B2B executives; prefer comparison and case-study titles.
+        language: Article language
+        language_hint: Used for suggested titles and later body generation.
         count: Suggestions
         remaining: 'Remaining this month: %{remaining} / %{limit}'
         count_hint: 'Choose 1–%{bar_max} (plan max: %{max})'
@@ -907,6 +988,8 @@ en:
         ph_title: e.g. Complete guide to office cleaning
         child_count: Child articles
         slider_hint: Use the slider to generate 1–25 child articles.
+        language: Article language
+        language_hint: Pillar, child articles, and title suggestions are generated in this language.
         start: Start autonomous run
         confirm_start: Start generation in the background?
         status: 'Status:'
@@ -962,9 +1045,12 @@ en:
         key_hint: Used as the article genre value. Cannot change after create.
         ja_label: Display name (Japanese)
         ph_ja: e.g. Management consulting
+        en_label: Display name (English)
+        ph_en: e.g. Management consulting
+        en_hint: Used on the English UI and public English article list. Falls back to the Japanese name if blank.
         ph_service: e.g. Acme Inc.
         strong_points: Strengths / value prop
-        strong_hint: Passed to AI when generating pillar and child articles.
+        strong_hint: Passed to AI when generating pillar and child articles. For English articles the model translates this text.
         integration: Integrations (optional)
         integration_hint: Leave blank for article generation only. The current domain
           is registered on save.
@@ -992,6 +1078,13 @@ en:
         ph_cta_button: e.g. Try free
         ph_path: e.g. / or /okurite
         ph_url: e.g. https://lin.ee/xxxx
+        cta_en_hint: Copy for English articles. Leave blank to use the default English CTA.
+        heading_en: Headline (English)
+        lead_en: Lead (English)
+        button_label_en: Button label (English)
+        badge_en: Badge (English, optional)
+        ph_cta_title_en: e.g. AI sales 24/7
+        ph_cta_button_en: e.g. Try free
         sub_override: Per-subcategory override (optional)
         sub_override_hint: Blank subcategories use the shared CTA above.
         theme_same: "(same as shared)"
@@ -1044,6 +1137,9 @@ en:
         key_hint: Used as the article sub_genre value
         name: Name *
         ph_name: e.g. Daily cleaning
+        name_en: Name (English)
+        ph_name_en: e.g. Routine cleaning
+        name_en_hint: Used in English UI dropdowns. Falls back to the Japanese name if blank.
         target: Audience
         ph_target: e.g. Facilities that outsource cleaning
         target_hint: Who it is for (passed to AI)

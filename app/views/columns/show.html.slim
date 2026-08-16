@@ -10,31 +10,31 @@
       .publish-status-panel style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; #{@column.published? ? 'background: #e6f4ea; border: 1px solid #a7e0bd;' : 'background: #dbeafe; border: 1px solid #93c5fd;'}"
         .publish-status-text style="font-weight: 600; #{@column.published? ? 'color: #0f7a4d;' : 'color: #1d4ed8;'}"
           - if @column.published?
-            | ✅ この記事は公開済みです（公開日時: #{@column.published_at.strftime('%Y/%m/%d %H:%M')}）
+            = t("drafity.columns.manage.published", time: l(@column.published_at))
           - else
-            | 📝 この記事はレビュー待ちです（AIが生成した本文をチェックしてから公開してください）
+            = t("drafity.columns.manage.pending_review")
         - if @column.published?
-          = link_to '下書きに戻す（非公開化）', unpublish_column_path(@column), method: :patch, data: { confirm: 'この記事を非公開に戻しますか？公開サイトから見えなくなります。', turbo: false }, class: 'btn btn-secondary'
+          = link_to t("drafity.columns.manage.unpublish"), unpublish_column_path(@column), method: :patch, data: { confirm: t("drafity.columns.manage.unpublish_confirm"), turbo: false }, class: 'btn btn-secondary'
         - else
-          = link_to 'レビュー完了・公開する', publish_column_path(@column), method: :patch, data: { confirm: '内容を確認済みとして公開しますか？', turbo: false }, class: 'btn btn-primary'
+          = link_to t("drafity.columns.manage.publish"), publish_column_path(@column), method: :patch, data: { confirm: t("drafity.columns.manage.publish_confirm"), turbo: false }, class: 'btn btn-primary'
 
     - if (image_src = column_image_src(@column)).present?
       .column-image-wrapper style="position: relative; display: inline-block; max-width: 100%;"
         = image_tag image_src, class: 'column-thumb-main', alt: @column.title, loading: 'lazy', decoding: 'async'
         - if can_manage_column?(@column)
-          = link_to '× 画像削除', remove_image_column_path(@column), method: :patch, data: { confirm: 'この画像のみを削除しますか？', turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
+          = link_to t("drafity.columns.manage.remove_image"), remove_image_column_path(@column), method: :patch, data: { confirm: t("drafity.columns.manage.remove_image_confirm"), turbo: false }, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 8px; right: 8px; font-size: 0.75rem; padding: 2px 8px; opacity: 0.95; z-index: 10;'
 
     / 目次
     - if @headings.any?
       .toc
-        h2.toc-title 目次
+        h2.toc-title = t("drafity.columns.show.toc", locale: column_content_locale(@column))
         ul.toc-list
           - @headings.each do |h|
             li class="toc-item toc-level-#{h[:level]}"
               a href="##{h[:id]}" = h[:text]
 
     / ===== 自社サービスCTA（冒頭：目次直後〜本文前） =====
-    - unless can_manage_column?(@column)
+    - unless columns_manage_view?
       - cta = column_service_cta_for(@column)
       - if cta.present?
         = render "columns/service_cta", cta: cta, column: @column, placement: "early"
@@ -44,7 +44,7 @@
       == raw(column_body_html_with_inline_cta(@column, @column_body_with_ids))
 
     / ===== 自社サービスCTA（本文末尾） =====
-    - unless can_manage_column?(@column)
+    - unless columns_manage_view?
       - cta = column_service_cta_for(@column)
       - if cta.present?
         = render "columns/service_cta", cta: cta, column: @column, placement: "end"
@@ -96,40 +96,42 @@
         | .pillar-children-empty p{margin:0;line-height:1.7;}
       .pillar-children-panel
         .pillar-children-panel__header
-          h3.pillar-children-panel__title 子記事の作成・管理
+          h3.pillar-children-panel__title = t("drafity.columns.manage.panel_title")
           - if quota
             .pillar-children-panel__quota
-              | プラン上限: 子記事 #{quota[:used]} / #{quota[:limit]} 件
+              = t("drafity.columns.manage.quota", used: quota[:used], limit: quota[:limit])
               - if quota[:remaining] > 0
-                span.pillar-children-panel__quota-remaining 　｜　この親記事であと #{quota[:remaining]} 件作成可能
+                span.pillar-children-panel__quota-remaining
+                  = t("drafity.columns.manage.quota_remaining", count: quota[:remaining])
               - else
-                strong.pillar-children-panel__quota-limit 　｜　子記事の作成上限に達しています
+                strong.pillar-children-panel__quota-limit
+                  = t("drafity.columns.manage.quota_full")
 
         .child-title-step
-          h4.pillar-children-step__title Step 1: 子記事タイトルを作る
+          h4.pillar-children-step__title = t("drafity.columns.manage.step1_title")
           p.pillar-children-step__lead
-            | AIで一括生成するか、1件ずつ手動で追加できます。
+            = t("drafity.columns.manage.step1_lead")
           - if can_add_child
-            = button_to "AIで子記事タイトルを生成", generate_title_column_path(pillar_param), method: :post, class: "btn pillar-btn pillar-btn--primary", data: { confirm: "子記事タイトル案を生成します。よろしいですか？", turbo: false }
+            = button_to t("drafity.columns.manage.generate_titles"), generate_title_column_path(pillar_param), method: :post, class: "btn pillar-btn pillar-btn--primary", data: { confirm: t("drafity.columns.manage.generate_titles_confirm"), turbo: false }
             = form_with url: create_child_title_column_path(pillar_param), method: :post, local: true, class: "pillar-child-title-form" do |f|
               .pillar-child-title-form__row
-                = text_field_tag :child_title, nil, class: "form-control pillar-child-title-form__input", placeholder: "手動追加: 例 ○○の料金相場と選び方", required: true
-                = f.submit "手動で追加", class: "btn pillar-btn pillar-btn--secondary"
+                = text_field_tag :child_title, nil, class: "form-control pillar-child-title-form__input", placeholder: t("drafity.columns.manage.manual_placeholder"), required: true
+                = f.submit t("drafity.columns.manage.manual_add"), class: "btn pillar-btn pillar-btn--secondary"
           - else
-            button.btn.pillar-btn.pillar-btn--disabled type="button" disabled="disabled" 子記事タイトルの追加上限に達しています
+            button.btn.pillar-btn.pillar-btn--disabled type="button" disabled="disabled" = t("drafity.columns.manage.title_limit")
 
       .pillar-children-list
-        h4.pillar-children-step__title Step 2: 子記事本文を生成する（クラスター作成）
+        h4.pillar-children-step__title = t("drafity.columns.manage.step2_title")
         p.pillar-children-step__lead
-          | 下の一覧から子記事を選び、本文生成を開始してください。
+          = t("drafity.columns.manage.step2_lead")
         = form_tag bulk_update_drafts_columns_path, method: :post, data: { turbo: false } do
           = hidden_field_tag :action_type, "approve_bulk"
           = hidden_field_tag :return_pillar_code, @column.code
           = hidden_field_tag :return_pillar_id, @column.id
 
           .pillar-children-actions
-            = submit_tag "選択した子記事本文を生成する", class: "btn pillar-btn pillar-btn--primary", data: { confirm: "生成を開始しますか？" }
-            = submit_tag "選択した子記事を一括削除する", class: "btn pillar-btn pillar-btn--danger", data: { confirm: "選択された子記事を一括削除しますか？" }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
+            = submit_tag t("drafity.columns.manage.generate_bodies"), class: "btn pillar-btn pillar-btn--primary", data: { confirm: t("drafity.columns.manage.generate_bodies_confirm") }
+            = submit_tag t("drafity.columns.manage.delete_selected"), class: "btn pillar-btn pillar-btn--danger", data: { confirm: t("drafity.columns.manage.delete_selected_confirm") }, onclick: "document.getElementById('action_type').value = 'delete_bulk';"
 
           - if @children.any?
             .pillar-children-table-wrap
@@ -138,9 +140,9 @@
                   tr
                     th.pillar-children-table__check
                       input type="checkbox" onclick="document.querySelectorAll('.child-check').forEach(cb => cb.checked = this.checked)"
-                    th タイトル
-                    th ステータス
-                    th 本文
+                    th = t("drafity.columns.manage.th_title")
+                    th = t("drafity.columns.manage.th_status")
+                    th = t("drafity.columns.manage.th_body")
                 tbody
                   - @children.each do |child|
                     tr
@@ -150,26 +152,26 @@
                       td= child.status
                       td
                         - if child.generated_body?
-                          span.pillar-badge.pillar-badge--success あり
+                          span.pillar-badge.pillar-badge--success = t("drafity.columns.manage.body_yes")
                         - else
-                          span.pillar-badge.pillar-badge--muted 未生成
+                          span.pillar-badge.pillar-badge--muted = t("drafity.columns.manage.body_no")
           - else
             .pillar-children-empty
-              p まだ子記事がありません。上の Step 1 からタイトルを追加してください。
+              p = t("drafity.columns.manage.empty")
 
     / ===== 親記事（子記事ページ） =====
     - parent = @column.parent
-    - if !can_manage_column?(@column) && parent&.publicly_visible? && parent.code.present?
+    - if !columns_manage_view? && parent&.publicly_visible? && parent.code.present?
       section.related-articles.related-articles--parent
         .related-articles__header
           div
-            p.related-articles__eyebrow 親記事
-            h2.related-articles__title この記事の親テーマ
-          span.related-articles__count 1件
+            p.related-articles__eyebrow = t("drafity.columns.show.related_parent_eyebrow")
+            h2.related-articles__title = t("drafity.columns.show.related_parent_title")
+          span.related-articles__count = t("drafity.columns.show.related_parent_count")
         ul.related-articles__list
           li.related-articles__item
             = link_to public_related_column_path(parent), class: "related-articles__link" do
-              span.related-articles__index 親
+              span.related-articles__index = t("drafity.columns.show.related_parent_index")
               span.related-articles__body
                 span.related-articles__item-title = parent.title
                 - desc = related_article_excerpt(parent, length: 96)
@@ -179,14 +181,14 @@
 
     / ===== 関連記事一覧（一般公開用：本文があるもののみ） =====
     - if @column.article_type == "pillar"
-      - public_children = @children.select { |c| c.publicly_visible? && c.code.present? }
-      - if public_children.any? && !can_manage_column?(@column)
+      - public_children = @children.select { |c| c.publicly_visible? && c.code.present? && Column.normalize_language(c.language) == Column.normalize_language(@column.language) }
+      - if public_children.any? && !columns_manage_view?
         section.related-articles.related-articles--children
           .related-articles__header
             div
-              p.related-articles__eyebrow クラスター
-              h2.related-articles__title このテーマの関連記事
-            span.related-articles__count = "#{public_children.size}件"
+              p.related-articles__eyebrow = t("drafity.columns.show.related_children_eyebrow")
+              h2.related-articles__title = t("drafity.columns.show.related_children_title")
+            span.related-articles__count = t("drafity.columns.show.related_children_count", count: public_children.size)
           ul.related-articles__list
             - public_children.each_with_index do |child, idx|
               li.related-articles__item
@@ -199,13 +201,13 @@
                       span.related-articles__item-desc = desc
                   span.related-articles__arrow aria-hidden="true" →
 
-    - if !can_manage_column?(@column) && @sibling_columns.present?
+    - if !columns_manage_view? && @sibling_columns.present?
       section.related-articles.related-articles--siblings
         .related-articles__header
           div
-            p.related-articles__eyebrow 兄弟記事
-            h2.related-articles__title 同じクラスターの記事
-          span.related-articles__count = "#{@sibling_columns.size}件"
+            p.related-articles__eyebrow = t("drafity.columns.show.related_siblings_eyebrow")
+            h2.related-articles__title = t("drafity.columns.show.related_siblings_title")
+          span.related-articles__count = t("drafity.columns.show.related_children_count", count: @sibling_columns.size)
         ul.related-articles__list
           - @sibling_columns.each_with_index do |sibling, idx|
             li.related-articles__item
@@ -218,13 +220,13 @@
                     span.related-articles__item-desc = desc
                 span.related-articles__arrow aria-hidden="true" →
 
-    - if !can_manage_column?(@column) && @cross_cluster_columns.present?
+    - if !columns_manage_view? && @cross_cluster_columns.present?
       section.related-articles.related-articles--cross
         .related-articles__header
           div
-            p.related-articles__eyebrow 関連テーマ
-            h2.related-articles__title あわせて読みたい
-          span.related-articles__count = "#{@cross_cluster_columns.size}件"
+            p.related-articles__eyebrow = t("drafity.columns.show.related_cross_eyebrow")
+            h2.related-articles__title = t("drafity.columns.show.related_cross_title")
+          span.related-articles__count = t("drafity.columns.show.related_children_count", count: @cross_cluster_columns.size)
         ul.related-articles__list
           - @cross_cluster_columns.each_with_index do |related, idx|
             li.related-articles__item
@@ -239,8 +241,8 @@
 
     .column-footer.column-footer--public
       - if client_signed_in?
-        = link_to 'ダッシュボードへ', dashboard_root_path, class: 'btn btn-default'
+        = link_to t("drafity.columns.show.back_dashboard"), dashboard_root_path, class: 'btn btn-default'
       - else
         - index_genre = GenreRegistry.resolve_key(@column.genre, client: @column.client).presence || @column.genre
         - index_path = platform_host? ? public_columns_index_path(genre: index_genre) : "/columns"
-        = link_to '一覧へ戻る', index_path, class: 'column-footer__back'
+        = link_to t("drafity.columns.show.back_index"), index_path, class: 'column-footer__back'

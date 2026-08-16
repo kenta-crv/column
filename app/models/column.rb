@@ -1,8 +1,12 @@
 class Column < ApplicationRecord
+  DEFAULT_STOCK_IMAGE = "hero-bg.webp"
+
   mount_uploader :file, ImagesUploader
   belongs_to :client, optional: true
   belongs_to :parent, class_name: "Column", optional: true
   has_many :children, class_name: "Column", foreign_key: :parent_id
+  before_validation :normalize_language_value
+  before_validation :normalize_generation_mode_for_language
   
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
@@ -78,7 +82,7 @@ class Column < ApplicationRecord
   LIST_SELECT_COLUMNS = %w[
     id title description file code genre sub_genre article_type parent_id
     published_at created_at updated_at quality_score evaluation_metrics
-    generation_mode generation_status status client_id
+    generation_mode generation_status status client_id keyword language
   ].freeze
 
   scope :with_list_attributes, -> {
@@ -98,16 +102,47 @@ class Column < ApplicationRecord
   # 公開UIで選べる生成スタイル（note/qiita/zenn は社内転用向け・コンソール等で設定）
   PUBLIC_GENERATION_MODES = %w[default comparison recommendation].freeze
   ALL_GENERATION_MODES = %w[default comparison recommendation note qiita zenn].freeze
+  INTERNAL_GENERATION_MODES = %w[note qiita zenn].freeze
+  LANGUAGES = %w[ja en].freeze
+  DEFAULT_LANGUAGE = "ja"
+
+  scope :for_language, ->(lang) { where(language: normalize_language(lang)) }
+  scope :for_ui_locale, ->(locale = I18n.locale) { for_language(locale) }
 
   def self.normalize_generation_mode(mode)
     value = mode.to_s
     ALL_GENERATION_MODES.include?(value) ? value : "default"
   end
 
+  def self.normalize_generation_mode_for(mode, language: nil)
+    normalized = normalize_generation_mode(mode)
+    return "default" if english_language?(language) && INTERNAL_GENERATION_MODES.include?(normalized)
+
+    normalized
+  end
+
+  def self.normalize_language(value)
+    language = value.to_s
+    LANGUAGES.include?(language) ? language : DEFAULT_LANGUAGE
+  end
+
+  def self.english_language?(value)
+    normalize_language(value) == "en"
+  end
+
+  def english_article?
+    self.class.english_language?(language)
+  end
+
+  def assign_stock_image_if_missing!
+    assign_random_file
+  end
+
   def self.attributes_for_child_generation(parent)
     {
-      generation_mode: normalize_generation_mode(parent&.generation_mode),
-      prompt: parent&.prompt
+      generation_mode: normalize_generation_mode_for(parent&.generation_mode, language: parent&.language),
+      prompt: parent&.prompt,
+      language: normalize_language(parent&.language)
     }
   end
 
@@ -198,6 +233,7 @@ class Column < ApplicationRecord
                      .where.not(id: column.id)
                      .where.not(code: [nil, ""])
                      .where(genre: genre_values)
+                     .for_language(column.language)
 
     scope =
       if column.client_id.present?
@@ -257,6 +293,7 @@ class Column < ApplicationRecord
                           .where(parent_id: column.parent_id)
                           .where.not(id: column.id)
                           .where.not(code: [nil, ""])
+                          .for_language(column.language)
                           .order(published_at: :desc)
                           .limit(40)
                           .to_a
@@ -297,14 +334,13 @@ class Column < ApplicationRecord
   end
 
   before_validation :normalize_genre_key
-  before_validation :assign_random_file, on: :create
 
   def genre_key
     GenreRegistry.resolve_key(genre, client: client).presence || GenreRegistry.from_ja(genre)
   end
 
-  def genre_label
-    GenreRegistry.to_ja(genre, client: client)
+  def genre_label(locale: I18n.locale)
+    GenreRegistry.label_for(genre, client: client, locale: locale)
   end
 
   def service_profile
@@ -325,6 +361,7 @@ class Column < ApplicationRecord
       sub_genre: sub_genre,
       code: code,
       keyword: keyword,
+      language: language,
       status: status,
       article_type: article_type,
       published_at: published_at,
@@ -361,6 +398,14 @@ class Column < ApplicationRecord
     return unless published?
 
     DeliverArticleWebhookJob.perform_later(client_id, "deleted", webhook_payload)
+  end
+
+  def normalize_language_value
+    self.language = self.class.normalize_language(language)
+  end
+
+  def normalize_generation_mode_for_language
+    self.generation_mode = self.class.normalize_generation_mode_for(generation_mode, language: language)
   end
 
   def within_client_plan_limits
@@ -438,19 +483,31 @@ class Column < ApplicationRecord
   end
 
   def assign_random_file
-    return if file.present?
+    return if read_attribute(:file).present?
 
-    key = genre_key
-    return if key.nil?
+    file_path = first_existing_stock_image_path
+    return if file_path.blank?
 
-    images = GenreRegistry.images(key)
-    return if images.blank?
-
-    file_name = images.sample
-    file_path = Rails.root.join("app/assets/images", file_name)
-
-    if File.exist?(file_path)
-      self.file = Rack::Test::UploadedFile.new(file_path, "image/jpeg")
+    File.open(file_path) do |io|
+      self.file = io
+      save! if persisted?
     end
+  end
+
+  def first_existing_stock_image_path
+    stock_image_candidate_names.each do |name|
+      path = Rails.root.join("app/assets/images", name)
+      return path if File.exist?(path)
+    end
+    nil
+  end
+
+  def stock_image_candidate_names
+    key = genre_key
+    names = []
+    names.concat(Array(GenreRegistry.images(key))) if key.present?
+    names.concat(Array(GenreRegistry::FALLBACK_GENRES.dig(key&.to_sym, :images))) if key.present?
+    names << DEFAULT_STOCK_IMAGE
+    names.flatten.compact.map(&:to_s).reject(&:blank?).uniq
   end
 end

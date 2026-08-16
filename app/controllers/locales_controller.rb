@@ -9,6 +9,12 @@ class LocalesController < ApplicationController
     end
 
     session[:ui_locale] = locale
+    cookies[:ui_locale] = {
+      value: locale,
+      expires: 1.year,
+      path: "/",
+      same_site: :lax
+    }
     current_client.update(preferred_locale: locale) if client_signed_in?
 
     redirect_to locale_switch_destination(locale)
@@ -19,12 +25,27 @@ class LocalesController < ApplicationController
   def locale_switch_destination(locale)
     return_to = params[:return_to].to_s
     if return_to.present? && return_to.start_with?("/") && !return_to.start_with?("//")
-      path = return_to.sub(%r{\A/en(?=/|$)}, "")
+      uri_path, query = return_to.split("?", 2)
+      path = uri_path.sub(%r{\A/en(?=/|$)}, "")
       path = "/" if path.blank?
-      return locale == "en" ? (path == "/" ? "/en" : localize_public_path(path)) : path
+
+      # 管理用 /columns* は session locale で表示。EN希望なら公開ジャンルURLへは /en 付きへ
+      if locale == "en" && manage_columns_path?(path)
+        dest = path
+      elsif locale == "en"
+        dest = path == "/" ? "/en" : localize_public_path(path)
+      else
+        dest = path
+      end
+      return query.present? ? "#{dest}?#{query}" : dest
     end
 
     href_for_locale(locale.to_sym)
+  end
+
+  def manage_columns_path?(path)
+    clean = path.to_s.split("?", 2).first.to_s
+    clean == "/columns" || clean.start_with?("/columns/")
   end
 
   def localize_public_path(path)
@@ -35,14 +56,16 @@ class LocalesController < ApplicationController
   end
 
   def public_locale_path?(path)
-    path == "/plans" ||
-      path.start_with?("/plans") ||
-      path == "/tops" ||
-      path.start_with?("/tops") ||
-      path == "/tools/seo-checker" ||
-      path.start_with?("/tools/seo-checker") ||
-      path.start_with?("/clients/sign_in") ||
-      path.start_with?("/clients/sign_up") ||
-      path.start_with?("/clients/password")
+    clean = path.to_s.split("?", 2).first.to_s
+    clean == "/plans" ||
+      clean.start_with?("/plans") ||
+      clean == "/tops" ||
+      clean.start_with?("/tops") ||
+      clean == "/tools/seo-checker" ||
+      clean.start_with?("/tools/seo-checker") ||
+      clean.start_with?("/clients/sign_in") ||
+      clean.start_with?("/clients/sign_up") ||
+      clean.start_with?("/clients/password") ||
+      public_genre_columns_path?(clean)
   end
 end

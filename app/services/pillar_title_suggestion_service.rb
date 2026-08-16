@@ -12,7 +12,7 @@ class PillarTitleSuggestionService
   # ==========================================================
   # キーワードとターゲット層から親記事（Pillar）タイトルを生成
   # ==========================================================
-  def self.call(keyword1:, keyword2:, target_layer:, genre:, sub_genre: nil, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil)
+  def self.call(keyword1:, keyword2:, target_layer:, genre:, sub_genre: nil, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil, language: nil)
     if keyword1.blank? || keyword2.blank? || genre.blank?
       Rails.logger.error("PillarTitleSuggestionService: 必須パラメータが不足しています")
       return { success: false, error: "必須パラメータが不足しています", titles: [] }
@@ -110,7 +110,8 @@ class PillarTitleSuggestionService
       }
     PROMPT
 
-    res = call_gpt_api(prompt)
+    locale_carrier = Column.new(language: Column.normalize_language(language))
+    res = GptGenerationLocale.with_language(locale_carrier) { call_gpt_api(prompt) }
     return { success: false, error: "API通信エラーが発生しました", titles: [] } if res.nil?
 
     begin
@@ -135,6 +136,7 @@ class PillarTitleSuggestionService
   private
 
   def self.call_gpt_api(prompt)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
@@ -143,7 +145,7 @@ class PillarTitleSuggestionService
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたはSEOコンサルタントです。指定されたJSONフォーマットのオブジェクトのみを返却してください。マークダウンの枠組みやバッククォート、解説のテキストは一切不要です。" },
+        { role: "system", content: GptGenerationLocale.resolve_title_system_prompt("あなたはSEOコンサルタントです。指定されたJSONフォーマットのオブジェクトのみを返却してください。マークダウンの枠組みやバッククォート、解説のテキストは一切不要です。") },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },

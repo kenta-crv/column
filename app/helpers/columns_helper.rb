@@ -80,6 +80,7 @@ module ColumnsHelper
       "@type" => "Article",
       "headline" => column.title,
       "description" => column_seo_description(column),
+      "inLanguage" => Column.normalize_language(column.language) == "en" ? "en" : "ja",
       "datePublished" => column.published_at&.iso8601,
       "dateModified" => column.updated_at&.iso8601,
       "mainEntityOfPage" => {
@@ -145,7 +146,7 @@ module ColumnsHelper
 
   # 本文HTMLの途中（目次以外の見出し直前）へCTAを1回差し込む
   def column_body_html_with_inline_cta(column, body_html)
-    return body_html.to_s.html_safe if can_manage_column?(column)
+    return body_html.to_s.html_safe if respond_to?(:columns_manage_view?) && columns_manage_view?
 
     cta = column_service_cta_for(column)
     return body_html.to_s.html_safe if cta.blank?
@@ -157,7 +158,7 @@ module ColumnsHelper
     html.scan(/<(h[2-4])\b[^>]*>(.*?)<\/\1>/im) do
       match = Regexp.last_match
       text = strip_tags(match[2]).to_s.gsub(/\s+/, "").strip
-      next if text == "目次"
+      next if [I18n.t("drafity.columns.show.toc"), "目次", "Contents"].include?(text)
 
       offsets << match.begin(0)
     end

@@ -71,6 +71,9 @@ class ApplicationController < ActionController::Base
   def set_locale
     locale = resolve_ui_locale
     I18n.locale = locale
+    # 公開URLの表示言語はダッシュボード言語（session / preferred_locale）を上書きしない
+    return if public_switchable_path?(request_path_without_locale)
+
     persist_ui_locale!(locale)
   end
 
@@ -153,9 +156,20 @@ class ApplicationController < ActionController::Base
       public_genre_columns_path?(path)
   end
 
-  # /ai_article/columns など公開記事一覧・詳細（ /columns 管理画面は除外）
+  # /ai_article/columns など公開記事一覧・詳細。
+  # /dashboard/columns は管理画面なので除外する（生成ポーリングやレビュー待ちタブで
+  # ダッシュボードが日本語に上書きされるのを防ぐ）。
+  NON_PUBLIC_GENRE_SEGMENTS = %w[
+    dashboard columns clients admins locale checkout plans tops tools
+    problems contracts draft webhooks sidekiq rails assets api
+  ].freeze
+
   def public_genre_columns_path?(path)
-    path.to_s.split("?", 2).first.to_s.match?(%r{\A/[a-z0-9_]+/columns(?:/|\z)})
+    clean = path.to_s.split("?", 2).first.to_s
+    match = clean.match(%r{\A/([a-z0-9_]+)/columns(?:/|\z)})
+    return false unless match
+
+    !NON_PUBLIC_GENRE_SEGMENTS.include?(match[1])
   end
 
   def authenticate_admin_or_client!
@@ -252,12 +266,17 @@ class ApplicationController < ActionController::Base
       return nil
     end
 
-    columns_index_path({ genre: genre_key }.merge(extras))
+    route_params = { genre: genre_key }.merge(extras)
+    if I18n.locale.to_s == "en"
+      localized_columns_index_path(route_params.merge(locale: :en))
+    else
+      columns_index_path(route_params)
+    end
   rescue ActionController::UrlGenerationError
     columns_manage_view? ? columns_path(extras) : nil
   end
 
-  def public_column_show_path(column)
+  def public_column_show_path(column, locale: I18n.locale)
     return "#" unless column
 
     # 管理画面では公開用ジャンル制約ルートを使わず、通常の columns リソースへ戻す
@@ -266,7 +285,12 @@ class ApplicationController < ActionController::Base
     genre_key = (GenreRegistry.resolve_key(column.genre, client: column.client) || column.genre).to_s
     return column_path(column) unless routable_public_genre_key?(genre_key)
 
-    columns_show_path(genre: genre_key, id: column.code.presence || column.id)
+    id = column.code.presence || column.id
+    if locale.to_s == "en"
+      localized_columns_show_path(locale: :en, genre: genre_key, id: id)
+    else
+      columns_show_path(genre: genre_key, id: id)
+    end
   rescue ActionController::UrlGenerationError
     column_path(column)
   end
@@ -282,26 +306,24 @@ class ApplicationController < ActionController::Base
 
     equivalent = GenreRegistry.equivalent_keys(key)
 
-    if admin_signed_in?
-      return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
-      return true if equivalent.any? { |k| ServiceGenre.exists?(key: k) }
-      return false
-    end
-
-    if client_signed_in?
-      allowed = Array(current_client.allowed_genres).map(&:to_s)
-      if allowed.present?
-        return equivalent.any? { |k| allowed.include?(k) }
+    if columns_manage_view?
+      if admin_signed_in?
+        return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
+        return true if equivalent.any? { |k| ServiceGenre.exists?(key: k) }
+        return false
       end
 
-      return equivalent.any? { |k| current_client.genre_keys.include?(k) }
+      if client_signed_in?
+        allowed = Array(current_client.allowed_genres).map(&:to_s)
+        if allowed.present?
+          return equivalent.any? { |k| allowed.include?(k) }
+        end
+
+        return equivalent.any? { |k| current_client.genre_keys.include?(k) }
+      end
     end
 
-    # 公開SSRはジャンルが実在すれば表示する。
-    # drafity.pro で ai_article 以外をここで落とすと、
-    # 自社ドメインが Host: drafity.pro 経由で来た場合に cleaning 等が 0 件になる。
-    # Google への公開範囲制限は robots.txt / CrawlPolicy 側で行う。
-    # meetia → ai_sales_agent のような旧キー互換も本体キーとして許可する。
+    # 公開URLはログイン中でも公開判定（管理画面のみクライアント制限）
     return true if equivalent.include?(CrawlPolicy::GENRE_KEY)
     return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
     return true if equivalent.any? { |k| ServiceGenre.registered_key?(k) }
@@ -310,7 +332,10 @@ class ApplicationController < ActionController::Base
   end
 
   def columns_manage_view?
-    admin_signed_in? || client_signed_in?
+    return false unless admin_signed_in? || client_signed_in?
+
+    # /:genre/columns と /en/:genre/columns は公開表示（言語フィルタ対象）
+    params[:genre].blank?
   end
 
   def public_genre_filter_values(genre_key, client: nil)
@@ -349,7 +374,7 @@ class ApplicationController < ActionController::Base
     genre_key ||= default_public_genre_key unless manage_view
     client = current_client if client_signed_in?
 
-    if client_signed_in?
+    if manage_view && client_signed_in?
       scope = Column.where(client_id: client.id)
       if genre_key.present?
         genre_values = public_genre_filter_values(genre_key, client: client)
@@ -369,7 +394,7 @@ class ApplicationController < ActionController::Base
       return scope
     end
 
-    if admin_signed_in?
+    if manage_view && admin_signed_in?
       scope = dashboard_columns_base_scope
       if genre_key.present?
         genre_values = public_genre_filter_values(genre_key)
@@ -393,7 +418,7 @@ class ApplicationController < ActionController::Base
 
     # 自社ドメイン公開は Client 無関係。ジャンル + 公開済みのみで出す。
     genre_values = public_genre_filter_values(genre_key)
-    published_columns_scope.where(genre: genre_values.presence || genre_key)
+    published_columns_scope.where(genre: genre_values.presence || genre_key).merge(Column.for_ui_locale)
   end
 
   def public_readable_columns_scope
@@ -414,13 +439,6 @@ class ApplicationController < ActionController::Base
     return false unless column_matches_genre?(column, genre_key)
     return false unless accessible_public_genre?(genre_key)
 
-    if client_signed_in?
-      return column.client_id == current_client.id
-    end
-
-    return true if admin_signed_in?
-
-    # 公開詳細も Client 絞り込みしない（自社ドメインの従来仕様）
     column.publicly_visible?
   end
 
@@ -516,12 +534,32 @@ class ApplicationController < ActionController::Base
   end
 
   def dashboard_genre_registry_options
-    dashboard_genre_registry.map { |key, value| [value[:ja], key.to_s] }
+    dashboard_genre_registry.map { |key, _value|
+      [GenreRegistry.label_for(key, locale: I18n.locale), key.to_s]
+    }
   end
 
   def dashboard_sub_categories_json
-    dashboard_genre_registry.transform_values do |value|
-      value[:sub_categories]&.map { |sub_key, sub_value| { id: sub_key.to_s, name: sub_value[:name] } } || []
+    localized_sub_categories_json(dashboard_genre_registry)
+  end
+
+  def localized_sub_categories_json(registry, locale: I18n.locale)
+    english = locale.to_s == "en"
+    registry.each_with_object({}) do |(genre_key, value), acc|
+      acc[genre_key] = (value[:sub_categories] || {}).map do |sub_key, sub_value|
+        name = if sub_value.is_a?(Hash)
+                 if english
+                   sub_value[:name_en].presence || sub_value["name_en"].presence ||
+                     sub_value[:name].presence || sub_value["name"].presence || sub_key.to_s
+                 else
+                   sub_value[:name].presence || sub_value["name"].presence ||
+                     sub_value[:name_en].presence || sub_value["name_en"].presence || sub_key.to_s
+                 end
+               else
+                 sub_key.to_s
+               end
+        { id: sub_key.to_s, name: name }
+      end
     end.to_json
   end
 

@@ -66,7 +66,8 @@
   .dashboard-back-link
     = link_to t("drafity.dashboard.common.back_to_dashboard"), dashboard_root_path
 
-- js_i18n = {
+ruby:
+  js_i18n = {
     countSelected: t("drafity.dashboard.common.count_selected", count: "%{count}"),
     selectRequired: t("drafity.dashboard.flashes.image_select_required"),
     confirmSelected: t("drafity.dashboard.image_generation.confirm_selected", count: "%{count}"),

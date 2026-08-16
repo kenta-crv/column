@@ -1,21 +1,21 @@
 - set_meta_tags noindex: true
 .section-knowhow
   .container
-    h1.section-title ドラフト・未完了記事一覧
+    h1.section-title = t("drafity.columns.draft.title")
 
     - if @columns.empty?
       .knowhow-empty-wrapper
-        p 対象の記事はありません
+        p = t("drafity.columns.draft.empty")
     - else
       = form_with(url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbolinks: false }) do |form|
         = hidden_field_tag :redirect_context, "draft"
-        
+
         .knowhow-action-bar
-          = form.button name: "action_type", value: "approve_bulk", class: "btn-knowhow-bulk-gpt", data: { confirm: "選択された記事を承認して本文生成を開始しますか？" } do
+          = form.button name: "action_type", value: "approve_bulk", class: "btn-knowhow-bulk-gpt", data: { confirm: t("drafity.columns.draft.approve_bulk_confirm") } do
             span ⚡
-            span 選択をChat GPTに依頼
-          = form.button name: "action_type", value: "delete_bulk", class: "btn-knowhow-bulk-delete", data: { confirm: "選択された記事を一括削除しますか？" } do
-            span 選択を削除
+            span = t("drafity.columns.draft.approve_bulk")
+          = form.button name: "action_type", value: "delete_bulk", class: "btn-knowhow-bulk-delete", data: { confirm: t("drafity.columns.draft.delete_bulk_confirm") } do
+            span = t("drafity.columns.draft.delete_bulk")
 
         .knowhow-table-wrap
           table.knowhow-management-table
@@ -25,11 +25,11 @@
                   = check_box_tag "select_all", "1", false, class: "knowhow-custom-checkbox", onclick: "toggleAll(this)"
                 th width="60" id
                 th width="80" parent
-                th タイトル
-                th ジャンル
-                th 状態
-                th 更新日
-                th 操作
+                th = t("drafity.columns.draft.th_title")
+                th = t("drafity.columns.draft.th_genre")
+                th = t("drafity.columns.draft.th_status")
+                th = t("drafity.columns.draft.th_updated")
+                th = t("drafity.columns.draft.th_actions")
             tbody
               - @columns.each do |column|
                 tr
@@ -43,20 +43,20 @@
                     span.knowhow-badge-genre = column.genre.presence || "—"
                   td
                     - if column.status == "draft"
-                      span.knowhow-status-badge.knowhow-status-badge--pending 未承認
+                      span.knowhow-status-badge.knowhow-status-badge--pending = t("drafity.columns.draft.status_pending")
                     - elsif !column.generated_body?
-                      span.knowhow-status-badge.knowhow-status-badge--missing 本文なし
+                      span.knowhow-status-badge.knowhow-status-badge--missing = t("drafity.columns.draft.status_no_body")
                     - else
-                      span.knowhow-status-badge.knowhow-status-badge--processing 生成中
+                      span.knowhow-status-badge.knowhow-status-badge--processing = t("drafity.columns.draft.status_generating")
                   td.knowhow-date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
-                  td 
+                  td
                     .knowhow-row-actions
-                      = link_to approve_column_path(column), method: :patch, data: { turbolinks: false, confirm: "本文生成を開始しますか？（生成スタイル: #{generation_mode_label(column.generation_mode)}）" }, class: "knowhow-action-btn knowhow-action-btn--gpt", title: "ChatGPT依頼" do
-                        span ⚡ GPT
-                      = link_to edit_column_path(column), class: 'knowhow-action-btn knowhow-action-btn--edit', data: { turbo: false }, title: "編集" do
-                        span 編集
-                      = link_to column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "knowhow-action-btn knowhow-action-btn--delete", title: "削除" do
-                        span 削除
+                      = link_to approve_column_path(column), method: :patch, data: { turbolinks: false, confirm: t("drafity.columns.draft.action_gpt_confirm", mode: generation_mode_label(column.generation_mode)) }, class: "knowhow-action-btn knowhow-action-btn--gpt", title: t("drafity.columns.draft.action_gpt_title") do
+                        span = "⚡ #{t("drafity.columns.draft.action_gpt")}"
+                      = link_to edit_column_path(column), class: 'knowhow-action-btn knowhow-action-btn--edit', data: { turbo: false }, title: t("drafity.columns.draft.action_edit") do
+                        span = t("drafity.columns.draft.action_edit")
+                      = link_to column_path(column), method: :delete, data: { confirm: t("drafity.columns.draft.action_delete_confirm") }, class: "knowhow-action-btn knowhow-action-btn--delete", title: t("drafity.columns.draft.action_delete") do
+                        span = t("drafity.columns.draft.action_delete")
 
         - if @columns.respond_to?(:total_pages) && @columns.total_pages > 1
           .knowhow-pagination

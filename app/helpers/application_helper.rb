@@ -86,6 +86,26 @@ module ApplicationHelper
     I18n.t("drafity.dashboard.generation_modes.#{key}", default: t("drafity.dashboard.generation_modes.default"))
   end
 
+  def article_language_options_for_select
+    [
+      [t("drafity.columns.form.language_ja"), "ja"],
+      [t("drafity.columns.form.language_en"), "en"]
+    ]
+  end
+
+  def article_language_label(language)
+    key = Column.normalize_language(language)
+    t("drafity.columns.form.language_#{key}")
+  end
+
+  def column_content_locale(column)
+    Column.english_language?(column&.language) ? :en : :ja
+  end
+
+  def default_article_language
+    I18n.locale.to_s == "en" ? "en" : Column::DEFAULT_LANGUAGE
+  end
+
   def service_genre_sub_category_items(service_genre)
     submitted = params.dig(:service_genre, :sub_categories_items)
     return normalize_sub_category_items(submitted) if submitted.present?

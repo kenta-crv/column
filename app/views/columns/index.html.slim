@@ -1,15 +1,14 @@
 - current_genre_key = @current_genre_key.presence || params[:genre].presence
 / meetia → ai_sales_agent のような旧キーでもレジストリ本体から service_name を取る
 - registry_genre_key = current_genre_key.present? ? GenreRegistry.canonical_key(current_genre_key) : nil
-- service_name = registry_genre_key.present? ? GenreRegistry.genres.dig(registry_genre_key.to_sym, :service_name) : nil
-- page_title = params[:article_type] == 'pillar' ? '親記事（ピラー）一覧' : (params[:article_type] == 'child' ? '子記事（クラスター）一覧' : '公開済み記事')
-- empty_message = params[:article_type] == 'pillar' ? '親記事がありません。ダッシュボードから親記事を作成してください。' : (params[:article_type] == 'child' ? 'クラスター記事はありません。' : '公開済みの記事はありません。')
+- service_name = registry_genre_key.present? ? GenreRegistry.label_for(registry_genre_key, locale: I18n.locale) : nil
+- page_title = ({ "pillar" => t("drafity.columns.index.title_pillar"), "child" => t("drafity.columns.index.title_child") }[params[:article_type]] || t("drafity.columns.index.title_all"))
+- empty_message = ({ "pillar" => t("drafity.columns.index.empty_pillar"), "child" => t("drafity.columns.index.empty_child") }[params[:article_type]] || t("drafity.columns.index.empty_all"))
 
-- set_meta_tags title: service_name.present? ? "【#{service_name}】記事一覧" : page_title
+- set_meta_tags title: (service_name.present? ? t("drafity.columns.index.meta_with_service", service: service_name) : page_title)
 - index_desc_key = registry_genre_key.presence || current_genre_key
-- index_description = index_desc_key.present? && GenreRegistry.respond_to?(:columns_index_description) ? GenreRegistry.columns_index_description(index_desc_key).presence : nil
-- index_description ||= index_desc_key.present? ? GenreRegistry.genres.dig(index_desc_key.to_sym, :columns_index_description).presence : nil
-- index_description ||= service_name.present? ? "#{service_name}のAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。" : "#{page_title}。導入・運用・事例のポイントをまとめています。"
+- index_description = (index_desc_key.present? && GenreRegistry.respond_to?(:columns_index_description) ? GenreRegistry.columns_index_description(index_desc_key, locale: I18n.locale).presence : nil)
+- index_description ||= service_name.present? ? t("drafity.columns.index.description_with_service", service: service_name) : t("drafity.columns.index.description_generic", title: page_title)
 - set_meta_tags description: index_description
 
 - if @columns_manage_view
@@ -18,52 +17,52 @@
       h1 = page_title
       p.dashboard-page-subtitle
         - if params[:article_type] == 'pillar'
-          | 親記事を選び、子記事タイトルの作成・管理を行います。
+          = t("drafity.columns.index.lead_pillar")
         - elsif params[:article_type] == 'child'
-          | 本文が生成済みのクラスター記事一覧です。
+          = t("drafity.columns.index.lead_child")
         - else
-          | 公開済み（本文あり）の記事一覧です。
+          = t("drafity.columns.index.lead_all")
 
     - if @current_genre_key.present?
       .columns-manage-tabs
-        = link_to "公開済み", public_columns_index_path(genre: @current_genre_key),
+        = link_to t("drafity.columns.index.tab_published"), public_columns_index_path(genre: @current_genre_key),
                   class: "btn btn-sm #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}",
                   data: { turbo: false }
-        = link_to "親記事", public_columns_index_path(genre: @current_genre_key, article_type: 'pillar'),
+        = link_to t("drafity.columns.index.tab_pillar"), public_columns_index_path(genre: @current_genre_key, article_type: 'pillar'),
                   class: "btn btn-sm #{params[:article_type] == 'pillar' ? 'btn-warning' : 'btn-outline-warning'}",
                   data: { turbo: false }
-        = link_to "クラスター", public_columns_index_path(genre: @current_genre_key, article_type: 'child'),
+        = link_to t("drafity.columns.index.tab_cluster"), public_columns_index_path(genre: @current_genre_key, article_type: 'child'),
                   class: "btn btn-sm #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}",
                   data: { turbo: false }
     - else
       .columns-manage-tabs
-        = link_to "公開済み", columns_path,
+        = link_to t("drafity.columns.index.tab_published"), columns_path,
                   class: "btn btn-sm #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}",
                   data: { turbo: false }
-        = link_to "親記事", columns_path(article_type: 'pillar'),
+        = link_to t("drafity.columns.index.tab_pillar"), columns_path(article_type: 'pillar'),
                   class: "btn btn-sm #{params[:article_type] == 'pillar' ? 'btn-warning' : 'btn-outline-warning'}",
                   data: { turbo: false }
-        = link_to "クラスター", columns_path(article_type: 'child'),
+        = link_to t("drafity.columns.index.tab_cluster"), columns_path(article_type: 'child'),
                   class: "btn btn-sm #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}",
                   data: { turbo: false }
 
     .image-generation-list-panel
       .image-generation-list-header
         h3 = page_title
-        span.image-generation-list-count = "#{@paginated_columns&.total_count || 0}件"
+        span.image-generation-list-count = t("drafity.columns.index.count", count: (@paginated_columns&.total_count || 0))
 
       - if @columns.present?
         .table-wrap
           table.rich-dashboard-table
             thead
               tr
-                th タイトル
-                th ジャンル
+                th = t("drafity.columns.index.th_title")
+                th = t("drafity.columns.index.th_genre")
                 - if params[:article_type] == "pillar"
-                  th 子記事
+                  th = t("drafity.columns.index.th_children")
                 - else
-                  th タイプ
-                th 更新日時
+                  th = t("drafity.columns.index.th_type")
+                th = t("drafity.columns.index.th_updated")
             tbody
               - @columns.each do |column|
                 tr
@@ -71,13 +70,13 @@
                     = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
                   td = column.genre.presence || "—"
                   - if params[:article_type] == "pillar"
-                    td = "#{@child_counts&.[](column.id) || 0} 件"
+                    td = t("drafity.columns.index.child_count", count: (@child_counts&.[](column.id) || 0))
                   - else
                     td
                       - if column.article_type == "pillar"
-                        | 親記事
+                        = t("drafity.columns.index.type_pillar")
                       - else
-                        | クラスター
+                        = t("drafity.columns.index.type_cluster")
                   td.date-text = column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")
 
         .table-footer-pagination
@@ -87,10 +86,10 @@
         p.image-generation-empty = empty_message
         - if @current_genre_key.blank?
           p.image-generation-empty
-            = link_to "サービス・ジャンル管理へ", dashboard_service_genres_path
+            = link_to t("drafity.columns.index.to_genres"), dashboard_service_genres_path
 
     .dashboard-back-link
-      = link_to "← Dashboardに戻る", dashboard_root_path
+      = link_to t("drafity.columns.index.back_dashboard"), dashboard_root_path
 
 - else
   .section-knowhow.columns-index-page
@@ -100,11 +99,11 @@
 
       - if params[:article_type] == 'pillar' && @current_genre_key.present?
         .genre-filter-wrapper style="margin-bottom: 20px;"
-          form.filter-form action=columns_index_path(genre: @current_genre_key) method="get"
+          form.filter-form action=public_columns_index_path(genre: @current_genre_key) method="get"
             = hidden_field_tag :article_type, 'pillar'
-            label style="font-weight: bold; margin-right: 10px;" ジャンル絞り込み:
+            label style="font-weight: bold; margin-right: 10px;" = t("drafity.columns.index.filter_genre")
             select name="selected_genre" onchange="this.form.submit()" class="form-select d-inline-block" style="width: auto; max-width: 200px;"
-              option value="" 全表示
+              option value="" = t("drafity.columns.index.filter_all")
               - @all_genres&.each do |g|
                 option value=g selected=(params[:selected_genre] == g) = g.upcase
 

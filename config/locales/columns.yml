@@ -1,0 +1,287 @@
+ja:
+  drafity:
+    columns:
+      breadcrumb:
+        aria: パンくず
+        top: トップ
+        ai_articles: AI記事一覧
+        genre_lp: "%{genre}LP"
+        genre_list: "%{genre}記事一覧"
+        edit: 記事編集
+        fallback_genre: 記事
+      form:
+        new_title: 新規記事作成
+        edit_title: 記事編集
+        title: タイトル
+        code: URL用英字コード（SEO用）
+        image: 画像
+        description: 説明（概要）
+        body: 本文
+        genre: ジャンル（大分類）
+        sub_genre: 中分類（サブカテゴリ）
+        article_type: タイプ
+        type_pillar: 親記事
+        type_cluster: 子記事
+        generation_mode: 生成スタイル
+        mode_hint_admin: 親で選んだスタイルは子記事にも引き継がれます。Note / Qiita / Zenn は管理者専用です。
+        mode_hint: 親で選んだスタイルは、子記事にも引き継がれます。
+        language: 記事の言語
+        language_ja: 日本語
+        language_en: English
+        language_hint: 本文・タイトル提案・品質評価の生成言語です。画面の表示言語とは別に保存されます。
+        language_inherited: 子記事の言語は親記事から引き継がれます。
+        own_service: 言及サービス（管理者専用）
+        own_service_hint: Note / Qiita / Zenn のとき必須です。Meetia / Recrivo / Okurite から指定します。
+        prompt: AI生成指示（任意・最優先）
+        prompt_placeholder: この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい
+        parent_id: 親記事ID
+        select_please: 選択してください
+        no_sub_genre: 中分類はありません
+        save: 保存する
+      index:
+        title_all: 公開済み記事
+        title_pillar: 親記事（ピラー）一覧
+        title_child: 子記事（クラスター）一覧
+        meta_with_service: "【%{service}】記事一覧"
+        description_with_service: "%{service}のAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。"
+        description_generic: "%{title}。導入・運用・事例のポイントをまとめています。"
+        lead_pillar: 親記事を選び、子記事タイトルの作成・管理を行います。
+        lead_child: 本文が生成済みのクラスター記事一覧です。
+        lead_all: 公開済み（本文あり）の記事一覧です。
+        tab_published: 公開済み
+        tab_pillar: 親記事
+        tab_cluster: クラスター
+        empty_all: 公開済みの記事はありません。
+        empty_pillar: 親記事がありません。ダッシュボードから親記事を作成してください。
+        empty_child: クラスター記事はありません。
+        count: "%{count}件"
+        th_title: タイトル
+        th_genre: ジャンル
+        th_children: 子記事
+        th_type: タイプ
+        th_updated: 更新日時
+        type_pillar: 親記事
+        type_cluster: クラスター
+        child_count: "%{count} 件"
+        to_genres: サービス・ジャンル管理へ
+        back_dashboard: ← Dashboardに戻る
+        filter_genre: "ジャンル絞り込み:"
+        filter_all: 全表示
+      draft:
+        title: ドラフト・未完了記事一覧
+        empty: 対象の記事はありません
+        approve_bulk: 選択をChat GPTに依頼
+        approve_bulk_confirm: 選択された記事を承認して本文生成を開始しますか？
+        delete_bulk: 選択を削除
+        delete_bulk_confirm: 選択された記事を一括削除しますか？
+        th_title: タイトル
+        th_genre: ジャンル
+        th_status: 状態
+        th_updated: 更新日
+        th_actions: 操作
+        status_pending: 未承認
+        status_no_body: 本文なし
+        status_generating: 生成中
+        action_gpt: GPT
+        action_gpt_title: ChatGPT依頼
+        action_gpt_confirm: "本文生成を開始しますか？（生成スタイル: %{mode}）"
+        action_edit: 編集
+        action_delete: 削除
+        action_delete_confirm: 削除しますか？
+      show:
+        toc: 目次
+        related_parent_eyebrow: 親記事
+        related_parent_title: この記事の親テーマ
+        related_parent_count: 1件
+        related_parent_index: 親
+        related_children_eyebrow: クラスター
+        related_children_title: このテーマの関連記事
+        related_children_count: "%{count}件"
+        related_siblings_eyebrow: 兄弟記事
+        related_siblings_title: 同じクラスターの記事
+        related_cross_eyebrow: 関連テーマ
+        related_cross_title: あわせて読みたい
+        back_dashboard: ダッシュボードへ
+        back_index: 一覧へ戻る
+      cta:
+        learn_more: 詳しく見る
+      manage:
+        published: "✅ この記事は公開済みです（公開日時: %{time}）"
+        pending_review: "📝 この記事はレビュー待ちです（AIが生成した本文をチェックしてから公開してください）"
+        unpublish: 下書きに戻す（非公開化）
+        unpublish_confirm: この記事を非公開に戻しますか？公開サイトから見えなくなります。
+        publish: レビュー完了・公開する
+        publish_confirm: 内容を確認済みとして公開しますか？
+        published_notice: 記事を公開しました
+        unpublished_notice: 記事を下書き（レビュー待ち）に戻しました
+        publish_no_body: 本文が生成されていないため公開できません
+        remove_image: × 画像削除
+        remove_image_confirm: この画像のみを削除しますか？
+        remove_image_notice: 画像を削除しました。
+        panel_title: 子記事の作成・管理
+        quota: "プラン上限: 子記事 %{used} / %{limit} 件"
+        quota_remaining: "　｜　この親記事であと %{count} 件作成可能"
+        quota_full: "　｜　子記事の作成上限に達しています"
+        step1_title: "Step 1: 子記事タイトルを作る"
+        step1_lead: AIで一括生成するか、1件ずつ手動で追加できます。
+        generate_titles: AIで子記事タイトルを生成
+        generate_titles_confirm: 子記事タイトル案を生成します。よろしいですか？
+        manual_placeholder: "手動追加: 例 ○○の料金相場と選び方"
+        manual_add: 手動で追加
+        title_limit: 子記事タイトルの追加上限に達しています
+        step2_title: "Step 2: 子記事本文を生成する（クラスター作成）"
+        step2_lead: 下の一覧から子記事を選び、本文生成を開始してください。
+        generate_bodies: 選択した子記事本文を生成する
+        generate_bodies_confirm: 生成を開始しますか？
+        delete_selected: 選択した子記事を一括削除する
+        delete_selected_confirm: 選択された子記事を一括削除しますか？
+        th_title: タイトル
+        th_status: ステータス
+        th_body: 本文
+        body_yes: あり
+        body_no: 未生成
+        empty: まだ子記事がありません。上の Step 1 からタイトルを追加してください。
+
+en:
+  drafity:
+    columns:
+      breadcrumb:
+        aria: Breadcrumb
+        top: Home
+        ai_articles: AI articles
+        genre_lp: "%{genre} LP"
+        genre_list: "%{genre} articles"
+        edit: Edit article
+        fallback_genre: Articles
+      form:
+        new_title: New article
+        edit_title: Edit article
+        title: Title
+        code: URL slug (SEO)
+        image: Image
+        description: Description
+        body: Body
+        genre: Genre
+        sub_genre: Sub-category
+        article_type: Type
+        type_pillar: Pillar
+        type_cluster: Child
+        generation_mode: Generation style
+        mode_hint_admin: The style chosen on the parent is inherited by children. Note / Qiita / Zenn are admin-only.
+        mode_hint: The style chosen on the parent is inherited by children.
+        language: Article language
+        language_ja: Japanese
+        language_en: English
+        language_hint: Used for body, title suggestions, and quality scoring. Stored separately from the dashboard UI language.
+        language_inherited: Child articles inherit language from the parent.
+        own_service: Mentioned service (admin only)
+        own_service_hint: Required for Note / Qiita / Zenn. Choose Meetia / Recrivo / Okurite.
+        prompt: AI instructions (optional, highest priority)
+        prompt_placeholder: e.g. Explain ○○ in detail for △△ readers, with this structure…
+        parent_id: Parent article ID
+        select_please: Please select
+        no_sub_genre: No sub-categories
+        save: Save
+      index:
+        title_all: Published articles
+        title_pillar: Pillar articles
+        title_child: Cluster articles
+        meta_with_service: "%{service} articles"
+        description_with_service: "Articles about %{service} — guides, use cases, and operations tips."
+        description_generic: "%{title}. Guides, operations tips, and case studies."
+        lead_pillar: Choose a pillar article to create and manage child titles.
+        lead_child: Cluster articles with generated body content.
+        lead_all: Published articles with body content.
+        tab_published: Published
+        tab_pillar: Pillar
+        tab_cluster: Cluster
+        empty_all: No published articles yet.
+        empty_pillar: No pillar articles yet. Create one from the dashboard.
+        empty_child: No cluster articles yet.
+        count: "%{count}"
+        th_title: Title
+        th_genre: Genre
+        th_children: Children
+        th_type: Type
+        th_updated: Updated
+        type_pillar: Pillar
+        type_cluster: Cluster
+        child_count: "%{count}"
+        to_genres: Service & genre settings
+        back_dashboard: ← Back to dashboard
+        filter_genre: "Filter by genre:"
+        filter_all: All
+      draft:
+        title: Drafts & incomplete articles
+        empty: No matching articles
+        approve_bulk: Generate selected with ChatGPT
+        approve_bulk_confirm: Approve selected articles and start body generation?
+        delete_bulk: Delete selected
+        delete_bulk_confirm: Delete selected articles?
+        th_title: Title
+        th_genre: Genre
+        th_status: Status
+        th_updated: Updated
+        th_actions: Actions
+        status_pending: Pending
+        status_no_body: No body
+        status_generating: Generating
+        action_gpt: GPT
+        action_gpt_title: Request ChatGPT
+        action_gpt_confirm: "Start body generation? (style: %{mode})"
+        action_edit: Edit
+        action_delete: Delete
+        action_delete_confirm: Delete this article?
+      show:
+        toc: Contents
+        related_parent_eyebrow: Pillar
+        related_parent_title: Parent topic
+        related_parent_count: "1"
+        related_parent_index: Pillar
+        related_children_eyebrow: Cluster
+        related_children_title: Related articles
+        related_children_count: "%{count}"
+        related_siblings_eyebrow: Sibling articles
+        related_siblings_title: In the same cluster
+        related_cross_eyebrow: Related topics
+        related_cross_title: You may also like
+        back_dashboard: Dashboard
+        back_index: Back to list
+      cta:
+        learn_more: Learn more
+      manage:
+        published: "✅ This article is published (published at: %{time})"
+        pending_review: "📝 This article is awaiting review (check the AI-generated body before publishing)"
+        unpublish: Unpublish (back to draft)
+        unpublish_confirm: Unpublish this article? It will disappear from the public site.
+        publish: Review complete — publish
+        publish_confirm: Publish this article as reviewed?
+        published_notice: Article published
+        unpublished_notice: Article moved back to draft (awaiting review)
+        publish_no_body: Cannot publish because the body has not been generated
+        remove_image: × Remove image
+        remove_image_confirm: Remove this image only?
+        remove_image_notice: Image removed.
+        panel_title: Create and manage child articles
+        quota: "Plan limit: %{used} / %{limit} children"
+        quota_remaining: "  |  %{count} more on this pillar"
+        quota_full: "  |  Child article limit reached"
+        step1_title: "Step 1: Create child titles"
+        step1_lead: Generate titles with AI, or add them one by one.
+        generate_titles: Generate child titles with AI
+        generate_titles_confirm: Generate child title suggestions?
+        manual_placeholder: "Add manually: e.g. Pricing and how to choose"
+        manual_add: Add manually
+        title_limit: Child title limit reached
+        step2_title: "Step 2: Generate child bodies (clusters)"
+        step2_lead: Select children below and start body generation.
+        generate_bodies: Generate selected child bodies
+        generate_bodies_confirm: Start generation?
+        delete_selected: Delete selected children
+        delete_selected_confirm: Delete the selected child articles?
+        th_title: Title
+        th_status: Status
+        th_body: Body
+        body_yes: Ready
+        body_no: Not generated
+        empty: No child articles yet. Add titles from Step 1 above.

@@ -2,7 +2,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   before_action :authenticate_admin_or_client!
   before_action :set_service_genre, only: [:edit, :update, :destroy]
   before_action :authorize_service_genre!, only: [:edit, :update, :destroy]
-  before_action :assign_fallback_templates, only: [:new, :create, :edit, :update]
+  before_action :assign_fallback_templates, only: [:new, :create]
   before_action :assign_sub_category_config, only: [:new, :create, :edit, :update]
   before_action :authorize_fallback_template!, only: [:new]
 
@@ -218,10 +218,10 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def service_genre_attributes
     permitted = params.require(:service_genre).permit(
-      :key, :ja, :service_name, :strong_points, :client_id,
+      :key, :ja, :en, :service_name, :strong_points, :client_id,
       :hosts_text, :keywords_text,
       sub_categories_items: [
-        :key, :name, :target, :description,
+        :key, :name, :name_en, :target, :description,
         :features_text, :keywords_text, :price_hint, :area,
         :strengths, :industry_weakness
       ]
@@ -238,6 +238,7 @@ class Dashboard::ServiceGenresController < ApplicationController
       keywords: split_list(permitted[:keywords_text]),
       sub_categories: sub_categories
     }
+    attrs[:en] = permitted[:en] if ServiceGenre.column_names.include?("en")
     if ServiceGenre.column_names.include?("column_cta")
       attrs[:column_cta] = build_column_cta(params.dig(:service_genre, :column_cta))
     end
@@ -278,6 +279,19 @@ class Dashboard::ServiceGenresController < ApplicationController
       "url" => data[:url].to_s.strip.presence
     }.compact
     result["enabled"] = enabled
+
+    en_raw = data[:en]
+    en_raw = en_raw.to_unsafe_h if en_raw.respond_to?(:to_unsafe_h)
+    if en_raw.is_a?(Hash)
+      en_raw = en_raw.with_indifferent_access
+      en = {
+        "title" => en_raw[:title].to_s.strip.presence,
+        "lead" => en_raw[:lead].to_s.strip.presence,
+        "cta_label" => en_raw[:cta_label].to_s.strip.presence,
+        "badge" => en_raw[:badge].to_s.strip.presence
+      }.compact
+      result["en"] = en if en.present?
+    end
 
     by_sub = {}
     raw_by_sub = data[:by_sub_genre]
@@ -338,6 +352,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
       result[key] = {
         "name" => item[:name].to_s.strip,
+        "name_en" => item[:name_en].to_s.strip.presence,
         "target" => item[:target].to_s.strip.presence,
         "description" => item[:description].to_s.strip.presence,
         "features" => split_list(item[:features_text]),
@@ -407,6 +422,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
       result[key] = {
         "name" => item[:name].to_s.strip,
+        "name_en" => item[:name_en].to_s.strip.presence,
         "target" => item[:target].to_s.strip.presence,
         "description" => item[:description].to_s.strip.presence,
         "features" => split_list(item[:features_text]),

@@ -33,6 +33,14 @@
                   span.suggestion-count-unit = t("drafity.dashboard.common.unit_articles")
                 small.form-text = t("drafity.dashboard.autonomous.slider_hint")
 
+            .form-group
+              = f.label :language, t("drafity.dashboard.autonomous.language")
+              = f.select :language,
+                article_language_options_for_select,
+                { selected: Column.normalize_language(@run.language) },
+                { class: "form-control" }
+              small.form-text = t("drafity.dashboard.autonomous.language_hint")
+
           .form-actions
             = f.submit t("drafity.dashboard.autonomous.start"), class: "btn btn-primary", data: { confirm: t("drafity.dashboard.autonomous.confirm_start") }
             = link_to t("drafity.dashboard.common.cancel"), dashboard_autonomous_runs_path, class: "btn btn-secondary"

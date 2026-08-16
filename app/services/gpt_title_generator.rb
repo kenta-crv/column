@@ -67,7 +67,7 @@ class GptTitleGenerator
       }
     PROMPT
 
-    res = call_gpt_api(prompt)
+    res = GptGenerationLocale.with_language(pillar_column) { call_gpt_api(prompt) }
     return [] if res.nil?
 
     begin
@@ -105,6 +105,7 @@ class GptTitleGenerator
   end
 
   def self.call_gpt_api(prompt)
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
@@ -113,7 +114,7 @@ class GptTitleGenerator
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたはSEOコンサルタントです。指定されたJSONフォーマットのオブジェクトのみを返却してください。マークダウンの枠組みやバッククォート、解説のテキストは一切不要です。" },
+        { role: "system", content: GptGenerationLocale.resolve_title_system_prompt("あなたはSEOコンサルタントです。指定されたJSONフォーマットのオブジェクトのみを返却してください。マークダウンの枠組みやバッククォート、解説のテキストは一切不要です。") },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },

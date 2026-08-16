@@ -6,6 +6,7 @@ class ColumnsController < ApplicationController
   before_action :redirect_legacy_columns_index!, only: [:index]
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
   before_action :require_readable_column!, only: [:show]
+  before_action :redirect_public_article_locale!, only: [:show]
   before_action :require_column_access!, only: [:edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
   before_action :set_breadcrumbs
   before_action :assign_column_form_genre_options, only: [:new, :create, :edit, :update]
@@ -61,7 +62,7 @@ class ColumnsController < ApplicationController
 
     genre_counts_cache_key = [
       "columns_index_genre_counts_v1",
-      columns_manage_view? ? "manage" : "public",
+      columns_manage_view? ? "manage" : "public:#{I18n.locale}",
       (admin_signed_in? ? "admin:#{current_admin.id}" : nil),
       (client_signed_in? ? "client:#{current_client.id}" : "anon"),
       genre_key,
@@ -98,13 +99,13 @@ class ColumnsController < ApplicationController
         @children = @column.children.with_list_attributes.order(updated_at: :desc)
         @child_article_quota = child_article_quota_for(@column)
       else
-        @children = @column.children.merge(Column.published).with_list_attributes.order(updated_at: :desc)
+        @children = @column.children.merge(Column.published).merge(Column.for_language(@column.language)).with_list_attributes.order(updated_at: :desc)
       end
     else
       @children = []
     end
 
-    unless can_manage_column?(@column)
+    unless columns_manage_view?
       @cross_cluster_columns = Column.cross_cluster_related_to(@column, limit: 5)
       @sibling_columns = Column.related_siblings_for(@column, limit: 5)
     else
@@ -113,16 +114,21 @@ class ColumnsController < ApplicationController
     end
 
     markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+    markdown_body = GptGenerationLocale.rewrite_structure_headings(markdown_body, language: @column.language)
     raw_html_body = Kramdown::Document.new(markdown_body).to_html
     sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
 
     @headings = []
-    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-      tag, text = Regexp.last_match(1), Regexp.last_match(2)
+    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])([^>]*)>(.*?)<\/\1>/m) do
+      tag, text = Regexp.last_match(1), Regexp.last_match(3)
       clean_text = text.gsub('#', '')
-      idx = @headings.size
-      @headings << { tag: tag, text: clean_text, id: "heading-#{idx}", level: tag[1].to_i }
-      "<#{tag} id='heading-#{idx}'>#{clean_text}</#{tag}>"
+      if GptGenerationLocale.toc_heading?(clean_text)
+        "<#{tag} id='heading-toc'>#{clean_text}</#{tag}>"
+      else
+        idx = @headings.size
+        @headings << { tag: tag, text: clean_text, id: "heading-#{idx}", level: tag[1].to_i }
+        "<#{tag} id='heading-#{idx}'>#{clean_text}</#{tag}>"
+      end
     end
   end
   
@@ -211,12 +217,13 @@ class ColumnsController < ApplicationController
   # CRUD
   # ======================
   def new
-    @column = Column.new
+    @column = Column.new(language: I18n.locale.to_s == "en" ? "en" : Column::DEFAULT_LANGUAGE)
   end
 
   def create
     @column = Column.new(column_params)
     assign_column_client!(@column)
+    inherit_parent_article_language!(@column)
 
     if client_signed_in? && @column.parent_id.blank? && @column.article_type.blank?
       @column.article_type = "pillar"
@@ -246,7 +253,11 @@ class ColumnsController < ApplicationController
       return
     end
 
-    if @column.update(column_params)
+    attrs = column_params
+    @column.assign_attributes(attrs)
+    inherit_parent_article_language!(@column)
+
+    if @column.save
       redirect_to dashboard_root_path, notice: "更新しました"
     else
       render :edit, status: :unprocessable_entity
@@ -264,7 +275,7 @@ class ColumnsController < ApplicationController
   
   def remove_image
     @column.update_column(:file, nil)
-    redirect_back fallback_location: column_path(@column), notice: "画像を削除しました。"
+    redirect_back fallback_location: column_path(@column), notice: t("drafity.columns.manage.remove_image_notice")
   end
 
   def check_bulk_image_count
@@ -365,18 +376,18 @@ class ColumnsController < ApplicationController
 
   def publish
     unless @column.generated_body?
-      return redirect_back fallback_location: dashboard_root_path, alert: "本文が生成されていないため公開できません"
+      return redirect_back fallback_location: dashboard_root_path, alert: t("drafity.columns.manage.publish_no_body")
     end
 
     @column.publish!
     Rails.logger.info("[Publish] column_id=#{@column.id}")
-    redirect_back fallback_location: dashboard_root_path, notice: "記事を公開しました"
+    redirect_back fallback_location: dashboard_root_path, notice: t("drafity.columns.manage.published_notice")
   end
 
   def unpublish
     @column.unpublish!
     Rails.logger.info("[Unpublish] column_id=#{@column.id}")
-    redirect_back fallback_location: dashboard_root_path, notice: "記事を下書き（レビュー待ち）に戻しました"
+    redirect_back fallback_location: dashboard_root_path, notice: t("drafity.columns.manage.unpublished_notice")
   end
 
   def generate_pillar
@@ -535,6 +546,16 @@ class ColumnsController < ApplicationController
     raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}"
   end
 
+  def redirect_public_article_locale!
+    return if columns_manage_view?
+    return unless @column&.publicly_visible?
+
+    wanted = Column.normalize_language(@column.language)
+    return if wanted == I18n.locale.to_s
+
+    redirect_to public_column_show_path(@column, locale: wanted), status: :moved_permanently
+  end
+
   def render_404
     render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false
   end
@@ -542,20 +563,20 @@ class ColumnsController < ApplicationController
   def set_breadcrumbs
     # トップ → {Genre}LP → {Genre}記事一覧 → 記事
     # Genre名は Draftiy の GenreRegistry。LPのURLだけ nginx の X-Brand-Lp-Path
-    add_breadcrumb "トップ", "/"
+    add_breadcrumb t("drafity.columns.breadcrumb.top"), locale_root_href
 
     genre_key = (@column&.genre.presence || params[:genre]).to_s
     genre_key = GenreRegistry.resolve_key(genre_key, client: @column&.client).presence || genre_key
-    genre_ja = GenreRegistry.to_ja(genre_key).presence || genre_key.presence || "記事"
+    genre_label = GenreRegistry.label_for(genre_key, client: @column&.client).presence || genre_key.presence || t("drafity.columns.breadcrumb.fallback_genre")
 
     if platform_host? && genre_key == CrawlPolicy::GENRE_KEY
-      add_breadcrumb "AI記事一覧", "/ai_article/columns"
+      add_breadcrumb t("drafity.columns.breadcrumb.ai_articles"), public_columns_index_path(genre: genre_key)
     else
       if (lp_path = brand_lp_path_from_proxy_headers)
         # トップ(/)と同じURLなら LP 段は出さない（二重になるため）
-        add_breadcrumb "#{genre_ja}LP", lp_path unless lp_path == "/"
+        add_breadcrumb t("drafity.columns.breadcrumb.genre_lp", genre: genre_label), lp_path unless lp_path == "/"
       end
-      add_breadcrumb "#{genre_ja}記事一覧", consumer_columns_index_path(genre_key)
+      add_breadcrumb t("drafity.columns.breadcrumb.genre_list", genre: genre_label), consumer_columns_index_path(genre_key)
     end
 
     return unless action_name == "show" && @column
@@ -596,22 +617,31 @@ class ColumnsController < ApplicationController
   def column_params
     permitted = params.require(:column).permit(
       :title, :file, :choice, :keyword, :description, :genre, :code,
-      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre, :generation_mode
+      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre, :generation_mode, :language
     )
 
     if permitted[:generation_mode].present?
       permitted[:generation_mode] = sanitize_generation_mode_for_actor(permitted[:generation_mode])
     end
 
+    if permitted.key?(:language)
+      permitted[:language] = Column.normalize_language(permitted[:language])
+    end
+
     permitted
+  end
+
+  def inherit_parent_article_language!(column)
+    return if column.parent_id.blank?
+
+    parent = Column.find_by(id: column.parent_id)
+    column.language = Column.normalize_language(parent.language) if parent
   end
 
   def assign_column_form_genre_options
     registry = column_form_genre_registry
-    @column_form_genre_options = registry.map { |key, value| [value[:ja], key.to_s] }
-    @column_form_sub_categories_json = registry.transform_values do |value|
-      value[:sub_categories]&.map { |sub_key, sub_value| { id: sub_key, name: sub_value[:name] } } || []
-    end.to_json
+    @column_form_genre_options = registry.map { |key, value| [GenreRegistry.label_for(key, locale: I18n.locale), key.to_s] }
+    @column_form_sub_categories_json = localized_sub_categories_json(registry)
   end
 
   def column_form_genre_registry
