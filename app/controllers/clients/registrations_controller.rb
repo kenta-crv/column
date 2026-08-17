@@ -5,11 +5,6 @@ class Clients::RegistrationsController < Devise::RegistrationsController
 
   def configure_sign_up_params
     devise_parameter_sanitizer.permit(:sign_up, keys: [
-      :company,
-      :name,
-      :tel,
-      :address,
-      :url,
       :preferred_locale
     ])
   end
