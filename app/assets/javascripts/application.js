@@ -16,6 +16,18 @@
 //= require cable
 //= require_tree .
 
+(function() {
+  if (window.Turbolinks && typeof window.Turbolinks.pagesCached === 'function') {
+    window.Turbolinks.pagesCached(0);
+  }
+  document.addEventListener('turbolinks:before-cache', function() {
+    document.body.style.overflow = '';
+  });
+  document.addEventListener('turbo:before-prefetch', function(event) {
+    event.preventDefault();
+  });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   const mobileNavToggle = document.getElementById('mobile-nav-toggle');
   const mobileNavMenu = document.getElementById('mobile-nav-menu');

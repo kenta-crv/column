@@ -5,6 +5,7 @@ html lang=current_locale
     title = [page_title, "Drafity Admin"].compact.join(" | ")
     = csrf_meta_tags
     = csp_meta_tag
+    meta name="turbo-cache-control" content="no-cache"
     = stylesheet_link_tag "application", media: "all"
     = javascript_include_tag "application"
     meta name="viewport" content="width=device-width, initial-scale=1"
