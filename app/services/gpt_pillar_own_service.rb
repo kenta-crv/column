@@ -17,9 +17,11 @@ module GptPillarOwnService
   class_methods do
     def with_own_service_for(column)
       Thread.current[:gpt_pillar_own_service_key] = resolve_own_service_key(column)
+      Thread.current[:gpt_pillar_own_service_url] = normalize_own_service_url(column.try(:own_service_url))
       yield
     ensure
       Thread.current[:gpt_pillar_own_service_key] = nil
+      Thread.current[:gpt_pillar_own_service_url] = nil
     end
 
     def own_service_name
@@ -27,7 +29,7 @@ module GptPillarOwnService
     end
 
     def own_service_url
-      own_service_config[:url]
+      Thread.current[:gpt_pillar_own_service_url].presence || own_service_config[:url]
     end
 
     def resolve_own_service_key(column)
@@ -40,6 +42,14 @@ module GptPillarOwnService
     def own_service_config
       key = Thread.current[:gpt_pillar_own_service_key].presence || DEFAULT_OWN_SERVICE_KEY
       OWN_SERVICES.fetch(key, OWN_SERVICES.fetch(DEFAULT_OWN_SERVICE_KEY))
+    end
+
+    def normalize_own_service_url(url)
+      value = url.to_s.strip
+      return nil if value.blank?
+      return nil unless value.match?(/\Ahttps?:\/\/[^\s]+\z/i)
+
+      value
     end
   end
 end

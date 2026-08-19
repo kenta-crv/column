@@ -3,8 +3,10 @@
 class Clients::SessionsController < Devise::SessionsController
   layout "auth"
 
+  before_action :reject_client_auth_while_admin!, only: [:new, :create]
+
   def new
-    session[:omniauth_locale] = I18n.locale.to_s if Client::LOCALES.include?(I18n.locale.to_s)
+    session[:omniauth_locale] = auth_url_locale
     super
   end
 

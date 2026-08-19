@@ -453,7 +453,7 @@ class Dashboard::ColumnsController < ApplicationController
     @dashboard_genre_options = dashboard_genre_registry_options
     @dashboard_sub_categories_json = dashboard_sub_categories_json
     @sub_category_config = sub_category_ui_config
-    @needs_genre_setup = client_signed_in? && !admin_signed_in? && @dashboard_genre_options.blank?
+    @needs_genre_setup = client_signed_in? && !acting_as_admin? && @dashboard_genre_options.blank?
   end
 
   def sanitize_sub_genre_param(genre, sub_genre, client: nil)

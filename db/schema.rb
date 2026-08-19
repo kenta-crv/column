@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_08_15_140000) do
+ActiveRecord::Schema.define(version: 2026_08_18_164000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -117,6 +117,7 @@ ActiveRecord::Schema.define(version: 2026_08_15_140000) do
     t.string "generation_mode", default: "default", null: false
     t.string "own_service_key"
     t.string "language", default: "ja", null: false
+    t.string "own_service_url"
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["client_id"], name: "index_columns_on_client_id"
     t.index ["code"], name: "index_columns_on_code", unique: true

@@ -18,7 +18,7 @@ class Dashboard::ServiceGenresController < ApplicationController
                      else
                        ServiceGenre.new
                      end
-    if client_signed_in? && !admin_signed_in?
+    if client_signed_in? && !acting_as_admin?
       @service_genre.client = current_client
       personalize_template_hosts!(@service_genre)
     end
@@ -155,7 +155,7 @@ class Dashboard::ServiceGenresController < ApplicationController
     if apply_service_genre_flags!(@service_genre) && @service_genre.save
       render json: {
         success: true,
-        genre: { key: @service_genre.key, ja: @service_genre.ja },
+        genre: { key: @service_genre.key, ja: @service_genre.ja, label: @service_genre.display_name },
         sub_categories: (@service_genre.sub_categories || {}).map { |k, v|
           { id: k.to_s, name: v.with_indifferent_access[:name] }
         },
@@ -173,7 +173,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def assign_fallback_templates
-    @fallback_templates = if admin_signed_in?
+    @fallback_templates = if acting_as_admin?
                             GenreRegistry.fallback_templates_for
                           else
                             GenreRegistry.fallback_templates_for(client: current_client, host: request.host)
@@ -182,14 +182,14 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def authorize_fallback_template!
     return if params[:template].blank?
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if @fallback_templates.key?(params[:template].to_sym)
 
     redirect_to new_dashboard_service_genre_path, alert: t("drafity.dashboard.flashes.template_unavailable")
   end
 
   def unauthorized_genre_key?(key, except: nil)
-    return false if admin_signed_in?
+    return false if acting_as_admin?
     return false if key.blank?
     return false if except.present? && key.to_s == except.to_s
     return false if GenreRegistry.custom_genre_key_allowed_for_client?(key, client: current_client)
@@ -198,7 +198,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def service_genres_scope
-    if admin_signed_in?
+    if acting_as_admin?
       ServiceGenre.includes(:client).all
     else
       ServiceGenre.where(client_id: current_client.id)
@@ -210,7 +210,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def authorize_service_genre!
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if @service_genre.client_id == current_client.id
 
     redirect_to dashboard_service_genres_path, alert: t("drafity.dashboard.flashes.genre_access_denied_short")
@@ -218,10 +218,10 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def service_genre_attributes
     permitted = params.require(:service_genre).permit(
-      :key, :ja, :en, :service_name, :strong_points, :client_id,
+      :key, :ja, :service_name, :strong_points, :client_id,
       :hosts_text, :keywords_text,
       sub_categories_items: [
-        :key, :name, :name_en, :target, :description,
+        :key, :name, :target, :description,
         :features_text, :keywords_text, :price_hint, :area,
         :strengths, :industry_weakness
       ]
@@ -238,12 +238,11 @@ class Dashboard::ServiceGenresController < ApplicationController
       keywords: split_list(permitted[:keywords_text]),
       sub_categories: sub_categories
     }
-    attrs[:en] = permitted[:en] if ServiceGenre.column_names.include?("en")
     if ServiceGenre.column_names.include?("column_cta")
       attrs[:column_cta] = build_column_cta(params.dig(:service_genre, :column_cta))
     end
 
-    if admin_signed_in?
+    if acting_as_admin?
       attrs[:client_id] = permitted[:client_id].presence
     elsif client_signed_in?
       attrs[:client_id] = current_client.id
@@ -325,6 +324,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
     result = {}
     keys_seen = []
+    existing = (@service_genre&.sub_categories || {}).with_indifferent_access
 
     items.each do |item|
       item = item.to_unsafe_h.with_indifferent_access if item.respond_to?(:to_unsafe_h)
@@ -350,9 +350,10 @@ class Dashboard::ServiceGenresController < ApplicationController
         return [{}, t("drafity.dashboard.flashes.sub_name_required", key: key)]
       end
 
+      existing_en = existing.dig(key, :name_en).presence || existing.dig(key, "name_en").presence
       result[key] = {
         "name" => item[:name].to_s.strip,
-        "name_en" => item[:name_en].to_s.strip.presence,
+        "name_en" => item[:name_en].to_s.strip.presence || existing_en,
         "target" => item[:target].to_s.strip.presence,
         "description" => item[:description].to_s.strip.presence,
         "features" => split_list(item[:features_text]),
@@ -384,18 +385,18 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def apply_service_genre_flags!(service_genre)
-    service_genre.admin_override = admin_signed_in?
+    service_genre.admin_override = acting_as_admin?
     true
   end
 
   def sub_category_limit_for_ai
-    return 1_000 if admin_signed_in?
+    return 1_000 if acting_as_admin?
 
     client_signed_in? ? current_client.max_sub_category_count : 0
   end
 
   def sub_category_not_allowed_error
-    return nil if admin_signed_in?
+    return nil if acting_as_admin?
     return nil unless client_signed_in?
     return nil if current_client.sub_categories_allowed?
 
@@ -403,7 +404,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def sub_category_limit_error(sub_categories, owner_client:)
-    return nil if admin_signed_in?
+    return nil if acting_as_admin?
     return nil unless owner_client
 
     categories = sub_categories.is_a?(Hash) ? sub_categories : {}
@@ -436,7 +437,7 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def quick_create_owner
-    return nil if admin_signed_in?
+    return nil if acting_as_admin?
 
     current_client if client_signed_in?
   end

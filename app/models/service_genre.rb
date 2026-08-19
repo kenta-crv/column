@@ -8,6 +8,15 @@ class ServiceGenre < ApplicationRecord
                   uniqueness: { scope: :client_id }
   validates :ja, presence: true
 
+  def display_name(locale: I18n.locale)
+    english = has_attribute?(:en) ? self[:en].to_s.presence : nil
+    if locale.to_s.start_with?("en")
+      english || ja
+    else
+      ja.presence || english
+    end
+  end
+
   before_validation :normalize_key
   before_validation :ensure_columns_index_description
   validate :within_client_genre_limit, on: :create

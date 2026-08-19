@@ -41,7 +41,7 @@ class SeoCheckersController < ApplicationController
   private
 
   def seo_checker_unlimited?
-    admin_signed_in?
+    acting_as_admin?
   end
 
   def seo_checker_remaining

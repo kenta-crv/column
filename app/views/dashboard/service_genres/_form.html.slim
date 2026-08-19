@@ -1,6 +1,6 @@
+- @sub_category_config ||= sub_category_ui_config
+- sub_config = @sub_category_config
 = form_with scope: :service_genre, url: service_genre.persisted? ? dashboard_service_genre_path(service_genre) : dashboard_service_genres_path, method: service_genre.persisted? ? :patch : :post, local: true do |f|
-  - @sub_category_config ||= sub_category_ui_config
-  - sub_config = @sub_category_config
   - if service_genre.errors.any?
     .form-section
       .service-genre-errors
@@ -13,12 +13,12 @@
     .form-section__header
       h3.form-section-title = t("drafity.dashboard.genres.basic")
       - unless service_genre.persisted?
-        button.btn.btn-title-suggest.btn-ai-suggest type="button" onclick="handleGenreAiSuggestClick()"
+        button#genre-ai-suggest-btn.btn.btn-title-suggest.btn-ai-suggest type="button"
           svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
           = t("drafity.dashboard.genres.ai_suggest")
 
-    - if admin_signed_in?
+    - if acting_as_admin?
       .form-group
         = f.label :client_id, t("drafity.dashboard.labels.client")
         - selected_client_id = service_genre.client_id.presence || ""
@@ -31,12 +31,8 @@
       small.form-text = t("drafity.dashboard.genres.key_hint")
 
     .form-group
-      = f.label :ja, t("drafity.dashboard.genres.ja_label")
+      = f.label :ja, t("drafity.dashboard.labels.display_name")
       = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_ja")
-    .form-group
-      = f.label :en, t("drafity.dashboard.genres.en_label")
-      = f.text_field :en, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_en")
-      p.form-text = t("drafity.dashboard.genres.en_hint")
 
     .form-group
       = f.label :service_name, t("drafity.dashboard.labels.service_name")
@@ -75,7 +71,7 @@
         = " " + t("drafity.dashboard.genres.cta_show")
     .form-group
       = label_tag "service_genre_column_cta_theme", t("drafity.dashboard.genres.theme")
-      = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta::THEME_OPTIONS, cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
+      = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta.theme_options, cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
     .form-group
       = label_tag "service_genre_column_cta_badge", t("drafity.dashboard.genres.badge")
       = text_field_tag "service_genre[column_cta][badge]", cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: t("drafity.dashboard.genres.ph_badge")
@@ -125,7 +121,7 @@
           .form-group style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;"
             strong = "#{sub_key}#{sub_name.present? ? " (#{sub_name})" : ""}"
             = label_tag nil, t("drafity.dashboard.genres.theme"), style: "display:block;margin-top:8px;"
-            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([[t("drafity.dashboard.genres.theme_same"), ""]] + ColumnServiceCta::THEME_OPTIONS, sub_cta[:theme]), class: "form-control"
+            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([[t("drafity.dashboard.genres.theme_same"), ""]] + ColumnServiceCta.theme_options, sub_cta[:theme]), class: "form-control"
             = label_tag nil, t("drafity.dashboard.genres.badge"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][badge]", sub_cta[:badge], class: "form-control"
             = label_tag nil, t("drafity.dashboard.genres.heading"), style: "display:block;margin-top:8px;"
@@ -168,7 +164,7 @@
 
       template#sub-category-template
         = render "sub_category_fields", item: {}
-  - elsif client_signed_in? && !admin_signed_in?
+  - elsif client_signed_in? && !acting_as_admin?
     .form-section
       p.sub-categories-intro
         = t("drafity.dashboard.genres.sub_unavailable")
@@ -177,11 +173,11 @@
     = f.submit submit_label, class: "btn btn-primary"
     = link_to t("drafity.dashboard.common.back_to_list"), dashboard_service_genres_path, class: "btn btn-secondary"
 
-  - unless service_genre.persisted?
-    - if sub_config[:allowed]
-      = render "genre_draft_modal", sub_config: sub_config
-    - else
-      = render "genre_draft_plan_notice_modal"
+- unless service_genre.persisted?
+  - if sub_config[:allowed]
+    = render "genre_draft_modal", sub_config: sub_config
+  - else
+    = render "genre_draft_plan_notice_modal"
 
 ruby:
   js_i18n = {
@@ -200,9 +196,9 @@ ruby:
     retryNetwork: t("drafity.dashboard.genres.js_retry_network")
   }.to_json.html_safe
 javascript:
-  const I18nDash = #{js_i18n};
-  const i18nFmt = (template, vars) => String(template).replace(/%\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
   (function() {
+    const I18nDash = #{js_i18n};
+    const i18nFmt = (template, vars) => String(template).replace(/%\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
 
     const suggestUrl = "#{suggest_sub_categories_dashboard_service_genres_path}";
     const quickSetupUrl = "#{quick_setup_dashboard_service_genres_path}";
@@ -245,7 +241,6 @@ javascript:
             };
             set('input[name*="[key]"]', item.key);
             set('input[name$="[name]"]', item.name);
-            set('input[name*="[name_en]"]', item.name_en);
             set('input[name*="[target]"]', item.target);
             set('textarea[name*="[description]"]', item.description);
             set('textarea[name*="[features_text]"]', item.features_text);
@@ -318,35 +313,70 @@ javascript:
       });
     };
 
+    const showModal = (modal) => {
+      if (!modal) return;
+      document.body.appendChild(modal);
+      modal.style.display = 'flex';
+      document.body.classList.add('modal-open');
+    };
+
+    const hideModal = (modal) => {
+      if (!modal) return;
+      modal.style.display = 'none';
+      const otherOpen = ['genre-draft-modal', 'genre-draft-plan-notice-modal']
+        .map((id) => document.getElementById(id))
+        .some((el) => el && el !== modal && el.style.display === 'flex');
+      if (!otherOpen) document.body.classList.remove('modal-open');
+    };
+
+    const bindOverlayDismiss = (modal, closeFn) => {
+      if (!modal || modal.dataset.overlayBound === 'true') return;
+      modal.dataset.overlayBound = 'true';
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeFn();
+      });
+    };
+
     window.openGenreDraftModal = () => {
       initGenreDraftModal();
       const status = document.getElementById('genre-draft-status');
       if (status) status.hidden = true;
       const modal = document.getElementById('genre-draft-modal');
-      if (modal) modal.style.display = 'flex';
+      bindOverlayDismiss(modal, window.closeGenreDraftModal);
+      showModal(modal);
     };
 
     window.closeGenreDraftModal = () => {
-      const modal = document.getElementById('genre-draft-modal');
-      if (modal) modal.style.display = 'none';
+      hideModal(document.getElementById('genre-draft-modal'));
     };
 
     window.openGenreDraftPlanNoticeModal = () => {
       const modal = document.getElementById('genre-draft-plan-notice-modal');
-      if (modal) modal.style.display = 'flex';
+      bindOverlayDismiss(modal, window.closeGenreDraftPlanNoticeModal);
+      showModal(modal);
     };
 
     window.closeGenreDraftPlanNoticeModal = () => {
-      const modal = document.getElementById('genre-draft-plan-notice-modal');
-      if (modal) modal.style.display = 'none';
+      hideModal(document.getElementById('genre-draft-plan-notice-modal'));
     };
 
     window.handleGenreAiSuggestClick = () => {
       if (subCategoriesAllowed) {
-        openGenreDraftModal();
+        window.openGenreDraftModal();
       } else {
-        openGenreDraftPlanNoticeModal();
+        window.openGenreDraftPlanNoticeModal();
       }
+    };
+
+    const bindGenreAiSuggestButton = () => {
+      const btn = document.getElementById('genre-ai-suggest-btn');
+      if (!btn || btn.dataset.initialized === 'true') return;
+      btn.dataset.initialized = 'true';
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.handleGenreAiSuggestClick();
+      });
     };
 
     document.addEventListener('keydown', (event) => {
@@ -401,7 +431,6 @@ javascript:
 
         setFieldValue(item, 'input[name*="[key]"]', data.key);
         setFieldValue(item, 'input[name$="[name]"]', data.name);
-        setFieldValue(item, 'input[name*="[name_en]"]', data.name_en);
         setFieldValue(item, 'input[name*="[target]"]', data.target);
         setFieldValue(item, 'textarea[name*="[description]"]', data.description);
         setFieldValue(item, 'textarea[name*="[features_text]"]', data.features_text);
@@ -556,6 +585,7 @@ javascript:
     const boot = () => {
       initGenreDraftModal();
       initSubCategories();
+      bindGenreAiSuggestButton();
     };
 
     document.addEventListener('turbolinks:load', boot);

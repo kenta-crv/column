@@ -52,8 +52,8 @@ module ApplicationHelper
         t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
     when ["dashboard/service_genres", "edit"]
-      if defined?(@service_genre) && @service_genre&.ja.present?
-        t("drafity.dashboard.page_titles.with_suffix", name: @service_genre.ja, title: t("drafity.dashboard.page_titles.service_genres_edit"))
+      if defined?(@service_genre) && @service_genre&.display_name.present?
+        t("drafity.dashboard.page_titles.with_suffix", name: @service_genre.display_name, title: t("drafity.dashboard.page_titles.service_genres_edit"))
       else
         t(ADMIN_PAGE_TITLE_KEYS.fetch(key))
       end
@@ -74,7 +74,7 @@ module ApplicationHelper
     end
   end
 
-  def generation_mode_options_for_select(include_internal: admin_signed_in?)
+  def generation_mode_options_for_select(include_internal: acting_as_admin?)
     options = [[t("drafity.dashboard.generation_modes.default"), "default"], [t("drafity.dashboard.generation_modes.comparison"), "comparison"], [t("drafity.dashboard.generation_modes.recommendation"), "recommendation"]]
     return options unless include_internal
 

@@ -2,6 +2,7 @@ ja:
   drafity:
     auth:
       login_required: "ログインが必要です。"
+      admin_session_blocks_client: "管理者でログイン中です。企業アカウントの登録・ログインは、管理者をログアウトしてから行ってください。"
       invalid_locale: "無効な言語です。"
       meta_login_title: "企業ログイン"
       meta_login_description: "企業アカウントでDrafityにログインします。"
@@ -129,6 +130,7 @@ en:
   drafity:
     auth:
       login_required: "Please sign in to continue."
+      admin_session_blocks_client: "You are signed in as an administrator. Sign out of the admin account before registering or signing in as a company."
       invalid_locale: "Invalid language."
       meta_login_title: "Company login"
       meta_login_description: "Sign in to Drafity with your company account."

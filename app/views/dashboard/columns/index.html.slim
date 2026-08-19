@@ -409,7 +409,9 @@ ruby:
     noBodyAlert: t("drafity.dashboard.columns.no_body_alert")
   }.to_json.html_safe
 javascript:
+  (function() {
   const I18nDash = #{js_i18n};
+  window.I18nDash = I18nDash;
   const i18nFmt = (template, vars) => String(template).replace(/%\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
 
   let sessionCompletedCount = 0;
@@ -820,7 +822,7 @@ javascript:
         if (genreSelect) {
           const option = document.createElement('option');
           option.value = result.genre.key;
-          option.textContent = result.genre.ja;
+          option.textContent = result.genre.label || result.genre.ja;
           option.selected = true;
           genreSelect.appendChild(option);
           genreSelect.disabled = false;
@@ -984,3 +986,12 @@ javascript:
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeTitleSuggestionModal();
   });
+
+  window.toggleAllColumns = toggleAllColumns;
+  window.stopGeneration = stopGeneration;
+  window.openTitleSuggestionModal = openTitleSuggestionModal;
+  window.closeTitleSuggestionModal = closeTitleSuggestionModal;
+  window.generateTitles = generateTitles;
+  window.createSelectedColumns = createSelectedColumns;
+  window.backToForm = backToForm;
+  })();

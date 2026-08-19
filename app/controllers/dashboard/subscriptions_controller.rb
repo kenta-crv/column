@@ -105,12 +105,14 @@ module Dashboard
 
     def authenticate_any!
       unless admin_signed_in? || client_signed_in?
-        redirect_to root_path, alert: t("drafity.dashboard.flashes.forbidden")
+        store_location_for(:client, request.fullpath) if request.get?
+        store_location_for(:admin, request.fullpath) if request.get?
+        redirect_to unauthenticated_session_path, alert: t("drafity.dashboard.flashes.forbidden")
       end
     end
 
     def set_target_client
-      if admin_signed_in?
+      if acting_as_admin?
         if params[:client_id].present?
           @target_client = Client.find(params[:client_id])
         else

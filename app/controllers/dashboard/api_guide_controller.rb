@@ -3,6 +3,6 @@ class Dashboard::ApiGuideController < ApplicationController
   layout "admin"
 
   def show
-    @client = admin_signed_in? ? nil : current_client
+    @client = acting_as_admin? ? nil : current_client
   end
 end

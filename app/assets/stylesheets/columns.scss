@@ -2475,6 +2475,30 @@ $theme-border: rgba(0, 0, 0, 0.08);
   color: #475569;
 }
 
+#genre-draft-modal,
+#genre-draft-plan-notice-modal {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  padding: 24px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+
+  .modal-content {
+    margin: auto;
+    max-height: calc(100dvh - 48px);
+  }
+}
+
+#genre-draft-plan-notice-modal .modal-content {
+  max-width: 420px;
+  width: min(420px, 100%);
+}
+
 #genre-draft-modal {
   .form-group {
     margin-bottom: 16px;

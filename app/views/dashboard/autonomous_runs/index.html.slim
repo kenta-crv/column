@@ -38,7 +38,7 @@
     .api-settings-card
       .api-settings-card__body
         .form-actions style="margin-bottom: 20px;"
-          - if admin_signed_in? || (client_signed_in? && current_client.ai_autonomous_enabled?)
+          - if acting_as_admin? || (client_signed_in? && current_client.ai_autonomous_enabled?)
             = link_to t("drafity.dashboard.autonomous.new_cycle"), new_dashboard_autonomous_run_path, class: "btn btn-primary"
           - elsif client_signed_in?
             p.form-text = current_client.plan_limit_message(:ai_autonomous)
@@ -47,7 +47,7 @@
           table.rich-dashboard-table
             thead
               tr
-                - if admin_signed_in?
+                - if acting_as_admin?
                   th = t("drafity.dashboard.labels.client")
                 th = t("drafity.dashboard.labels.pillar_title")
                 th = t("drafity.dashboard.labels.status")
@@ -57,7 +57,7 @@
             tbody
               - @runs.each do |run|
                 tr
-                  - if admin_signed_in?
+                  - if acting_as_admin?
                     td = run.admin_run? ? t("drafity.dashboard.common.admin") : (run.client&.email || "-")
                   td = run.title
                   td
@@ -70,7 +70,7 @@
                   td = run.created_at.strftime("%Y/%m/%d %H:%M")
                   td
                     = link_to t("drafity.dashboard.common.details"), dashboard_autonomous_run_path(run), class: "btn btn-sm btn-outline-primary"
-                    - if admin_signed_in? || (client_signed_in? && run.client_id == current_client.id)
+                    - if acting_as_admin? || (client_signed_in? && run.client_id == current_client.id)
                       = link_to t("drafity.dashboard.common.delete"), dashboard_autonomous_run_path(run), method: :delete, class: "btn btn-sm btn-danger", style: "margin-left: 4px;", data: { confirm: t("drafity.dashboard.autonomous.confirm_delete_cycle") }
         - else
           p.form-text = t("drafity.dashboard.autonomous.empty")

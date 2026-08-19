@@ -5,7 +5,7 @@
         = t("drafity.dashboard.api_guide.title")
       p.api-settings-subtitle
         = t("drafity.dashboard.api_guide.subtitle_before")
-        = link_to t("drafity.dashboard.api_guide.settings_link"), (admin_signed_in? ? dashboard_management_path : dashboard_api_settings_path)
+        = link_to t("drafity.dashboard.api_guide.settings_link"), (acting_as_admin? ? dashboard_management_path : dashboard_api_settings_path)
         = t("drafity.dashboard.api_guide.subtitle_after")
 
     .api-settings-card
@@ -196,24 +196,35 @@
 
 - js_i18n = { copied: t("drafity.dashboard.common.copied"), copy: t("drafity.dashboard.common.copy") }.to_json.html_safe
 javascript:
-  const I18nDash = #{js_i18n};
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.js-copy-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
-        const codeElement = document.getElementById(targetId);
-        if (!codeElement) return;
+  (function() {
+    const I18nDash = #{js_i18n};
+    const bindCopyButtons = () => {
+      document.querySelectorAll('.js-copy-btn').forEach((btn) => {
+        if (btn.dataset.initialized === 'true') return;
+        btn.dataset.initialized = 'true';
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const codeElement = document.getElementById(targetId);
+          if (!codeElement) return;
 
-        navigator.clipboard.writeText(codeElement.textContent).then(() => {
-          btn.textContent = I18nDash.copied;
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = I18nDash.copy;
-            btn.classList.remove('copied');
-          }, 2000);
-        }).catch((err) => {
-          console.error('Copy failed: ', err);
+          navigator.clipboard.writeText(codeElement.textContent).then(() => {
+            btn.textContent = I18nDash.copied;
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = I18nDash.copy;
+              btn.classList.remove('copied');
+            }, 2000);
+          }).catch((err) => {
+            console.error('Copy failed: ', err);
+          });
         });
       });
-    });
-  });
+    };
+
+    document.addEventListener('turbolinks:load', bindCopyButtons);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindCopyButtons);
+    } else {
+      bindCopyButtons();
+    }
+  })();

@@ -92,6 +92,11 @@ javascript:
       const form = document.getElementById('bulk-image-form');
       const runAllField = document.getElementById('bulk-image-run-all');
       if (!form || !runAllField) return;
+      if (form.dataset.initialized === 'true') {
+        updateSelectedCount();
+        return;
+      }
+      form.dataset.initialized = 'true';
 
       document.querySelectorAll('.image-select-checkbox').forEach((checkbox) => {
         checkbox.addEventListener('change', updateSelectedCount);
@@ -138,6 +143,7 @@ javascript:
       updateSelectedCount();
     };
 
+    document.addEventListener('turbolinks:load', initBulkImagePanel);
     document.addEventListener('turbo:load', initBulkImagePanel);
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initBulkImagePanel);

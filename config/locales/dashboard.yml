@@ -149,6 +149,9 @@ ja:
         error: エラー
         all: すべて
         trialing: トライアル中
+        active: 有効
+        cancelled: 解約
+        expired: 期限切れ
         genre: ジャンル
         title: タイトル
         status: ステータス
@@ -287,14 +290,19 @@ ja:
         error_prefix: 'エラー: %{message}'
       workflow:
         title: 記事作成フロー
-        genres: ジャンル・サービス管理
+        genres: ジャンル・サービス
         titles: AIタイトル提案
-        pillar_body: 親記事本文作成
-        child_titles: 子記事タイトル作成
-        child_body: 子記事本文作成
-        pillar_body_hint: 下の一覧から親記事の本文生成を行います
-        child_titles_hint: 子記事タイトルはAI提案または一覧から登録します
-        child_body_hint: 下の一覧から子記事の本文生成を行います
+        pillar_body: 親記事本文
+        child_titles: 子記事タイトル
+        child_body: 子記事本文
+        genres_hint: サービス情報とジャンルを登録します
+        titles_hint: 親記事タイトルをAIで提案します
+        pillar_body_hint: 親記事一覧から本文を生成します
+        child_titles_hint: 親の管理画面から子タイトルを登録します
+        child_body_hint: 子記事一覧から本文を生成します
+        click_to_open: クリックして開く
+        go_to_list: 一覧へ移動
+        list_only: 一覧で実行
       title_suggest:
         title: AIタイトル提案
         keyword1: キーワード1 *
@@ -441,6 +449,17 @@ ja:
         sub_override: 中分類ごとの上書き（任意）
         sub_override_hint: 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
         theme_same: "（共通と同じ）"
+        theme_options:
+          meetia: Meetia
+          okurite: Okurite
+          jwork: J Work
+          jwork_recruit: J Work（求職）
+          vender: 自販機ねっと
+          okwork: OK清掃
+          kurasera: クラセラ
+          recrivo: Recrivo
+          drafity: Drafity
+          default: デフォルト
         path_short: 遷移先パス
         url_short: 外部URL
         subcategories: 中分類
@@ -788,6 +807,9 @@ en:
         error: Error
         all: All
         trialing: Trialing
+        active: Active
+        cancelled: Cancelled
+        expired: Expired
         genre: Genre
         title: Title
         status: Status
@@ -928,14 +950,19 @@ en:
         error_prefix: 'Error: %{message}'
       workflow:
         title: Article workflow
-        genres: Genres
+        genres: Genres & services
         titles: AI titles
         pillar_body: Pillar body
         child_titles: Child titles
         child_body: Child body
-        pillar_body_hint: Generate pillar bodies from the list below
-        child_titles_hint: Register child titles via AI or the list
-        child_body_hint: Generate child bodies from the list below
+        genres_hint: Register service info and genres
+        titles_hint: Suggest pillar titles with AI
+        pillar_body_hint: Generate bodies from the pillar list
+        child_titles_hint: Add child titles from the manage page
+        child_body_hint: Generate bodies from the child list
+        click_to_open: Click to open
+        go_to_list: Go to list
+        list_only: Use the list
       title_suggest:
         title: AI title suggestions
         keyword1: Keyword 1 *
@@ -1088,6 +1115,17 @@ en:
         sub_override: Per-subcategory override (optional)
         sub_override_hint: Blank subcategories use the shared CTA above.
         theme_same: "(same as shared)"
+        theme_options:
+          meetia: Meetia
+          okurite: Okurite
+          jwork: J Work
+          jwork_recruit: J Work (jobs)
+          vender: Jihanki.net
+          okwork: OK Cleaning
+          kurasera: Kurasera
+          recrivo: Recrivo
+          drafity: Drafity
+          default: Default
         path_short: Path
         url_short: External URL
         subcategories: Subcategories

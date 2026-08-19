@@ -17,6 +17,13 @@ class Clients::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   private
 
   def handle_auth(kind)
+    if admin_signed_in?
+      redirect_to dashboard_root_path,
+                  alert: t("drafity.auth.admin_session_blocks_client",
+                           default: "管理者でログイン中です。企業アカウントの登録・ログインは、管理者をログアウトしてから行ってください。")
+      return
+    end
+
     auth = request.env["omniauth.auth"]
     locale = resolved_locale
     @client = Client.from_omniauth(auth, preferred_locale: locale)
@@ -40,12 +47,17 @@ class Clients::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def resolved_locale
-    candidates = [
-      session[:omniauth_locale],
-      session[:ui_locale],
-      I18n.locale.to_s
-    ].map { |v| v.to_s.presence }.compact
-    candidates.find { |locale| Client::LOCALES.include?(locale) } || "ja"
+    origin = request.env["omniauth.origin"].to_s
+    return "en" if origin.match?(%r{/en(/|\z)})
+
+    omniauth_params = request.env["omniauth.params"] || {}
+    param = (omniauth_params["locale"] || omniauth_params[:locale]).to_s
+    return param if Client::LOCALES.include?(param)
+
+    session_locale = session[:omniauth_locale].to_s
+    return session_locale if Client::LOCALES.include?(session_locale)
+
+    "ja"
   end
 
   def client_sign_in_path_for_oauth_locale

@@ -1,0 +1,397 @@
+{
+  "exact_title": [
+    {
+      "del": "how-to-build-sales-organization-a289b1f1-727e-45ad-a579-273de8f4567b",
+      "title": "営業組織の作り方とは？BtoB企業に必要な構造と分業設計",
+      "keep": "how-to-build-sales-organization",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "kpi-management-sales-organization",
+      "title": "営業組織のKPI管理とは？成果を可視化する運用設計",
+      "keep": "sales-kpi-management",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "sales-organization-reform-d5d91066-2473-4e8b-a126-7f176e778f4a",
+      "title": "営業組織改革とは？成果が出ない組織を改善する方法",
+      "keep": "sales-organization-reform",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "scaling-sales-organization-6f987c88-8bcd-4d5a-b3a5-8227d8545878",
+      "title": "営業組織のスケーリングとは？売上を伸ばす拡大戦略を解説",
+      "keep": "scaling-sales-organization",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "sales-organization-management-2837df2b-5f0f-4039-8060-9815599e4a33",
+      "title": "営業組織マネジメントとは？KPI・役割・評価の設計方法",
+      "keep": "sales-organization-management",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "bto-b-sales-structure",
+      "title": "BtoB営業体制とは？成長企業に必要な営業組織の考え方",
+      "keep": "btob-sales-structure",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "optimization-of-sales-organization-538a284a-baa7-4969-8cde-27881f8199a2",
+      "title": "営業組織の最適化とは？属人化を防ぐ設計と改善方法",
+      "keep": "optimization-of-sales-organization",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "sales-organization-role-allocation",
+      "title": "営業組織の役割分担とは？インサイド・フィールド・CSの最適設計",
+      "keep": "roles-in-sales-organization",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "bto-b-sales-organization-design-34025505-69f3-4d26-a6ae-c6a26bead2fa",
+      "title": "BtoB営業組織設計とは？成果を最大化する役割分担とチーム構築",
+      "keep": "bto-b-sales-organization-design",
+      "reason": "同一タイトルの重複"
+    },
+    {
+      "del": "building-effective-sales-team-2fca70bc-20b1-4280-8ee3-df0099f9ee9d",
+      "title": "成果が出る営業チーム構築とは？BtoB営業組織の設計ポイント",
+      "keep": "building-effective-sales-team",
+      "reason": "同一タイトルの重複"
+    }
+  ],
+  "similar_uuid": [
+    {
+      "del": "inquiry-form-sales-effectiveness-29e6707c-b832-4c3a-8f44-5f8de8f26f9f",
+      "title": "問い合わせフォーム営業は有効か？送信率100%を実現する運用設計と注意点",
+      "keep": "inquiry-form-sales-effectiveness",
+      "keep_title": "問い合わせフォーム営業は本当に効果があるのか？",
+      "reason": "同一slug衝突の類似タイトル"
+    },
+    {
+      "del": "mail-sales-vs-inquiry-form-sales-f647e742-62ae-4613-97a1-ca20fa2a7f74",
+      "title": "メール営業と問い合わせフォーム営業はどちらで行うべき？",
+      "keep": "mail-sales-vs-inquiry-form-sales",
+      "keep_title": "メール営業と問い合わせフォーム営業の構造的な違い",
+      "reason": "同一slug衝突の類似タイトル"
+    },
+    {
+      "del": "sales-improvement-0702d9f4-2e9a-4adc-be6c-047833333417",
+      "title": "営業改善とは？売上が伸びない原因と構造的改善方法",
+      "keep": "sales-improvement",
+      "keep_title": "営業改善とは？売上が伸びない原因と最適化手法を解説",
+      "reason": "同一slug衝突の類似タイトル"
+    }
+  ],
+  "other_uuid": [
+    {
+      "del": "eigyou-senryaku-sekkei-85c2cd3d-93a2-40f4-ac28-0a92d5dda0ed",
+      "title": "営業戦略設計の考え方｜構造化するための思考モデル",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-dc730a30-8a82-4a59-9cc7-1c09cef4fe57",
+      "title": "営業戦略設計が機能する企業と失敗する企業の違い",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-5189451d-77c9-48ac-b7bd-bc90cccf0318",
+      "title": "営業戦略設計で成果が出る企業の共通点とは",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-c2cea4f8-aef3-419c-91ce-523e7dfe7b26",
+      "title": "営業戦略設計で決めるべき項目一覧",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-ccdb0cf6-227f-4261-97ef-77fa73d43894",
+      "title": "営業戦略設計に必要な情報と前提条件とは",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-3215c07f-fd75-4f69-83f8-102dce1f67df",
+      "title": "営業戦略設計の基本フレームワークとは？",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-sekkei-36614b89-9fde-4497-bbf9-dc44e8534239",
+      "title": "営業戦略設計とはどこまでを指すのか？設計範囲を整理",
+      "keep": "eigyou-senryaku-sekkei",
+      "keep_title": "営業戦略設計とは何か？営業戦略との違いと役割を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-senryaku-shiryou-shippai-a0f06296-7d64-4204-acfa-a006b42b021c",
+      "title": "営業戦略設計の典型的な失敗パターンと改善方法",
+      "keep": "eigyou-senryaku-shiryou-shippai",
+      "keep_title": "営業戦略設計が失敗する原因とは？よくある構造的問題",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-process-visualization-b876d419-cd44-473b-b1bf-c56b00b70e3d",
+      "title": "営業プロセスの可視化がもたらす組織改革の効果",
+      "keep": "eigyou-process-visualization",
+      "keep_title": "営業プロセスの可視化方法｜管理を仕組み化する手順",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "btob-sales-strategy-failure-e7ebc868-6581-4a70-a362-8bca8f66e44f",
+      "title": "なぜBtoB営業戦略は機能しないのか？原因と対策",
+      "keep": "btob-sales-strategy-failure",
+      "keep_title": "BtoB営業戦略が失敗する原因とは？よくある5つの落とし穴",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "btob-sales-strategy-2c153475-fa72-4348-a330-1628f25274f7",
+      "title": "BtoB営業戦略の立て方｜ゼロから設計する基本ステップ",
+      "keep": "btob-sales-strategy",
+      "keep_title": "BtoB営業戦略とは何か？BtoBとBtoCの違いから解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "form-sales-automation-96929c7c-6c1e-477c-9ca6-5627848b2cb3",
+      "title": "フォーム営業を活用した自動化の運用方法｜継続的に成果を出す仕組み",
+      "keep": "form-sales-automation",
+      "keep_title": "フォーム営業の自動化｜AI・ツールで営業を仕組み化する方法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "form-sales-automation-a0379d6d-35fd-43a6-ab46-45a46f074005",
+      "title": "フォーム営業の自動化とは？仕組みと導入ステップを解説",
+      "keep": "form-sales-automation",
+      "keep_title": "フォーム営業の自動化｜AI・ツールで営業を仕組み化する方法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "bto-b-sales-organization-design-4405de1a-af0d-4830-a34e-151f23eaba50",
+      "title": "BtoB営業組織設計の新常識: チーム構築における実践的アプローチ",
+      "keep": "bto-b-sales-organization-design",
+      "keep_title": "BtoB営業組織設計とは？成果を最大化する役割分担とチーム構築",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "bto-b-sales-organization-design-ebbd9400-0267-48a4-9651-d98dae04b670",
+      "title": "BtoB営業組織設計の基本: 成果を最大化するための役割分担",
+      "keep": "bto-b-sales-organization-design",
+      "keep_title": "BtoB営業組織設計とは？成果を最大化する役割分担とチーム構築",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-teitai-bunseki-7e2ba754-6596-4345-ac41-037f77f51544",
+      "title": "営業停滞分析を通じて見える顧客ニーズの変化",
+      "keep": "eigyou-teitai-bunseki",
+      "keep_title": "営業停滞分析の基本：なぜ売上が止まるのか",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-teitai-bunseki-540f880d-a2cc-48a0-825a-8d5b2f8bbd0a",
+      "title": "営業停滞分析の結果を活かした戦略的改善策",
+      "keep": "eigyou-teitai-bunseki",
+      "keep_title": "営業停滞分析の基本：なぜ売上が止まるのか",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-funnel-analysis-ada92171-08b0-4097-b19a-6ba032efac5c",
+      "title": "営業ファネル分析によるリードの質向上",
+      "keep": "sales-funnel-analysis",
+      "keep_title": "営業ファネル分析とは？どこで失注しているかを特定する方法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kadai-bunseki-ef8d996a-2e42-4ff5-be77-321974acdc46",
+      "title": "営業課題分析の実践: 売上向上のためのアプローチ",
+      "keep": "eigyou-kadai-bunseki",
+      "keep_title": "営業課題分析の基本: 売上停滞を招く要因とは",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kadai-bunseki-1a57d779-0e4a-48fa-8f87-3532015b251c",
+      "title": "営業課題分析で見つける売上停滞の根本原因",
+      "keep": "eigyou-kadai-bunseki",
+      "keep_title": "営業課題分析の基本: 売上停滞を招く要因とは",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kadai-bunseki-df94371b-164e-4373-b480-09e517bc6d8c",
+      "title": "営業課題分析を通じて見える売上のトレンド",
+      "keep": "eigyou-kadai-bunseki",
+      "keep_title": "営業課題分析の基本: 売上停滞を招く要因とは",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kadai-bunseki-f20a5fa9-d870-4f01-a2a9-1417c6eef52f",
+      "title": "営業課題分析のフレームワーク: 売上改善の成功事例",
+      "keep": "eigyou-kadai-bunseki",
+      "keep_title": "営業課題分析の基本: 売上停滞を招く要因とは",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "uriage-teitai-eigyou-kadai-bunseki-bde021dc-2666-41a1-91d6-7afb76574da0",
+      "title": "売上停滞の原因を深掘りする営業課題分析のテクニック",
+      "keep": "uriage-teitai-eigyou-kadai-bunseki",
+      "keep_title": "売上停滞を解消するための営業課題分析の重要性",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-process-kaizen-b833ab87-4c93-4c98-a78a-7744c6aa73a0",
+      "title": "営業プロセス改善の成功事例とその分析",
+      "keep": "eigyou-process-kaizen",
+      "keep_title": "営業プロセス改善に役立つ具体的な手法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-process-kaizen-46aac442-bcc4-4657-84a5-ed5f62990930",
+      "title": "営業プロセス改善の基本概念とその重要性",
+      "keep": "eigyou-process-kaizen",
+      "keep_title": "営業プロセス改善に役立つ具体的な手法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-process-improvement-475e9982-4969-4a17-aa89-1577ed962281",
+      "title": "受注率向上のための営業プロセスの見直しポイント",
+      "keep": "sales-process-improvement",
+      "keep_title": "属人化を防ぐ営業プロセスの改善ステップ",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-process-improvement-aac7f3da-6242-46d7-b8d8-4e723e4cd1e2",
+      "title": "営業プロセス改善とは？受注率を高める最適化の考え方",
+      "keep": "sales-process-improvement",
+      "keep_title": "属人化を防ぐ営業プロセスの改善ステップ",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-improvement-technology-59697ba9-256e-4b35-be40-bab6ce3f47b1",
+      "title": "営業改善を支えるためのテクノロジー導入のポイント",
+      "keep": "sales-improvement-technology",
+      "keep_title": "営業改善を支えるテクノロジーの活用",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-kpi-importance-1c7da0fc-6ccd-4c9f-b2e4-d27ced8ee1e4",
+      "title": "営業成果を上げるためのKPI設定の重要性",
+      "keep": "sales-kpi-importance",
+      "keep_title": "営業組織におけるKPI設定の重要性とその運用方法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-process-review-32d81a5b-737a-4ac7-ba86-86d822d300db",
+      "title": "営業プロセスの見直しがもたらす成果の変化",
+      "keep": "sales-process-review",
+      "keep_title": "営業プロセスの見直しによる属人化の解消",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-kpi-management-378d6035-64ec-4678-b040-56660333a191",
+      "title": "営業組織におけるKPI管理の実践的アプローチ",
+      "keep": "sales-kpi-management",
+      "keep_title": "営業組織のKPI管理とは？成果を可視化する運用設計",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kouzou-hyouka-fc1826dd-8c25-4f13-aed1-20525f6dabd4",
+      "title": "営業組織の評価設計がもたらす業務改善",
+      "keep": "eigyou-kouzou-hyouka",
+      "keep_title": "営業組織の評価方法とその実践的アプローチ",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-kpi-design-06c5525b-f9e8-4a42-afd1-24b2fd959cf9",
+      "title": "営業組織のパフォーマンスを引き出すKPIの設計",
+      "keep": "sales-kpi-design",
+      "keep_title": "営業KPI設計とは？MQL・SQL・受注率から見る最適な営業評価の作り方",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "bto-b-sales-structure-58d2296e-e54d-45ca-9b52-65d48e7928bc",
+      "title": "BtoB営業体制の基本：成功する営業組織の構築法",
+      "keep": "bto-b-sales-structure",
+      "keep_title": "BtoB営業体制とは？成長企業に必要な営業組織の考え方",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "bto-b-sales-strategy-a4ca5477-b0b5-472c-baab-3970e96b19b6",
+      "title": "BtoB営業チームの競争力を高めるための戦略的設計",
+      "keep": "bto-b-sales-strategy",
+      "keep_title": "BtoB営業戦略とは？成功する企業の戦略設計と全体像を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "bto-b-sales-strategy-593e6fd2-0d29-458e-9eaa-5790e62cd000",
+      "title": "BtoB営業戦略で売上が伸びる企業の特徴とは",
+      "keep": "bto-b-sales-strategy",
+      "keep_title": "BtoB営業戦略とは？成功する企業の戦略設計と全体像を解説",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "btob-sales-role-sharing-b93f7403-c4a4-4a5a-b216-2797026c9ae0",
+      "title": "成果を生むBtoB営業の役割分担: チームワークの強化",
+      "keep": "btob-sales-role-sharing",
+      "keep_title": "成果を最大化するBtoB営業の役割分担: 実践ガイド",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "btob-sales-organization-design-5ac456db-9110-45fd-b4b0-f6b07a5a068e",
+      "title": "BtoB営業の成功を支える組織設計: 役割分担の重要性",
+      "keep": "btob-sales-organization-design",
+      "keep_title": "BtoB営業組織設計の実践: 成果を最大化するためのフレームワーク",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-kpi-hyouka-kijun-85f8a7d2-cd27-4cde-b32c-9f798317464a",
+      "title": "営業KPI評価基準の設定: どのように行うべきか",
+      "keep": "eigyou-kpi-hyouka-kijun",
+      "keep_title": "営業KPIの評価基準をどう設定するか",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyo-kpi-customer-satisfaction-92868c2c-042e-4e60-9e94-77dd09087742",
+      "title": "営業KPIと顧客満足度: どのように連携させるか",
+      "keep": "eigyo-kpi-customer-satisfaction",
+      "keep_title": "営業KPIと顧客満足度の関係: 顧客の声をどう反映させるか",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "eigyou-pipeline-kpi-70662ce9-fa9c-4cb8-aac1-ad4d932c75db",
+      "title": "営業パイプラインKPIの基本：初めての数値管理入門",
+      "keep": "eigyou-pipeline-kpi",
+      "keep_title": "営業パイプラインKPIとは？フェーズ別管理の考え方",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "sales-process-design-cbb41382-b11e-4889-97a4-84a703556c51",
+      "title": "営業プロセスの段階設計｜どこで何を管理するか",
+      "keep": "sales-process-design",
+      "keep_title": "営業プロセス設計とは？リード獲得から受注までの最適化手法",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "uriage-koujou-eigyou-kaizen-c557cc2d-0db4-4c2d-89cc-af66aeb7c085",
+      "title": "売上向上に向けた営業改善施策の実践",
+      "keep": "uriage-koujou-eigyou-kaizen",
+      "keep_title": "売上向上のための営業改善手法一覧",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    },
+    {
+      "del": "industry-knowledge-impact-692ae04d-d37c-42e3-a7d4-4fcf507eaa06",
+      "title": "営業代行で成果を出す！業界知識が成約率を左右する理由",
+      "keep": "industry-knowledge-impact",
+      "keep_title": "成功するターゲット選定の裏側：業界知識が成約率を左右する理由",
+      "reason": "slug衝突のUUID複製（切り口が親と重複）"
+    }
+  ]
+}

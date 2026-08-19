@@ -1,6 +1,6 @@
 class Dashboard::AutonomousRunsController < ApplicationController
   before_action :authenticate_admin_or_client!
-  before_action :require_ai_autonomous!, unless: :admin_signed_in?
+  before_action :require_ai_autonomous!, unless: :acting_as_admin?
   before_action :set_run, only: [:show, :approve_child_titles, :destroy_child, :retry, :destroy]
   before_action :ensure_own_run!, only: [:show, :approve_child_titles, :destroy_child, :retry, :destroy]
   before_action :assign_genre_options, only: [:new, :create]
@@ -32,7 +32,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def create
-    unless client_signed_in? || admin_signed_in?
+    unless client_signed_in? || acting_as_admin?
       redirect_to dashboard_autonomous_runs_path, alert: t("drafity.dashboard.flashes.login_please")
       return
     end
@@ -146,7 +146,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def current_actor_cache_key
-    if admin_signed_in?
+    if acting_as_admin?
       "admin:#{current_admin.id}"
     elsif client_signed_in?
       "client:#{current_client.id}"
@@ -156,14 +156,14 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def require_ai_autonomous!
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if client_signed_in? && current_client.ai_autonomous_enabled?
 
     redirect_to dashboard_root_path, alert: current_client&.plan_limit_message(:ai_autonomous) || t("drafity.dashboard.flashes.autonomous_plan_required")
   end
 
   def scoped_runs
-    if admin_signed_in?
+    if acting_as_admin?
       AutonomousContentRun.includes(:client).all
     else
       current_client.autonomous_content_runs
@@ -175,7 +175,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
   end
 
   def ensure_own_run!
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if @run.client_id == current_client.id
 
     redirect_to dashboard_autonomous_runs_path, alert: t("drafity.dashboard.flashes.access_denied")
@@ -187,7 +187,7 @@ class Dashboard::AutonomousRunsController < ApplicationController
 
   def genre_allowed_for_run?(client, genre)
     return false if genre.blank?
-    return true if admin_signed_in?
+    return true if acting_as_admin?
 
     equivalent = GenreRegistry.equivalent_keys(genre)
     equivalent.any? { |k| client.genre_keys.include?(k) }

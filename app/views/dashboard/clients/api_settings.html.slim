@@ -11,7 +11,7 @@
 
     .api-settings-card
       .api-settings-card__body
-        = form_with model: @client, url: (admin_signed_in? ? update_api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), local: true, method: :patch do |f|
+        = form_with model: @client, url: (acting_as_admin? ? update_api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), local: true, method: :patch do |f|
           .form-section
             h3.form-section-title
               = t("drafity.dashboard.api.basic")
@@ -20,7 +20,7 @@
               = f.label :api_key, t("drafity.dashboard.api.key")
               .api-key-field
                 = f.text_field :api_key, class: "form-control", readonly: true
-                = link_to t("drafity.dashboard.api.regenerate"), (admin_signed_in? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), data: { turbo_method: :post, turbo_confirm: t("drafity.dashboard.api.confirm_regenerate"), confirm: t("drafity.dashboard.api.confirm_regenerate") }, class: "btn-gradient"
+                = link_to t("drafity.dashboard.api.regenerate"), (acting_as_admin? ? regenerate_api_key_dashboard_client_path(@client) : dashboard_api_settings_regenerate_api_key_path), data: { turbo_method: :post, turbo_confirm: t("drafity.dashboard.api.confirm_regenerate"), confirm: t("drafity.dashboard.api.confirm_regenerate") }, class: "btn-gradient"
               small.form-text
                 = t("drafity.dashboard.api.key_hint")
 
@@ -39,7 +39,7 @@
                 ul.allowed-genres-list
                   - @client_service_genres.each do |genre|
                     li
-                      = genre.ja
+                      = genre.display_name
                       code.genre-key = genre.key
               - else
                 p.form-text = t("drafity.dashboard.api.no_genres")
@@ -60,7 +60,7 @@
 
           .form-actions
             = f.submit t("drafity.dashboard.api.save"), class: "btn-gradient"
-            = link_to t("drafity.dashboard.common.cancel"), (admin_signed_in? ? dashboard_management_path : dashboard_root_path), class: "btn-secondary"
+            = link_to t("drafity.dashboard.common.cancel"), (acting_as_admin? ? dashboard_management_path : dashboard_root_path), class: "btn-secondary"
 
     .api-instructions
       h3.api-instructions-title
@@ -88,29 +88,35 @@
 
 - js_i18n = { copied: t("drafity.dashboard.common.copied"), copy: t("drafity.dashboard.common.copy") }.to_json.html_safe
 javascript:
-  const I18nDash = #{js_i18n};
-  document.addEventListener('DOMContentLoaded', () => {
-    const copyBtn = document.querySelector('.js-copy-btn');
-    if (!copyBtn) return;
+  (function() {
+    const I18nDash = #{js_i18n};
+    const bindCopyButton = () => {
+      const copyBtn = document.querySelector('.js-copy-btn');
+      if (!copyBtn || copyBtn.dataset.initialized === 'true') return;
+      copyBtn.dataset.initialized = 'true';
 
-    copyBtn.addEventListener('click', () => {
-      const targetId = copyBtn.getAttribute('data-target');
-      const codeElement = document.getElementById(targetId);
-      
-      if (codeElement) {
-        const textToCopy = codeElement.textContent;
-        
-        navigator.clipboard.writeText(textToCopy).then(() => {
+      copyBtn.addEventListener('click', () => {
+        const targetId = copyBtn.getAttribute('data-target');
+        const codeElement = document.getElementById(targetId);
+        if (!codeElement) return;
+
+        navigator.clipboard.writeText(codeElement.textContent).then(() => {
           copyBtn.textContent = I18nDash.copied;
           copyBtn.classList.add('copied');
-          
           setTimeout(() => {
             copyBtn.textContent = I18nDash.copy;
             copyBtn.classList.remove('copied');
           }, 2000);
-        }).catch(err => {
+        }).catch((err) => {
           console.error('Copy failed: ', err);
         });
-      }
-    });
-  });
+      });
+    };
+
+    document.addEventListener('turbolinks:load', bindCopyButton);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindCopyButton);
+    } else {
+      bindCopyButton();
+    }
+  })();

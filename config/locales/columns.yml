@@ -32,6 +32,9 @@ ja:
         language_inherited: 子記事の言語は親記事から引き継がれます。
         own_service: 言及サービス（管理者専用）
         own_service_hint: Note / Qiita / Zenn のとき必須です。Meetia / Recrivo / Okurite から指定します。
+        own_service_url: 参照HP（URL）
+        own_service_url_placeholder: "例: https://service.example.com"
+        own_service_url_hint: "Note / Qiita / Zenn で本文生成時に参照する公式ページURLです（https:// から入力）。"
         prompt: AI生成指示（任意・最優先）
         prompt_placeholder: この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい
         parent_id: 親記事ID
@@ -176,6 +179,9 @@ en:
         language_inherited: Child articles inherit language from the parent.
         own_service: Mentioned service (admin only)
         own_service_hint: Required for Note / Qiita / Zenn. Choose Meetia / Recrivo / Okurite.
+        own_service_url: Reference website (URL)
+        own_service_url_placeholder: "e.g. https://service.example.com"
+        own_service_url_hint: "Official page URL used during Note / Qiita / Zenn generation (must start with https://)."
         prompt: AI instructions (optional, highest priority)
         prompt_placeholder: e.g. Explain ○○ in detail for △△ readers, with this structure…
         parent_id: Parent article ID

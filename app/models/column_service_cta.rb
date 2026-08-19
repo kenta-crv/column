@@ -162,18 +162,24 @@ class ColumnServiceCta
     }
   }.freeze
 
-  THEME_OPTIONS = [
-    ["Meetia", "meetia"],
-    ["Okurite", "okurite"],
-    ["J Work", "jwork"],
-    ["J Work（求職）", "jwork-recruit"],
-    ["自販機ねっと", "vender"],
-    ["OK清掃", "okwork"],
-    ["クラセラ", "kurasera"],
-    ["Recrivo", "recrivo"],
-    ["Drafity", "drafity"],
-    ["デフォルト", "default"]
+  THEME_OPTION_VALUES = %w[
+    meetia
+    okurite
+    jwork
+    jwork-recruit
+    vender
+    okwork
+    kurasera
+    recrivo
+    drafity
+    default
   ].freeze
+
+  def self.theme_options
+    THEME_OPTION_VALUES.map do |value|
+      [I18n.t("drafity.dashboard.genres.theme_options.#{value.tr('-', '_')}"), value]
+    end
+  end
 
   def self.resolve(column)
     return nil if column.blank?

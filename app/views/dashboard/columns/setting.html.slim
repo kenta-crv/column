@@ -72,7 +72,7 @@
       .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
         h3.form-section-title = t("drafity.dashboard.setting.logout_title")
         .form-group
-          - if admin_signed_in?
+          - if acting_as_admin?
             = link_to t("drafity.dashboard.layout.logout_admin"), destroy_admin_session_path, method: :delete, class: "btn btn-sm", style: "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;"
           - else
             = link_to t("drafity.dashboard.setting.logout"), destroy_client_session_path, method: :delete, class: "btn btn-sm", style: "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:8px;background:#ef4444;color:#fff;border:1px solid #dc2626;font-weight:600;text-decoration:none;"

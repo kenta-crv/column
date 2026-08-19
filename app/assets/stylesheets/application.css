@@ -1075,14 +1075,14 @@ small {
   animation: slideIn 0.3s ease-out; /* 右からスッと出るアニメーション */
 }
 
-/* 成功時（notice） */
+/* 成功時（notice）— サイトの紫と揃える */
 .alert-success {
-  background-color: #28a745; /* 鮮やかな緑 */
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
 }
 
 /* 警告時（alert） */
 .alert-danger {
-  background-color: #dc3545; /* 落ち着いた赤 */
+  background-color: #ef4444;
 }
 
 /* アニメーションの定義 */

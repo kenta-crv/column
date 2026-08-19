@@ -5,10 +5,10 @@
       p.api-settings-subtitle
         = t("drafity.dashboard.autonomous.status")
         strong = @run.status_label
-        - if admin_signed_in? && @run.admin_run?
+        - if acting_as_admin? && @run.admin_run?
           = " #{t("drafity.dashboard.autonomous.runner")}"
           strong = t("drafity.dashboard.common.admin")
-        - elsif admin_signed_in? && @run.client
+        - elsif acting_as_admin? && @run.client
           = " #{t("drafity.dashboard.autonomous.client_label")}"
           strong = @run.client.email
         - if @run.pillar_column

@@ -7,14 +7,13 @@ class ApplicationController < ActionController::Base
   before_action :stash_omniauth_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
-
   before_action :init_breadcrumbs
 
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
                 :pillar_manage_path, :default_public_genre_key, :public_columns_index_path,
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
                 :pending_review_columns_count, :missing_image_columns_count,
-                :routable_public_genre_key?, :platform_host?,
+                :routable_public_genre_key?, :platform_host?, :acting_as_admin?,
                 :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales, :locale_switch_path_for
 
   def check_trial_expiration
@@ -81,10 +80,19 @@ class ApplicationController < ActionController::Base
   def stash_omniauth_locale
     return unless request.path.to_s.start_with?("/clients/auth/")
     return if request.path.to_s.include?("/callback")
-    return if Client::LOCALES.include?(session[:omniauth_locale].to_s)
 
-    locale = I18n.locale.to_s
+    locale = params[:locale].presence.to_s
+    locale = session[:omniauth_locale].to_s unless Client::LOCALES.include?(locale)
+    locale = auth_url_locale unless Client::LOCALES.include?(locale)
     session[:omniauth_locale] = locale if Client::LOCALES.include?(locale)
+  end
+
+  # 認証画面の言語は URL（/en なら英語、それ以外は日本語）。古い cookie は使わない。
+  def auth_url_locale
+    return "en" if params[:locale].to_s == "en"
+    return "en" if request.path.to_s.match?(%r{\A/en(/|\z)})
+
+    "ja"
   end
 
   def persist_ui_locale!(locale)
@@ -153,6 +161,8 @@ class ApplicationController < ActionController::Base
       path.start_with?("/clients/sign_in") ||
       path.start_with?("/clients/sign_up") ||
       path.start_with?("/clients/password") ||
+      path.start_with?("/clients/auth") ||
+      (path == "/clients" && !client_signed_in?) ||
       public_genre_columns_path?(path)
   end
 
@@ -172,23 +182,39 @@ class ApplicationController < ActionController::Base
     !NON_PUBLIC_GENRE_SEGMENTS.include?(match[1])
   end
 
+  def acting_as_admin?
+    admin_signed_in? && !client_signed_in?
+  end
+
+  def reject_client_auth_while_admin!
+    return unless admin_signed_in?
+
+    redirect_to dashboard_root_path,
+                alert: t("drafity.auth.admin_session_blocks_client",
+                         default: "管理者でログイン中です。企業アカウントの登録・ログインは、管理者をログアウトしてから行ってください。")
+  end
+
   def authenticate_admin_or_client!
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if client_signed_in?
 
-    flash[:alert] = t("drafity.auth.login_required")
-    redirect_to root_path
+    if request.get?
+      store_location_for(:client, request.fullpath)
+      store_location_for(:admin, request.fullpath)
+    end
+
+    redirect_to unauthenticated_session_path, alert: t("drafity.auth.login_required")
   end
 
   def require_admin!
-    return if admin_signed_in?
+    return if acting_as_admin?
 
     flash[:alert] = t("drafity.dashboard.flashes.admin_required")
     redirect_to dashboard_root_path
   end
 
   def admin_or_allowed_genre?(genre)
-    return true if admin_signed_in?
+    return true if acting_as_admin?
     return false if genre.blank?
 
     equivalent = GenreRegistry.equivalent_keys(genre)
@@ -196,7 +222,7 @@ class ApplicationController < ActionController::Base
   end
 
   def dashboard_columns_base_scope
-    if admin_signed_in?
+    if acting_as_admin?
       Column.all
     elsif client_signed_in?
       Column.where(client_id: current_client.id)
@@ -231,7 +257,7 @@ class ApplicationController < ActionController::Base
 
   def sidebar_column_count_cache_key(kind)
     actor =
-      if admin_signed_in?
+      if acting_as_admin?
         "admin:#{current_admin.id}"
       elsif client_signed_in?
         "client:#{current_client.id}"
@@ -307,7 +333,7 @@ class ApplicationController < ActionController::Base
     equivalent = GenreRegistry.equivalent_keys(key)
 
     if columns_manage_view?
-      if admin_signed_in?
+      if acting_as_admin?
         return true if equivalent.any? { |k| GenreRegistry.genre_keys.include?(k) }
         return true if equivalent.any? { |k| ServiceGenre.exists?(key: k) }
         return false
@@ -394,7 +420,7 @@ class ApplicationController < ActionController::Base
       return scope
     end
 
-    if manage_view && admin_signed_in?
+    if manage_view && acting_as_admin?
       scope = dashboard_columns_base_scope
       if genre_key.present?
         genre_values = public_genre_filter_values(genre_key)
@@ -432,7 +458,7 @@ class ApplicationController < ActionController::Base
 
     if columns_manage_view?
       return column.client_id == current_client.id if client_signed_in?
-      return true if admin_signed_in?
+      return true if acting_as_admin?
     end
 
     return false if genre_key.blank?
@@ -466,7 +492,7 @@ class ApplicationController < ActionController::Base
   def can_manage_column?(column)
     return false unless column
 
-    admin_signed_in? || (client_signed_in? && column.client_id == current_client.id)
+    acting_as_admin? || (client_signed_in? && column.client_id == current_client.id)
   end
 
   def child_article_quota_for(column)
@@ -526,7 +552,7 @@ class ApplicationController < ActionController::Base
   end
 
   def dashboard_genre_registry
-    if admin_signed_in?
+    if acting_as_admin?
       GenreRegistry.genres
     else
       client_accessible_genre_registry
@@ -577,7 +603,7 @@ class ApplicationController < ActionController::Base
   end
 
   def sub_category_ui_config
-    if admin_signed_in?
+    if acting_as_admin?
       {
         allowed: true,
         unlimited: true,
@@ -600,9 +626,10 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource)
     case resource
     when Admin
-      dashboard_root_path
+      sign_out(:client) if client_signed_in?
+      stored_location_for(:admin).presence || dashboard_root_path
     when Client
-      dashboard_root_path
+      stored_location_for(:client).presence || dashboard_root_path
     else
       locale_root_href
     end
@@ -637,12 +664,20 @@ class ApplicationController < ActionController::Base
       respond_to do |format|
         format.json { render json: { error: "Unauthorized" }, status: :unauthorized }
         format.all do
-          redirect_to(
-            (I18n.locale.to_s == "en" ? new_client_session_en_path(locale: :en) : new_client_session_path),
-            alert: t("drafity.auth.login_required")
-          )
+          store_location_for(:client, request.fullpath) if request.get?
+          redirect_to unauthenticated_session_path, alert: t("drafity.auth.login_required")
         end
       end
+    end
+  end
+
+  def unauthenticated_session_path
+    if request.path.start_with?("/admins")
+      new_admin_session_path
+    elsif I18n.locale.to_s == "en"
+      new_client_session_en_path(locale: :en)
+    else
+      new_client_session_path
     end
   end
 

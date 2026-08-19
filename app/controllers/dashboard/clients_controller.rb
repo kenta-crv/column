@@ -2,7 +2,7 @@ class Dashboard::ClientsController < ApplicationController
   before_action :authenticate_admin_or_client!
   before_action :set_client, only: [:api_settings, :update_api_settings, :regenerate_api_key]
   before_action :set_own_client, only: [:my_api_settings, :update_my_api_settings, :regenerate_my_api_key]
-  before_action :ensure_own_client, only: [:api_settings, :update_api_settings, :regenerate_api_key], unless: :admin_signed_in?
+  before_action :ensure_own_client, only: [:api_settings, :update_api_settings, :regenerate_api_key], unless: :acting_as_admin?
   before_action :assign_client_genre_options, only: [:api_settings, :my_api_settings, :update_api_settings, :update_my_api_settings]
   layout "admin"
 
@@ -25,7 +25,7 @@ class Dashboard::ClientsController < ApplicationController
       webhook_url: params[:client][:webhook_url],
       embed_settings: embed_settings
     )
-      redirect_to (admin_signed_in? ? api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), notice: t("drafity.dashboard.flashes.api_updated")
+      redirect_to (acting_as_admin? ? api_settings_dashboard_client_path(@client) : dashboard_api_settings_path), notice: t("drafity.dashboard.flashes.api_updated")
     else
       render :api_settings, alert: t("drafity.dashboard.flashes.api_update_failed")
     end

@@ -24,8 +24,8 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "ダッシュボード"
-    refute_includes response.body, ">Dashboard<"
+    assert_includes response.body, "親記事の作成開始"
+    refute_includes response.body, "Create pillar article"
   end
 
   test "english login page keeps dashboard in english even if account preferred_locale is ja" do
@@ -37,6 +37,7 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "Dashboard"
+    assert_includes response.body, "Create pillar article"
+    refute_includes response.body, "親記事の作成開始"
   end
 end

@@ -14,10 +14,6 @@
       .form-group
         label = t("drafity.dashboard.sub.name")
         input.form-control type="text" name="service_genre[sub_categories_items][][name]" value=item[:name] placeholder=(t("drafity.dashboard.sub.ph_name"))
-      .form-group
-        label = t("drafity.dashboard.sub.name_en")
-        input.form-control type="text" name="service_genre[sub_categories_items][][name_en]" value=item[:name_en] placeholder=(t("drafity.dashboard.sub.ph_name_en"))
-        small.form-text = t("drafity.dashboard.sub.name_en_hint")
       .form-group.sub-category-grid__full
         label = t("drafity.dashboard.sub.target")
         input.form-control type="text" name="service_genre[sub_categories_items][][target]" value=item[:target] placeholder=(t("drafity.dashboard.sub.ph_target"))

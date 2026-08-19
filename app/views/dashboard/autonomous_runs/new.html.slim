@@ -10,7 +10,7 @@
           .form-section
             h3.form-section-title = t("drafity.dashboard.autonomous.basic")
 
-            - if admin_signed_in?
+            - if acting_as_admin?
               p.form-text = t("drafity.dashboard.autonomous.admin_note")
 
             .form-group

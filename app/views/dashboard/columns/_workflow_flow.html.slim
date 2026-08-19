@@ -1,31 +1,46 @@
 .dashboard-flow
   .dashboard-flow__header = t("drafity.dashboard.workflow.title")
-  .dashboard-flow__steps
-    = link_to dashboard_service_genres_path, class: "dashboard-flow__step" do
-      span.dashboard-flow__num 1
-      span.dashboard-flow__body
-        span.dashboard-flow__label = t("drafity.dashboard.workflow.genres")
-    span.dashboard-flow__arrow
-      | →
-    button.dashboard-flow__step type="button" onclick="openTitleSuggestionModal()"
-      span.dashboard-flow__num 2
-      span.dashboard-flow__body
-        span.dashboard-flow__label = t("drafity.dashboard.workflow.titles")
-    span.dashboard-flow__arrow
-      | →
-    span.dashboard-flow__step.is-static title=t("drafity.dashboard.workflow.pillar_body_hint")
-      span.dashboard-flow__num 3
-      span.dashboard-flow__body
-        span.dashboard-flow__label = t("drafity.dashboard.workflow.pillar_body")
-    span.dashboard-flow__arrow
-      | →
-    span.dashboard-flow__step.is-static title=t("drafity.dashboard.workflow.child_titles_hint")
-      span.dashboard-flow__num 4
-      span.dashboard-flow__body
-        span.dashboard-flow__label = t("drafity.dashboard.workflow.child_titles")
-    span.dashboard-flow__arrow
-      | →
-    span.dashboard-flow__step.is-static title=t("drafity.dashboard.workflow.child_body_hint")
-      span.dashboard-flow__num 5
-      span.dashboard-flow__body
-        span.dashboard-flow__label = t("drafity.dashboard.workflow.child_body")
+  .dashboard-flow__track
+    .dashboard-flow__item
+      = link_to dashboard_service_genres_path, class: "dashboard-flow__step is-link" do
+        span.dashboard-flow__num 1
+        span.dashboard-flow__body
+          span.dashboard-flow__label = t("drafity.dashboard.workflow.genres")
+          span.dashboard-flow__hint = t("drafity.dashboard.workflow.genres_hint")
+          span.dashboard-flow__action = t("drafity.dashboard.workflow.click_to_open")
+      span.dashboard-flow__connector aria-hidden="true" →
+
+    .dashboard-flow__item
+      button.dashboard-flow__step.is-link type="button" onclick="openTitleSuggestionModal()"
+        span.dashboard-flow__num 2
+        span.dashboard-flow__body
+          span.dashboard-flow__label = t("drafity.dashboard.workflow.titles")
+          span.dashboard-flow__hint = t("drafity.dashboard.workflow.titles_hint")
+          span.dashboard-flow__action = t("drafity.dashboard.workflow.click_to_open")
+      span.dashboard-flow__connector aria-hidden="true" →
+
+    .dashboard-flow__item
+      = link_to dashboard_columns_path(scope: "pillar"), class: "dashboard-flow__step is-link" do
+        span.dashboard-flow__num 3
+        span.dashboard-flow__body
+          span.dashboard-flow__label = t("drafity.dashboard.workflow.pillar_body")
+          span.dashboard-flow__hint = t("drafity.dashboard.workflow.pillar_body_hint")
+          span.dashboard-flow__action = t("drafity.dashboard.workflow.go_to_list")
+      span.dashboard-flow__connector aria-hidden="true" →
+
+    .dashboard-flow__item
+      span.dashboard-flow__step.is-static
+        span.dashboard-flow__num 4
+        span.dashboard-flow__body
+          span.dashboard-flow__label = t("drafity.dashboard.workflow.child_titles")
+          span.dashboard-flow__hint = t("drafity.dashboard.workflow.child_titles_hint")
+          span.dashboard-flow__action = t("drafity.dashboard.workflow.list_only")
+      span.dashboard-flow__connector aria-hidden="true" →
+
+    .dashboard-flow__item.dashboard-flow__item--last
+      = link_to dashboard_columns_path(scope: "cluster"), class: "dashboard-flow__step is-link" do
+        span.dashboard-flow__num 5
+        span.dashboard-flow__body
+          span.dashboard-flow__label = t("drafity.dashboard.workflow.child_body")
+          span.dashboard-flow__hint = t("drafity.dashboard.workflow.child_body_hint")
+          span.dashboard-flow__action = t("drafity.dashboard.workflow.go_to_list")

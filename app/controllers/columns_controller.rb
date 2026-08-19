@@ -63,7 +63,7 @@ class ColumnsController < ApplicationController
     genre_counts_cache_key = [
       "columns_index_genre_counts_v1",
       columns_manage_view? ? "manage" : "public:#{I18n.locale}",
-      (admin_signed_in? ? "admin:#{current_admin.id}" : nil),
+      (acting_as_admin? ? "admin:#{current_admin.id}" : nil),
       (client_signed_in? ? "client:#{current_client.id}" : "anon"),
       genre_key,
       params[:selected_genre],
@@ -522,7 +522,7 @@ class ColumnsController < ApplicationController
   end
 
   def resolve_columns_layout
-    return "admin" if columns_manage_view? && %w[index show].include?(action_name)
+    return "admin" if columns_manage_view?
 
     "application"
   end
@@ -533,7 +533,7 @@ class ColumnsController < ApplicationController
   end
 
   def require_column_access!
-    return if admin_signed_in?
+    return if acting_as_admin?
     return if client_signed_in? && @column.client_id == current_client.id
 
     flash[:alert] = "指定された記事にアクセスできません。"
@@ -617,7 +617,8 @@ class ColumnsController < ApplicationController
   def column_params
     permitted = params.require(:column).permit(
       :title, :file, :choice, :keyword, :description, :genre, :code,
-      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre, :generation_mode, :language
+      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt, :sub_genre, :generation_mode, :language,
+      :own_service_key, :own_service_url
     )
 
     if permitted[:generation_mode].present?
@@ -645,7 +646,7 @@ class ColumnsController < ApplicationController
   end
 
   def column_form_genre_registry
-    if admin_signed_in?
+    if acting_as_admin?
       GenreRegistry.genres
     elsif client_signed_in?
       client_accessible_genre_registry
@@ -687,7 +688,7 @@ class ColumnsController < ApplicationController
 
   def sanitize_generation_mode_for_actor(mode)
     normalized = Column.normalize_generation_mode(mode)
-    return normalized if admin_signed_in?
+    return normalized if acting_as_admin?
     return normalized if Column::PUBLIC_GENERATION_MODES.include?(normalized)
 
     "default"

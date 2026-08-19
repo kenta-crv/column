@@ -25,7 +25,12 @@
               span.subscription-info-label = t("drafity.dashboard.labels.status")
               - status_class = is_active ? "active" : "canceled"
               span.status-badge class="status-#{status_class}"
-                = is_trial ? t("drafity.dashboard.labels.trialing") : @subscription&.status&.capitalize
+                - if @subscription&.cancelled?
+                  = t("drafity.dashboard.labels.cancelled")
+                - elsif @subscription&.expired?
+                  = t("drafity.dashboard.labels.expired")
+                - else
+                  = t("drafity.dashboard.labels.active")
 
             - if is_trial && trial_ends_at.present?
               .subscription-info-item

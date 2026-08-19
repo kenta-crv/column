@@ -47,7 +47,7 @@
 
       .form-group
         = f.label :generation_mode, t("drafity.columns.form.generation_mode")
-        - include_internal_modes = admin_signed_in? && !Column.english_language?(@column.language.presence || default_article_language)
+        - include_internal_modes = acting_as_admin? && !Column.english_language?(@column.language.presence || default_article_language)
         - mode_options = generation_mode_options_for_select(include_internal: include_internal_modes)
         - current_mode = Column.normalize_generation_mode_for(@column.generation_mode, language: @column.language)
         - if include_internal_modes && !Column::PUBLIC_GENERATION_MODES.include?(current_mode) && mode_options.none? { |_, v| v == current_mode }
@@ -57,10 +57,29 @@
           { selected: current_mode },
           { class: "form-control", id: "column_generation_mode" }
         p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
-          - if admin_signed_in?
+          - if acting_as_admin?
             = t("drafity.columns.form.mode_hint_admin")
           - else
             = t("drafity.columns.form.mode_hint")
+
+      - if acting_as_admin?
+        .form-group#own-service-group data-internal-modes="note,qiita,zenn"
+          = f.label :own_service_key, t("drafity.columns.form.own_service")
+          = f.select :own_service_key,
+            [["Meetia", "meetia"], ["Recrivo", "recrivo"], ["Okurite", "okurite"], ["Drafity", "drafity"]],
+            { include_blank: t("drafity.columns.form.select_please"), selected: @column.own_service_key.presence || "drafity" },
+            { class: "form-control", id: "column_own_service_key" }
+          p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
+            = t("drafity.columns.form.own_service_hint")
+
+        .form-group#own-service-url-group
+          = f.label :own_service_url, t("drafity.columns.form.own_service_url")
+          = f.url_field :own_service_url,
+            class: "form-control",
+            id: "column_own_service_url",
+            placeholder: t("drafity.columns.form.own_service_url_placeholder")
+          p.form-text.text-muted style="margin-top: 6px; font-size: 12px;"
+            = t("drafity.columns.form.own_service_url_hint")
 
       - parent_for_language = @column.parent.presence || (@column.parent_id.present? ? Column.find_by(id: @column.parent_id) : nil)
       .form-group
@@ -165,6 +184,40 @@ javascript:
       sync();
     };
 
+    const initOwnServiceFields = () => {
+      const modeSelect = document.getElementById('column_generation_mode');
+      const ownServiceGroup = document.getElementById('own-service-group');
+      const ownServiceUrlGroup = document.getElementById('own-service-url-group');
+      const ownServiceSelect = document.getElementById('column_own_service_key');
+      const ownServiceUrlInput = document.getElementById('column_own_service_url');
+      if (!modeSelect || !ownServiceGroup || !ownServiceUrlGroup || !ownServiceSelect || !ownServiceUrlInput) return;
+
+      const internalModes = ['note', 'qiita', 'zenn'];
+      const urlByService = {
+        meetia: 'https://meetia.pro',
+        recrivo: 'https://recrivo.pro',
+        okurite: 'https://okurite.pro',
+        drafity: 'https://drafity.pro'
+      };
+
+      const syncVisibility = () => {
+        const visible = internalModes.includes(modeSelect.value);
+        ownServiceGroup.style.display = visible ? '' : 'none';
+        ownServiceUrlGroup.style.display = visible ? '' : 'none';
+      };
+
+      const syncDefaultUrl = () => {
+        if (ownServiceUrlInput.value.trim().length > 0) return;
+        const mapped = urlByService[ownServiceSelect.value];
+        if (mapped) ownServiceUrlInput.value = mapped;
+      };
+
+      modeSelect.addEventListener('change', syncVisibility);
+      ownServiceSelect.addEventListener('change', syncDefaultUrl);
+      syncVisibility();
+      syncDefaultUrl();
+    };
+
     // Turbolinks環境対応
     document.removeEventListener('turbolinks:load', initGenreSelect);
     document.addEventListener('turbolinks:load', initGenreSelect);
@@ -172,4 +225,5 @@ javascript:
     document.addEventListener('DOMContentLoaded', initGenreSelect);
     initGenreSelect();
     initLanguageMode();
+    initOwnServiceFields();
   })();
