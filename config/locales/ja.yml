@@ -339,6 +339,7 @@ ja:
         api_on: "API利用可"
         api_off: "API利用不可"
         autonomous: "AI主導生成（自律型エージェント）"
+        autonomous_off: "AI主導生成なし"
         attribution_on: "Powered by 表示あり"
         attribution_off: "Powered by 表示なし"
     attribution:

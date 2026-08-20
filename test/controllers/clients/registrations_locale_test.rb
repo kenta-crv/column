@@ -128,4 +128,25 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "ログアウト (管理者)"
   end
+
+  test "new signup fires yahoo ads conversion once on dashboard" do
+    email = "trial-cv-#{SecureRandom.hex(4)}@example.com"
+    post "/clients", params: {
+      client: {
+        email: email,
+        password: "password123",
+        password_confirmation: "password123"
+      }
+    }
+    assert_redirected_to dashboard_root_path
+
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, "PI10CNNARJJWSR9XZS1366128"
+    assert_includes response.body, "yjad_conversion"
+
+    get dashboard_root_path
+    assert_response :success
+    assert_not_includes response.body, "PI10CNNARJJWSR9XZS1366128"
+  end
 end

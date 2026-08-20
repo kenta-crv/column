@@ -240,11 +240,13 @@ class AutonomousContentRun < ApplicationRecord
   def enqueue_next_child!
     next_child = pending_child_columns.first
     if next_child.nil?
-      if child_columns.where(status: "error").exists? || child_columns.where(generation_status: "failed").exists?
-        mark_failed!("一部の子記事の生成に失敗しました。")
-      else
-        finalize!
+      # 失敗・エラー記事があっても completed として完了させ、エラー情報は error_message に残す
+      failed_count = child_columns.where(status: "error").count + child_columns.where(generation_status: "failed").count
+      if failed_count > 0
+        Rails.logger.warn("[AutonomousContentRun #{id}] #{failed_count}件の子記事が失敗しましたが処理を完了します")
+        update!(error_message: "#{failed_count}件の子記事の生成に失敗しました（他の記事は正常に生成されています）")
       end
+      finalize!
       return
     end
 

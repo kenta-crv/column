@@ -1,0 +1,63 @@
+<p>サブスクリプションに関する通知です。</p>
+
+<table>
+  <tr>
+    <th>イベント</th>
+    <td>
+      <% case @event %>
+      <% when :registered %>
+        <%= @subscription.trial? ? "トライアル申し込み" : "登録" %>
+      <% when :changed %>
+        変更
+      <% when :cancelled %>
+        解約
+      <% else %>
+        <%= @event %>
+      <% end %>
+    </td>
+  </tr>
+  <tr>
+    <th>クライアントID</th>
+    <td><%= @client.id %></td>
+  </tr>
+  <tr>
+    <th>会社名</th>
+    <td><%= @client.try(:company).presence || "-" %></td>
+  </tr>
+  <tr>
+    <th>お名前</th>
+    <td><%= @client.try(:name).presence || "-" %></td>
+  </tr>
+  <tr>
+    <th>メールアドレス</th>
+    <td><%= @client.email %></td>
+  </tr>
+  <tr>
+    <th>プラン</th>
+    <td><%= @subscription.plan_name %></td>
+  </tr>
+  <% if @event == :changed && @previous_plan.present? %>
+    <tr>
+      <th>変更前プラン</th>
+      <td><%= @previous_plan_name %></td>
+    </tr>
+  <% end %>
+  <tr>
+    <th>ステータス</th>
+    <td><%= @subscription.status %></td>
+  </tr>
+  <% if @subscription.trial_ends_at.present? %>
+    <tr>
+      <th>トライアル終了日</th>
+      <td><%= @subscription.trial_ends_at.strftime("%Y年%m月%d日 %H:%M") %></td>
+    </tr>
+  <% end %>
+  <tr>
+    <th>Stripe Subscription ID</th>
+    <td><%= @subscription.stripe_subscription_id.presence || "-" %></td>
+  </tr>
+  <tr>
+    <th>日時</th>
+    <td><%= Time.current.strftime("%Y年%m月%d日 %H:%M") %></td>
+  </tr>
+</table>

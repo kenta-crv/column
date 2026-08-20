@@ -50,7 +50,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal 1, trial[:pillar_articles]
     assert_equal 5, trial[:child_articles]
     assert_equal 8, trial[:image_generations]
-    assert_equal 1, trial[:title_suggestions]
+    assert_equal 3, trial[:title_suggestions]
     assert_equal false, trial[:api_enabled]
     assert_equal false, trial[:ai_autonomous]
     assert_equal true, trial[:attribution_required]

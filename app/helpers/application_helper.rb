@@ -259,4 +259,30 @@ module ApplicationHelper
   def drafity_logo_image
     english_ui? ? "logo2-en.png" : "logo2.png"
   end
+
+  def yahoo_ads_conversion_tags
+    <<~HTML.html_safe
+      <script>
+        ytag({
+          "type":"yjad_conversion",
+          "config":{
+            "yahoo_ydn_conv_io": "oF60YhAceU7WjOVPpcxBJQ..",
+            "yahoo_ydn_conv_label": "PI10CNNARJJWSR9XZS1366128",
+            "yahoo_ydn_conv_transaction_id": "",
+            "yahoo_ydn_conv_value": "1",
+            "yahoo_email": "",
+            "yahoo_phone_number": ""
+          }
+        });
+        ytag({
+          "type": "yss_conversion",
+          "config": {
+            "yahoo_conversion_id": "1001407543",
+            "yahoo_conversion_label": "E7gnCP2m2NkcEMmvo69E",
+            "yahoo_conversion_value": "1"
+          }
+        });
+      </script>
+    HTML
+  end
 end

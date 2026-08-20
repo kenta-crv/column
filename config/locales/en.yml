@@ -331,6 +331,7 @@ en:
         api_on: "API enabled"
         api_off: "API not included"
         autonomous: "AI-led generation (autonomous agent)"
+        autonomous_off: "AI-led generation not included"
         attribution_on: "Powered by attribution required"
         attribution_off: "No Powered by attribution"
     attribution:

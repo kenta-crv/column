@@ -14,7 +14,8 @@ class ApplicationController < ActionController::Base
                 :public_column_show_path, :columns_manage_view?, :sub_category_ui_config,
                 :pending_review_columns_count, :missing_image_columns_count,
                 :routable_public_genre_key?, :platform_host?, :acting_as_admin?,
-                :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales, :locale_switch_path_for
+                :public_request_host, :current_locale, :locale_root_href, :href_for_locale, :available_ui_locales, :locale_switch_path_for,
+                :yahoo_trial_conversion_pending?
 
   def check_trial_expiration
     return unless current_client.present?
@@ -637,6 +638,14 @@ class ApplicationController < ActionController::Base
 
   def after_sign_out_path_for(_resource_or_scope)
     locale_root_href
+  end
+
+  def mark_yahoo_trial_conversion!
+    session[:yahoo_ads_trial_cv] = true
+  end
+
+  def yahoo_trial_conversion_pending?
+    session.delete(:yahoo_ads_trial_cv).present?
   end
 
   def configure_permitted_parameters

@@ -15,6 +15,9 @@ class Subscription < ApplicationRecord
   validates :status, presence: true
   validates :stripe_subscription_id, uniqueness: true, allow_nil: true
 
+  after_commit :notify_registered, on: :create
+  after_commit :notify_updated, on: :update
+
   TRIAL_DAYS = 14
   # 年額割引は当面使わない（表示・Checkout から除外）
   YEARLY_DISCOUNT_RATE = 0.8
@@ -37,9 +40,10 @@ class Subscription < ApplicationRecord
       prices: { jpy: 0, usd: 0 },
       pillar_articles: 1,
       child_articles: 5,
-      title_suggestions: 1,
+      title_suggestions: 3,
       title_suggestion_max_per_use: 1,
       image_generations: 8,
+      genre_suggestions: 1,
       genre_count: 1,
       sub_category_count: 0,
       api_enabled: false,
@@ -68,6 +72,7 @@ class Subscription < ApplicationRecord
       title_suggestions: 3,
       title_suggestion_max_per_use: 3,
       image_generations: 60,
+      genre_suggestions: 999,
       genre_count: 1,
       sub_category_count: 0,
       api_enabled: true,
@@ -99,6 +104,7 @@ class Subscription < ApplicationRecord
       title_suggestions: 5,
       title_suggestion_max_per_use: 5,
       image_generations: 125,
+      genre_suggestions: 999,
       genre_count: 3,
       sub_category_count: 3,
       api_enabled: true,
@@ -131,6 +137,7 @@ class Subscription < ApplicationRecord
       title_suggestions: 30,
       title_suggestion_max_per_use: 5,
       image_generations: 250,
+      genre_suggestions: 999,
       genre_count: 10,
       sub_category_count: 10,
       api_enabled: true,
@@ -162,6 +169,7 @@ class Subscription < ApplicationRecord
       title_suggestions: 100,
       title_suggestion_max_per_use: 5,
       image_generations: 1000,
+      genre_suggestions: 999,
       genre_count: 20,
       sub_category_count: 10,
       api_enabled: true,
@@ -287,7 +295,11 @@ class Subscription < ApplicationRecord
                   else
                     I18n.t("drafity.plans.features.api_off", default: "API利用不可")
                   end
-      features << I18n.t("drafity.plans.features.autonomous", default: "AI主導生成（自律型エージェント）") if config[:ai_autonomous]
+      features << if config[:ai_autonomous]
+                    I18n.t("drafity.plans.features.autonomous", default: "AI主導生成（自律型エージェント）")
+                  else
+                    I18n.t("drafity.plans.features.autonomous_off", default: "AI主導生成なし")
+                  end
       features << if config[:attribution_required]
                     I18n.t("drafity.plans.features.attribution_on", default: "Powered by 表示あり")
                   else
@@ -448,5 +460,19 @@ class Subscription < ApplicationRecord
 
   def expire_trial_and_upgrade!
     expire_trial_without_charge!
+  end
+
+  private
+
+  def notify_registered
+    SubscriptionNotifier.registered(self)
+  end
+
+  def notify_updated
+    if saved_change_to_status? && cancelled?
+      SubscriptionNotifier.cancelled(self)
+    elsif saved_change_to_plan_type?
+      SubscriptionNotifier.changed(self, previous_plan: plan_type_before_last_save)
+    end
   end
 end

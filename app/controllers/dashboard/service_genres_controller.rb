@@ -22,11 +22,13 @@ class Dashboard::ServiceGenresController < ApplicationController
       @service_genre.client = current_client
       personalize_template_hosts!(@service_genre)
     end
+    assign_company_name_for_form
   end
 
   def create
     attrs, sub_category_error = service_genre_attributes
     @service_genre = ServiceGenre.new(attrs)
+    assign_company_name_for_form
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
@@ -37,7 +39,11 @@ class Dashboard::ServiceGenresController < ApplicationController
     elsif (limit_error = sub_category_limit_error(@service_genre.sub_categories, owner_client: @service_genre.client))
       @service_genre.errors.add(:base, limit_error)
       render :new, status: :unprocessable_entity
+    elsif company_name_missing_for_genre_owner?
+      @service_genre.errors.add(:base, t("drafity.dashboard.flashes.company_required"))
+      render :new, status: :unprocessable_entity
     elsif apply_service_genre_flags!(@service_genre) && @service_genre.save
+      sync_company_to_genre_owner
       redirect_to dashboard_service_genres_path, notice: t("drafity.dashboard.flashes.genre_created")
     else
       render :new, status: :unprocessable_entity
@@ -45,10 +51,12 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def edit
+    assign_company_name_for_form
   end
 
   def update
     attrs, sub_category_error = service_genre_attributes
+    assign_company_name_for_form
 
     if sub_category_error
       @service_genre.errors.add(:base, sub_category_error)
@@ -59,7 +67,11 @@ class Dashboard::ServiceGenresController < ApplicationController
     elsif (limit_error = sub_category_limit_error(attrs[:sub_categories], owner_client: @service_genre.client))
       @service_genre.errors.add(:base, limit_error)
       render :edit, status: :unprocessable_entity
+    elsif company_name_missing_for_genre_owner?
+      @service_genre.errors.add(:base, t("drafity.dashboard.flashes.company_required"))
+      render :edit, status: :unprocessable_entity
     elsif apply_service_genre_flags!(@service_genre) && @service_genre.update(attrs)
+      sync_company_to_genre_owner
       redirect_to dashboard_service_genres_path, notice: t("drafity.dashboard.flashes.genre_updated")
     else
       render :edit, status: :unprocessable_entity
@@ -94,6 +106,10 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def quick_setup
+    if client_signed_in? && !current_client.can_suggest_genre?
+      return render json: { success: false, error: current_client.plan_limit_message(:genre_suggestion) }, status: :unprocessable_entity
+    end
+
     if sub_category_not_allowed_error
       return render json: { success: false, error: t("drafity.dashboard.flashes.plan_standard_required") }, status: :forbidden
     end
@@ -108,6 +124,7 @@ class Dashboard::ServiceGenresController < ApplicationController
     )
 
     if result[:success]
+      current_client.record_genre_suggestion! if client_signed_in?
       render json: { success: true, draft: result[:draft] }
     else
       render json: { success: false, error: result[:error] }, status: :unprocessable_entity
@@ -253,6 +270,35 @@ class Dashboard::ServiceGenresController < ApplicationController
     end
 
     [attrs, sub_category_error]
+  end
+
+  def assign_company_name_for_form
+    @company_name = company_name_param.presence || genre_owner_client&.company.to_s
+  end
+
+  def company_name_param
+    params.dig(:service_genre, :company).to_s.strip.presence
+  end
+
+  def genre_owner_client
+    if client_signed_in? && !acting_as_admin?
+      current_client
+    else
+      @service_genre&.client || Client.find_by(id: params.dig(:service_genre, :client_id).presence)
+    end
+  end
+
+  def company_name_missing_for_genre_owner?
+    return false if genre_owner_client.blank?
+
+    company_name_param.blank?
+  end
+
+  def sync_company_to_genre_owner
+    client = genre_owner_client
+    return if client.blank?
+
+    client.update_company_name(company_name_param)
   end
 
   def build_column_cta(raw)

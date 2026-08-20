@@ -26,6 +26,11 @@
         small.form-text = t("drafity.dashboard.genres.client_hint")
 
     .form-group
+      = label_tag "service_genre_company", t("drafity.dashboard.genres.company")
+      = text_field_tag "service_genre[company]", @company_name, class: "form-control", id: "service_genre_company", placeholder: t("drafity.dashboard.genres.ph_company"), autocomplete: "organization", required: (client_signed_in? && !acting_as_admin?)
+      small.form-text = t("drafity.dashboard.genres.company_hint")
+
+    .form-group
       = f.label :key, t("drafity.dashboard.genres.key_label")
       = f.text_field :key, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_key"), readonly: service_genre.persisted?
       small.form-text = t("drafity.dashboard.genres.key_hint")

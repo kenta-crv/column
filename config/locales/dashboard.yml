@@ -104,6 +104,7 @@ ja:
         client_required: クライアントを指定してください。
         genre_created: サービス・ジャンルを作成しました
         genre_updated: サービス・ジャンルを更新しました
+        company_required: 会社名を入力してください。
         genre_deleted: サービス・ジャンルを削除しました
         genre_key_unavailable: このジャンルキーは利用できません。
         template_unavailable: このテンプレートは利用できません。
@@ -404,6 +405,9 @@ ja:
         ai_suggest: AI提案
         system_shared: システム共通
         client_hint: 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
+        company: 会社名
+        ph_company: '例: 株式会社サンプル'
+        company_hint: Managementの社名に反映されます。記事生成時の自社名にも使えます。
         key_label: キー（英小文字・URL用）
         ph_key: '例: my_service'
         key_hint: 記事の genre 値として使用されます。作成後は変更できません。
@@ -761,6 +765,7 @@ en:
         client_required: Please specify a client.
         genre_created: Genre created.
         genre_updated: Genre updated.
+        company_required: Enter your company name.
         genre_deleted: Genre deleted.
         genre_key_unavailable: This genre key is unavailable.
         template_unavailable: This template is unavailable.
@@ -1067,6 +1072,9 @@ en:
         system_shared: System-wide
         client_hint: Leave blank for admin-wide genres. Selecting a client also adds
           it to API-allowed genres.
+        company: Company name
+        ph_company: e.g. Acme Inc.
+        company_hint: Saved as the company name in Management. Also used as the company name in generated articles.
         key_label: Key (lowercase, URL)
         ph_key: e.g. my_service
         key_hint: Used as the article genre value. Cannot change after create.

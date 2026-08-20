@@ -6,7 +6,7 @@
   section.pricing-section
     .pricing-inner
       .plans-top
-        .drafity-auth__lang style="margin:0 0 12px auto;max-width:none;padding:0"
+        .drafity-auth__lang style="align-self:flex-end;max-width:none;padding:0;margin-bottom:4px"
           = render "shared/lang_switch"
         .section-header
           span.overline = t("drafity.auth.plans_overline")
@@ -81,16 +81,16 @@
                     span.price-yen = currency_symbol
                     span.price-num = sale_price
                     span.price-unit = t("drafity.auth.pricing_per_month")
-                  p.plan-price-sale-note
+                  p.plan-price-note.plan-price-sale-note
                     = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS)
                 - else
+                  .plan-price-orig.is-empty aria-hidden="true"
                   .plan-price-main
                     span.price-yen = currency_symbol
                     span.price-num = (plan[:key] == :trial || billing_currency == :jpy) ? number_with_delimiter(plan[:monthly_price]) : plan[:monthly_price]
-                    - if plan[:key] != :trial
-                      span.price-unit = t("drafity.auth.pricing_per_month")
-              - if plan[:key] == :trial
-                .plan-price-note = plan[:note]
+                    span.price-unit = t("drafity.auth.pricing_per_month")
+                  p.plan-price-note class=("is-empty" unless plan[:key] == :trial)
+                    = (plan[:key] == :trial) ? plan[:note] : ""
 
               hr.plan-divider
               ul.plan-features

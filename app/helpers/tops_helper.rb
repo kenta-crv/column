@@ -424,7 +424,7 @@ module TopsHelper
     { category: "service", q: "生成した記事の著作権は誰のものですか？", a: "トライアル期間を含め、生成した記事はお客様のコンテンツとしてご利用いただけます。" },
 
     # pricing
-    { category: "pricing", q: "無料トライアルの条件は？", a: "#{Subscription::TRIAL_DAYS}日間・0円です。上限は親記事1・子記事5・画像8・タイトル提案1。アカウント登録だけで開始でき、クレジットカードは不要です。期間終了後は自動課金されず期限切れとなり、スタンダード（月額49,800円）への移行をご案内します。" },
+    { category: "pricing", q: "無料トライアルの条件は？", a: "#{Subscription::TRIAL_DAYS}日間・0円です。上限は親記事1・子記事5・画像8・タイトル提案3。アカウント登録だけで開始でき、クレジットカードは不要です。期間終了後は自動課金されず期限切れとなり、スタンダード（月額49,800円）への移行をご案内します。" },
     { category: "pricing", q: "料金プランと記事上限は？", a: "スタンダード月額49,800円（親5・子75）／ビジネス98,000円（15・225、AI自律あり）／エンタープライズ198,000円（50・750）。スタンダードは初回3ヶ月15%OFF。詳細は料金セクションをご確認ください。" },
     { category: "pricing", q: "トライアル中に解約したら課金されますか？", a: "トライアルはカード不要で、終了後も自動課金はされません。" },
     { category: "pricing", q: "プラン変更や請求書払いはできますか？", a: "プラン変更はダッシュボードの契約管理から可能です。請求書払いは契約形態により案内します。法人でのご利用・請求書払いをご希望の場合はお問い合わせください。" },
@@ -449,7 +449,7 @@ module TopsHelper
     { category: "service", q: "Who owns generated content?", a: "Articles you generate—including during the trial—are yours to use." },
 
     # pricing
-    { category: "pricing", q: "What are the free trial terms?", a: "#{Subscription::TRIAL_DAYS} days at ¥0: 1 parent article, 5 child articles, 8 images, 1 title suggestion. No card needed to start. When the trial ends there is no auto-charge; you are guided to Standard (¥49,800/month)." },
+    { category: "pricing", q: "What are the free trial terms?", a: "#{Subscription::TRIAL_DAYS} days at ¥0: 1 parent article, 5 child articles, 8 images, 3 title suggestions. No card needed to start. When the trial ends there is no auto-charge; you are guided to Standard (¥49,800/month)." },
     { category: "pricing", q: "What are the plans and article limits?", a: "Standard ¥49,800/mo (5 parent / 75 child) / Business ¥98,000 (15 / 225, AI autonomous) / Enterprise ¥198,000 (50 / 750). Standard includes 15% off for the first 3 months. See the pricing section." },
     { category: "pricing", q: "If I cancel during the trial, am I charged?", a: "No. Trial needs no card, and there is no auto-charge when it ends." },
     { category: "pricing", q: "Can I change plans or pay by invoice?", a: "Yes—change plans from dashboard billing. Invoice payment depends on contract type; contact us for company billing." },

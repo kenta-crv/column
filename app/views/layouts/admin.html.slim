@@ -9,6 +9,13 @@ html lang=current_locale
     = stylesheet_link_tag "application", media: "all"
     = javascript_include_tag "application"
     meta name="viewport" content="width=device-width, initial-scale=1"
+    script async=true src="https://s.yimg.jp/images/listing/tool/cv/ytag.js"
+    javascript:
+      window.yjDataLayer = window.yjDataLayer || [];
+      function ytag() { yjDataLayer.push(arguments); }
+      ytag({"type":"ycl_cookie", "config":{"ycl_use_non_cookie_storage":true}});
+    - if yahoo_trial_conversion_pending?
+      = yahoo_ads_conversion_tags
 
   body.admin-body
     - if acting_as_admin?

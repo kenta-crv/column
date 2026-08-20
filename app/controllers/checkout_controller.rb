@@ -161,6 +161,7 @@ class CheckoutController < ApplicationController
     end
 
     current_client.initialize_trial_subscription!
+    mark_yahoo_trial_conversion!
     redirect_to dashboard_root_path, notice: t("drafity.auth.trial_started", days: Subscription::TRIAL_DAYS, default: "%{days}日間の無料トライアルを開始しました。")
   end
 

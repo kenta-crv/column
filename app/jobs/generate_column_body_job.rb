@@ -84,11 +84,12 @@ class GenerateColumnBodyJob < ApplicationJob
         Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
 
         if autonomous_run_id.present?
-          run = AutonomousContentRun.find_by(id: autonomous_run_id)
-          run&.mark_failed!(error_info)
+          # 子記事1件の失敗で全体を止めず、次の子記事の生成へ進む
+          # autonomous の場合はリトライさせないため raise しない
+          AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column_id)
+        else
+          raise e
         end
-
-        raise e
       end
 
     ensure

@@ -82,6 +82,14 @@ class Client < ApplicationRecord
     subscription_status == "active"
   end
 
+  def update_company_name(value)
+    name = value.to_s.strip
+    return false if name.blank?
+    return true if company == name
+
+    update(company: name)
+  end
+
   CHILD_ARTICLE_TYPES = %w[child cluster].freeze
 
   def plan_limits
@@ -222,6 +230,18 @@ class Client < ApplicationRecord
     service_genres.count < plan_limits[:genre_count]
   end
 
+  def can_suggest_genre?
+    genre_suggestion_usage_count < plan_limits.fetch(:genre_suggestions, 999)
+  end
+
+  def genre_suggestion_usage_count
+    current_usage_log.genre_suggestion_count
+  end
+
+  def record_genre_suggestion!
+    current_usage_log.increment!(:genre_suggestion_count)
+  end
+
   def max_sub_category_count
     plan_limits[:sub_category_count].to_i
   end
@@ -297,6 +317,8 @@ class Client < ApplicationRecord
       "画像生成の上限（#{limits[:image_generations]}回）に達しています。プランのアップグレードをご検討ください。"
     when :genre
       "ジャンル数の上限（#{limits[:genre_count]}個）に達しています。プランのアップグレードをご検討ください。"
+    when :genre_suggestion
+      "ジャンルAI提案の上限（#{limits.fetch(:genre_suggestions, 1)}回）に達しています。プランのアップグレードをご検討ください。"
     when :sub_category
       if limits[:sub_category_count].to_i <= 0
         "お使いのプランでは中分類を利用できません。スタンダードプラン以上でご利用いただけます。"
@@ -333,6 +355,7 @@ class Client < ApplicationRecord
       # サイドバー表示では全件 file COUNT の reconcile を避ける（書き込み時に加算済み）
       image_generations: { used: current_usage_log.image_generation_count, limit: limits[:image_generations] },
       genres: { used: service_genres.count, limit: limits[:genre_count] },
+      genre_suggestions: { used: current_usage_log.genre_suggestion_count, limit: limits.fetch(:genre_suggestions, 999) },
       sub_categories: { limit: limits[:sub_category_count] },
       api_enabled: limits[:api_enabled],
       ai_autonomous: limits[:ai_autonomous],

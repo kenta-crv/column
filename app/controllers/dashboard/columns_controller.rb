@@ -97,10 +97,28 @@ class Dashboard::ColumnsController < ApplicationController
                           .group(:generation_status)
                           .count
 
+    recently_completed = base_scope
+                           .where(generation_status: "completed")
+                           .where("updated_at > ?", 5.minutes.ago)
+                           .order(updated_at: :desc)
+                           .limit(30)
+                           .map { |c|
+                             {
+                               column_id: c.id,
+                               status: "completed",
+                               title: c.title,
+                               generated_body: c.generated_body?,
+                               published: c.published?,
+                               path: "/columns/#{c.code.presence || c.id}",
+                               file_url: c[:file].present? ? c.file.to_s : nil
+                             }
+                           }
+
     render json: {
       queued_count: generation_counts["queued"].to_i,
       generating_count: generation_counts["generating"].to_i,
-      columns: columns.map { |c| { id: c.id, title: c.title, status: c.generation_status } }
+      columns: columns.map { |c| { id: c.id, title: c.title, status: c.generation_status } },
+      recently_completed: recently_completed
     }
   end
 

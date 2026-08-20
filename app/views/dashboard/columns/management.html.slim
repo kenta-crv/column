@@ -15,6 +15,7 @@
             thead
               tr
                 th ID
+                th Company
                 th Email
                 th Plan
                 th Amount
@@ -31,6 +32,10 @@
                   td
                     .client-id
                       = client.id
+
+                  td
+                    .client-company
+                      = client.company.presence || "-"
 
                   td
                     .client-email
