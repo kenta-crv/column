@@ -13,8 +13,21 @@ module CrawlPolicy
   def crawlable_genre_values
     keys = GenreRegistry.equivalent_keys(GENRE_KEY)
     ja = GenreRegistry.to_ja(GENRE_KEY)
-    (keys + [ja, GENRE_KEY]).compact.map(&:to_s).uniq.reject(&:blank?)
+    (keys + [ja, GENRE_KEY]).compact.map(&:to_s).uniq.reject(&:blank?).select { |value| crawlable_genre?(value) }
   end
+
+  STATIC_PATHS = [
+    "/",
+    "/plans",
+    TOPS_PATH,
+    SEO_CHECKER_PATH,
+    "/en",
+    "/en/plans",
+    "/en#{TOPS_PATH}",
+    "/en#{SEO_CHECKER_PATH}",
+    "/#{GENRE_KEY}/columns",
+    "/en/#{GENRE_KEY}/columns"
+  ].freeze
 
   def crawlable_columns
     Column.where(genre: crawlable_genre_values)

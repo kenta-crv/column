@@ -50,11 +50,26 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     no_code = create_published!(title: "No code", code: "sm-nocode-#{SecureRandom.hex(3)}")
     no_code.update_column(:code, "")
 
+    generation = create_published!(
+      title: "Generation genre",
+      genre: "ai_article_generation",
+      code: "sm-gen-#{SecureRandom.hex(3)}"
+    )
+    generation_ja = GenreRegistry.to_ja("ai_article_generation")
+    generation_ja_column = create_published!(
+      title: "Generation JA genre",
+      code: "sm-genja-#{SecureRandom.hex(3)}"
+    )
+    generation_ja_column.update_column(:genre, generation_ja.presence || "AI記事生成")
+
     ids = CrawlPolicy.crawlable_columns.pluck(:id)
     assert_includes ids, included.id
     refute_includes ids, excluded.id
     refute_includes ids, unpublished.id
     refute_includes ids, no_code.id
+    refute_includes ids, generation.id
+    refute_includes ids, generation_ja_column.id
+    assert CrawlPolicy.crawlable_genre_values.all? { |value| CrawlPolicy.crawlable_genre?(value) }
   end
 
   test "column_path prefixes English articles and stays Japanese without language" do
@@ -79,5 +94,8 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     assert_includes xml, "https://drafity.pro/#{CrawlPolicy::GENRE_KEY}/columns</loc>"
     assert_includes xml, "https://drafity.pro#{CrawlPolicy.column_path(column)}</loc>"
     refute_includes xml, "This XML file does not appear to have any style information"
+
+    loc_count = xml.scan("<loc>").size
+    assert_equal CrawlPolicy::STATIC_PATHS.size + CrawlPolicy.crawlable_columns.count, loc_count
   end
 end
