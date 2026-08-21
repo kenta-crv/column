@@ -149,4 +149,72 @@ class ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Contents"
     assert_not_includes response.body, ">目次<"
   end
+
+  test "admin can add child titles when pillar cluster_limit is 1" do
+    admin = create_admin!
+    pillar = Column.create!(
+      title: "Admin cluster limit one",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "draft",
+      cluster_limit: 1,
+      code: "admin-limit1-#{SecureRandom.hex(3)}"
+    )
+    Column.create!(
+      title: "Existing child",
+      article_type: "child",
+      parent_id: pillar.id,
+      genre: pillar.genre,
+      status: "draft",
+      code: "admin-child-#{SecureRandom.hex(3)}"
+    )
+
+    host! "drafity.pro"
+    sign_in admin
+
+    get column_path(pillar)
+    assert_response :success
+    assert_includes response.body, I18n.t("drafity.columns.manage.generate_titles")
+    assert_not_includes response.body, I18n.t("drafity.columns.manage.title_limit")
+  end
+
+  test "public show 301s historic UUID code to current SEO code" do
+    old_code = "596b52d3-7d5f-46c8-8abb-92d3612d94ab"
+    column = Column.create!(
+      title: "Published UUID article",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "completed",
+      code: "canonical-ai-interview-#{SecureRandom.hex(3)}",
+      body: "# Hello\n\nPublished body for canonical redirect.",
+      published_at: Time.current,
+      language: "ja"
+    )
+    FriendlyId::Slug.create!(slug: old_code, sluggable_id: column.id, sluggable_type: "Column")
+
+    host! "drafity.pro"
+    get columns_show_path(genre: CrawlPolicy::GENRE_KEY, id: old_code)
+    assert_response :moved_permanently
+    assert_redirected_to columns_show_path(genre: CrawlPolicy::GENRE_KEY, id: column.code)
+  end
+
+  test "brand host public show 301s historic UUID to /columns/slug" do
+    old_code = "3b6f5603-315f-49ef-a1f3-d50385a65a76"
+    column = Column.create!(
+      title: "Recrivo UUID article",
+      article_type: "pillar",
+      genre: "ai_interview",
+      status: "completed",
+      code: "franchise-ai-interview-#{SecureRandom.hex(3)}",
+      body: "# Hello\n\nPublished body for brand canonical redirect.",
+      published_at: Time.current,
+      language: "ja"
+    )
+    FriendlyId::Slug.create!(slug: old_code, sluggable_id: column.id, sluggable_type: "Column")
+
+    host! "recrivo.pro"
+    get "/columns/#{old_code}"
+    assert_response :moved_permanently
+    assert_equal "/columns/#{column.code}", response.redirect_url.sub(%r{\Ahttps?://[^/]+}, "")
+  end
 end

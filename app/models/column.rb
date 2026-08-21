@@ -7,6 +7,7 @@ class Column < ApplicationRecord
   has_many :children, class_name: "Column", foreign_key: :parent_id
   before_validation :normalize_language_value
   before_validation :normalize_generation_mode_for_language
+  before_validation :normalize_blank_code
   
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
@@ -69,10 +70,43 @@ class Column < ApplicationRecord
     Rails.logger.warn "[Column #{id}] repair_image_filename_from_disk! failed: #{e.message}"
     false
   end
-  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / octet_length に統一
-  scope :without_generated_body, -> { where("body IS NULL OR octet_length(body) = 0") }
-  scope :with_generated_body, -> { where("body IS NOT NULL AND octet_length(body) > 0") }
+  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / octet_length に統一。
+  # ジョブ失敗時に例外文が body に残っている記事は「未生成」として扱う。
+  GENERATION_FAILURE_BODY_SQL = [
+    "body LIKE '❌ 失敗:%'",
+    "body LIKE '%RuntimeError%'",
+    "body LIKE '%本文生成に失敗%'",
+    "body LIKE '%本文の生成に失敗%'",
+    "body LIKE '%generation failed%'",
+    "body LIKE '%生成エラーにより%'"
+  ].join(" OR ").freeze
+
+  def self.blank_or_failed_body_sql
+    <<~SQL.squish
+      body IS NULL
+      OR octet_length(body) = 0
+      OR length(trim(body)) = 0
+      OR #{GENERATION_FAILURE_BODY_SQL}
+    SQL
+  end
+
+  def self.usable_body_sql
+    <<~SQL.squish
+      body IS NOT NULL
+      AND octet_length(body) > 0
+      AND length(trim(body)) > 0
+      AND NOT (#{GENERATION_FAILURE_BODY_SQL})
+    SQL
+  end
+
+  scope :without_generated_body, -> { where(blank_or_failed_body_sql) }
+  scope :with_generated_body, -> { where(usable_body_sql) }
+  # ダッシュボード「下書き」: 使える本文がない記事（公開フラグは見ない。本文削除直後を拾う）
+  scope :drafts, -> { without_generated_body }
   scope :published, -> { where.not(published_at: nil) }
+  scope :publicly_listed, -> {
+    published.merge(with_generated_body).where.not(status: "error")
+  }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
   # 画像一括生成・サイドバーバッジ用。下書き（本文なし）や公開済みは含めない。
   scope :pending_review_missing_image, -> {
@@ -91,8 +125,7 @@ class Column < ApplicationRecord
     select(
       *(quoted + [
         Arel.sql(
-          "CASE WHEN #{table_name}.body IS NULL OR octet_length(#{table_name}.body) = 0 " \
-          "THEN FALSE ELSE TRUE END AS body_present"
+          "CASE WHEN #{blank_or_failed_body_sql} THEN FALSE ELSE TRUE END AS body_present"
         )
       ])
     )
@@ -152,7 +185,7 @@ class Column < ApplicationRecord
     if has_attribute?(:body_present)
       ActiveModel::Type::Boolean.new.cast(self[:body_present])
     elsif has_attribute?(:body)
-      body.to_s.strip.present?
+      body.to_s.strip.present? && !GptGenerationLocale.failed_output?(body)
     else
       self.class.where(id: id).merge(self.class.with_generated_body).exists?
     end
@@ -209,9 +242,228 @@ class Column < ApplicationRecord
   after_commit :notify_webhook_on_update, on: :update
   after_commit :notify_webhook_on_destroy, on: :destroy
 
+  UUID_LIKE_CODE = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+  FALLBACK_ARTICLE_CODE = /\Aarticle-\d+\z/i
+  JA_SEO_TERMS = {
+    "自動販売機" => "vending-machine",
+    "自販機" => "vending-machine",
+    "軽貨物" => "light-cargo",
+    "配送" => "delivery",
+    "物流" => "logistics",
+    "害虫駆除" => "pest-control",
+    "害虫" => "pest",
+    "駆除" => "extermination",
+    "シロアリ" => "termite",
+    "面接" => "interview",
+    "採用" => "hiring",
+    "求職" => "candidate",
+    "営業代行" => "sales-outsourcing",
+    "テレアポ" => "telemarketing",
+    "問い合わせフォーム" => "inquiry-form",
+    "清掃" => "cleaning",
+    "オフィス" => "office",
+    "設置" => "installation",
+    "費用" => "cost",
+    "電気代" => "electricity-cost",
+    "メーカー" => "manufacturer",
+    "契約" => "contract",
+    "運用" => "operations",
+    "故障" => "failure",
+    "メンテナンス" => "maintenance",
+    "ロケーション" => "location",
+    "サイズ" => "size",
+    "比較" => "comparison",
+    "ガイド" => "guide",
+    "完全解説" => "complete-guide",
+    "失敗" => "failure-cases",
+    "成功" => "success",
+    "中小企業" => "sme",
+    "コスト削減" => "cost-reduction",
+    "効率化" => "efficiency",
+    "BtoB" => "btob",
+    "空き家" => "vacant-house",
+    "外国人" => "foreign",
+    "ドライバー" => "driver",
+    "飲食店" => "restaurant",
+    "ホテル" => "hotel",
+    "観光地" => "sightseeing",
+    "法人" => "corporate",
+    "日常清掃" => "daily-cleaning",
+    "営業アウトソーシング" => "sales-outsourcing",
+    "サブスクリプション" => "subscription",
+    "商談" => "sales-meeting",
+    "成約" => "closing",
+    "電源" => "power-supply",
+    "搬入" => "delivery-access",
+    "屋外" => "outdoor",
+    "屋内" => "indoor",
+    "工場" => "factory",
+    "病院" => "hospital",
+    "倉庫" => "warehouse",
+    "フルオペ" => "full-operation"
+  }.freeze
+
+  def self.placeholder_code?(value)
+    raw = value.to_s.strip
+    return true if raw.blank?
+    return true if raw.match?(UUID_LIKE_CODE)
+    return true if raw.match?(FALLBACK_ARTICLE_CODE)
+    return true if raw.parameterize.blank?
+    return true if weak_seo_code?(raw)
+
+    false
+  end
+
+  def self.weak_seo_code?(value)
+    token = sanitize_seo_code(value)
+    return true if token.blank?
+    return true if token.count("-") < 2
+
+    base = token.sub(/-\d+\z/, "")
+    base.count("-") < 2
+  end
+
+  def self.sanitize_seo_code(raw)
+    raw.to_s.downcase
+       .gsub(/[^a-z0-9\s\-]/, "")
+       .strip
+       .gsub(/[\s_]+/, "-")
+       .gsub(/-+/, "-")
+       .gsub(/\A-|-\z/, "")
+  end
+
+  def self.code_taken?(value, excluding_id: nil)
+    token = value.to_s
+    return false if token.blank?
+
+    scope = where(code: token)
+    scope = scope.where.not(id: excluding_id) if excluding_id.present?
+    return true if scope.exists?
+
+    historic = FriendlyId::Slug.where(sluggable_type: base_class.name, slug: token)
+    historic = historic.where.not(sluggable_id: excluding_id) if excluding_id.present?
+    historic.exists?
+  end
+
+  def self.unique_seo_code(base, excluding_id: nil)
+    candidate = sanitize_seo_code(base)
+    return if placeholder_code?(candidate)
+
+    candidate = candidate[0, 80]
+    return candidate unless code_taken?(candidate, excluding_id: excluding_id)
+
+    2.upto(80) do |n|
+      suffixed = "#{candidate}-#{n}"
+      return suffixed unless code_taken?(suffixed, excluding_id: excluding_id)
+    end
+
+    "#{candidate}-#{SecureRandom.hex(3)}"
+  end
+
+  def self.find_by_param(id)
+    token = id.to_s
+    return if token.blank?
+
+    find_by(code: token) ||
+      (token.match?(/\A\d+\z/) ? find_by(id: token) : nil) ||
+      find_by_historic_code(token)
+  end
+
+  def self.find_by_historic_code(token)
+    slug = FriendlyId::Slug.order(id: :desc).find_by(sluggable_type: base_class.name, slug: token.to_s)
+    find_by(id: slug.sluggable_id) if slug
+  end
+
+  def self.fallback_seo_code(column)
+    tokens = []
+    title = column.title.to_s
+    tokens.concat(title.scan(/[A-Za-z][A-Za-z0-9+\-]{1,}/).map { |word| sanitize_seo_code(word) })
+
+    remainder = title.dup
+    JA_SEO_TERMS.sort_by { |ja, _en| -ja.length }.each do |ja, en|
+      next unless remainder.include?(ja)
+
+      tokens << en
+      remainder = remainder.gsub(ja, "")
+    end
+
+    genre_token = sanitize_seo_code(column.genre.to_s.tr("_", "-"))
+    tokens << genre_token if genre_token.present? && genre_token.length >= 3
+
+    tokens = tokens.flat_map { |token| token.to_s.split("-") }
+                   .map(&:downcase)
+                   .reject { |token| token.blank? || token.length < 2 || token.match?(/\A\d+\z/) }
+                   .uniq
+    tokens = tokens.first(6)
+    tokens << "complete" if tokens.size < 3
+    tokens << "guide" if tokens.size < 3
+    tokens.join("-")
+  end
+
+  def placeholder_code?
+    self.class.placeholder_code?(code)
+  end
+
+  def seo_code_assignment(clean_code)
+    return {} unless placeholder_code?
+
+    unique = self.class.unique_seo_code(clean_code, excluding_id: id)
+    return {} if unique.blank?
+
+    { code: unique }
+  end
+
+  def propose_seo_code(use_gpt: true)
+    if use_gpt
+      unique = self.class.unique_seo_code(GptArticleGenerator.suggest_seo_code(self), excluding_id: id)
+      return unique if unique.present? && !self.class.weak_seo_code?(unique)
+    end
+
+    unique = self.class.unique_seo_code(self.class.fallback_seo_code(self), excluding_id: id)
+    return unique if unique.present? && !self.class.weak_seo_code?(unique)
+
+    [title, keyword, description].each do |source|
+      unique = self.class.unique_seo_code(source, excluding_id: id)
+      return unique if unique.present? && !self.class.weak_seo_code?(unique)
+    end
+
+    nil
+  end
+
+  def persist_seo_code!(new_code)
+    unique = self.class.unique_seo_code(new_code, excluding_id: id)
+    return code if unique.blank? || unique == code
+
+    old_code = code
+    transaction do
+      remember_previous_code!(old_code)
+      update!(code: unique)
+    end
+    reload.code
+  end
+
+  def remember_previous_code!(old_code)
+    token = old_code.to_s
+    return if token.blank?
+    return if FriendlyId::Slug.exists?(sluggable_type: self.class.base_class.name, sluggable_id: id, slug: token)
+
+    FriendlyId::Slug.create!(
+      slug: token,
+      sluggable_id: id,
+      sluggable_type: self.class.base_class.name
+    )
+  end
+
   def should_generate_new_friendly_id?
+    return false if self.class.placeholder_code?(code)
+
     code_changed? || super
   end
+
+  def normalize_blank_code
+    self.code = nil if code.blank?
+  end
+  private :normalize_blank_code
 
   def to_meta_tags
     {
@@ -417,6 +669,7 @@ class Column < ApplicationRecord
   end
 
   def within_client_plan_limits
+    return if Thread.current[:column_skip_client_plan_limits]
     return if client_id.blank?
 
     owner = client
@@ -430,6 +683,7 @@ class Column < ApplicationRecord
   end
 
   def within_client_plan_limits_on_update
+    return if Thread.current[:column_skip_client_plan_limits]
     return if client_id.blank?
 
     owner = client

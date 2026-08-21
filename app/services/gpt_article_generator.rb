@@ -15,10 +15,8 @@ class GptArticleGenerator
   def self.generate_body(column)
     unless GPT_API_KEY.present?
       Rails.logger.error("OPENAI_API_KEY が設定されていません")
-      return nil
+      raise ColumnBodyGenerator::EmptyOutputError, "GPT_API_KEY が設定されていません"
     end
-
-    original_body = column.body
 
     # ==============================
     # GenreRegistryを用いたジャンル特定ロジック
@@ -54,8 +52,7 @@ class GptArticleGenerator
     ensure_not_cancelled!(column)
     meta_data = generate_meta_info(column, category, genre_data, sub_data, eeat_context)
     if meta_data
-      clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
-      clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
+      clean_code = Column.sanitize_seo_code(meta_data["code"])
 
       update_attrs = {
         genre: genre_code,
@@ -64,7 +61,7 @@ class GptArticleGenerator
       }
       # 保存済みの中分類をキーワード推定で上書きしない
       update_attrs[:sub_genre] = sub_genre_code if sub_genre_code.present?
-      update_attrs[:code] = clean_code if column.code.blank?
+      update_attrs.merge!(column.seo_code_assignment(clean_code))
 
       column.update!(update_attrs)
     end
@@ -72,12 +69,24 @@ class GptArticleGenerator
     # ==============================
     # STEP 1: 構成生成
     # ==============================
-    ensure_not_cancelled!(column)
-    structure_data = generate_structure(column, category, genre_data, sub_data, eeat_context)
-    return original_body if structure_data.nil?
+    structure_data = nil
+    3.times do |i|
+      ensure_not_cancelled!(column)
+      res = generate_structure(column, category, genre_data, sub_data, eeat_context)
+      if res.present? && (res["structure"] || []).length >= 3
+        structure_data = res
+        break
+      end
+
+      Rails.logger.warn("構成生成失敗 再試行中... (#{i + 1}/3)")
+      sleep(2)
+    end
+
+    if structure_data.nil?
+      raise ColumnBodyGenerator::EmptyOutputError, "記事構成の生成に失敗しました"
+    end
 
     structure = structure_data["structure"] || []
-    return original_body if structure.length < 3
 
     # ==============================
     # STEP 2: 本文生成（リトライ機能付き）
@@ -139,6 +148,11 @@ class GptArticleGenerator
     full_article.gsub!(/\s+id=(['"])[^'"]*\1/i, "")
     full_article.gsub!(/<(h[23])[^>]*>/i, '<\1>')
     full_article += "\n\n{::options auto_ids=\"false\" /}"
+
+    if GptGenerationLocale.failed_output?(full_article)
+      raise ColumnBodyGenerator::EmptyOutputError,
+            "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
+    end
 
     column.assign_attributes(body: full_article)
 
@@ -264,6 +278,77 @@ class GptArticleGenerator
     )
   rescue => e
     Rails.logger.error("Meta生成エラー: #{e.message}")
+    nil
+  end
+
+  def self.suggest_seo_code(column)
+    return if column.blank?
+    return unless GPT_API_KEY.present?
+    return if @seo_slug_unavailable
+
+    prompt = <<~PROMPT
+      次の記事情報から、公開URL用の英語スラッグをJSONで1つ生成してください。
+
+      【タイトル】
+      #{column.title}
+
+      【キーワード】
+      #{column.keyword}
+
+      【説明】
+      #{column.description.to_s.truncate(240)}
+
+      【規則】
+      - 小文字のケバブケース（例: ai-interview-candidate-experience）
+      - 必ず4語以上（ハイフン3つ以上）。1語や2語は禁止
+      - 意味が伝わる英語。UUID・数字のみ・日本語・article-123 形式は禁止
+      - JSON以外禁止
+
+      出力形式:
+      {
+        "code": "english-kebab-slug"
+      }
+    PROMPT
+
+    res = call_seo_slug_api(prompt)
+    return unless res
+
+    JSON.parse(res.dig("choices", 0, "message", "content").to_s)["code"]
+  rescue => e
+    Rails.logger.error("SEO code生成エラー: #{e.message}")
+    nil
+  end
+
+  def self.call_seo_slug_api(prompt)
+    uri = URI(GPT_API_URL)
+    req = Net::HTTP::Post.new(uri)
+    req["Content-Type"] = "application/json"
+    req["Authorization"] = "Bearer #{GPT_API_KEY}"
+    req.body = {
+      model: MODEL_NAME,
+      messages: [
+        {
+          role: "system",
+          content: "You generate SEO URL slugs. Reply with JSON only. The slug must be lowercase English kebab-case with at least 4 words (3 hyphens). Never use Japanese, UUIDs, or numeric-only tokens."
+        },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2,
+      response_format: { type: "json_object" }
+    }.to_json
+
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60) do |http|
+      http.request(req)
+    end
+    return JSON.parse(res.body) if res.is_a?(Net::HTTPSuccess)
+
+    Rails.logger.error("SEO slug API error: #{res.code} #{res.body}")
+    if res.code.to_s == "429"
+      @seo_slug_unavailable = true
+    end
+    nil
+  rescue => e
+    Rails.logger.error("SEO slug API exception: #{e.message}")
     nil
   end
 
@@ -647,7 +732,7 @@ class GptArticleGenerator
 
     system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
-    payload = {
+    payload = GptGenerationLocale.chat_completions_payload(
       model: MODEL_NAME,
       messages: [
         {
@@ -659,12 +744,9 @@ class GptArticleGenerator
           content: prompt
         }
       ],
+      json_mode: json_mode,
       temperature: 0.45
-    }
-
-    payload[:response_format] = {
-      type: "json_object"
-    } if json_mode
+    )
 
     req.body = payload.to_json
 

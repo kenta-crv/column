@@ -33,8 +33,8 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def show
-    column = client_articles_scope.find_by(code: params[:code])
-    column ||= client_articles_scope.find_by(id: params[:code])
+    column = Column.find_by_param(params[:code])
+    column = client_articles_scope.find_by(id: column.id) if column
 
     if column.nil?
       render json: { error: 'Article not found' }, status: :not_found
@@ -46,8 +46,8 @@ class Api::V1::ArticlesController < ApplicationController
 
   def render_html
     if params[:column].present?
-      @column = client_articles_scope
-                 .find_by(code: params[:column]) || client_articles_scope.find_by(id: params[:column])
+      found = Column.find_by_param(params[:column])
+      @column = found && client_articles_scope.find_by(id: found.id)
 
       if @column.nil?
         render content_type: 'text/html', body: '<div style="padding:20px;color:red;">記事が見つかりません。</div>'

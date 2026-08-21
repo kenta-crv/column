@@ -6,7 +6,7 @@ class ColumnsController < ApplicationController
   before_action :redirect_legacy_columns_index!, only: [:index]
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
   before_action :require_readable_column!, only: [:show]
-  before_action :redirect_public_article_locale!, only: [:show]
+  before_action :redirect_canonical_public_column!, only: [:show]
   before_action :require_column_access!, only: [:edit, :update, :destroy, :approve, :generate_title, :remove_image, :create_child_title, :publish, :unpublish]
   before_action :set_breadcrumbs
   before_action :assign_column_form_genre_options, only: [:new, :create, :edit, :update]
@@ -427,21 +427,27 @@ class ColumnsController < ApplicationController
 
     return_path = pillar_manage_path(@column)
     remaining = remaining_child_slots_for(@column)
+    admin = admin_signed_in?
 
-    if remaining <= 0
-      message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
-      redirect_back fallback_location: return_path, alert: message
-      return
+    unless admin
+      if remaining <= 0
+        message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
+        redirect_back fallback_location: return_path, alert: message
+        return
+      end
     end
 
-    topic_plans = GptTitleGenerator.generate_titles(@column, limit: remaining)
+    topic_plans = GptTitleGenerator.generate_titles(@column)
+    topic_plans = topic_plans.first(remaining) unless admin
 
     if topic_plans.blank?
-      redirect_back fallback_location: return_path, alert: "子タイトルの生成に失敗しました"
+      redirect_back fallback_location: return_path,
+                    alert: GptTitleGenerator.last_error.presence || "子タイトルの生成に失敗しました"
       return
     end
 
     ActiveRecord::Base.transaction do
+      Thread.current[:column_skip_client_plan_limits] = true if admin
       topic_plans.each do |plan|
         Column.create!(
           parent_id: @column.id,
@@ -455,9 +461,11 @@ class ColumnsController < ApplicationController
         )
       end
     end
+    Thread.current[:column_skip_client_plan_limits] = false
 
-    redirect_back fallback_location: return_path, notice: "#{topic_plans.size}件の子タイトルを作成しました（残り #{remaining - topic_plans.size} 件）"
+    redirect_back fallback_location: return_path, notice: "#{topic_plans.size}件の子タイトルを作成しました"
   rescue ActiveRecord::RecordInvalid => e
+    Thread.current[:column_skip_client_plan_limits] = false
     redirect_back fallback_location: return_path, alert: e.record.errors.full_messages.join(", ")
   end
 
@@ -473,11 +481,13 @@ class ColumnsController < ApplicationController
       return
     end
 
-    remaining = remaining_child_slots_for(@column)
-    if remaining <= 0
-      message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
-      redirect_back fallback_location: pillar_manage_path(@column), alert: message
-      return
+    unless admin_signed_in?
+      remaining = remaining_child_slots_for(@column)
+      if remaining <= 0
+        message = @column.client&.plan_limit_message(:child) || "これ以上子記事を作成できません"
+        redirect_back fallback_location: pillar_manage_path(@column), alert: message
+        return
+      end
     end
 
     child = Column.new(
@@ -491,7 +501,11 @@ class ColumnsController < ApplicationController
       **Column.attributes_for_child_generation(@column)
     )
 
-    if child.save
+    Thread.current[:column_skip_client_plan_limits] = true if admin_signed_in?
+    saved = child.save
+    Thread.current[:column_skip_client_plan_limits] = false
+
+    if saved
       redirect_back fallback_location: pillar_manage_path(@column), notice: "子記事タイトルを追加しました"
     else
       redirect_back fallback_location: pillar_manage_path(@column), alert: child.errors.full_messages.join(", ")
@@ -526,7 +540,7 @@ class ColumnsController < ApplicationController
   end
 
   def set_column
-    @column = Column.find_by(code: params[:id]) || Column.find_by(id: params[:id])
+    @column = Column.find_by_param(params[:id])
     raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}" unless @column
   end
 
@@ -544,14 +558,22 @@ class ColumnsController < ApplicationController
     raise ActiveRecord::RecordNotFound, "Couldn't find Column with code or id: #{params[:id]}"
   end
 
-  def redirect_public_article_locale!
+  def redirect_canonical_public_column!
     return if columns_manage_view?
+    return unless request.get?
     return unless @column&.publicly_visible?
+    return if @column.code.blank?
 
     wanted = Column.normalize_language(@column.language)
-    return if wanted == I18n.locale.to_s
+    canonical =
+      if platform_host?
+        public_column_show_path(@column, locale: wanted)
+      else
+        "/columns/#{@column.code}"
+      end
+    return if request.path == canonical
 
-    redirect_to public_column_show_path(@column, locale: wanted), status: :moved_permanently
+    redirect_to canonical, status: :moved_permanently
   end
 
   def render_404

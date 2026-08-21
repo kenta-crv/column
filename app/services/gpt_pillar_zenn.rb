@@ -202,14 +202,7 @@ class GptPillarZenn
     detail = last_gpt_error.presence || "原因不明（API応答なし / JSON解析失敗）"
     raise "Meta情報の生成に失敗しました (#{detail})" if meta_data.nil?
 
-    clean_code = meta_data["code"].to_s.downcase
-                  .gsub(/[^a-z0-9\s\-]/, "")
-                  .strip
-                  .gsub(/[\s_]+/, "-")
-                  .gsub(/-+/, "-")
-                  .gsub(/\A-|-\z/, "")
-
-    clean_code = "article-#{column.id}" if clean_code.blank?
+    clean_code = Column.sanitize_seo_code(meta_data["code"])
 
     # ----------------------------------------------------------
     # 構成生成
@@ -245,7 +238,7 @@ class GptPillarZenn
       genre: current_genre,
       status: "creating",
       **(column.article_type.present? ? {} : { article_type: DEFAULT_ARTICLE_TYPE }),
-      **(column.code.present? ? {} : { code: clean_code })
+      **column.seo_code_assignment(clean_code)
     )
 
     # ----------------------------------------------------------
@@ -1058,16 +1051,15 @@ class GptPillarZenn
 
     system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
-    payload = {
+    payload = GptGenerationLocale.chat_completions_payload(
       model: MODEL_NAME,
       messages: [
         { role: "system", content: system_content },
         { role: "user", content: prompt }
       ],
+      json_mode: json_mode,
       temperature: 0.6
-    }
-
-    payload[:response_format] = { type: "json_object" } if json_mode
+    )
 
     req.body = payload.to_json
 
