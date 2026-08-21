@@ -434,14 +434,12 @@ class ColumnsController < ApplicationController
       return
     end
 
-    topic_plans = GptTitleGenerator.generate_titles(@column)
+    topic_plans = GptTitleGenerator.generate_titles(@column, limit: remaining)
 
     if topic_plans.blank?
       redirect_back fallback_location: return_path, alert: "子タイトルの生成に失敗しました"
       return
     end
-
-    topic_plans = topic_plans.first(remaining)
 
     ActiveRecord::Base.transaction do
       topic_plans.each do |plan|

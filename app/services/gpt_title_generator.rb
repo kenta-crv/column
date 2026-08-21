@@ -5,102 +5,167 @@ require "openssl"
 class GptTitleGenerator
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
+  MAX_INTENT_SLOTS = 10
 
-  # ==========================================================
-  # 親記事（Pillar）に関連する魅力的な子記事タイトルを生成
-  # ==========================================================
-  def self.generate_titles(pillar_column)
+  def self.generate_titles(pillar_column, limit: nil)
     unless pillar_column&.title.present?
       Rails.logger.error("GptTitleGenerator: 親記事のタイトルが空です")
       return []
     end
 
-    # ジャンル情報の取得（GenreRegistryを利用）
-    target_category = detect_category(pillar_column)
-    service_info = GenreRegistry.service_profile(target_category)
-    
-    existing_titles = Column.where(parent_id: pillar_column.id).pluck(:title)
-    existing_titles_text = existing_titles.present? ? existing_titles.join("\n") : "（なし）"
+    count = resolve_count(pillar_column, limit)
+    return [] if count <= 0
 
-    # 親タイトルから構成要素（単語セグメント）を動的に抽出
-    extracted_elements = extract_title_elements(pillar_column.title)
-
-    prompt = <<~PROMPT
-      # あなたの役割
-      あなたは高度なSEO戦略家およびコンテンツマーケターです。
-      与えられた親記事（ピラーページ）のタイトルが持つ「本質的な主旨、性質、ターゲット、および世界観」をそのまま忠実に引き継いだ、検索エンジンとユーザーの双方から高く評価される「トピッククラスター（子記事）タイトル案」を15個から25個の間で生成してください。
-
-      # 対象となる親記事（Pillar）データ
-      - 親タイトル: #{pillar_column.title}
-      - 業種カテゴリ: #{target_category}
-      - 専門サービス強み: #{service_info}
-
-      # 必須分析対象（親タイトルの構成要素）
-      - 抽出された構成要素: #{extracted_elements.join(', ')}
-
-      # 記事選定の条件（厳守）
-      1. 【最重要】親タイトルの「方向性・ニュアンス」への完全な同調:
-         親タイトルが提示している【主旨の性質（文字通りの意味、トーン、目的意識、訴求している方向性）】を正確に捉え、生成する子記事すべての切り口・トーンをその性質に100%合致させてください。
-         親タイトルの持つ性質やニュアンスを勝手に改変したり、親タイトルの文字情報に含まれていない異なる性質へ偏らせることを完全に禁止します。親タイトルのトーンをそのまま美しくブレイクダウンしたバリエーションを作成してください。
-
-      2. 構成要素の完全な掛け合わせ（マルチアングル）:
-         単一の業種カテゴリ名や、特定の単一キーワードだけに依存した、どのシーンでも使い回せるような表面的な汎用記事タイトルの量産を完全に禁止します。
-         必ず、提示された「親タイトル」および「抽出された構成要素」に存在する【すべての構成要素】を適切にサンプリングして掛け合わせ、その親記事の文脈の枠内でしか成立しない、具体的かつ個別の切実な需要を捉えたタイトルにしてください。
-
-      3. トピックの立体的な網羅性:
-         条件1の方向性を完全に維持したまま、「アプローチする対象・属性別の切り口」「具体的なシーン・周辺環境別の切り口」「運用・戦略面での切り口」など、異なる角度からバランスよくスポットを当て、クラスター全体で親トピックの全容を立体的に補完してください。
-
-      4. 重複の禁止と類似の許可:
-         既に存在する以下の子記事タイトルと内容が完全に被らないこと。ただしPillarの枝葉となるため、異なる切り口でのアプローチは許可します。
-         [既存のタイトル一覧]
-         #{existing_titles_text}
-
-      5. 階層性とドメインの整合性:
-         必ず「#{target_category}」のドメインに関連した範囲内で、かつ親タイトルの目的や提供価値から一切乖離しないこと。
-
-      # 出力形式
-      JSON形式のみで回答してください。余計な文字列（```json などのマークダウンやバッククォート）や解説のテキストは一切含めないでください。
-      {
-        "cluster_titles": [
-          { "title": "タイトル案" }
-        ]
-      }
-    PROMPT
+    prompt = build_titles_prompt(
+      pillar_column,
+      count: count,
+      existing_titles: existing_child_titles(pillar_column),
+      sibling_pillar_titles: sibling_pillar_titles(pillar_column)
+    )
 
     res = GptGenerationLocale.with_language(pillar_column) { call_gpt_api(prompt) }
     return [] if res.nil?
 
     begin
       json_content = JSON.parse(res.dig("choices", 0, "message", "content"))
-      json_content["cluster_titles"] || []
+      plans = Array(json_content["cluster_titles"])
+      drop_overlapping_titles(plans, pillar_column).first(count)
     rescue => e
       Rails.logger.error("GptTitleGenerator: タイトルパースエラー: #{e.message}")
       []
     end
   end
 
+  def self.resolve_count(pillar_column, limit)
+    requested = limit.nil? ? MAX_INTENT_SLOTS : limit.to_i
+    requested = [requested, MAX_INTENT_SLOTS].min
+    [requested, 0].max
+  end
+
+  def self.build_titles_prompt(pillar_column, count:, existing_titles:, sibling_pillar_titles:)
+    target_category = detect_category(pillar_column)
+    service_info = GenreRegistry.service_profile(target_category)
+    parent_terms = extract_title_elements(pillar_column.title)
+    existing_titles_text = Array(existing_titles).reject(&:blank?).presence&.join("\n") || "（なし）"
+    sibling_text = Array(sibling_pillar_titles).reject(&:blank?).presence&.join("\n") || "（なし）"
+
+    <<~PROMPT
+      # あなたの役割
+      あなたはトピッククラスターの設計者です。
+      親記事（ピラー）を補完する子記事タイトルを作ります。親の言い換えや、同じ検索意図の量産は禁止です。
+
+      # 親記事
+      - 親タイトル: #{pillar_column.title}
+      - 業種カテゴリ: #{target_category}
+      - 専門サービス強み: #{service_info}
+      - 親タイトルに含まれる語（子で並べ替えて使い回さない）: #{parent_terms.join('、')}
+
+      # 既存の子記事タイトル（同じ意図を繰り返さない）
+      #{existing_titles_text}
+
+      # 同じジャンルの他ピラー（これらの主題を奪わない）
+      #{sibling_text}
+
+      # 設計手順
+      1. 親タイトルがすでに答えている中心クエリを把握する。
+      2. この親の下でのみ成立する、互いに検索意図が異なる切り口を最大#{count}個決める。
+         切り口は親の主題から導く。業種の固定リストを無理に当てはめない。
+         親の文脈で実際に検索されるものだけを使う。例は一例であり必須ではない
+         （原因、比較、手順、費用、対象別、リスク、導入 など）。
+      3. 切り口ごとにタイトルを1つだけ作る。切り口が#{count}個に満たなければ、無理に埋めず少ない件数で返す。
+
+      # 厳守
+      1. 親タイトルの語順入れ替え・同義語置換・「完全ガイド／徹底解説」を足しただけの子は禁止。
+      2. 見た目が違ってもクエリが同じものは1本にする。
+         悪い例: 「失敗しない選び方」と「選定5つのポイント」と「チェックリスト」。
+      3. 既存子記事・他ピラーと実質同じ需要のタイトルは出さない。
+      4. 各タイトルは、その切り口だけで検索したくなる具体性を持つ。
+      5. 件数は#{count}件以内。
+
+      # 出力形式
+      JSON形式のみ。解説やマークダウンは不要。
+      {
+        "cluster_titles": [
+          { "intent": "短い切り口名", "title": "タイトル案" }
+        ]
+      }
+    PROMPT
+  end
+
+  def self.existing_child_titles(pillar_column)
+    return [] unless pillar_column.respond_to?(:id) && pillar_column.id.present?
+
+    Column.where(parent_id: pillar_column.id).where.not(title: [nil, ""]).limit(80).pluck(:title)
+  end
+
+  def self.sibling_pillar_titles(pillar_column)
+    return [] unless pillar_column.respond_to?(:genre)
+
+    scope = Column.where(article_type: "pillar").where.not(title: [nil, ""])
+    scope = scope.where(genre: pillar_column.genre) if pillar_column.genre.present?
+    scope = scope.where.not(id: pillar_column.id) if pillar_column.id.present?
+    if pillar_column.respond_to?(:client_id)
+      scope = scope.where(client_id: pillar_column.client_id)
+    end
+    scope.limit(30).pluck(:title)
+  end
+
+  def self.drop_overlapping_titles(plans, pillar_column)
+    blocked = (
+      existing_child_titles(pillar_column) +
+      [pillar_column.title] +
+      sibling_pillar_titles(pillar_column)
+    ).map { |title| normalize_title(title) }.reject(&:blank?)
+
+    kept = []
+    Array(plans).each do |plan|
+      next unless plan.is_a?(Hash)
+
+      title = plan["title"].to_s.strip
+      next if title.blank?
+
+      key = normalize_title(title)
+      next if key.blank?
+      next if blocked.any? { |other| titles_overlap?(key, other) }
+      next if kept.any? { |prev| titles_overlap?(key, normalize_title(prev["title"])) }
+
+      kept << plan
+      blocked << key
+    end
+    kept
+  end
+
+  def self.titles_overlap?(a, b)
+    return false if a.blank? || b.blank?
+    return true if a == b
+    return true if a.include?(b) || b.include?(a)
+
+    prefix = a.chars.zip(b.chars).take_while { |x, y| x == y }.size
+    prefix >= 14
+  end
+
+  def self.normalize_title(title)
+    title.to_s.downcase.gsub(/[\s　\[\]【】「」『』（）()：:・\-_|！!？?]/, "")
+  end
+
   private
 
-  # GenreRegistryのキーワードを用いてカテゴリを判定
   def self.detect_category(column)
     search_text = "#{column.title} #{column.keyword} #{column.genre} #{column.choice}"
     GenreRegistry::GENRES.each do |key, data|
-      if data[:keywords].any? { |w| search_text.include?(w) }
+      keywords = Array(data[:keywords])
+      if keywords.any? { |w| search_text.include?(w) }
         return data[:ja]
       end
     end
     "その他"
   end
 
-  # 親タイトルから特定の業種に依存せず、機械的にキーワードを抽出するメソッド
   def self.extract_title_elements(title)
     return [] if title.blank?
-    
-    # 記号や一般的な助詞・区切り文字をスペースに置換して分割
-    cleaned = title.gsub(/[？\?！\!。、：:・「」『』【】（）()|\/]/, ' ')
+
+    cleaned = title.gsub(/[？\?！\!。、：:・「」『』【】（）()|\/]/, " ")
     words = cleaned.split(/[\s　]+/)
-    
-    # 2文字以上の重複しない塊を抽出し、LLMに必須掛け合わせ要素のヒントとして渡す
     words.select { |w| w.length >= 2 }.uniq
   end
 
@@ -118,16 +183,15 @@ class GptTitleGenerator
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.6
+      temperature: 0.4
     }
     req.body = payload.to_json
 
     begin
-      # タイムアウト設定
       res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 120) do |http|
         http.request(req)
       end
-      
+
       if res.is_a?(Net::HTTPSuccess)
         JSON.parse(res.body)
       else

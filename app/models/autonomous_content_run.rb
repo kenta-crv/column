@@ -162,24 +162,24 @@ class AutonomousContentRun < ApplicationRecord
 
     update!(status: "generating_child_titles")
 
-    topic_plans = GptTitleGenerator.generate_titles(pillar_column)
-    if topic_plans.blank?
-      mark_failed!("子タイトルの生成に失敗しました")
-      return
-    end
-
-    titles = topic_plans.map { |plan| plan["title"] }.compact.reject(&:blank?).first(cluster_limit)
-    if titles.blank?
-      mark_failed!("有効な子タイトルが取得できませんでした")
-      return
-    end
-
     remaining = plan_limited? ? client.plan_limits[:child_articles] - client.child_usage_count : cluster_limit
     if plan_limited? && remaining <= 0
       mark_paused!(client.plan_limit_message(:child))
       return
     end
-    titles = titles.first(remaining)
+
+    title_cap = [cluster_limit.to_i, remaining.to_i, GptTitleGenerator::MAX_INTENT_SLOTS].min
+    topic_plans = GptTitleGenerator.generate_titles(pillar_column, limit: title_cap)
+    if topic_plans.blank?
+      mark_failed!("子タイトルの生成に失敗しました")
+      return
+    end
+
+    titles = topic_plans.map { |plan| plan["title"] }.compact.reject(&:blank?)
+    if titles.blank?
+      mark_failed!("有効な子タイトルが取得できませんでした")
+      return
+    end
 
     ActiveRecord::Base.transaction do
       titles.each do |child_title|
