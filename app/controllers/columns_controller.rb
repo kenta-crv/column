@@ -284,7 +284,7 @@ class ColumnsController < ApplicationController
 
     base_scope = dashboard_columns_base_scope
 
-    query = base_scope.merge(Column.missing_generated_image)
+    query = base_scope.merge(Column.pending_review_missing_image)
     query = query.where(genre: GenreRegistry.equivalent_keys(genre)) if genre.present? && admin_or_allowed_genre?(genre)
     query = query.merge(Column.with_article_type_filter(article_type)) if article_type.present?
 
@@ -304,7 +304,7 @@ class ColumnsController < ApplicationController
     base_scope = dashboard_columns_base_scope
     Column.reconcile_broken_image_file_refs!(base_scope.where(id: column_ids))
 
-    target_ids = base_scope.merge(Column.missing_generated_image).where(id: column_ids).pluck(:id)
+    target_ids = base_scope.merge(Column.pending_review_missing_image).where(id: column_ids).pluck(:id)
     if target_ids.size < column_ids.size
       return redirect_to columns_path, alert: "選択された記事の一部にアクセスできないか、画像生成の対象外です。"
     end

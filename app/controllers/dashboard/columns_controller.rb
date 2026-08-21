@@ -54,7 +54,7 @@ class Dashboard::ColumnsController < ApplicationController
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
-        scope = scope.merge(Column.missing_generated_image)
+        scope = scope.merge(Column.pending_review_missing_image)
       end
     end
 
@@ -124,7 +124,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   # サイドバーバッジ用。レイアウト同期COUNTを避け、描画後に取得する
   def sidebar_badges
-    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v1"), expires_in: 2.minutes) do
+    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v2"), expires_in: 2.minutes) do
       compute_sidebar_badge_counts
     end
 
@@ -244,7 +244,7 @@ class Dashboard::ColumnsController < ApplicationController
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
-        scope = scope.merge(Column.missing_generated_image)
+        scope = scope.merge(Column.pending_review_missing_image)
       end
     end
 
@@ -485,11 +485,11 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def image_generation_target_scope(base_scope)
-    base_scope.merge(Column.missing_generated_image)
+    base_scope.merge(Column.pending_review_missing_image)
   end
 
   def assign_dashboard_tab_counts(scope)
-    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v2")
+    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v3")
     counts = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
       compute_dashboard_tab_counts(scope)
     end
@@ -517,7 +517,7 @@ class Dashboard::ColumnsController < ApplicationController
         Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
         Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
         Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
       ) || Array.new(8, 0)
     else
       [
@@ -528,7 +528,7 @@ class Dashboard::ColumnsController < ApplicationController
         scope.merge(Column.pending_review).count,
         scope.merge(Column.published).count,
         scope.where(status: "error").count,
-        scope.merge(Column.missing_generated_image).count
+        scope.merge(Column.pending_review_missing_image).count
       ]
     end
   end
@@ -566,7 +566,7 @@ class Dashboard::ColumnsController < ApplicationController
     if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
       pending_review, missing_image = scope.pick(
         Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND (file IS NULL OR file = ''))")
+        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
       ) || [0, 0]
 
       {
@@ -576,7 +576,7 @@ class Dashboard::ColumnsController < ApplicationController
     else
       {
         pending_review: scope.merge(Column.pending_review).count,
-        missing_image: scope.merge(Column.missing_generated_image).count
+        missing_image: scope.merge(Column.pending_review_missing_image).count
       }
     end
   end

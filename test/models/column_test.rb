@@ -20,6 +20,16 @@ class ColumnTest < ActiveSupport::TestCase
     assert_includes cluster.errors.full_messages.join, "親記事の作成上限"
   end
 
+  test "english_article? is false when language is missing or not selected" do
+    column = Column.create!(title: "Language fallback", article_type: "pillar", genre: "other", status: "draft", language: "en")
+    loaded = Column.select(:id, :code).find(column.id)
+
+    refute loaded.has_attribute?(:language)
+    refute loaded.english_article?
+    refute Column.new.english_article?
+    assert Column.new(language: "en").english_article?
+  end
+
   test "generated_body? uses body_present from list attributes without loading body" do
     client = create_trial_client
     with_body = client.columns.create!(title: "With body", article_type: "cluster", genre: "other", status: "draft", body: "# Hello")

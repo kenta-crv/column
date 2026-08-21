@@ -207,13 +207,13 @@ ja:
         logout: ログアウト
       image_generation:
         title: 画像一括自動生成
-        subtitle: 一覧から画像未設定の記事を選択し、API経由で画像を生成します。
-        list_title: 画像未生成一覧
+        subtitle: レビュー待ちのうち、画像未設定の記事を選択し、API経由で画像を生成します。
+        list_title: レビュー待ち・画像未生成
         generate_selected: 選択した記事の画像を生成
         generate_all: 全実行
-        empty: 画像未生成の記事はありません
+        empty: レビュー待ちで画像未生成の記事はありません
         confirm_selected: 選択した %{count} 件の記事に画像を生成します。よろしいですか？
-        confirm_all: 画像未生成の全 %{count} 件に対して画像生成を実行します。よろしいですか？
+        confirm_all: レビュー待ちで画像未生成の全 %{count} 件に対して画像生成を実行します。よろしいですか？
         none_to_generate: 画像を生成する記事がありません。
       columns:
         suggest_titles: AIタイトル提案
@@ -869,13 +869,13 @@ en:
         logout: Log out
       image_generation:
         title: Bulk image generation
-        subtitle: Select articles without images and generate via API.
-        list_title: Missing images
+        subtitle: Select pending-review articles without images and generate via API.
+        list_title: Pending review, missing images
         generate_selected: Generate selected
         generate_all: Run all
-        empty: No articles missing images
+        empty: No pending-review articles missing images
         confirm_selected: Generate images for %{count} selected articles?
-        confirm_all: Generate images for all %{count} articles without images?
+        confirm_all: Generate images for all %{count} pending-review articles without images?
         none_to_generate: No articles to generate images for.
       columns:
         suggest_titles: AI title suggestions

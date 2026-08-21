@@ -11,9 +11,6 @@ class Column < ApplicationRecord
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
   scope :without_image_file, -> { where("file IS NULL OR file = ''") }
-  scope :missing_generated_image, -> {
-    with_generated_body.merge(without_image_file)
-  }
   scope :with_article_type_filter, ->(article_type) {
     case article_type.to_s
     when "pillar"
@@ -77,6 +74,10 @@ class Column < ApplicationRecord
   scope :with_generated_body, -> { where("body IS NOT NULL AND octet_length(body) > 0") }
   scope :published, -> { where.not(published_at: nil) }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
+  # 画像一括生成・サイドバーバッジ用。下書き（本文なし）や公開済みは含めない。
+  scope :pending_review_missing_image, -> {
+    pending_review.merge(without_image_file)
+  }
 
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する
   LIST_SELECT_COLUMNS = %w[
@@ -131,7 +132,7 @@ class Column < ApplicationRecord
   end
 
   def english_article?
-    self.class.english_language?(language)
+    self.class.english_language?(language_value)
   end
 
   def assign_stock_image_if_missing!
@@ -139,10 +140,11 @@ class Column < ApplicationRecord
   end
 
   def self.attributes_for_child_generation(parent)
+    parent_language = parent&.has_attribute?(:language) ? parent[:language] : nil
     {
-      generation_mode: normalize_generation_mode_for(parent&.generation_mode, language: parent&.language),
+      generation_mode: normalize_generation_mode_for(parent&.generation_mode, language: parent_language),
       prompt: parent&.prompt,
-      language: normalize_language(parent&.language)
+      language: normalize_language(parent_language)
     }
   end
 
@@ -400,12 +402,18 @@ class Column < ApplicationRecord
     DeliverArticleWebhookJob.perform_later(client_id, "deleted", webhook_payload)
   end
 
+  def language_value
+    has_attribute?(:language) ? self[:language] : DEFAULT_LANGUAGE
+  end
+
   def normalize_language_value
-    self.language = self.class.normalize_language(language)
+    return unless has_attribute?(:language)
+
+    self.language = self.class.normalize_language(self[:language])
   end
 
   def normalize_generation_mode_for_language
-    self.generation_mode = self.class.normalize_generation_mode_for(generation_mode, language: language)
+    self.generation_mode = self.class.normalize_generation_mode_for(generation_mode, language: language_value)
   end
 
   def within_client_plan_limits

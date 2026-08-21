@@ -28,7 +28,26 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     sign_in @admin
 
     55.times { |i| create_missing_image_column!(index: i) }
-    @missing_total = Column.merge(Column.missing_generated_image).count
+    Column.create!(
+      title: "Published without image",
+      article_type: "child",
+      genre: "security",
+      status: "completed",
+      body: "published body",
+      file: nil,
+      published_at: Time.current,
+      code: "published-no-image-#{SecureRandom.hex(3)}"
+    )
+    Column.create!(
+      title: "Draft without image",
+      article_type: "child",
+      genre: "security",
+      status: "draft",
+      body: nil,
+      file: nil,
+      code: "draft-no-image-#{SecureRandom.hex(3)}"
+    )
+    @missing_total = Column.merge(Column.pending_review_missing_image).count
   end
 
   test "image_generation defaults to 30 per page and switches to 50 and 100" do
@@ -84,5 +103,22 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
       FluxImageGeneratorService.define_singleton_method(:generate!, original_generate)
       Thread.define_singleton_method(:new, original_thread)
     end
+  end
+
+  test "image generation list excludes drafts and published articles" do
+    get image_generation_dashboard_columns_path(per: 100)
+    assert_response :success
+    assert_select "a", text: "Published without image", count: 0
+    assert_select "a", text: "Draft without image", count: 0
+    assert_match %r{/ #{@missing_total}件を表示}, response.body
+  end
+
+  test "sidebar missing_image badge matches pending review without images" do
+    get sidebar_badges_dashboard_columns_path
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    assert_equal @missing_total, json["missing_image"]
+    assert json["pending_review"] >= json["missing_image"]
   end
 end

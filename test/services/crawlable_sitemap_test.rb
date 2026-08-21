@@ -57,6 +57,16 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     refute_includes ids, no_code.id
   end
 
+  test "column_path prefixes English articles and stays Japanese without language" do
+    ja = create_published!(code: "sm-ja-path-#{SecureRandom.hex(3)}", language: "ja")
+    en = create_published!(code: "sm-en-path-#{SecureRandom.hex(3)}", language: "en")
+    without_language = Column.select(:id, :code).find(ja.id)
+
+    assert_equal "/#{CrawlPolicy::GENRE_KEY}/columns/#{ja.code}", CrawlPolicy.column_path(ja)
+    assert_equal "/en/#{CrawlPolicy::GENRE_KEY}/columns/#{en.code}", CrawlPolicy.column_path(en)
+    assert_equal "/#{CrawlPolicy::GENRE_KEY}/columns/#{ja.code}", CrawlPolicy.column_path(without_language)
+  end
+
   test "refresh! writes listing and published article locs" do
     column = create_published!(
       title: "Sitemap article",
