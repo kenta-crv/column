@@ -11,9 +11,7 @@ module CrawlPolicy
   end
 
   def crawlable_genre_values
-    keys = GenreRegistry.equivalent_keys(GENRE_KEY)
-    ja = GenreRegistry.to_ja(GENRE_KEY)
-    (keys + [ja, GENRE_KEY]).compact.map(&:to_s).uniq.reject(&:blank?).select { |value| crawlable_genre?(value) }
+    GenreRegistry.equivalent_keys(GENRE_KEY).map(&:to_s).uniq.reject(&:blank?).select { |value| crawlable_genre?(value) }
   end
 
   STATIC_PATHS = [
@@ -34,6 +32,19 @@ module CrawlPolicy
           .merge(Column.published)
           .merge(Column.with_generated_body)
           .where.not(code: [nil, ""])
+  end
+
+  def composition
+    scope = crawlable_columns
+    {
+      static: STATIC_PATHS.size,
+      articles: scope.count,
+      total: STATIC_PATHS.size + scope.count,
+      by_genre: scope.group(:genre).count,
+      official: scope.where(client_id: nil).count,
+      client_owned: scope.where.not(client_id: nil).count,
+      values: crawlable_genre_values
+    }
   end
 
   def column_path(column)

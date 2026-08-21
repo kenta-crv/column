@@ -4,6 +4,11 @@ class CrawlableSitemap
   SITEMAP_PATH = Rails.root.join("public", "sitemap.xml")
 
   def self.refresh!
+    composition = CrawlPolicy.composition
+    message = "[CrawlableSitemap] static=#{composition[:static]} articles=#{composition[:articles]} total=#{composition[:total]} by_genre=#{composition[:by_genre]} official=#{composition[:official]} client_owned=#{composition[:client_owned]} values=#{composition[:values]}"
+    puts message
+    Rails.logger.info(message)
+
     SitemapGenerator::Sitemap.default_host = CrawlPolicy::SITEMAP_HOST
     SitemapGenerator::Sitemap.compress = false
     SitemapGenerator::Sitemap.public_path = Rails.public_path.to_s
