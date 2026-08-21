@@ -187,4 +187,58 @@ class ColumnTest < ActiveSupport::TestCase
     refute_includes Column.publicly_listed.pluck(:id), column.id
     refute_includes Column.pending_review.pluck(:id), column.id
   end
+
+  test "dashboard count SQL matches draft and pending review scopes" do
+    client = create_trial_client
+    failed = client.columns.create!(
+      title: "Failed dump count",
+      article_type: "child",
+      genre: "other",
+      status: "error",
+      published_at: nil,
+      body: "❌ 失敗: RuntimeError - 本文の生成に失敗しました"
+    )
+    review = client.columns.create!(
+      title: "Ready for review count",
+      article_type: "child",
+      genre: "other",
+      status: "completed",
+      published_at: nil,
+      body: "# 本文\n\nレビュー待ち。"
+    )
+    empty = client.columns.create!(
+      title: "Empty body count",
+      article_type: "child",
+      genre: "other",
+      status: "draft",
+      published_at: nil,
+      body: nil
+    )
+
+    scope = Column.where(id: [failed.id, review.id, empty.id])
+    assert_equal scope.merge(Column.drafts).count, scope.where(Column.dashboard_draft_count_sql).count
+    assert_equal scope.merge(Column.pending_review).count, scope.where(Column.dashboard_pending_review_count_sql).count
+    assert_equal 2, scope.where(Column.dashboard_draft_count_sql).count
+    assert_equal 1, scope.where(Column.dashboard_pending_review_count_sql).count
+    assert_includes scope.where(Column.dashboard_draft_count_sql).pluck(:id), failed.id
+    refute_includes scope.where(Column.dashboard_pending_review_count_sql).pluck(:id), failed.id
+  end
+
+  test "column changes bump sidebar count cache version" do
+    client = create_trial_client
+    actor = Column.sidebar_column_count_actor_key(admin: false, client_id: client.id)
+    before = Column.sidebar_column_count_cache_version(actor)
+
+    column = client.columns.create!(title: "Cache bump", article_type: "cluster", genre: "other", status: "draft")
+    after_create = Column.sidebar_column_count_cache_version(actor)
+    assert_operator after_create, :>, before
+
+    column.update!(title: "Cache bump updated")
+    after_update = Column.sidebar_column_count_cache_version(actor)
+    assert_operator after_update, :>, after_create
+
+    column.destroy!
+    after_destroy = Column.sidebar_column_count_cache_version(actor)
+    assert_operator after_destroy, :>, after_update
+  end
 end
