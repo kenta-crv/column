@@ -257,15 +257,12 @@ class ApplicationController < ActionController::Base
   end
 
   def sidebar_column_count_cache_key(kind)
-    actor =
-      if acting_as_admin?
-        "admin:#{current_admin.id}"
-      elsif client_signed_in?
-        "client:#{current_client.id}"
-      else
-        "anon"
-      end
-    "sidebar_column_count:#{kind}:#{actor}"
+    actor = Column.sidebar_column_count_actor_key(
+      admin: acting_as_admin?,
+      client_id: client_signed_in? ? current_client.id : nil
+    )
+    version = Column.sidebar_column_count_cache_version(actor)
+    "sidebar_column_count:#{kind}:#{actor}:v#{version}"
   end
 
   def current_public_genre_key

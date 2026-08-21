@@ -124,7 +124,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   # サイドバーバッジ用。レイアウト同期COUNTを避け、描画後に取得する
   def sidebar_badges
-    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v2"), expires_in: 2.minutes) do
+    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v3"), expires_in: 2.minutes) do
       compute_sidebar_badge_counts
     end
 
@@ -489,7 +489,7 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v3")
+    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v4")
     counts = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
       compute_dashboard_tab_counts(scope)
     end
@@ -508,16 +508,19 @@ class Dashboard::ColumnsController < ApplicationController
     scope = scope.unscope(:order)
 
     if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
-      # body 全文の TRIM/比較を避け、octet_length で有無だけ見る（TOAST 展開を抑える）
+      # 一覧フィルタと同じ SQL を使い、失敗ダンプ本文の誤計上を防ぐ
+      draft_sql = Column.dashboard_draft_count_sql
+      pending_sql = Column.dashboard_pending_review_count_sql
+      missing_sql = Column.dashboard_missing_image_count_sql
       scope.pick(
         Arel.sql("COUNT(*)"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR octet_length(body) = 0)"),
+        Arel.sql("COUNT(*) FILTER (WHERE #{draft_sql})"),
         Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
         Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE #{pending_sql})"),
         Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
         Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
+        Arel.sql("COUNT(*) FILTER (WHERE #{missing_sql})")
       ) || Array.new(8, 0)
     else
       [
@@ -564,17 +567,20 @@ class Dashboard::ColumnsController < ApplicationController
     scope = dashboard_columns_base_scope.unscope(:order)
 
     if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
-      pending_review, missing_image = scope.pick(
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
-      ) || [0, 0]
+      draft, pending_review, missing_image = scope.pick(
+        Arel.sql("COUNT(*) FILTER (WHERE #{Column.dashboard_draft_count_sql})"),
+        Arel.sql("COUNT(*) FILTER (WHERE #{Column.dashboard_pending_review_count_sql})"),
+        Arel.sql("COUNT(*) FILTER (WHERE #{Column.dashboard_missing_image_count_sql})")
+      ) || [0, 0, 0]
 
       {
+        draft: draft.to_i,
         pending_review: pending_review.to_i,
         missing_image: missing_image.to_i
       }
     else
       {
+        draft: scope.merge(Column.without_generated_body).count,
         pending_review: scope.merge(Column.pending_review).count,
         missing_image: scope.merge(Column.pending_review_missing_image).count
       }

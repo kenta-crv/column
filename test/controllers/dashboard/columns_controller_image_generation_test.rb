@@ -120,5 +120,64 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     json = JSON.parse(response.body)
     assert_equal @missing_total, json["missing_image"]
     assert json["pending_review"] >= json["missing_image"]
+    assert json.key?("draft")
+  end
+
+  test "sidebar badges treat generation failure bodies as drafts not pending review" do
+    Column.delete_all
+
+    3.times do |i|
+      Column.create!(
+        title: "Failure dump #{i}",
+        article_type: "child",
+        genre: "security",
+        status: "error",
+        published_at: nil,
+        body: "❌ 失敗: RuntimeError - 本文の生成に失敗しました",
+        code: "fail-dump-#{i}-#{SecureRandom.hex(3)}"
+      )
+    end
+    Column.create!(
+      title: "Real pending review",
+      article_type: "child",
+      genre: "security",
+      status: "completed",
+      published_at: nil,
+      body: "# Ready\n\nReview me.",
+      file: nil,
+      code: "pending-real-#{SecureRandom.hex(3)}"
+    )
+
+    get sidebar_badges_dashboard_columns_path
+    assert_response :success
+    json = JSON.parse(response.body)
+
+    assert_equal 3, json["draft"]
+    assert_equal 1, json["pending_review"]
+    assert_equal 1, json["missing_image"]
+  end
+
+  test "dashboard draft tab count drops immediately after drafts are cleared" do
+    Column.delete_all
+    draft = Column.create!(
+      title: "Soon cleared",
+      article_type: "child",
+      genre: "security",
+      status: "draft",
+      body: nil,
+      code: "soon-cleared-#{SecureRandom.hex(3)}"
+    )
+
+    get dashboard_columns_path(scope: "draft")
+    assert_response :success
+    assert_match(/下書き/, response.body)
+    assert_includes response.body, ">1<"
+
+    draft.destroy!
+
+    get dashboard_columns_path(scope: "draft")
+    assert_response :success
+    assert_match(/下書き/, response.body)
+    assert_select ".tabs-group .tab-btn.active .count-badge", text: "0"
   end
 end

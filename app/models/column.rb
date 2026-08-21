@@ -113,6 +113,19 @@ class Column < ApplicationRecord
     pending_review.merge(without_image_file)
   }
 
+  # ダッシュボード / サイドバーの COUNT FILTER 用（スコープ定義と必ず一致させる）
+  def self.dashboard_draft_count_sql
+    blank_or_failed_body_sql
+  end
+
+  def self.dashboard_pending_review_count_sql
+    "(#{usable_body_sql}) AND published_at IS NULL"
+  end
+
+  def self.dashboard_missing_image_count_sql
+    "(#{usable_body_sql}) AND published_at IS NULL AND (file IS NULL OR file = '')"
+  end
+
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する
   LIST_SELECT_COLUMNS = %w[
     id title description file code genre sub_genre article_type parent_id
@@ -241,6 +254,7 @@ class Column < ApplicationRecord
   after_commit :notify_webhook_on_create, on: :create
   after_commit :notify_webhook_on_update, on: :update
   after_commit :notify_webhook_on_destroy, on: :destroy
+  after_commit :bump_sidebar_column_count_cache!
 
   UUID_LIKE_CODE = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
   FALLBACK_ARTICLE_CODE = /\Aarticle-\d+\z/i
@@ -621,6 +635,42 @@ class Column < ApplicationRecord
       published_at: published_at,
       updated_at: updated_at
     }
+  end
+
+  def self.sidebar_column_count_actor_key(admin:, client_id: nil)
+    if admin
+      "admin_all"
+    elsif client_id.present?
+      "client:#{client_id}"
+    else
+      "anon"
+    end
+  end
+
+  def self.sidebar_column_count_cache_version(actor)
+    Rails.cache.read(sidebar_column_count_version_key(actor)).to_i
+  end
+
+  def self.bump_sidebar_column_count_cache_for!(*actors)
+    actors.flatten.compact.uniq.each do |actor|
+      key = sidebar_column_count_version_key(actor)
+      Rails.cache.write(key, sidebar_column_count_cache_version(actor) + 1, expires_in: 7.days)
+    end
+  end
+
+  def self.sidebar_column_count_version_key(actor)
+    "sidebar_column_count_ver:#{actor}"
+  end
+  private_class_method :sidebar_column_count_version_key
+
+  def bump_sidebar_column_count_cache!
+    actors = ["admin_all"]
+    actors << self.class.sidebar_column_count_actor_key(admin: false, client_id: client_id) if client_id.present?
+    if saved_change_to_client_id?
+      previous_client_id = client_id_before_last_save
+      actors << self.class.sidebar_column_count_actor_key(admin: false, client_id: previous_client_id) if previous_client_id.present?
+    end
+    self.class.bump_sidebar_column_count_cache_for!(actors)
   end
 
   private
