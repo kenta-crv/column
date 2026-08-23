@@ -36,28 +36,111 @@ class ColumnServiceCta
       enabled: true,
       theme: "jwork",
       badge: "J Work",
-      title: "Amazon配送の人材確保・業務請負はLINEで相談",
-      lead: "ドライバー採用や業務請負について、まずはお気軽にご相談ください。",
-      cta_label: "新規取引相談（LINE）",
+      title: "外国人材の採用・紹介はLINEで相談",
+      lead: "条件に合う登録者数を先にお伝えします。まずはお気軽にご相談ください。",
+      cta_label: "採用の相談（LINE）",
       url: "https://lin.ee/NZBWRrsD",
       en: {
-        title: "Amazon delivery staffing & operations—chat on LINE",
-        lead: "Talk to us about driver hiring or contracted delivery operations.",
-        cta_label: "New partnership (LINE)"
+        title: "Hire foreign talent—chat on LINE",
+        lead: "We’ll show how many registered candidates match your conditions first.",
+        cta_label: "Talk hiring (LINE)"
       },
       by_sub_genre: {
+        delivery_partner: {
+          theme: "jwork",
+          badge: "J Work",
+          title: "Amazon配送の外国人材確保・業務請負はLINEで",
+          lead: "外国人ドライバーの採用や業務請負について、まずはご相談ください。",
+          cta_label: "新規取引相談（LINE）",
+          url: "https://lin.ee/NZBWRrsD",
+          en: {
+            title: "Amazon delivery staffing with foreign drivers—chat on LINE",
+            lead: "Talk to us about hiring foreign drivers or contracted delivery operations.",
+            cta_label: "New partnership (LINE)"
+          }
+        },
+        foreign_hiring: {
+          theme: "jwork",
+          badge: "企業向け",
+          title: "外国人雇用・求人掲載はLINEで",
+          lead: "助成金や受け入れの相談、求人の無料掲載もご案内します。",
+          cta_label: "雇用の相談（LINE）",
+          url: "https://lin.ee/NZBWRrsD",
+          en: {
+            badge: "For employers",
+            title: "Hiring foreign talent and job posts—on LINE",
+            lead: "Ask about subsidies, onboarding, or posting a job for free.",
+            cta_label: "Talk hiring (LINE)"
+          }
+        },
         driver_recruitment: {
           theme: "jwork-recruit",
           badge: "求職者向け",
-          title: "Amazon配送ドライバーのお仕事はLINEで",
-          lead: "未経験歓迎。お仕事情報をLINEで受け取れます。",
+          title: "日本でのお仕事探しはLINEで",
+          lead: "配送を含む求人情報をLINEで受け取れます。未経験の方も歓迎です。",
           cta_label: "お仕事の応募（LINE）",
           url: "https://lin.ee/8pGADE1",
           en: {
             badge: "For job seekers",
-            title: "Amazon delivery driver jobs on LINE",
-            lead: "No experience required. Get job updates on LINE.",
+            title: "Find work in Japan on LINE",
+            lead: "Job updates including delivery roles. No experience required.",
             cta_label: "Apply via LINE"
+          }
+        },
+        life_guide: {
+          theme: "jwork-recruit",
+          badge: "生活サポート",
+          title: "仕事と暮らしの相談はLINEで",
+          lead: "手続きで困ったときも、求人情報もLINEで案内します。",
+          cta_label: "相談する（LINE）",
+          url: "https://lin.ee/8pGADE1",
+          en: {
+            badge: "Life in Japan",
+            title: "Work and daily life—ask on LINE",
+            lead: "Get help with paperwork and job updates.",
+            cta_label: "Chat on LINE"
+          }
+        },
+        specified_skills: {
+          theme: "jwork",
+          badge: "企業向け",
+          title: "特定技能・技能実習の受け入れ相談はLINEで",
+          lead: "制度の整理と、現場で動ける人材のご案内をします。",
+          cta_label: "受け入れの相談（LINE）",
+          url: "https://lin.ee/NZBWRrsD",
+          en: {
+            badge: "For employers",
+            title: "Specified skilled & intern programs—chat on LINE",
+            lead: "We’ll help you sort the system and find people who can start.",
+            cta_label: "Talk hiring (LINE)"
+          }
+        },
+        support_orgs: {
+          theme: "jwork",
+          badge: "支援団体向け",
+          title: "団体掲載・連携のご相談はLINEで",
+          lead: "支援団体の紹介、イベント告知、企業・求職者との橋渡しをご相談ください。",
+          cta_label: "連携の相談（LINE）",
+          url: "https://lin.ee/NZBWRrsD",
+          en: {
+            badge: "For organizations",
+            title: "List your organization or partner with us on LINE",
+            lead: "Profiles, events, and introductions to employers and job seekers.",
+            cta_label: "Talk partnership (LINE)"
+          }
+        },
+        labor_help: {
+          theme: "jwork-recruit",
+          badge: "相談窓口",
+          title: "困ったときはまず相談を。LINEでも案内します",
+          lead: "未払い・ハラスメントなどは公的窓口が本筋です。行き先が分からない場合はLINEで案内します。",
+          cta_label: "窓口を聞く（LINE）",
+          url: "https://lin.ee/8pGADE1",
+          en: {
+            badge: "Get help",
+            title: "If you’re in trouble, start here—or ask on LINE",
+            lead: "Wage theft and harassment belong at official desks. We’ll help you find the right one.",
+            cta_label: "Ask where to go (LINE)"
           }
         }
       }

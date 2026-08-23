@@ -249,11 +249,11 @@ class FluxImageGeneratorService
 
     when 'cargo'
       <<~TEXT
-        Japanese delivery driver.
-        Logistics business.
-        Parcel delivery.
-        Urban transportation.
-        Amazon style delivery atmosphere.
+        Diverse foreign workers in Japan.
+        Professional workplace in Japan.
+        Delivery and warehouse jobs.
+        Inclusive hiring atmosphere.
+        Urban Japanese city backdrop.
       TEXT
 
     when 'app'

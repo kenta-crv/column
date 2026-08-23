@@ -58,6 +58,58 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_includes cta[:cta_label], "新規取引"
   end
 
+  test "resolves cargo foreign_hiring CTA" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "foreign_hiring",
+      title: "外国人雇用の助成金",
+      keyword: "外国人雇用 助成金"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "企業向け", cta[:badge]
+    assert_includes cta[:cta_label], "雇用"
+  end
+
+  test "resolves life_guide CTA to recruit LINE" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "life_guide",
+      title: "住民登録の手続き",
+      keyword: "住民登録"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "生活サポート", cta[:badge]
+    assert_equal "jwork-recruit", cta[:theme]
+  end
+
+  test "resolves specified_skills CTA to employer LINE" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "specified_skills",
+      title: "特定技能の受け入れ",
+      keyword: "特定技能"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "企業向け", cta[:badge]
+    assert_includes cta[:cta_label], "受け入れ"
+  end
+
+  test "resolves labor_help CTA" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "labor_help",
+      title: "未払い賃金の相談先",
+      keyword: "未払い賃金 労働基準監督署"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "相談窓口", cta[:badge]
+    assert_equal "jwork-recruit", cta[:theme]
+  end
+
   test "returns nil when stored CTA is disabled" do
     skip "column_cta column missing" unless ServiceGenre.column_names.include?("column_cta")
 
@@ -135,5 +187,6 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_equal "For job seekers", cta[:badge]
     assert_includes cta[:title], "LINE"
     assert_not_includes cta[:badge], "求職"
+    assert_includes cta[:title], "Japan"
   end
 end

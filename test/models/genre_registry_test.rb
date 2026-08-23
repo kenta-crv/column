@@ -54,14 +54,54 @@ class GenreRegistryTest < ActiveSupport::TestCase
   test "service_profile includes driver recruitment target when sub_genre is set" do
     profile = GenreRegistry.service_profile("cargo", "driver_recruitment")
 
-    assert_includes profile, "Amazonの配送員として働きたい個人・求職者"
-    assert_not_includes profile, "ドライバー確保に課題がある企業"
+    assert_includes profile, "日本で働きたい外国人、すでに在留している求職者"
+    assert_not_includes profile, "外国人ドライバーの確保・定着に課題がある企業"
   end
 
   test "column service_profile passes sub_genre" do
     column = Column.new(genre: "cargo", sub_genre: "driver_recruitment")
 
-    assert_includes column.service_profile, "Amazonの配送員として働きたい個人・求職者"
+    assert_includes column.service_profile, "日本で働きたい外国人、すでに在留している求職者"
+  end
+
+  test "service_profile for foreign_hiring is employer-facing" do
+    profile = GenreRegistry.service_profile("cargo", "foreign_hiring")
+
+    assert_includes profile, "外国人材の採用・受け入れを検討している企業"
+    assert_includes profile, "外国人雇用"
+  end
+
+  test "cargo main genre label is 外国人" do
+    assert_equal "外国人", GenreRegistry::FALLBACK_GENRES.dig(:cargo, :ja)
+    assert_equal "Amazon外国人配送",
+                 GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, :delivery_partner, :name)
+    %i[life_guide specified_skills support_orgs labor_help].each do |key|
+      assert GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, key).present?, key.to_s
+    end
+  end
+
+  test "specified_skills keyword wins over foreign_hiring" do
+    column = Column.new(
+      title: "特定技能の受け入れ機関がやるべきこと",
+      genre: "cargo",
+      sub_genre: nil,
+      keyword: "特定技能 登録支援機関"
+    )
+
+    assert_equal "specified_skills",
+                 GenreRegistry.resolve_sub_category_key(column, "cargo")
+  end
+
+  test "life_guide keyword detection" do
+    column = Column.new(
+      title: "来日後の住民登録とマイナンバー",
+      genre: "cargo",
+      sub_genre: nil,
+      keyword: "住民登録 マイナンバー"
+    )
+
+    assert_equal "life_guide",
+                 GenreRegistry.resolve_sub_category_key(column, "cargo")
   end
 
   test "sub_category_label uses name_en for English locale" do
