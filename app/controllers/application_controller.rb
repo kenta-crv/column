@@ -233,7 +233,7 @@ class ApplicationController < ActionController::Base
   end
 
   def published_columns_scope
-    Column.published.merge(Column.with_generated_body)
+    Column.publicly_listed
   end
 
   # サイドバーの「レビュー待ち」バッジなど、画面全体で使う未公開の生成済み記事数。
@@ -241,7 +241,7 @@ class ApplicationController < ActionController::Base
     return 0 unless admin_signed_in? || client_signed_in?
     return @pending_review_columns_count if defined?(@pending_review_columns_count) && !@pending_review_columns_count.nil?
 
-    @pending_review_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("pending_review"), expires_in: 45.seconds) do
+    @pending_review_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("pending_review_v2"), expires_in: 45.seconds) do
       dashboard_columns_base_scope.merge(Column.pending_review).count
     end
   end
@@ -499,6 +499,14 @@ class ApplicationController < ActionController::Base
   def child_article_quota_for(column)
     return nil unless can_manage_column?(column)
 
+    if admin_signed_in?
+      return {
+        used: children_count_for(column),
+        limit: nil,
+        remaining: GptTitleGenerator::MAX_TITLES
+      }
+    end
+
     owner = column.client
     children_used = children_count_for(column)
     if owner
@@ -520,6 +528,8 @@ class ApplicationController < ActionController::Base
   end
 
   def remaining_child_slots_for(column, children_used: nil)
+    return GptTitleGenerator::MAX_TITLES if admin_signed_in?
+
     owner = column.client
     children_used = children_count_for(column) if children_used.nil?
 

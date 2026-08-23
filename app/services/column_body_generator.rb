@@ -8,6 +8,8 @@
 # - そのため「比較」モードは GptPillarRecommendation を使う。
 # - 「自社宣伝」モードは gpt_pillar_comparison.rb（自社事実＋推薦軸中心）を使う。
 class ColumnBodyGenerator
+  class EmptyOutputError < StandardError; end
+
   MODE_SERVICES = {
     "comparison" => "GptPillarRecommendation",
     "recommendation" => "GptPillarComparison",

@@ -37,6 +37,30 @@ class GptGenerationLocaleTest < ActiveSupport::TestCase
     end
   end
 
+  test "failed_output? detects japanese section failures and job dumps" do
+    assert GptGenerationLocale.failed_output?("（導入の本文生成に失敗しました。再生成してください。）")
+    assert GptGenerationLocale.failed_output?("（生成エラーにより本文生成に失敗しました）")
+    assert GptGenerationLocale.failed_output?("❌ 失敗: RuntimeError - 本文の生成に失敗しました\n場所: job.rb:54")
+    assert GptGenerationLocale.failed_output?("")
+    refute GptGenerationLocale.failed_output?("現場では責任分界を契約書に落とす。")
+  end
+
+  test "gpt-5 payloads omit temperature" do
+    payload = GptGenerationLocale.chat_completions_payload(
+      model: "gpt-5.4-nano",
+      messages: [{ role: "user", content: "hi" }],
+      temperature: 0.45
+    )
+    refute payload.key?(:temperature)
+
+    mini = GptGenerationLocale.chat_completions_payload(
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: "hi" }],
+      temperature: 0.45
+    )
+    assert_equal 0.45, mini[:temperature]
+  end
+
   test "blank language falls back to japanese" do
     assert_equal "ja", Column.normalize_language(nil)
     assert_equal "ja", Column.normalize_language("fr")

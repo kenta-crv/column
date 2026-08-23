@@ -1,3 +1,8 @@
+# 手元の開発専用。本番サーバー（/opt/webroot）では SQLite を開かない。
+if Rails.root.to_s.start_with?("/opt/webroot/")
+  abort "このサーバーでは development（SQLite）は使いません。RAILS_ENV=production を指定してください。"
+end
+
 # .env の DATABASE_URL は本番用。development は sqlite を使う。
 ENV.delete("DATABASE_URL")
 

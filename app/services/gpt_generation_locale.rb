@@ -131,9 +131,39 @@ module GptGenerationLocale
     end
   end
 
+  FAILURE_BODY_PATTERNS = [
+    /生成失敗/,
+    /生成に失敗/,
+    /本文の生成に失敗/,
+    /本文生成に失敗/,
+    /生成エラーにより/,
+    /generation failed/i,
+    /\A❌[[:space:]]*失敗:/
+  ].freeze
+
   def failed_output?(text)
     value = text.to_s
-    value.include?("生成失敗") || value.downcase.include?("generation failed")
+    return true if value.strip.empty?
+
+    FAILURE_BODY_PATTERNS.any? { |pattern| value.match?(pattern) }
+  end
+
+  # gpt-5 / o 系は temperature などサンプリングパラメータを拒否する。
+  def sampling_parameters_supported?(model)
+    name = model.to_s.downcase
+    return true if name.include?("chat")
+    return false if name.match?(/\A(o1|o3|o4|gpt-5)/)
+
+    true
+  end
+
+  def chat_completions_payload(model:, messages:, json_mode: false, temperature: nil)
+    payload = { model: model, messages: messages }
+    payload[:response_format] = { type: "json_object" } if json_mode
+    if temperature && sampling_parameters_supported?(model)
+      payload[:temperature] = temperature
+    end
+    payload
   end
 
   def section_failure_message(name)

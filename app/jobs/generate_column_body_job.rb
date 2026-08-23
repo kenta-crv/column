@@ -9,16 +9,27 @@ class GenerateColumnBodyJob < ApplicationJob
   end
 
   retry_on Net::ReadTimeout, wait: :exponentially_longer, attempts: 3
+  retry_on ColumnBodyGenerator::EmptyOutputError, wait: 15.seconds, attempts: 3 do |job, error|
+    job.mark_generation_failed!(error)
+  end
 
   class StopRequested < StandardError; end
 
   def perform(column_id, autonomous_run_id: nil)
+    @column_id = column_id
+    @autonomous_run_id = autonomous_run_id
+
     AutonomousContentRun.recover_stale_runs! if autonomous_run_id.present?
 
     column = Column.find_by(id: column_id)
     return unless column
 
-    if column.article_type == "pillar" && column.body.present?
+    if error_dump_body?(column.body)
+      column.update_columns(body: nil)
+      column.reload
+    end
+
+    if column.article_type == "pillar" && column.generated_body?
       ensure_column_image!(column)
       run_quality_evaluation!(column.id) unless quality_score_present?(column)
       if autonomous_run_id.present?
@@ -47,11 +58,13 @@ class GenerateColumnBodyJob < ApplicationJob
 
       if result == :managed
         column.reload
+        raise_if_unusable_body!(column.body)
         column.update!(generation_status: "completed") unless GenerateColumnBodyJob.cancelled?(column_id)
-      elsif result.present? && !GptGenerationLocale.failed_output?(result)
+      elsif usable_body?(result)
         column.update!(body: result, status: "completed", generation_status: "completed")
       else
-        raise "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
+        raise ColumnBodyGenerator::EmptyOutputError,
+              "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
       end
 
       column.reload
@@ -72,16 +85,18 @@ class GenerateColumnBodyJob < ApplicationJob
       broadcast_generation_status(column)
       Rails.logger.info("⏹️ Generation stopped for column #{column_id}")
 
+    rescue ColumnBodyGenerator::EmptyOutputError => e
+      Rails.logger.warn("[GenerateColumnBodyJob] empty output column_id=#{column_id} #{e.message}")
+      raise
+
     rescue => e
       if ColumnBodyGenerator.cancelled_error?(e)
         column.update_columns(generation_status: "cancelled")
         broadcast_generation_status(column)
         Rails.logger.info("⏹️ Generation cancelled for column #{column_id}: #{e.message}")
       else
-        error_info = "❌ 失敗: #{e.class} - #{e.message}\n場所: #{e.backtrace.first}"
-        column.update_columns(status: "error", body: error_info, generation_status: "failed")
-        broadcast_generation_status(column)
-        Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{error_info}")
+        persist_generation_failure!(column, e)
+        Rails.logger.error("[GenerateColumnBodyJob] failed column_id=#{column_id} #{e.class}: #{e.message}")
 
         if autonomous_run_id.present?
           # 子記事1件の失敗で全体を止めず、次の子記事の生成へ進む
@@ -97,6 +112,23 @@ class GenerateColumnBodyJob < ApplicationJob
         runtime_threads.delete(column_id)
         runtime_cancelled_ids.delete(column_id)
       end
+    end
+  end
+
+  def mark_generation_failed!(error)
+    column = Column.find_by(id: @column_id || arguments.first)
+    return unless column
+
+    persist_generation_failure!(column, error)
+    Rails.logger.error("[GenerateColumnBodyJob] retries exhausted column_id=#{column.id} #{error.class}: #{error.message}")
+
+    autonomous_run_id = @autonomous_run_id
+    if autonomous_run_id.nil? && arguments.last.is_a?(Hash)
+      autonomous_run_id = arguments.last[:autonomous_run_id] || arguments.last["autonomous_run_id"]
+    end
+
+    if autonomous_run_id.present?
+      AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
     end
   end
 
@@ -150,6 +182,31 @@ class GenerateColumnBodyJob < ApplicationJob
 
   def quality_score_present?(column)
     column.quality_score.present? && column.quality_score.to_f.positive?
+  end
+
+  def usable_body?(text)
+    text.present? && !GptGenerationLocale.failed_output?(text)
+  end
+
+  def raise_if_unusable_body!(text)
+    return if usable_body?(text)
+
+    raise ColumnBodyGenerator::EmptyOutputError,
+          "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
+  end
+
+  def error_dump_body?(text)
+    text.to_s.match?(/\A❌[[:space:]]*失敗:/)
+  end
+
+  def persist_generation_failure!(column, error)
+    attrs = {
+      status: "error",
+      generation_status: "failed"
+    }
+    attrs[:body] = nil if column.body.blank? || GptGenerationLocale.failed_output?(column.body)
+    column.update_columns(attrs)
+    broadcast_generation_status(column.reload)
   end
 
   def ensure_column_image!(column)

@@ -1,5 +1,5 @@
-# development/test: SQLite3（既存ローカルデータをそのまま使える）
-# production: PostgreSQL（本番データは別途 SQLite から移行）
+# development/test: 手元（Mac）の SQLite のみ。本番サーバーでは使わない。
+# production: PostgreSQL。サーバー上の rails コマンドは必ず RAILS_ENV=production。
 
 default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 15 } %>
@@ -33,3 +33,4 @@ production:
   username: <%= ENV.fetch("DB_USERNAME", "drafity") %>
   password: <%= ENV["DB_PASSWORD"] %>
   <% end %>
+

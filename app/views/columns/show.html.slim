@@ -53,7 +53,7 @@
     - if can_manage_column?(@column) && @column.article_type == "pillar"
       - pillar_param = @column.code.presence || @column.id
       - quota = @child_article_quota
-      - can_add_child = quota.nil? || quota[:remaining] > 0
+      - can_add_child = admin_signed_in? || quota.nil? || quota[:remaining] > 0
       style
         | .pillar-children-panel{margin:40px 0;padding:28px;border:1px solid rgba(139,92,246,.18);border-radius:18px;background:linear-gradient(180deg,#faf5ff 0%,#fff 100%);box-shadow:0 10px 28px rgba(124,58,237,.08);}
         | .pillar-children-panel__header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(196,181,253,.55);}
@@ -97,7 +97,7 @@
       .pillar-children-panel
         .pillar-children-panel__header
           h3.pillar-children-panel__title = t("drafity.columns.manage.panel_title")
-          - if quota
+          - if quota && quota[:limit].present?
             .pillar-children-panel__quota
               = t("drafity.columns.manage.quota", used: quota[:used], limit: quota[:limit])
               - if quota[:remaining] > 0

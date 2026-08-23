@@ -4,6 +4,10 @@ class CrawlableSitemap
   SITEMAP_PATH = Rails.root.join("public", "sitemap.xml")
 
   def self.refresh!
+    if Rails.env.development?
+      raise "public/sitemap.xml は RAILS_ENV=production で生成してください。development の SQLite で上書きすると件数がずれます。"
+    end
+
     composition = CrawlPolicy.composition
     message = "[CrawlableSitemap] static=#{composition[:static]} articles=#{composition[:articles]} total=#{composition[:total]} by_genre=#{composition[:by_genre]} official=#{composition[:official]} client_owned=#{composition[:client_owned]} values=#{composition[:values]}"
     puts message

@@ -42,7 +42,7 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:scope].present?
       case params[:scope]
       when "draft"
-        scope = scope.merge(Column.without_generated_body)
+        scope = scope.merge(Column.drafts)
       when "pillar"
         scope = scope.where(article_type: "pillar")
       when "cluster"
@@ -50,7 +50,7 @@ class Dashboard::ColumnsController < ApplicationController
       when "pending_review"
         scope = scope.merge(Column.pending_review)
       when "published"
-        scope = scope.merge(Column.published)
+        scope = scope.merge(Column.publicly_listed)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -124,7 +124,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   # サイドバーバッジ用。レイアウト同期COUNTを避け、描画後に取得する
   def sidebar_badges
-    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v2"), expires_in: 2.minutes) do
+    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v3"), expires_in: 2.minutes) do
       compute_sidebar_badge_counts
     end
 
@@ -232,7 +232,7 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:scope].present?
       case params[:scope]
       when "draft"
-        scope = scope.merge(Column.without_generated_body)
+        scope = scope.merge(Column.drafts)
       when "pillar"
         scope = scope.where(article_type: "pillar")
       when "cluster"
@@ -240,7 +240,7 @@ class Dashboard::ColumnsController < ApplicationController
       when "pending_review"
         scope = scope.merge(Column.pending_review)
       when "published"
-        scope = scope.merge(Column.published)
+        scope = scope.merge(Column.publicly_listed)
       when "error"
         scope = scope.where(status: "error")
       when "no_image"
@@ -489,10 +489,7 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v3")
-    counts = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
-      compute_dashboard_tab_counts(scope)
-    end
+    counts = compute_dashboard_tab_counts(scope)
 
     @tab_count_all,
     @tab_count_draft,
@@ -508,26 +505,29 @@ class Dashboard::ColumnsController < ApplicationController
     scope = scope.unscope(:order)
 
     if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
-      # body 全文の TRIM/比較を避け、octet_length で有無だけ見る（TOAST 展開を抑える）
+      # 本文なし（削除直後・失敗文・空白のみ）を下書きとして数える。公開フラグは見ない。
+      blank = Column.blank_or_failed_body_sql
+      usable = Column.usable_body_sql
+      failed = Column::GENERATION_FAILURE_BODY_SQL
       scope.pick(
         Arel.sql("COUNT(*)"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NULL OR octet_length(body) = 0)"),
+        Arel.sql("COUNT(*) FILTER (WHERE (#{blank}))"),
         Arel.sql("COUNT(*) FILTER (WHERE article_type = 'pillar')"),
         Arel.sql("COUNT(*) FILTER (WHERE article_type IN ('cluster', 'child'))"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE status = 'error')"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
+        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NOT NULL AND (status IS NULL OR status <> 'error'))"),
+        Arel.sql("COUNT(*) FILTER (WHERE status = 'error' OR (#{failed}))"),
+        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL AND (file IS NULL OR file = ''))")
       ) || Array.new(8, 0)
     else
       [
         scope.count,
-        scope.merge(Column.without_generated_body).count,
+        scope.merge(Column.drafts).count,
         scope.where(article_type: "pillar").count,
         scope.where(article_type: %w[cluster child]).count,
         scope.merge(Column.pending_review).count,
-        scope.merge(Column.published).count,
-        scope.where(status: "error").count,
+        scope.merge(Column.publicly_listed).count,
+        scope.where("status = ? OR #{Column::GENERATION_FAILURE_BODY_SQL}", "error").count,
         scope.merge(Column.pending_review_missing_image).count
       ]
     end
@@ -564,9 +564,10 @@ class Dashboard::ColumnsController < ApplicationController
     scope = dashboard_columns_base_scope.unscope(:order)
 
     if ActiveRecord::Base.connection.adapter_name.match?(/postgre/i)
+      usable = Column.usable_body_sql
       pending_review, missing_image = scope.pick(
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE body IS NOT NULL AND octet_length(body) > 0 AND published_at IS NULL AND (file IS NULL OR file = ''))")
+        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL)"),
+        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL AND (file IS NULL OR file = ''))")
       ) || [0, 0]
 
       {

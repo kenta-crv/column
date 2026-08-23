@@ -173,17 +173,17 @@ class FluxImageGeneratorService
     req = Net::HTTP::Post.new(uri)
     req['Content-Type'] = 'application/json'
     req['Authorization'] = "Bearer #{api_key}"
-    req.body = {
-      model: 'gpt-5.4-nano',
+    req.body = GptGenerationLocale.chat_completions_payload(
+      model: "gpt-5.4-nano",
       messages: [
         {
-          role: 'system',
-          content: 'You write image-generation prompts describing scenes only. Never include any words that should appear inside the image.'
+          role: "system",
+          content: "You write image-generation prompts describing scenes only. Never include any words that should appear inside the image."
         },
-        { role: 'user', content: prompt }
+        { role: "user", content: prompt }
       ],
       temperature: 0.4
-    }.to_json
+    ).to_json
 
     res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60) do |http|
       http.request(req)
