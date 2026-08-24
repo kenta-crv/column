@@ -212,7 +212,7 @@ class FluxImageGeneratorService
         People walking naturally.
       TEXT
 
-    when 'routine_cleaning'
+    when 'cleaning', 'emergency_cleaning', 'routine_cleaning'
       <<~TEXT
         Professional Japanese cleaning staff.
         Modern office or commercial building.

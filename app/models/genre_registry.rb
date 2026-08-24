@@ -7,152 +7,63 @@ module GenreRegistry
       en: "Cleaning",
       host: ["okey.work"],
       service_name: "OK清掃",
-      columns_index_description: "OK清掃の日常清掃・オフィス清掃・施設清掃に関する解説記事一覧。導入の進め方、運用ポイント、現場の事例をまとめています。",
-      keywords: ["日常清掃", "オフィス清掃", "学校清掃", "施設清掃", "店舗清掃"],
+      columns_index_description: "OK清掃の日常・施設清掃、巡回、定期、原状回復、特殊清掃に関する解説記事一覧。導入の進め方、運用ポイント、現場の事例をまとめています。",
+      keywords: ["日常清掃", "施設清掃", "巡回清掃", "定期清掃", "原状回復", "特殊清掃"],
       sub_categories: {
         daily_standard: {
-          name: "日常清掃",
-          name_en: "Routine cleaning",
-          target: "清掃美化を外注したい企業や施設・ビル",
-          description: "週1回〜・1日3時間〜、決まった時間にスタッフが訪問する清掃サービス。トイレ掃除、ゴミ回収、床掃除など、建物の美観と衛生を維持する基本サービス。",
-          features: ["週1回〜", "1回3時間〜の時間清掃", "清掃報告書発行", "深夜対応", "スタッフ固定制", "時間割引対応", "20〜50代中心"],
-          keywords: ["日常清掃", "施設清掃"],
+          name: "日常・施設清掃",
+          name_en: "Routine & facility cleaning",
+          target: "オフィス、店舗、学校、医療・介護、工場など、決まった時間の清掃を外注したい企業・施設",
+          description: "週1回〜、決まった時間にスタッフが訪問する定常清掃。トイレ、ゴミ回収、床など建物の美観と衛生を維持する。業態（オフィス、学校、飲食、医療など）の差は記事テーマで持つ。",
+          features: ["週1回〜", "1回3時間〜の時間清掃", "清掃報告書発行", "深夜・早朝対応", "スタッフ固定制", "20〜50代中心"],
+          keywords: ["日常清掃", "施設清掃", "オフィス清掃", "学校清掃", "店舗清掃", "病院清掃", "工場清掃", "飲食店清掃"],
           price_hint: "時給3,000円〜 / 月額21,600円〜",
           area: "全国対応",
-          strengths: "人材紹介業出身の清掃業である特性から、20〜50代の人材が中心。安定した清掃人材の提供が可能。",
-          industry_weakness: "一般的に『人が足りない』『60〜80代中心』が日常清掃の最大課題ですが、OK清掃は若くて動ける人材が多いのが特徴です。"
-        },
-        office: {
-          name: "オフィス清掃",
-          name_en: "Office cleaning",
-          target: "企業のオフィス・事務所、執室",
-          description: "デスク周りのゴミ回収、会議室、給湯室、役員室などの清掃。機密情報（Pマーク・ISMS取得企業など）への配慮や、PC機器・配線周りの丁寧な取り扱いを徹底します。",
-          features: ["機密保持・セキュリティ遵守", "ゴミ分別・回収", "什器への配慮", "深夜・早朝の無人対応可"],
-          keywords: ["オフィス清掃", "事務所掃除", "執室清掃"],
-          price_hint: "要お見積り（頻度・平米数による）",
-          area: "全国対応",
-          strengths: "オフィス特有のセキュリティルールやマナー教育を修了したスタッフが対応するため、シュレッダーゴミの処理なども安心してお任せいただけます。",
-          industry_weakness: "オフィス特有のセキュリティや什器の扱いに慣れていない業者が多い中、事前のマニュアル化でトラブルを防止します。"
-        },
-        school: {
-          name: "学校・学習塾清掃",
-          name_en: "School & cram school cleaning",
-          target: "小・中・高校、大学、専門学校、大手学習塾など",
-          description: "教室、廊下、階段、トイレ、体育館などの日常清掃。生徒・学生が学習に集中できる環境をつくるとともに、長期休み（夏休み等）に合わせた柔軟なシフト調整に対応します。",
-          features: ["長期休暇中のシフト調整可", "黒板・教壇周り清掃", "ゴミ回収", "トイレの徹底洗浄"],
-          keywords: ["学校清掃", "塾掃除", "校舎清掃"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "若手〜中堅スタッフ中心のため、広い校舎でも機敏に動き、時間内に効率よく清掃を完了させます。"
-        },
-        nursery_school: {
-          name: "保育園・幼稚園清掃",
-          name_en: "Nursery & kindergarten cleaning",
-          target: "認可・認可外保育園、幼稚園、こども園",
-          description: "園児たちが素足やハイハイで触れる床、おもちゃ、手すりなどの徹底的な洗浄と除菌。ノンケミカル（環境や人体に優しい）な洗剤の選定など、安全を最優先にした清掃を行います。",
-          features: ["安全な洗剤・薬剤の選定", "徹底した除菌・ウイルス対策", "園児の安全への配慮（コード類の排除等）"],
-          keywords: ["保育園清掃", "幼稚園掃除", "こども園清掃"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "20〜50代の丁寧でコミュニケーション力のあるスタッフが、先生方や園児、保護者の目にも安心・安全に映るよう配慮して作業します。",
-          industry_weakness: "園児の誤飲やアレルギーに配慮した洗剤選定や、徹底した衛生基準の維持は一般的な清掃業者では対応が難しいですが、OK清掃では独自の衛生マニュアルを運用しています。"
-        },
-        public_facility: {
-          name: "施設清掃",
-          name_en: "Facility cleaning",
-          target: "商業施設、大型店舗、ショールームなど",
-          description: "不特定多数が利用する施設の清掃・美化。営業時間を妨げない柔軟なシフトで、お客様に選ばれる綺麗な空間を維持します。",
-          features: ["巡回清掃", "土日祝対応", "開館前・閉館後対応", "大規模施設対応"],
-          keywords: ["施設清掃", "商業施設掃除", "店舗清掃"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "動ける20〜50代スタッフが中心のため、広い施設でもスピーディかつ隅々まで行き届いた清掃が可能です。"
-        },
-        nursing_home: {
-          name: "介護施設清掃",
-          name_en: "Nursing facility cleaning",
-          target: "有料老人ホーム、デイサービス、サ高住など",
-          description: "入居者様・利用者様が安心して過ごせる衛生環境を維持。施設特有のにおい対策や、徹底した除菌清掃を行います。",
-          features: ["除菌・消臭", "入居者様への挨拶・マナー徹底", "感染症対策", "日中常駐可"],
-          keywords: ["介護施設清掃", "老人ホーム掃除", "デイサービス清掃"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "20〜50代のコミュニケーション力の高いスタッフが中心のため、入居者様や施設職員様とも良好な関係を築けます。"
-        },
-        medical_facility: {
-          name: "医療施設清掃",
-          name_en: "Medical facility cleaning",
-          target: "病院、クリニック、歯科医院など",
-          description: "院内感染防止を最優先にした衛生管理清掃。区域ごとのモップの使い分け（カラーゾーニング）など、医療環境基準に準拠した作業を行います。",
-          features: ["カラーゾーニング（使い分け）", "院内感染対策", "専門研修受講スタッフ"],
-          keywords: ["医療施設清掃", "病院清掃", "クリニック掃除"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          industry_weakness: "一般的な清掃業者が敬遠しがちな、厳しい衛生基準が求められる医療現場にも、教育された若手・中堅スタッフを安定投入できます。"
-        },
-        factory: {
-          name: "工場清掃",
-          name_en: "Factory cleaning",
-          target: "製造工場、物流倉庫、センターなど",
-          description: "通路や休憩室、食堂などの日常清掃。工場の安全ルール・5S（整理・整頓・清掃・清潔・しつけ）を遵守して行動します。",
-          features: ["安全第一", "広範囲対応", "作業着・安全靴着用", "5S徹底"],
-          keywords: ["工場清掃", "倉庫清掃", "物流センター掃除"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "体力のある若い人材が多いため、広大な敷地や特殊な環境の清掃もタフに対応します。"
-        },
-        restaurant: {
-          name: "飲食清掃",
-          name_en: "Restaurant cleaning",
-          target: "居酒屋、レストラン、カフェなど",
-          description: "ホール、トイレ、厨房の基本清掃。開店前の清潔な空間づくりや、閉店後の夜間・深夜清掃に対応します。",
-          features: ["深夜・早朝対応", "油汚れ対応", "害虫対策", "衛生維持"],
-          keywords: ["飲食店清掃", "店舗清掃", "厨房掃除"],
-          price_hint: "要お見積り",
-          area: "全国対応",
-          strengths: "店舗の営業時間を妨げない深夜・早朝のシフト組が強みです。"
+          strengths: "人材紹介業出身のため20〜50代が中心。業態が違っても、定常の訪問清掃として同じ運用で回せる。",
+          industry_weakness: "一般的に『人が足りない』『高齢スタッフ中心』が課題だが、OK清掃は動ける人材を安定投入できる。"
         },
         apartment: {
-          name: "マンション・アパート巡回清掃",
-          name_en: "Apartment patrol cleaning",
-          target: "不動産管理会社、物件オーナー、大家様",
-          description: "週1回や月2回など、決まった頻度で物件を巡回。エントランス、廊下、階段の掃き拭き、ゴミ置き場の整理、電球交換などを行います。",
+          name: "巡回清掃",
+          name_en: "Patrol cleaning",
+          target: "不動産管理会社、物件オーナー、雑居ビル・マンションの大家",
+          description: "週1回や月2回など決まった頻度で共用部を巡回。エントランス、廊下、階段、ゴミ置き場、ビル共用部の維持。",
           features: ["写真付き報告書", "簡易点検（電球切れ等）", "ゴミ置き場清掃", "複数物件一括対応"],
-          keywords: ["マンション巡回清掃", "アパート清掃", "共用部掃除"],
+          keywords: ["マンション巡回清掃", "アパート清掃", "共用部掃除", "ビル巡回清掃", "雑居ビル掃除"],
           price_hint: "1棟あたり 月額数千円〜（棟数・階数による）",
           area: "全国対応",
-          strengths: "写真報告システムが標準化されているため、遠方の大家様でも物件の状況が一目でわかります。"
-        },
-        building: {
-          name: "ビル巡回清掃",
-          name_en: "Building patrol cleaning",
-          target: "雑居ビル、中小規模ビルのオーナー・管理会社",
-          description: "テナントビルや雑居ビルの共有部（階段、エレベーター、共用トイレなど）を定期巡回し、資産価値とテナント満足度を維持します。",
-          features: ["共用部清掃", "定期巡回", "不法投棄チェック", "報告書提出"],
-          keywords: ["ビル巡回清掃", "雑居ビル掃除", "ビル共有部清掃"],
-          price_hint: "要お見積り",
-          area: "全国対応"
+          strengths: "写真報告が標準のため、遠方のオーナーでも共用部の状態が分かる。"
         },
         periodic: {
-          name: "定期清掃（床・ガラス等）",
+          name: "定期清掃",
           name_en: "Periodic cleaning (floors, glass)",
-          target: "オフィス、店舗、ビル、施設全般",
-          description: "数ヶ月に1回、日常清掃では落とせない汚れを専用の機械（ポリッシャー、高圧洗浄機）を用いて徹底的に洗浄。床のワックス掛けや高所ガラス清掃を行います。",
+          target: "日常では落とせない床・ガラス汚れの発注者（オフィス、店舗、ビル、施設）",
+          description: "数ヶ月に1回、専用機械（ポリッシャー、高圧洗浄）で洗浄。床ワックス、高所ガラス、カーペット。",
           features: ["床ポリッシャー洗浄", "ワックス塗布", "高所ガラス清掃", "カーペット洗浄"],
           keywords: ["定期清掃", "床ワックスがけ", "ガラス清掃", "高圧洗浄"],
           price_hint: "1回あたり要見積もり（平米数による単価設定）",
           area: "全国対応"
         },
         turnover: {
-          name: "原状回復工事・清掃",
+          name: "原状回復",
           name_en: "Restoration & vacancy cleaning",
-          target: "賃貸物件の大家様、管理会社",
-          description: "入居者の退去後、次の入居者を迎えるための丸ごとハウスクリーニング。必要に応じてクロスの張り替えや小修繕、設備交換までワンストップで対応します。",
+          target: "賃貸物件の大家・管理会社",
+          description: "退去後の空室クリーニング。必要に応じてクロス張り替えや小修繕まで。",
           features: ["空室全体清掃", "クロス・床張り替え", "水回り徹底洗浄", "パッキン交換等小修繕"],
           keywords: ["原状回復清掃", "退去後クリーニング", "空室清掃", "クロス張り替え"],
           price_hint: "間取り（1K・2LDK等）に応じた定額制あり",
           area: "全国対応",
-          strengths: "清掃だけでなく内装・修繕まで一括で引き受けられるため、発注の手間を大幅に削減。空室期間を最短化します。"
+          strengths: "清掃と内装を一括で引き受け、空室期間を短くする。"
+        },
+        special: {
+          name: "特殊清掃",
+          name_en: "Specialized cleaning",
+          target: "物件オーナー、遺族、管理会社",
+          description: "孤独死・事件現場の特殊清掃、遺品整理、ゴミ屋敷。通常清掃ではできない体液除去、害虫、オゾン消臭。",
+          features: ["24時間緊急対応", "完全消臭（オゾン燻蒸）", "遺品整理・不用品回収", "除菌・消毒徹底"],
+          keywords: ["特殊清掃", "孤独死清掃", "遺品整理", "ゴミ屋敷片付け", "オゾン消臭"],
+          price_hint: "状況により要見積り（緊急対応可）",
+          area: "全国対応",
+          strengths: "専用薬剤と高濃度オゾンで臭いを元から断つ。近隣への配慮も含めて対応する。"
         }
       }
     },
@@ -197,30 +108,6 @@ module GenreRegistry
           price_hint: "要お見積り",
           area: "全国対応",
           strengths: "再発防止まで含めた施工設計により長期的な安全性を確保します。"
-        }
-      }
-    },
-    # ----------------------------------------------------------------
-    # 5. 特殊清掃（緊急・専門事案）
-    # ----------------------------------------------------------------
-    emergency_cleaning: {
-      ja: "特殊清掃",
-      en: "Specialized cleaning",
-      host: ["okey.work"],
-      service_name: "OK特殊クリーンサービス",
-      columns_index_description: "OK特殊クリーンの特殊清掃・遺品整理に関する解説記事一覧。対応範囲、消臭・除菌、依頼時の注意点をまとめています。",
-      keywords: ["特殊清掃", "遺品整理", "孤独死清掃", "ゴミ屋敷片付け", "特殊消臭"],
-      sub_categories: {
-        special: {
-          name: "特殊清掃・遺品整理",
-          name_en: "Specialized cleaning & estate organization",
-          target: "物件オーナー、遺族、管理会社",
-          description: "孤独死や変死のあった現場の事件現場特殊清掃。通常の清掃では不可能な、体液・血液の除去、害虫駆除、専用機材（オゾン脱臭機等）による完全消臭を行います。",
-          features: ["24時間緊急対応", "完全消臭（オゾン燻蒸）", "遺品整理・不用品回収", "除菌・消毒徹底"],
-          keywords: ["特殊清掃", "孤独死清掃", "遺品整理", "ゴミ屋敷片付け", "オゾン消臭"],
-          price_hint: "状況により要見積り（緊急対応可）",
-          area: "全国対応",
-          strengths: "特殊な薬剤と高濃度オゾン脱臭機を用いて、臭いを『元から断つ』プロの技術。近隣住民への配慮も徹底します。"
         }
       }
     },
@@ -448,11 +335,11 @@ module GenreRegistry
       }
     },
     # ----------------------------------------------------------------    
-    # 追加: AI記事生成    
+    # 追加: 自社記事（Note / Qiita / Zenn など社内転用）
     # ----------------------------------------------------------------    
     ai_article_generation: {
-      ja: "AI記事生成",
-      en: "AI article generation",
+      ja: "自社記事",
+      en: "Company articles",
       host: ["drafity.pro"],
       service_name: "Drafify",
       columns_index_description: "DrafifyのAI記事生成・SEOコンテンツに関する解説記事一覧。ピラー／クラスター設計、運用、品質の見方をまとめています。",
@@ -460,8 +347,8 @@ module GenreRegistry
       keywords: ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツSEO", "E-E-A-T", "コンテンツ資産化"],
       sub_categories: {
         seo_generation: {
-          name: "AI記事生成",
-          name_en: "AI article generation",
+          name: "自社記事",
+          name_en: "Company articles",
           target: "オウンドメディアの流入を増やし、コンテンツ資産化を進めたい企業・個人",
           description: "AIが検索需要を捉えたテーマを提案し、ピラー記事（親）とクラスター記事（子）を自動設計・生成。約6,000〜8,000字の高品質記事を平均40秒で生成し、SEOスコアで品質を可視化。",
           features: ["テーマ・キーワードの自動提案", "親子記事（ピラー・クラスター）の自動連携", "E-E-A-T対応の高精度記事生成", "画像AI自動生成", "記事ランク・SEOスコア自動査定", "API/CMS連携", "バックグラウンド生成"],
@@ -545,9 +432,25 @@ module GenreRegistry
     }
   }.freeze
 
-  # 旧キー互換: meetia → 本体 ai_sales_agent
+  # 旧キー互換: meetia → 本体 ai_sales_agent / emergency_cleaning → cleaning
   GENRE_KEY_ALIASES = {
-    meetia: :ai_sales_agent
+    meetia: :ai_sales_agent,
+    emergency_cleaning: :cleaning
+  }.freeze
+
+  # 旧中分類 → 推奨5分類（清掃）
+  SUB_CATEGORY_ALIASES = {
+    cleaning: {
+      office: :daily_standard,
+      school: :daily_standard,
+      nursery_school: :daily_standard,
+      public_facility: :daily_standard,
+      nursing_home: :daily_standard,
+      medical_facility: :daily_standard,
+      factory: :daily_standard,
+      restaurant: :daily_standard,
+      building: :apartment
+    }
   }.freeze
 
   class << self
@@ -556,6 +459,14 @@ module GenreRegistry
       return nil if key.blank?
 
       GENRE_KEY_ALIASES.fetch(key.to_sym, key.to_sym).to_s
+    end
+
+    def canonical_sub_category_key(genre_key, sub_key)
+      return nil if sub_key.blank?
+
+      canon_genre = canonical_key(genre_key)&.to_sym
+      aliases = SUB_CATEGORY_ALIASES.fetch(canon_genre, {})
+      aliases.fetch(sub_key.to_sym, sub_key.to_sym).to_s
     end
 
     # 同一ジャンルとして扱うキー一式（本体・別名）
@@ -752,6 +663,9 @@ module GenreRegistry
   # --- ヘルパーメソッド ---
 
   def self.from_ja(ja)
+    return nil if ja.blank?
+    return "ai_article_generation" if ja.to_s == "AI記事生成"
+
     genres.find { |_, v| v[:ja] == ja }&.first&.to_s
   end
 
@@ -814,7 +728,8 @@ module GenreRegistry
 
     entry = genre_entry(genre_key, client: client)
     subs = entry&.dig(:sub_categories) || {}
-    sub = subs[sub_key.to_sym] || subs[sub_key.to_s]
+    lookup = canonical_sub_category_key(genre_key, sub_key)
+    sub = subs[lookup.to_sym] || subs[lookup] || subs[sub_key.to_sym] || subs[sub_key.to_s]
     return sub_key.to_s if sub.blank?
 
     if locale.to_s == "en"
@@ -835,8 +750,9 @@ module GenreRegistry
     return nil if subs.blank?
 
     saved = column.sub_genre.to_s
-    if saved.present? && (subs.key?(saved.to_sym) || subs.key?(saved))
-      return saved
+    saved_canon = canonical_sub_category_key(genre_key, saved)
+    if saved_canon.present? && (subs.key?(saved_canon.to_sym) || subs.key?(saved_canon))
+      return saved_canon
     end
 
     text = [

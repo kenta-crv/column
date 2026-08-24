@@ -189,4 +189,28 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_not_includes cta[:badge], "求職"
     assert_includes cta[:title], "Japan"
   end
+
+  test "resolves cleaning special CTA" do
+    column = Column.new(
+      genre: "cleaning",
+      sub_genre: "special",
+      title: "特殊清掃の依頼",
+      keyword: "特殊清掃"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "OK特殊クリーン", cta[:badge]
+    assert_includes cta[:cta_label], "特殊清掃"
+  end
+
+  test "resolves emergency_cleaning genre via cleaning alias" do
+    column = Column.new(
+      genre: "emergency_cleaning",
+      sub_genre: "special",
+      title: "遺品整理"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "OK特殊クリーン", cta[:badge]
+  end
 end

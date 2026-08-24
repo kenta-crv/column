@@ -105,10 +105,25 @@ class GenreRegistryTest < ActiveSupport::TestCase
   end
 
   test "sub_category_label uses name_en for English locale" do
-    assert_equal "Routine cleaning",
+    assert_equal "Routine & facility cleaning",
                  GenreRegistry.sub_category_label("cleaning", "daily_standard", locale: :en)
-    assert_equal "日常清掃",
+    assert_equal "日常・施設清掃",
                  GenreRegistry.sub_category_label("cleaning", "daily_standard", locale: :ja)
+  end
+
+  test "cleaning has five subcategories and maps old facility keys" do
+    keys = GenreRegistry::FALLBACK_GENRES.dig(:cleaning, :sub_categories).keys
+    assert_equal %i[daily_standard apartment periodic turnover special], keys
+    refute GenreRegistry::FALLBACK_GENRES.key?(:emergency_cleaning)
+    assert_equal "cleaning", GenreRegistry.canonical_key("emergency_cleaning")
+    assert_equal "daily_standard",
+                 GenreRegistry.canonical_sub_category_key("cleaning", "office")
+    assert_equal "apartment",
+                 GenreRegistry.canonical_sub_category_key("cleaning", "building")
+
+    column = Column.new(genre: "cleaning", sub_genre: "office", title: "オフィス清掃")
+    assert_equal "daily_standard",
+                 GenreRegistry.resolve_sub_category_key(column, "cleaning")
   end
 
   test "cargo fallback includes a stock image file that exists" do

@@ -163,14 +163,28 @@ class ColumnServiceCta
       enabled: true,
       theme: "okwork",
       badge: "OK清掃",
-      title: "日常清掃・オフィス清掃はOK清掃へ",
+      title: "日常清掃・施設清掃はOK清掃へ",
       lead: "20〜50代中心のスタッフ体制で、施設の美観と衛生を安定運用します。",
       cta_label: "清掃サービスを見る",
       path: "/",
       en: {
-        title: "Daily and office cleaning with OK Cleaning",
+        title: "Daily and facility cleaning with OK Cleaning",
         lead: "Staffed mainly by people in their 20s–50s, we keep facilities looking and feeling clean.",
         cta_label: "See cleaning services"
+      },
+      by_sub_genre: {
+        special: {
+          badge: "OK特殊クリーン",
+          title: "特殊清掃・緊急対応のご相談",
+          lead: "専門機材とプロの技術で、迅速かつ丁寧に対応します。",
+          cta_label: "特殊清掃について相談する",
+          path: "/",
+          en: {
+            title: "Specialized and emergency cleaning",
+            lead: "Professional equipment and technique for a fast, careful response.",
+            cta_label: "Talk about specialized cleaning"
+          }
+        }
       }
     },
     housekeeping: {
@@ -227,20 +241,6 @@ class ColumnServiceCta
         title: "Speed up content SEO with AI article generation",
         lead: "From pillar and cluster design through generation. We help you run articles that earn search traffic.",
         cta_label: "See the service"
-      }
-    },
-    emergency_cleaning: {
-      enabled: true,
-      theme: "okwork",
-      badge: "OK特殊クリーン",
-      title: "特殊清掃・緊急対応のご相談",
-      lead: "専門機材とプロの技術で、迅速かつ丁寧に対応します。",
-      cta_label: "特殊清掃について相談する",
-      path: "/",
-      en: {
-        title: "Specialized and emergency cleaning",
-        lead: "Professional equipment and technique for a fast, careful response.",
-        cta_label: "Talk about specialized cleaning"
       }
     }
   }.freeze
