@@ -72,20 +72,65 @@ module GenreRegistry
       en: "Housekeeping",
       host: ["kurasera.life"],
       service_name: "クラセラ",
-      columns_index_description: "クラセラの家事代行・ハウスクリーニングに関する解説記事一覧。依頼の流れ、料金の考え方、活用事例をまとめています。",
-      keywords: ["家事代行", "お手伝いさん", "家政婦", "ハウスキーピング"],
-      strong_points: "家事代行・お手伝いさん・家政婦・ハウスキーピングの依頼なら『クラセラ』",
+      columns_index_description: "クラセラの家事代行、シッター、高齢者の生活補助に関する解説記事一覧。依頼の流れ、料金の考え方、活用事例をまとめています。",
+      keywords: ["家事代行", "ハウスキーピング", "お手伝いさん", "ベビーシッター", "キッズシッター", "英語シッター", "高齢者補助"],
+      strong_points: "家事代行・シッター・高齢者の生活補助（介護領域外）の依頼なら『クラセラ』",
       sub_categories: {
-        basic_cleaning: {
+        kaji_daiko: {
           name: "家事代行",
-          name_en: "Housekeeping",
-          target: "日常的な家事負担を減らしたい個人・家庭",
-          description: "掃除・洗濯・片付け・買い物代行など、日常生活の家事全般をサポートする基本プラン。",
-          features: ["掃除対応", "洗濯対応", "片付け", "買い物代行", "柔軟な時間設定"],
-          keywords: ["家事代行", "掃除代行", "家政婦サービス"],
+          name_en: "Household chore service",
+          target: "掃除・洗濯・片付け・買い物など、家事を時間単位で外注したい個人・家庭",
+          description: "家庭に入って家事を代行する。ハウスキーピング・お手伝いさんと呼ばれる依頼も含む。",
+          features: ["掃除", "洗濯", "片付け", "買い物代行", "柔軟な時間設定"],
+          keywords: ["家事代行", "ハウスキーピング", "お手伝いさん", "家政婦"],
           price_hint: "1時間3000円〜",
           area: "全国対応",
-          strengths: "利用者の生活スタイルに合わせて柔軟に対応できる点が強みです。"
+          strengths: "必要な家事だけを、家庭のやり方に合わせて依頼できる。"
+        },
+        babysitter: {
+          name: "ベビーシッター",
+          name_en: "Babysitter",
+          target: "乳幼児の見守りを家庭で任せたい保護者",
+          description: "乳幼児の世話と見守り。保育園の代替ではなく、指定場所での預かり。",
+          features: ["乳幼児の見守り", "食事・おむつなどの日常世話", "保護者の外出中対応"],
+          keywords: ["ベビーシッター", "乳児 預かり"],
+          price_hint: "1時間3000円〜",
+          area: "全国対応",
+          strengths: "家庭のリズムに合わせて、短時間から預かりを依頼できる。"
+        },
+        kids_sitter: {
+          name: "キッズシッター",
+          name_en: "Kids sitter",
+          target: "小学生前後の送迎・宿題・遊びの見守りを任せたい家庭",
+          description: "自分で動ける子どもの見守り。放課後や習い事の前後に使う。",
+          features: ["放課後の見守り", "宿題の付き添い", "習い事の送迎サポート"],
+          keywords: ["キッズシッター", "小学生 シッター"],
+          price_hint: "1時間3000円〜",
+          area: "全国対応",
+          strengths: "放課後の空白時間を、決まった人に任せられる。"
+        },
+        english_sitter: {
+          name: "英語シッター",
+          name_en: "English-speaking sitter",
+          target: "英語環境での見守りや遊びを任せたい家庭",
+          description: "英語で子どもと過ごすシッター。家庭内の見守り・遊びが中心。",
+          features: ["英語でのコミュニケーション", "遊び・見守り", "家庭への訪問"],
+          keywords: ["英語シッター", "バイリンガルシッター"],
+          price_hint: "1時間3000円〜",
+          area: "全国対応",
+          strengths: "見守りと、暮らしの中で英語に触れる時間をセットにできる。"
+        },
+        senior_assist: {
+          name: "高齢者補助",
+          name_en: "Senior living support (non-care)",
+          target: "介護保険ではない、生活の手伝いを求める本人・家族",
+          description: "買い物同行、話し相手、軽い家事、通院の付き添い。入浴介助・医療行為・訪問介護は対象外。",
+          features: ["買い物同行", "話し相手", "軽い家事", "通院の付き添い"],
+          keywords: ["高齢者補助", "高齢者 生活支援"],
+          price_hint: "1時間3000円〜",
+          area: "全国対応",
+          strengths: "介護の枠に入らない暮らしの手伝いとして依頼できる。",
+          industry_weakness: "介護・医療行為は行わない。要介護や医療が主目的の依頼は専門機関へつなぐ。"
         }
       }
     },
@@ -438,8 +483,11 @@ module GenreRegistry
     emergency_cleaning: :cleaning
   }.freeze
 
-  # 旧中分類 → 推奨5分類（清掃）
+  # 旧中分類 → 現行キー
   SUB_CATEGORY_ALIASES = {
+    housekeeping: {
+      basic_cleaning: :kaji_daiko
+    },
     cleaning: {
       office: :daily_standard,
       school: :daily_standard,

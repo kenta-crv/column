@@ -62,7 +62,7 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
       title: "Generation JA genre",
       code: "sm-genja-#{token}"
     )
-    generation_ja_column.update_column(:genre, generation_ja.presence || "AI記事生成")
+    generation_ja_column.update_column(:genre, generation_ja.presence || "自社記事")
 
     ids = CrawlPolicy.crawlable_columns.pluck(:id)
     assert_includes ids, included.id

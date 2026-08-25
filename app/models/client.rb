@@ -344,9 +344,9 @@ class Client < ApplicationRecord
 
   def build_usage_summary
     limits = plan_limits
-    pillar_used = pillar_slots_used
-    child_used = child_slots_used
-    reconcile_article_creation_usage_if_drifted!(actual_pillar: pillar_used, actual_child: child_used)
+    log = current_usage_log
+    pillar_used = log.pillar_created_count
+    child_used = log.child_created_count
 
     {
       pillar: { used: pillar_used, limit: limits[:pillar_articles] },

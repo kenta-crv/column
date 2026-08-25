@@ -191,12 +191,12 @@ class ColumnServiceCta
       enabled: true,
       theme: "kurasera",
       badge: "クラセラ",
-      title: "家事代行・ハウスクリーニングはクラセラ",
+      title: "家事代行はクラセラ",
       lead: "掃除・洗濯・片付けなど、暮らしの家事負担をプロがサポートします。",
       cta_label: "クラセラのサービスを見る",
       path: "/",
       en: {
-        title: "Housekeeping and home cleaning with Kurasera",
+        title: "Housekeeping with Kurasera",
         lead: "Pros handle cleaning, laundry, and tidying so everyday chores take less of your time.",
         cta_label: "See Kurasera"
       }

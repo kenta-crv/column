@@ -70,23 +70,17 @@ class Column < ApplicationRecord
     Rails.logger.warn "[Column #{id}] repair_image_filename_from_disk! failed: #{e.message}"
     false
   end
-  # TRIMは全文スキャンが重くなるため、空判定は IS NULL / octet_length に統一。
-  # ジョブ失敗時に例外文が body に残っている記事は「未生成」として扱う。
-  GENERATION_FAILURE_BODY_SQL = [
-    "body LIKE '❌ 失敗:%'",
-    "body LIKE '%RuntimeError%'",
-    "body LIKE '%本文生成に失敗%'",
-    "body LIKE '%本文の生成に失敗%'",
-    "body LIKE '%generation failed%'",
-    "body LIKE '%生成エラーにより%'"
-  ].join(" OR ").freeze
+  # 一覧・COUNT では body を LIKE しない（全文スキャンになる）。
+  # 生成失敗は status / generation_status で判定する（ジョブが両方を更新する）。
+  GENERATION_FAILURE_STATUS_SQL = "(status = 'error' OR generation_status = 'failed')".freeze
+  GENERATION_FAILURE_BODY_SQL = GENERATION_FAILURE_STATUS_SQL
 
   def self.blank_or_failed_body_sql
     <<~SQL.squish
       body IS NULL
       OR octet_length(body) = 0
-      OR length(trim(body)) = 0
-      OR #{GENERATION_FAILURE_BODY_SQL}
+      OR CASE WHEN octet_length(body) < 32 THEN length(trim(body)) = 0 ELSE FALSE END
+      OR #{GENERATION_FAILURE_STATUS_SQL}
     SQL
   end
 
@@ -94,8 +88,8 @@ class Column < ApplicationRecord
     <<~SQL.squish
       body IS NOT NULL
       AND octet_length(body) > 0
-      AND length(trim(body)) > 0
-      AND NOT (#{GENERATION_FAILURE_BODY_SQL})
+      AND CASE WHEN octet_length(body) >= 32 THEN TRUE ELSE length(trim(body)) > 0 END
+      AND NOT (#{GENERATION_FAILURE_STATUS_SQL})
     SQL
   end
 

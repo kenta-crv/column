@@ -9,7 +9,7 @@ end
 
 upsert_service_genre!(
   key: "ai_article_generation",
-  ja: "AI記事生成",
+  ja: "自社記事",
   service_name: "Drafify",
   strong_points: <<~TEXT.strip,
     最新AIがGoogleの検索志向を分析し、SEOに強く読者の心に響く高品質な記事を自動生成。
@@ -24,7 +24,7 @@ upsert_service_genre!(
   images: [],
   sub_categories: {
     "seo_generation" => {
-      "name" => "AI記事生成",
+      "name" => "自社記事",
       "target" => "オウンドメディアの流入を増やし、コンテンツ資産化を進めたい企業・個人",
       "description" => "AIが検索需要を捉えたテーマを提案し、ピラー記事（親）とクラスター記事（子）を自動設計・生成。約6,000〜8,000字の高品質記事を平均40秒で生成し、SEOスコアで品質を可視化します。",
       "features" => [

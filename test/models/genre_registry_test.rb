@@ -111,6 +111,17 @@ class GenreRegistryTest < ActiveSupport::TestCase
                  GenreRegistry.sub_category_label("cleaning", "daily_standard", locale: :ja)
   end
 
+  test "housekeeping has five Kurasera subcategories and aliases basic_cleaning" do
+    keys = GenreRegistry::FALLBACK_GENRES.dig(:housekeeping, :sub_categories).keys
+    assert_equal %i[kaji_daiko babysitter kids_sitter english_sitter senior_assist], keys
+    assert_equal "kaji_daiko",
+                 GenreRegistry.canonical_sub_category_key("housekeeping", "basic_cleaning")
+
+    column = Column.new(genre: "housekeeping", sub_genre: "basic_cleaning", title: "家事代行の基本")
+    assert_equal "kaji_daiko",
+                 GenreRegistry.resolve_sub_category_key(column, "housekeeping")
+  end
+
   test "cleaning has five subcategories and maps old facility keys" do
     keys = GenreRegistry::FALLBACK_GENRES.dig(:cleaning, :sub_categories).keys
     assert_equal %i[daily_standard apartment periodic turnover special], keys
