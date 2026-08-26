@@ -32,7 +32,7 @@ class Clients::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       new_account = @client.previously_new_record?
       @client.initialize_trial_subscription! if @client.respond_to?(:initialize_trial_subscription!)
       sign_in @client, event: :authentication
-      adopt_request_locale!(@client, locale: locale)
+      apply_saved_ui_locale!(@client)
       session.delete(:omniauth_locale)
       mark_yahoo_trial_conversion! if new_account
       set_flash_message(:notice, :success, kind: kind) if is_navigational_format?

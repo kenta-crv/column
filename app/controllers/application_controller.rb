@@ -118,6 +118,15 @@ class ApplicationController < ActionController::Base
     I18n.locale = value.to_sym
   end
 
+  def apply_saved_ui_locale!(client)
+    return unless client.respond_to?(:preferred_locale)
+
+    value = client.preferred_locale.to_s
+    value = "ja" unless Client::LOCALES.include?(value)
+    persist_ui_locale!(value)
+    I18n.locale = value.to_sym
+  end
+
   # ユーザーが選んでいるUI言語（パス強制の影響を受けない）
   def preferred_ui_locale
     if client_signed_in? && current_client.preferred_locale.present?
@@ -693,7 +702,7 @@ class ApplicationController < ActionController::Base
   def unauthenticated_session_path
     if request.path.start_with?("/admins")
       new_admin_session_path
-    elsif I18n.locale.to_s == "en"
+    elsif auth_url_locale == "en"
       new_client_session_en_path(locale: :en)
     else
       new_client_session_path

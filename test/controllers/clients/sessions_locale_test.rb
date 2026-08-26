@@ -12,7 +12,7 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "japanese login page keeps dashboard in japanese even if account preferred_locale is en" do
+  test "japanese login page does not overwrite account preferred_locale" do
     client = create_client!(preferred_locale: "en")
 
     get new_client_session_path
@@ -20,24 +20,24 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
 
     post client_session_path, params: { client: { email: client.email, password: "password123" } }
     assert_redirected_to dashboard_root_path
-    assert_equal "ja", client.reload.preferred_locale
-
-    follow_redirect!
-    assert_response :success
-    assert_includes response.body, "親記事の作成開始"
-    refute_includes response.body, "Create pillar article"
-  end
-
-  test "english login page keeps dashboard in english even if account preferred_locale is ja" do
-    client = create_client!(preferred_locale: "ja")
-
-    post client_session_en_path(locale: :en), params: { client: { email: client.email, password: "password123" } }
-    assert_redirected_to dashboard_root_path
     assert_equal "en", client.reload.preferred_locale
 
     follow_redirect!
     assert_response :success
     assert_includes response.body, "Create pillar article"
     refute_includes response.body, "親記事の作成開始"
+  end
+
+  test "english login page does not overwrite account preferred_locale" do
+    client = create_client!(preferred_locale: "ja")
+
+    post client_session_en_path(locale: :en), params: { client: { email: client.email, password: "password123" } }
+    assert_redirected_to dashboard_root_path
+    assert_equal "ja", client.reload.preferred_locale
+
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, "親記事の作成開始"
+    refute_includes response.body, "Create pillar article"
   end
 end
