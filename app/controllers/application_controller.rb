@@ -260,7 +260,7 @@ class ApplicationController < ActionController::Base
     return 0 unless admin_signed_in? || client_signed_in?
     return @missing_image_columns_count if defined?(@missing_image_columns_count) && !@missing_image_columns_count.nil?
 
-    @missing_image_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("missing_image_v5"), expires_in: 45.seconds) do
+    @missing_image_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("missing_image_v6"), expires_in: 45.seconds) do
       dashboard_columns_base_scope.merge(Column.pending_review_missing_image).count
     end
   end

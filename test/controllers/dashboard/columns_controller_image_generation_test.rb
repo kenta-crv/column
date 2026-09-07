@@ -105,6 +105,25 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     end
   end
 
+  test "image generation lists published cargo article without image even when generation failed" do
+    Column.create!(
+      title: "荷主向け軽貨物の外注比較ガイド",
+      article_type: "pillar",
+      genre: "cargo",
+      status: "error",
+      generation_status: "failed",
+      body: "軽貨物のアウトソーシング比較本文です。" * 3,
+      file: nil,
+      published_at: Time.current,
+      code: "shipper-light-cargo-outsourcing-comparison-guide"
+    )
+
+    get image_generation_dashboard_columns_path(per: 100)
+    assert_response :success
+    assert_select "a", text: "荷主向け軽貨物の外注比較ガイド"
+    assert_match %r{/ #{@missing_total + 1}件を表示}, response.body
+  end
+
   test "image generation list includes published articles and excludes drafts without body" do
     get image_generation_dashboard_columns_path(per: 100)
     assert_response :success

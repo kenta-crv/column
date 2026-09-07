@@ -86,18 +86,25 @@ class Column < ApplicationRecord
     SQL
   end
 
-  def self.usable_body_sql
+  def self.has_article_body_sql
     <<~SQL.squish
       body IS NOT NULL
       AND octet_length(body) > 0
       AND CASE WHEN octet_length(body) >= 32 THEN TRUE ELSE length(trim(body)) > 0 END
-      AND NOT (#{GENERATION_FAILURE_STATUS_SQL})
     SQL
   end
 
   def self.without_generated_image_sql
+    # LIKE の _ は1文字ワイルドカード。ESCAPE '\' は PostgreSQL で壊れうるため使わない。
     <<~SQL.squish
-      file IS NULL OR file = '' OR file NOT LIKE 'column\\_%' ESCAPE '\\'
+      file IS NULL OR file = '' OR substr(file, 1, 7) <> 'column_'
+    SQL
+  end
+
+  def self.usable_body_sql
+    <<~SQL.squish
+      #{has_article_body_sql}
+      AND NOT (#{GENERATION_FAILURE_STATUS_SQL})
     SQL
   end
 
@@ -111,9 +118,9 @@ class Column < ApplicationRecord
   }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
   # 画像一括生成・サイドバーバッジ用。本文がある記事のうち、Flux画像がないもの。
-  # 公開済み・ストック画像・壊れた参照も含める。本文なし下書きは含めない。
+  # 公開済み・失敗ステータス・ストック画像・壊れた参照も含める。本文なし下書きは含めない。
   scope :pending_review_missing_image, -> {
-    with_generated_body.merge(without_generated_image)
+    where(has_article_body_sql).merge(without_generated_image)
   }
 
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する

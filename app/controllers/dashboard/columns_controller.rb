@@ -125,7 +125,7 @@ class Dashboard::ColumnsController < ApplicationController
 
   # サイドバーバッジ用。レイアウト同期COUNTを避け、描画後に取得する
   def sidebar_badges
-    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v5"), expires_in: 2.minutes) do
+    counts = Rails.cache.fetch(sidebar_column_count_cache_key("badges_v6"), expires_in: 2.minutes) do
       compute_sidebar_badge_counts
     end
 
@@ -135,7 +135,7 @@ class Dashboard::ColumnsController < ApplicationController
   
   def image_generation
     base_scope = dashboard_columns_base_scope
-    Column.reconcile_broken_image_file_refs!(base_scope.merge(Column.with_generated_body))
+    Column.reconcile_broken_image_file_refs!(base_scope.where(Column.has_article_body_sql))
 
     scope = image_generation_target_scope(base_scope).order(updated_at: :desc)
     @missing_image_total = scope.count
@@ -152,7 +152,7 @@ class Dashboard::ColumnsController < ApplicationController
     run_all = ActiveModel::Type::Boolean.new.cast(params[:run_all])
 
     if run_all
-      Column.reconcile_broken_image_file_refs!(base_scope.merge(Column.with_generated_body))
+      Column.reconcile_broken_image_file_refs!(base_scope.where(Column.has_article_body_sql))
       target_scope = image_generation_target_scope(base_scope)
       target_ids = target_scope.order(updated_at: :desc).pluck(:id)
     else
@@ -491,7 +491,7 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   def assign_dashboard_tab_counts(scope)
-    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v5")
+    cache_key = sidebar_column_count_cache_key("dashboard_tabs_v6")
     counts = Rails.cache.fetch(cache_key, expires_in: 90.seconds) do
       compute_dashboard_tab_counts(scope)
     end
@@ -522,7 +522,7 @@ class Dashboard::ColumnsController < ApplicationController
         Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL)"),
         Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NOT NULL AND (status IS NULL OR status <> 'error'))"),
         Arel.sql("COUNT(*) FILTER (WHERE #{failed})"),
-        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND (#{Column.without_generated_image_sql}))")
+        Arel.sql("COUNT(*) FILTER (WHERE (#{Column.has_article_body_sql}) AND (#{Column.without_generated_image_sql}))")
       ) || Array.new(8, 0)
     else
       [
@@ -572,7 +572,7 @@ class Dashboard::ColumnsController < ApplicationController
       usable = Column.usable_body_sql
       pending_review, missing_image = scope.pick(
         Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND published_at IS NULL)"),
-        Arel.sql("COUNT(*) FILTER (WHERE (#{usable}) AND (#{Column.without_generated_image_sql}))")
+        Arel.sql("COUNT(*) FILTER (WHERE (#{Column.has_article_body_sql}) AND (#{Column.without_generated_image_sql}))")
       ) || [0, 0]
 
       {
