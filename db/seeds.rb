@@ -10,7 +10,7 @@ end
 upsert_service_genre!(
   key: "ai_article_generation",
   ja: "自社記事",
-  service_name: "Drafify",
+  service_name: "Drafity",
   strong_points: <<~TEXT.strip,
     最新AIがGoogleの検索志向を分析し、SEOに強く読者の心に響く高品質な記事を自動生成。
     ピラー・クラスター構造（親記事＋子記事）の設計から、E-E-A-T対応の本文・画像生成、SEOスコア査定、CMS/API連携まで一貫対応。
@@ -40,7 +40,7 @@ upsert_service_genre!(
       "price_hint" => Subscription.own_media_price_hint,
       "area" => "全国対応",
       "strengths" => "単なる記事生成ではなく、Google上位表示に適したピラー・クラスター構造の設計から生成・査定まで一貫対応。EnterpriseプランではAIエージェントが自律的に親子記事を量産し、進捗をメール・SMS通知。",
-      "industry_weakness" => "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafifyはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
+      "industry_weakness" => "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafityはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
     },
     "enterprise_agent" => {
       "name" => "自律型AIエージェント",
@@ -92,7 +92,7 @@ upsert_service_genre!(
         "離脱ポイント・関心部分の可視化"
       ],
       "keywords" => ["AI商談", "AI商談代行", "24時間商談", "AIアバター", "即時商談"],
-      "price_hint" => "フリー ¥0 / ライト ¥30,000 / スタンダード ¥70,000 / プロ ¥150,000 / エンタープライズ カスタム（各月額）",
+      "price_hint" => Subscription.meetia_price_hint,
       "area" => "全国対応",
       "strengths" => "資料アップロードのみで即運用開始。深夜・休日のアクセスも取りこぼさず、熱量が最も高い瞬間に質の高い商談を開始。商談対応の属人化と時間制約を排除。",
       "industry_weakness" => "従来の営業は担当者依存で対応品質・速度にばらつきがあり、資料請求後の架電タイムラグで競合に流れるケースが多い。Meetiaは即時商談で機会損失を構造的に解消。"
@@ -109,7 +109,7 @@ upsert_service_genre!(
         "お礼メール・定期アプローチの自動化"
       ],
       "keywords" => ["自動追客", "フォローアップ", "AI営業", "商談後フォロー", "リードナーチャリング"],
-      "price_hint" => "プロ ¥150,000/月 / エンタープライズ カスタム（自動追客・シナリオ完全自由）",
+      "price_hint" => Subscription.meetia_followup_price_hint,
       "area" => "全国対応",
       "strengths" => "商談から追客までAIが一気通貫で代行。月曜朝には見込み度でセグメントされた商談結果とネクストアクションがCRMに並ぶ状態を実現。",
       "industry_weakness" => "商談後のフォローは人手依存になりがちで取りこぼしが発生するが、AIが検討時期に合わせた最適タイミングで自動追客。"

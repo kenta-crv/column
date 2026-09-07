@@ -269,7 +269,7 @@ module GenreRegistry
           description: "AIや自動化ツールを駆使し、ターゲット企業の問い合わせフォームへ直接アプローチする営業サービス。手動送信とAI自動送信を組み合わせ、高い開封率と返信率を実現します。",
           features: ["AI自動送信ツール活用", "手動アプローチ併用", "送信リスト制作代行", "開封率・返信率最適化", "低コスト大量アプローチ"],
           keywords: ["問い合わせフォーム営業", "フォーム営業自動化", "フォーム営業代行", "リスト制作"],
-          price_hint: "要お見積り",
+          price_hint: Subscription.okurite_price_hint,
           area: "全国対応",
           strengths: "AIを活用した大量アプローチと、プロのノウハウによる返信率の高い文章設計で、ローコストながら質の高い商談を量産します。",
           industry_weakness: "一般的なフォーム営業は「スパム扱いされやすい」「返信が来ない」のが課題ですが、ターゲット選定の最適化と文面検証により、質の高いリードを獲得します。"
@@ -325,7 +325,7 @@ module GenreRegistry
           description: "営業資料・FAQをアップロードするだけでAIが内容を深く読解。Web上のアバターを介して24時間365日、待機時間ゼロで双方向のヒアリングと提案を自動実行。BANT情報を抽出しCRMへ連携。",
           features: ["資料・FAQの自動解析", "商談スクリプトの自動構成・音声化", "24時間365日即時AI商談", "ユーザー情報・BANT情報の自動抽出", "商談結果の即時レポート", "見込み度（A〜Dランク）の自動判定", "離脱ポイント・関心部分の可視化"],
           keywords: ["AI商談", "AI商談代行", "24時間商談", "AIアバター", "即時商談"],
-          price_hint: "フリー ¥0 / ライト ¥30,000 / スタンダード ¥70,000 / プロ ¥150,000 / エンタープライズ カスタム（各月額）",
+          price_hint: Subscription.meetia_price_hint,
           area: "全国対応",
           strengths: "資料アップロードのみで即運用開始。深夜・休日のアクセスも取りこぼさず、熱量が最も高い瞬間に質の高い商談を開始。",
           industry_weakness: "従来の営業は担当者依存で対応品質・速度にばらつきがあり、資料請求後の架電タイムラグで競合に流れるケースが多い。Meetiaは即時商談で機会損失を構造的に解消。"
@@ -337,7 +337,7 @@ module GenreRegistry
           description: "AI商談中に導入検討時期や社内調整タイミングを自然な会話でヒアリング。回答時期をトリガーに、最適な追客コンテンツを自動配信。",
           features: ["導入時期に合わせた自動フォロー", "商談ステータス管理", "見込み度に基づく追客シナリオ", "CRM/Slack連携", "お礼メール・定期アプローチの自動化"],
           keywords: ["自動追客", "フォローアップ", "AI営業", "商談後フォロー"],
-          price_hint: "プロ ¥150,000/月 / エンタープライズ カスタム（自動追客・シナリオ完全自由）",
+          price_hint: Subscription.meetia_followup_price_hint,
           area: "全国対応",
           strengths: "商談から追客までAIが一気通貫で代行。月曜朝には見込み度でセグメントされた商談結果がCRMに並ぶ。",
           industry_weakness: "商談後のフォローは人手依存になりがちで取りこぼしが発生するが、AIが検討時期に合わせた最適タイミングで自動追客。"
@@ -386,8 +386,8 @@ module GenreRegistry
       ja: "自社記事",
       en: "Company articles",
       host: ["drafity.pro"],
-      service_name: "Drafify",
-      columns_index_description: "DrafifyのAI記事生成・SEOコンテンツに関する解説記事一覧。ピラー／クラスター設計、運用、品質の見方をまとめています。",
+      service_name: "Drafity",
+      columns_index_description: "DrafityのAI記事生成・SEOコンテンツに関する解説記事一覧。ピラー／クラスター設計、運用、品質の見方をまとめています。",
       strong_points: "最新AIがGoogleの検索志向を分析し、SEOに強く読者の心に響く高品質な記事を自動生成。ピラー・クラスター構造の設計から、E-E-A-T対応の本文・画像生成、SEOスコア査定、CMS/API連携まで一貫対応。",
       keywords: ["AI記事生成", "SEO記事", "ピラー記事", "クラスター記事", "コンテンツSEO", "E-E-A-T", "コンテンツ資産化"],
       sub_categories: {
@@ -401,7 +401,7 @@ module GenreRegistry
           price_hint: Subscription.own_media_price_hint,
           area: "全国対応",
           strengths: "単なる記事生成ではなく、Google上位表示に適したピラー・クラスター構造の設計から生成・査定まで一貫対応。",
-          industry_weakness: "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafifyはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
+          industry_weakness: "一般的なAIライティングツールは単発記事の量産に留まりSEO構造設計が弱いが、Drafityはトピッククラスターモデルに基づき検索流入を最大化する設計まで対応。"
         },
         enterprise_agent: {
           name: "自律型AIエージェント",
@@ -443,7 +443,7 @@ module GenreRegistry
             "コンテンツ資産化支援"
           ],
           keywords: ["AI記事", "AI記事生成", "SEO記事", "コンテンツ資産化", "高品質記事"],
-          price_hint: "要お見積り",
+          price_hint: Subscription.own_media_price_hint,
           area: "全国対応",
           strengths: "単なる記事生成ではなく、SEO構造（トピッククラスターモデル）に基づき、検索流入を最大化する設計まで一貫して対応可能です。"
         }
@@ -468,7 +468,7 @@ module GenreRegistry
           description: "求職者が好きな時間にAI面接を受診。質問・深掘り・評価までを自動化し、採用担当は結果確認と最終判断に集中できる。",
           features: ["24時間面接受付", "質問・深掘りの自動化", "評価結果の可視化", "応募〜面接リードタイム短縮"],
           keywords: ["AI面接", "面接代行", "採用スクリーニング", "24時間面接"],
-          price_hint: "要お見積り",
+          price_hint: Subscription.recrivo_price_hint,
           area: "全国対応",
           strengths: "面接枠の調整や一次面接の工数を大幅に削減し、採用スピードと候補者体験を両立。",
           industry_weakness: "従来の面接は日程調整と一次対応の負荷が大きく取りこぼしが起きやすいが、AI面接で常時受付と初期評価を自動化できる。"

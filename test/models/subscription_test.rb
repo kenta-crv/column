@@ -62,6 +62,12 @@ class SubscriptionTest < ActiveSupport::TestCase
     refute_includes Subscription.own_media_price_hint, "¥39,800"
     assert_includes Subscription.enterprise_agent_price_hint, "¥198,000"
     refute_includes Subscription.enterprise_agent_price_hint, "¥148,000"
+    assert_includes Subscription.meetia_price_hint, "¥59,800"
+    refute_includes Subscription.meetia_price_hint, "¥30,000"
+    assert_includes Subscription.meetia_followup_price_hint, "¥98,000"
+    assert_includes Subscription.recrivo_price_hint, "¥59,800"
+    assert_includes Subscription.okurite_price_hint, "¥49,800"
+    assert_includes Subscription.okurite_price_hint, "¥98,000"
 
     I18n.with_locale(:ja) do
       trial_features = Subscription.feature_list_for(:trial)

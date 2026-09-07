@@ -238,16 +238,51 @@ class Subscription < ApplicationRecord
       when :usd
         "#{BillingCurrency.symbol(currency)}#{amount}"
       else
-        "¥#{amount.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+        format_jpy_amount(amount)
       end
     end
 
+    def format_jpy_amount(amount)
+      "¥#{amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+    end
+
+    def intro_off_note
+      "スタンダード初回#{STANDARD_INTRO_MONTHS}ヶ月#{STANDARD_INTRO_PERCENT_OFF}%OFF"
+    end
+
     def own_media_price_hint
-      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_price(:standard)} / ビジネス #{format_price(:business)} / エンタープライズ #{format_price(:enterprise)}（各月額・スタンダード初回#{STANDARD_INTRO_MONTHS}ヶ月#{STANDARD_INTRO_PERCENT_OFF}%OFF）"
+      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_price(:standard)} / ビジネス #{format_price(:business)} / エンタープライズ #{format_price(:enterprise)}（各月額・#{intro_off_note}）"
     end
 
     def enterprise_agent_price_hint
       "エンタープライズ #{format_price(:enterprise)}/月（AIエージェント完全自動運用・カスタム機能は個別応相談）"
+    end
+
+    # 姉妹サービスの公開カタログ（各リポジトリの Subscription と同期すること）
+    SISTER_CATALOG_JPY = {
+      meetia: { standard: 59_800, business: 98_000, enterprise: 198_000 },
+      recrivo: { standard: 59_800, business: 98_000, enterprise: 198_000 },
+      okurite: { standard: 49_800, enterprise: 98_000 }
+    }.freeze
+
+    def meetia_price_hint
+      c = SISTER_CATALOG_JPY[:meetia]
+      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_jpy_amount(c[:standard])} / ビジネス #{format_jpy_amount(c[:business])} / エンタープライズ #{format_jpy_amount(c[:enterprise])}（各月額・#{intro_off_note}）"
+    end
+
+    def meetia_followup_price_hint
+      c = SISTER_CATALOG_JPY[:meetia]
+      "ビジネス #{format_jpy_amount(c[:business])}/月〜 / エンタープライズ #{format_jpy_amount(c[:enterprise])}/月（見込み追客はビジネス以上）"
+    end
+
+    def recrivo_price_hint
+      c = SISTER_CATALOG_JPY[:recrivo]
+      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_jpy_amount(c[:standard])} / ビジネス #{format_jpy_amount(c[:business])} / エンタープライズ #{format_jpy_amount(c[:enterprise])}（各月額・#{intro_off_note}）"
+    end
+
+    def okurite_price_hint
+      c = SISTER_CATALOG_JPY[:okurite]
+      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_jpy_amount(c[:standard])} / エンタープライズ #{format_jpy_amount(c[:enterprise])}（各月額・#{intro_off_note}）"
     end
 
     def lp_plans(currency: :jpy)
