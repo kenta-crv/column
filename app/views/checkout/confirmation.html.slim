@@ -28,7 +28,7 @@ ruby:
         .checkout-confirmation__notice
           strong = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "初回%{months}ヶ月 %{percent}% OFF")
           span.checkout-confirmation__notice-sub
-            = t("drafity.auth.intro_discount_note", default: "スタンダードプランの最初の3ヶ月間、月額料金が15%割引になります。")
+            = t("drafity.auth.intro_discount_note", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "スタンダードプランの最初の%{months}ヶ月間、月額料金が%{percent}%割引になります。")
 
       .checkout-confirmation__details
         .checkout-confirmation__detail
