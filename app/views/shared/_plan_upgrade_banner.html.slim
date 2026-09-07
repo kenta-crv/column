@@ -13,7 +13,7 @@
   .plan-upgrade-banner.plan-upgrade-banner--expired role="status"
     .plan-upgrade-banner__body
       strong = t("drafity.dashboard.banner.trial_ended_title")
-      span = t("drafity.dashboard.banner.trial_ended_body", price: standard_price)
+      span = t("drafity.dashboard.banner.trial_ended_body", price: standard_price, months: Subscription::STANDARD_INTRO_MONTHS, percent: Subscription::STANDARD_INTRO_PERCENT_OFF)
     = link_to t("drafity.dashboard.banner.view_plans"), plans_path, class: "plan-upgrade-banner__cta"
 - elsif show_trial
   .plan-upgrade-banner.plan-upgrade-banner--trial role="status"

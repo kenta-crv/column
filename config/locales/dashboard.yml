@@ -669,7 +669,7 @@ ja:
         ph_company: 株式会社〇〇〇〇
       banner:
         trial_ended_title: トライアルが終了しました
-        trial_ended_body: 閲覧は継続できます。本格運用はスタンダード（%{price}/月・初回3ヶ月15%OFF）へ。
+        trial_ended_body: 閲覧は継続できます。本格運用はスタンダード（%{price}/月・初回%{months}ヶ月%{percent}%OFF）へ。
         view_plans: プランを見る
         trialing_title: 無料トライアル利用中
         trial_ends: '終了日: %{date} ／'
@@ -1370,7 +1370,7 @@ en:
       banner:
         trial_ended_title: Your trial has ended
         trial_ended_body: You can still browse. For full use, upgrade to Standard
-          (%{price}/mo · 15% off first 3 months).
+          (%{price}/mo · %{percent}% off first %{months} months).
         view_plans: View plans
         trialing_title: Free trial active
         trial_ends: 'Ends: %{date} / '

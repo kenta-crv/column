@@ -58,6 +58,11 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal 3, Subscription.limits_for(:business)[:title_suggestion_max_per_use]
     assert_equal 3, Subscription.limits_for(:enterprise)[:title_suggestion_max_per_use]
 
+    assert_includes Subscription.own_media_price_hint, "¥49,800"
+    refute_includes Subscription.own_media_price_hint, "¥39,800"
+    assert_includes Subscription.enterprise_agent_price_hint, "¥198,000"
+    refute_includes Subscription.enterprise_agent_price_hint, "¥148,000"
+
     I18n.with_locale(:ja) do
       trial_features = Subscription.feature_list_for(:trial)
       assert trial_features.any? { |line| line.include?("AIタイトル提案 3回") && line.include?("1回あたり最大1件") }
