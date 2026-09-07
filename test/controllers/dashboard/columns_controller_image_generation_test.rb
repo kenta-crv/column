@@ -105,10 +105,10 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     end
   end
 
-  test "image generation list excludes drafts and published articles" do
+  test "image generation list includes published articles and excludes drafts without body" do
     get image_generation_dashboard_columns_path(per: 100)
     assert_response :success
-    assert_select "a", text: "Published without image", count: 0
+    assert_select "a", text: "Published without image"
     assert_select "a", text: "Draft without image", count: 0
     assert_match %r{/ #{@missing_total}件を表示}, response.body
   end
@@ -147,12 +147,11 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     assert_nil broken.reload[:file]
   end
 
-  test "sidebar missing_image badge matches pending review without images" do
+  test "sidebar missing_image badge matches articles without generated images" do
     get sidebar_badges_dashboard_columns_path
     assert_response :success
 
     json = JSON.parse(response.body)
     assert_equal @missing_total, json["missing_image"]
-    assert json["pending_review"] >= json["missing_image"]
   end
 end

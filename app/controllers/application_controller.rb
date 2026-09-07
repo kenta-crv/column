@@ -255,12 +255,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # サイドバーの「画像一括生成」バッジ用。レビュー待ちかつ画像未設定の記事数。
+  # サイドバーの「画像一括生成」バッジ用。本文ありで画像未生成の記事数。
   def missing_image_columns_count
     return 0 unless admin_signed_in? || client_signed_in?
     return @missing_image_columns_count if defined?(@missing_image_columns_count) && !@missing_image_columns_count.nil?
 
-    @missing_image_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("missing_image_v4"), expires_in: 45.seconds) do
+    @missing_image_columns_count = Rails.cache.fetch(sidebar_column_count_cache_key("missing_image_v5"), expires_in: 45.seconds) do
       dashboard_columns_base_scope.merge(Column.pending_review_missing_image).count
     end
   end

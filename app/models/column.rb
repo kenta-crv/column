@@ -110,10 +110,10 @@ class Column < ApplicationRecord
     published.merge(with_generated_body).where.not(status: "error")
   }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
-  # 画像一括生成・サイドバーバッジ用。下書き（本文なし）や公開済みは含めない。
-  # ストック画像や壊れた参照は「未生成」として含める。
+  # 画像一括生成・サイドバーバッジ用。本文がある記事のうち、Flux画像がないもの。
+  # 公開済み・ストック画像・壊れた参照も含める。本文なし下書きは含めない。
   scope :pending_review_missing_image, -> {
-    pending_review.merge(without_generated_image)
+    with_generated_body.merge(without_generated_image)
   }
 
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する
