@@ -37,6 +37,10 @@
                 span.subscription-info-label = t("drafity.dashboard.subscription.trial_ends")
                 span.subscription-info-value = l(trial_ends_at.to_date)
 
+          ul.subscription-feature-list
+            - Subscription.feature_list_for(current_plan_key).each do |feature|
+              li = feature
+
         .form-section style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;"
           h3.form-section-title = t("drafity.dashboard.subscription.change")
           p.subscription-note = t("drafity.dashboard.subscription.change_note")

@@ -661,7 +661,7 @@ class ColumnsController < ApplicationController
 
   def assign_column_form_genre_options
     registry = column_form_genre_registry
-    @column_form_genre_options = registry.map { |key, value| [GenreRegistry.label_for(key, locale: I18n.locale), key.to_s] }
+    @column_form_genre_options = genre_registry_select_options(registry)
     @column_form_sub_categories_json = localized_sub_categories_json(registry)
   end
 

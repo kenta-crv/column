@@ -4,7 +4,7 @@
       .service-genres-header-row
         div
           h1.api-settings-title = t("drafity.dashboard.genres.title")
-          p.api-settings-subtitle = t("drafity.dashboard.genres.subtitle")
+          p.api-settings-subtitle = t(acting_as_admin? ? "drafity.dashboard.genres.subtitle" : "drafity.dashboard.genres.subtitle_trial")
         = link_to t("drafity.dashboard.genres.new"), new_dashboard_service_genre_path, class: "btn btn-primary btn-sm"
 
     .api-settings-card
@@ -14,37 +14,50 @@
             table.management-table.service-genres-table
               thead
                 tr
-                  th = t("drafity.dashboard.labels.key")
-                  th = t("drafity.dashboard.labels.display_name")
-                  th = t("drafity.dashboard.labels.service_name")
                   - if acting_as_admin?
+                    th = t("drafity.dashboard.labels.key")
+                    th = t("drafity.dashboard.labels.display_name")
+                    th = t("drafity.dashboard.labels.service_name")
                     th = t("drafity.dashboard.labels.client")
-                  th = t("drafity.dashboard.labels.sub_count")
-                  th CTA
+                    th = t("drafity.dashboard.labels.sub_count")
+                    th CTA
+                  - else
+                    th = t("drafity.dashboard.genres.name_one")
+                    th = t("drafity.dashboard.genres.notice_col")
                   th = t("drafity.dashboard.labels.actions")
               tbody
                 - @service_genres.each do |genre|
                   tr
-                    td
-                      code.genre-key = genre.key
-                    td
-                      strong = genre.display_name
-                    td = genre.service_name.presence || "—"
                     - if acting_as_admin?
+                      td
+                        code.genre-key = genre.key
+                      td
+                        strong = genre.display_name
+                      td = genre.service_name.presence || "—"
                       td
                         - if genre.client_id.present?
                           span = genre.client&.email || "Client ##{genre.client_id}"
                         - else
                           span.empty-text = t("drafity.dashboard.common.system")
-                    td = t("drafity.dashboard.common.count_items", count: genre.sub_categories_count)
+                      td = t("drafity.dashboard.common.count_items", count: genre.sub_categories_count)
+                    - else
+                      td
+                        strong = genre.display_name
                     td
                       - cta_state = genre.column_cta_index_state
-                      - if cta_state[:enabled] && cta_state[:title_present]
-                        span.status-badge.status-active = t("drafity.dashboard.genres.cta_active")
+                      - if acting_as_admin?
+                        - if cta_state[:enabled] && cta_state[:title_present]
+                          span.status-badge.status-active = t("drafity.dashboard.genres.cta_active")
+                        - elsif cta_state[:enabled]
+                          span.status-badge.status-warning = t("drafity.dashboard.genres.cta_needed")
+                        - else
+                          span.status-badge.status-inactive = t("drafity.dashboard.genres.cta_off")
+                      - elsif cta_state[:enabled] && cta_state[:title_present]
+                        span.status-badge.status-active = t("drafity.dashboard.genres.notice_on")
                       - elsif cta_state[:enabled]
-                        span.status-badge.status-warning = t("drafity.dashboard.genres.cta_needed")
+                        span.status-badge.status-warning = t("drafity.dashboard.genres.notice_needed")
                       - else
-                        span.status-badge.status-inactive = t("drafity.dashboard.genres.cta_off")
+                        span.status-badge.status-inactive = t("drafity.dashboard.genres.notice_off")
                     td style="white-space: nowrap; width: 1%;"
                       .service-genres-actions
                         = link_to edit_dashboard_service_genre_path(genre), class: "icon-action-btn icon-action-btn--edit", title: t("drafity.dashboard.common.edit") do

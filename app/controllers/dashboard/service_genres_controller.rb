@@ -110,10 +110,6 @@ class Dashboard::ServiceGenresController < ApplicationController
       return render json: { success: false, error: current_client.plan_limit_message(:genre_suggestion) }, status: :unprocessable_entity
     end
 
-    if sub_category_not_allowed_error
-      return render json: { success: false, error: t("drafity.dashboard.flashes.plan_standard_required") }, status: :forbidden
-    end
-
     result = GenreQuickSetupService.call(
       service_name: params[:service_name],
       strong_points: params[:strong_points],
@@ -235,7 +231,7 @@ class Dashboard::ServiceGenresController < ApplicationController
 
   def service_genre_attributes
     permitted = params.require(:service_genre).permit(
-      :key, :ja, :service_name, :strong_points, :client_id,
+      :key, :ja, :en, :service_name, :strong_points, :client_id,
       :hosts_text, :keywords_text,
       sub_categories_items: [
         :key, :name, :target, :description,
@@ -255,6 +251,8 @@ class Dashboard::ServiceGenresController < ApplicationController
       keywords: split_list(permitted[:keywords_text]),
       sub_categories: sub_categories
     }
+    attrs[:en] = permitted[:en] if ServiceGenre.column_names.include?("en")
+    apply_client_genre_identity!(attrs) unless acting_as_admin?
     if ServiceGenre.column_names.include?("column_cta")
       attrs[:column_cta] = build_column_cta(params.dig(:service_genre, :column_cta))
     end
@@ -313,9 +311,14 @@ class Dashboard::ServiceGenresController < ApplicationController
                 true
               end
 
+    theme = data[:theme].to_s.strip.presence || "default"
+    unless acting_as_admin?
+      theme = ColumnServiceCta.client_color(theme)
+    end
+
     result = {
       "enabled" => enabled,
-      "theme" => data[:theme].to_s.strip.presence || "default",
+      "theme" => theme,
       "badge" => data[:badge].to_s.strip.presence,
       "title" => data[:title].to_s.strip.presence,
       "lead" => data[:lead].to_s.strip.presence,
@@ -350,7 +353,7 @@ class Dashboard::ServiceGenresController < ApplicationController
         next if values.values.all? { |v| v.to_s.strip.blank? }
 
         entry = {
-          "theme" => values[:theme].to_s.strip.presence,
+          "theme" => acting_as_admin? ? values[:theme].to_s.strip.presence : nil,
           "badge" => values[:badge].to_s.strip.presence,
           "title" => values[:title].to_s.strip.presence,
           "lead" => values[:lead].to_s.strip.presence,
@@ -362,7 +365,93 @@ class Dashboard::ServiceGenresController < ApplicationController
       end
     end
     result["by_sub_genre"] = by_sub if by_sub.present?
+
+    unless acting_as_admin?
+      stored = stored_column_cta_copy
+      result["theme"] = ColumnServiceCta.client_color(result["theme"])
+      result["path"] = stored["path"].presence || "/" if result["path"].blank? && result["url"].blank?
+      if I18n.locale.to_s.start_with?("en")
+        %w[title lead cta_label badge].each do |copy_key|
+          result[copy_key] = stored[copy_key]
+        end
+        result["en"] = result["en"].presence || stored["en"]
+      else
+        result["en"] = stored["en"] if result["en"].blank? && stored["en"].present?
+      end
+    end
+
     result
+  end
+
+  def apply_client_genre_identity!(attrs)
+    english = I18n.locale.to_s.start_with?("en")
+    existing_ja = @service_genre&.ja.to_s.strip.presence
+    existing_en = @service_genre.respond_to?(:en) ? @service_genre.en.to_s.strip.presence : nil
+    existing_service = @service_genre&.service_name.to_s.strip.presence
+    if english
+      name = attrs[:en].to_s.strip.presence || existing_en || existing_ja || existing_service
+      attrs[:en] = name if ServiceGenre.column_names.include?("en")
+      attrs[:ja] = existing_ja || name
+    else
+      name = attrs[:ja].to_s.strip.presence || existing_ja || existing_en || existing_service
+      attrs[:ja] = name
+      if ServiceGenre.column_names.include?("en")
+        attrs[:en] = attrs[:en].presence || existing_en
+      end
+    end
+    attrs[:service_name] = name.presence || existing_service
+    if @service_genre&.persisted? && @service_genre.key.present?
+      attrs[:key] = @service_genre.key
+    else
+      attrs[:key] = unique_client_genre_key(name)
+    end
+  end
+
+  def unique_client_genre_key(name)
+    base = name.to_s.parameterize(separator: "_").gsub(/[^a-z0-9_]/, "")
+    # parameterize は日本語など非ASCIIだと空になり、従来はキーが "genre" 固定だった。
+    # タイトル提案の選択肢が内部キーを出す経路と重なり、「Genre」しか見えない状態になる。
+    base = "svc#{Digest::SHA256.hexdigest(name.to_s)[0, 10]}" if base.blank?
+    base = base[0, 40]
+    candidate = base
+    suffix = 2
+    owner_id = current_client&.id
+    while ServiceGenre.where(client_id: owner_id, key: candidate).where.not(id: @service_genre&.id).exists? ||
+          unauthorized_genre_key?(candidate, except: @service_genre&.key)
+      candidate = "#{base}_#{suffix}"
+      suffix += 1
+    end
+    candidate
+  end
+
+  def stored_column_cta_copy
+    raw = @service_genre&.column_cta
+    return {} if raw.blank?
+
+    data = raw.respond_to?(:with_indifferent_access) ? raw.with_indifferent_access : {}
+    {
+      "title" => data[:title].to_s.strip.presence,
+      "lead" => data[:lead].to_s.strip.presence,
+      "cta_label" => data[:cta_label].to_s.strip.presence,
+      "badge" => data[:badge].to_s.strip.presence,
+      "path" => data[:path].to_s.strip.presence,
+      "en" => stored_column_cta_en
+    }.compact
+  end
+
+  def stored_column_cta_en
+    raw = @service_genre&.column_cta
+    return nil if raw.blank?
+
+    en = raw.with_indifferent_access[:en]
+    return nil unless en.is_a?(Hash)
+
+    {
+      "title" => en[:title].to_s.strip.presence,
+      "lead" => en[:lead].to_s.strip.presence,
+      "cta_label" => en[:cta_label].to_s.strip.presence,
+      "badge" => en[:badge].to_s.strip.presence
+    }.compact.presence
   end
 
   def build_sub_categories(items)

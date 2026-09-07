@@ -65,10 +65,22 @@ class ServiceGenre < ApplicationRecord
 
   def column_cta_for_form
     default = ColumnServiceCta.stringify_payload(ColumnServiceCta.default_payload_for(key) || {})
-    stored = has_attribute?(:column_cta) ? ColumnServiceCta.stringify_payload(self[:column_cta] || {}) : {}
+    stored = ColumnServiceCta.stringify_payload(column_cta_hash_value)
+    default = {} unless default.is_a?(Hash)
+    stored = {} unless stored.is_a?(Hash)
     merged = default.deep_merge(stored)
     merged["enabled"] = true unless merged.key?("enabled")
     merged.with_indifferent_access
+  end
+
+  def column_cta_hash_value
+    return {} unless has_attribute?(:column_cta)
+
+    raw = self[:column_cta]
+    return raw if raw.is_a?(Hash)
+    return {} if raw.blank?
+
+    raw.is_a?(String) ? (JSON.parse(raw) rescue {}) : {}
   end
 
   def default_columns_index_description

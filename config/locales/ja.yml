@@ -329,7 +329,7 @@ ja:
       features:
         pillar: "親記事 %{period}%{count}記事"
         child: "子記事 %{period}%{count}記事"
-        titles: "AIタイトル提案 %{count}回"
+        titles: "AIタイトル提案 %{count}回（1回あたり最大%{per}件）"
         images: "画像生成 %{count}回"
         genres: "ジャンル %{count}個まで"
         period_trial: "期間中"

@@ -580,9 +580,20 @@ class ApplicationController < ActionController::Base
   end
 
   def dashboard_genre_registry_options
-    dashboard_genre_registry.map { |key, _value|
-      [GenreRegistry.label_for(key, locale: I18n.locale), key.to_s]
-    }
+    genre_registry_select_options(dashboard_genre_registry)
+  end
+
+  def genre_registry_select_options(registry, locale: I18n.locale)
+    english = locale.to_s.start_with?("en")
+    registry.map do |key, value|
+      data = value.is_a?(Hash) ? value.with_indifferent_access : {}
+      label = if english
+                data[:en].presence || data[:ja].presence || data[:service_name].presence || key.to_s
+              else
+                data[:ja].presence || data[:en].presence || data[:service_name].presence || key.to_s
+              end
+      [label, key.to_s]
+    end
   end
 
   def dashboard_sub_categories_json
@@ -592,7 +603,10 @@ class ApplicationController < ActionController::Base
   def localized_sub_categories_json(registry, locale: I18n.locale)
     english = locale.to_s == "en"
     registry.each_with_object({}) do |(genre_key, value), acc|
-      acc[genre_key] = (value[:sub_categories] || {}).map do |sub_key, sub_value|
+      data = value.is_a?(Hash) ? value.with_indifferent_access : {}
+      subs = data[:sub_categories]
+      subs = {} unless subs.is_a?(Hash)
+      acc[genre_key] = subs.map do |sub_key, sub_value|
         name = if sub_value.is_a?(Hash)
                  if english
                    sub_value[:name_en].presence || sub_value["name_en"].presence ||

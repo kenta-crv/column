@@ -321,7 +321,7 @@ en:
       features:
         pillar: "Pillar articles: %{count} / %{period}"
         child: "Cluster articles: %{count} / %{period}"
-        titles: "AI title suggestions ×%{count}"
+        titles: "AI title suggestions ×%{count} (up to %{per} per use)"
         images: "Image generation ×%{count}"
         genres: "Up to %{count} genres"
         period_trial: "trial"

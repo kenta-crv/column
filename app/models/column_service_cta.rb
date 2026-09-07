@@ -258,10 +258,29 @@ class ColumnServiceCta
     default
   ].freeze
 
-  def self.theme_options
-    THEME_OPTION_VALUES.map do |value|
+  def self.theme_options(admin: false)
+    values = admin ? THEME_OPTION_VALUES : %w[default]
+    values.map do |value|
       [I18n.t("drafity.dashboard.genres.theme_options.#{value.tr('-', '_')}"), value]
     end
+  end
+
+  CLIENT_COLOR = "#0f766e"
+  CLIENT_COLOR_PATTERN = /\A#[0-9a-fA-F]{6}\z/
+
+  def self.client_color(theme)
+    value = theme.to_s.strip
+    return value.downcase if value.match?(CLIENT_COLOR_PATTERN)
+
+    CLIENT_COLOR
+  end
+
+  def self.client_button_choices(current: nil)
+    choices = Array(I18n.t("drafity.dashboard.genres.notice_button_choices", default: [])).map(&:to_s).reject(&:blank?)
+    choices = [I18n.t("drafity.columns.cta.learn_more")] if choices.empty?
+    current = current.to_s.strip.presence
+    choices << current if current && !choices.include?(current)
+    choices.map { |label| [label, label] }
   end
 
   def self.resolve(column)

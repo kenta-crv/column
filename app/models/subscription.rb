@@ -24,7 +24,7 @@ class Subscription < ApplicationRecord
   POST_TRIAL_PLAN = :standard
   STANDARD_INTRO_PERCENT_OFF = 15
   STANDARD_INTRO_MONTHS = 3
-  TITLE_SUGGESTION_BAR_MAX = 5
+  TITLE_SUGGESTION_BAR_MAX = 3
   TITLE_SUGGESTION_ADMIN_BAR_MAX = 50
 
   # プラン定義の唯一のソース（LP・管理画面・決済・上限チェックで共通利用）
@@ -102,7 +102,7 @@ class Subscription < ApplicationRecord
       pillar_articles: 5,
       child_articles: 75,
       title_suggestions: 5,
-      title_suggestion_max_per_use: 5,
+      title_suggestion_max_per_use: 3,
       image_generations: 125,
       genre_suggestions: 999,
       genre_count: 3,
@@ -135,7 +135,7 @@ class Subscription < ApplicationRecord
       pillar_articles: 15,
       child_articles: 225,
       title_suggestions: 30,
-      title_suggestion_max_per_use: 5,
+      title_suggestion_max_per_use: 3,
       image_generations: 250,
       genre_suggestions: 999,
       genre_count: 10,
@@ -167,7 +167,7 @@ class Subscription < ApplicationRecord
       pillar_articles: 50,
       child_articles: 750,
       title_suggestions: 100,
-      title_suggestion_max_per_use: 5,
+      title_suggestion_max_per_use: 3,
       image_generations: 1000,
       genre_suggestions: 999,
       genre_count: 20,
@@ -242,6 +242,14 @@ class Subscription < ApplicationRecord
       end
     end
 
+    def own_media_price_hint
+      "トライアル #{TRIAL_DAYS}日間無料（カード不要）/ スタンダード #{format_price(:standard)} / ビジネス #{format_price(:business)} / エンタープライズ #{format_price(:enterprise)}（各月額・スタンダード初回#{STANDARD_INTRO_MONTHS}ヶ月#{STANDARD_INTRO_PERCENT_OFF}%OFF）"
+    end
+
+    def enterprise_agent_price_hint
+      "エンタープライズ #{format_price(:enterprise)}/月（AIエージェント完全自動運用・カスタム機能は個別応相談）"
+    end
+
     def lp_plans(currency: :jpy)
       currency = currency.to_sym
       PLAN_ORDER.filter_map do |key|
@@ -284,7 +292,12 @@ class Subscription < ApplicationRecord
       features = [
         I18n.t("drafity.plans.features.pillar", count: config[:pillar_articles], period: period, default: "親記事 #{period}#{config[:pillar_articles]}記事"),
         I18n.t("drafity.plans.features.child", count: config[:child_articles], period: period, default: "子記事 #{period}#{config[:child_articles]}記事"),
-        I18n.t("drafity.plans.features.titles", count: config[:title_suggestions], default: "AIタイトル提案 #{config[:title_suggestions]}回"),
+        I18n.t(
+          "drafity.plans.features.titles",
+          count: config[:title_suggestions],
+          per: config[:title_suggestion_max_per_use],
+          default: "AIタイトル提案 #{config[:title_suggestions]}回（1回あたり最大#{config[:title_suggestion_max_per_use]}件）"
+        ),
         I18n.t("drafity.plans.features.images", count: config[:image_generations], default: "画像生成 #{config[:image_generations]}回"),
         I18n.t("drafity.plans.features.genres", count: config[:genre_count], default: "ジャンル #{config[:genre_count]}個まで")
       ]
@@ -352,6 +365,7 @@ class Subscription < ApplicationRecord
         :title_suggestions,
         :title_suggestion_max_per_use,
         :image_generations,
+        :genre_suggestions,
         :genre_count,
         :sub_category_count,
         :api_enabled,

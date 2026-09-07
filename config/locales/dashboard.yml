@@ -387,15 +387,21 @@ ja:
       genres:
         title: サービス・ジャンル管理
         subtitle: 記事生成・API連携・記事下部CTA（自社案内）をジャンル単位で管理します
+        subtitle_trial: 記事のジャンルと、記事の下に出す案内を設定します
         new: 新規作成
         create_first: 最初のジャンルを作成
         empty: まだサービス・ジャンルが登録されていません。
         cta_active: CTA表示中
         cta_needed: CTA要設定
         cta_off: CTA非表示
+        notice_on: 案内あり
+        notice_needed: 案内の文章が未入力
+        notice_off: 案内なし
+        notice_col: 案内
         confirm_delete: "「%{name}」を削除しますか？"
         new_title: サービス・ジャンル作成
         new_subtitle: 新しいジャンルとサービス情報を登録します
+        new_subtitle_trial: サービス名と、記事の下の案内を登録します
         edit_title: サービス・ジャンル編集
         template_label: 既存テンプレートから読み込む
         submit_create: 作成する
@@ -407,10 +413,13 @@ ja:
         client_hint: 未選択の場合は Admin 全体で利用するジャンルです。Client を選ぶと API 許可ジャンルにも自動追加されます。
         company: 会社名
         ph_company: '例: 株式会社サンプル'
-        company_hint: Managementの社名に反映されます。記事生成時の自社名にも使えます。
+        company_hint: 記事生成時の自社名として使われます。
+        name_one: サービス名
+        name_one_hint: 記事に出す名前です。
+        ph_name_one: '例: 美容室'
         key_label: キー（英小文字・URL用）
         ph_key: '例: my_service'
-        key_hint: 記事の genre 値として使用されます。作成後は変更できません。
+        key_hint: 保存後は変更できません。英小文字・数字・アンダースコアで入力してください。
         ja_label: 表示名（日本語）
         ph_ja: '例: 経営コンサル'
         en_label: 表示名（英語）
@@ -418,7 +427,7 @@ ja:
         en_hint: 英語UI・英語公開一覧で使います。空欄なら日本語名を表示します。
         ph_service: '例: 株式会社リプラス'
         strong_points: 強み・訴求ポイント
-        strong_hint: 親記事・子記事生成時に AI へ渡される訴求情報です。英語記事ではモデルが訳して使います。
+        strong_hint: 親記事・子記事生成時に AI へ渡される訴求情報です。
         integration: 連携設定（任意）
         integration_hint: 記事生成のみの場合は空欄のままで問題ありません。保存時にアクセス中のドメインが自動で登録されます。
         hosts: ホスト（ドメイン）
@@ -427,31 +436,43 @@ ja:
         ph_optional: 空欄可
         keywords_hint: AIタイトル提案・記事生成の参考に使われます。
         cta_section: 記事下部のサービス案内（CTA）
-        cta_hint: 公開記事の「関連記事」の直前に表示される自社案内です。Admin / Client どちらも編集できます。
+        cta_hint: 公開記事の「関連記事」の直前に表示される自社案内です。
         cta_show: CTAを表示する
+        notice_section: 記事の下の案内
+        notice_hint: 公開した記事の下に、問い合わせへの案内を出せます。
+        notice_show: 案内を表示する
         theme: テーマ色
+        color: 色
         badge: バッジ
+        small_label: ラベル
         heading: 見出し
+        notice_heading: 見出し
         lead: リード文
+        notice_lead: 説明
         button_label: ボタン文言
+        notice_button: ボタン
+        notice_button_choices:
+          - 詳しく見る
+          - お問い合わせ
+          - 無料で相談する
         path: 遷移先パス（同一ドメイン）
-        path_hint: ブランドサイト内のパス。外部URLを使う場合は下の「外部URL」を優先します。
+        path_hint: 自社サイト内のパスです。外部URLを入力した場合はそちらが使われます。
         external_url: 外部URL（任意）
         external_hint: 入力がある場合はパスよりこちらが使われます（LINEなど）。
-        ph_badge: '例: Meetia'
-        ph_cta_title: '例: AIが24時間商談代行'
-        ph_cta_button: '例: 無料で体験する'
-        ph_path: '例: / または /okurite'
+        ph_badge: '例: 自社サービス'
+        ph_cta_title: '例: まずは無料で相談'
+        ph_cta_button: '例: 詳しく見る'
+        ph_path: '例: / または /contact'
         ph_url: '例: https://lin.ee/xxxx'
         cta_en_hint: 英語記事向けのコピーです。空欄ならデフォルトの英訳を使います。
         heading_en: 見出し（英語）
         lead_en: リード文（英語）
         button_label_en: ボタン文言（英語）
         badge_en: バッジ（英語・任意）
-        ph_cta_title_en: 'e.g. AI sales 24/7'
-        ph_cta_button_en: 'e.g. Try free'
+        ph_cta_title_en: 'e.g. Book a free consult'
+        ph_cta_button_en: 'e.g. Learn more'
         sub_override: 中分類ごとの上書き（任意）
-        sub_override_hint: 未入力の中分類は、上の共通CTAが使われます。J Work の求職向けLINEなどに使います。
+        sub_override_hint: 未入力の中分類は、上の共通CTAが使われます。
         theme_same: "（共通と同じ）"
         theme_options:
           meetia: Meetia
@@ -1053,15 +1074,21 @@ en:
       genres:
         title: Genres
         subtitle: Manage article generation, API, and footer CTAs by genre
+        subtitle_trial: Set your article topic and the notice under articles
         new: New
         create_first: Create your first genre
         empty: No genres yet.
         cta_active: CTA on
         cta_needed: CTA needed
         cta_off: CTA off
+        notice_on: Notice on
+        notice_needed: Notice text missing
+        notice_off: Notice off
+        notice_col: Notice
         confirm_delete: Delete "%{name}"?
         new_title: New genre
         new_subtitle: Register a new genre and service info
+        new_subtitle_trial: Add your service name and the notice under articles
         edit_title: Edit genre
         template_label: Load from template
         submit_create: Create
@@ -1074,10 +1101,13 @@ en:
           it to API-allowed genres.
         company: Company name
         ph_company: e.g. Acme Inc.
-        company_hint: Saved as the company name in Management. Also used as the company name in generated articles.
+        company_hint: Used as your company name in generated articles.
+        name_one: Service name
+        name_one_hint: This name appears in your articles.
+        ph_name_one: e.g. Hair salon
         key_label: Key (lowercase, URL)
         ph_key: e.g. my_service
-        key_hint: Used as the article genre value. Cannot change after create.
+        key_hint: Cannot be changed after saving. Use lowercase letters, numbers, and underscores.
         ja_label: Display name (Japanese)
         ph_ja: e.g. Management consulting
         en_label: Display name (English)
@@ -1085,7 +1115,7 @@ en:
         en_hint: Used on the English UI and public English article list. Falls back to the Japanese name if blank.
         ph_service: e.g. Acme Inc.
         strong_points: Strengths / value prop
-        strong_hint: Passed to AI when generating pillar and child articles. For English articles the model translates this text.
+        strong_hint: Passed to AI when generating pillar and child articles.
         integration: Integrations (optional)
         integration_hint: Leave blank for article generation only. The current domain
           is registered on save.
@@ -1095,31 +1125,41 @@ en:
         ph_optional: Optional
         keywords_hint: Used for AI title suggestions and article generation.
         cta_section: Footer service CTA
-        cta_hint: Shown before related articles on public pages. Editable by admin
-          or client.
+        cta_hint: Shown before related articles on public pages.
         cta_show: Show CTA
+        notice_section: Notice under articles
+        notice_hint: Shown at the bottom of published articles so readers can contact you.
+        notice_show: Show this notice
         theme: Theme color
-        badge: Badge
-        heading: Headline
-        lead: Lead
-        button_label: Button label
+        color: Color
+        badge: Badge (Japanese)
+        small_label: Label
+        heading: Headline (Japanese)
+        notice_heading: Headline
+        lead: Lead (Japanese)
+        notice_lead: Description
+        button_label: Button label (Japanese)
+        notice_button: Button
+        notice_button_choices:
+          - Learn more
+          - Contact us
+          - Book a free consult
         path: Path (same domain)
-        path_hint: Path on the brand site. External URL below takes priority when
-          set.
+        path_hint: Path on your site. External URL below takes priority when set.
         external_url: External URL (optional)
         external_hint: Used instead of the path when set (e.g. LINE).
-        ph_badge: e.g. Meetia
-        ph_cta_title: e.g. AI sales 24/7
-        ph_cta_button: e.g. Try free
-        ph_path: e.g. / or /okurite
+        ph_badge: e.g. Your service
+        ph_cta_title: e.g. Book a free consult
+        ph_cta_button: e.g. Learn more
+        ph_path: e.g. / or /contact
         ph_url: e.g. https://lin.ee/xxxx
         cta_en_hint: Copy for English articles. Leave blank to use the default English CTA.
         heading_en: Headline (English)
         lead_en: Lead (English)
         button_label_en: Button label (English)
         badge_en: Badge (English, optional)
-        ph_cta_title_en: e.g. AI sales 24/7
-        ph_cta_button_en: e.g. Try free
+        ph_cta_title_en: e.g. Book a free consult
+        ph_cta_button_en: e.g. Learn more
         sub_override: Per-subcategory override (optional)
         sub_override_hint: Blank subcategories use the shared CTA above.
         theme_same: "(same as shared)"

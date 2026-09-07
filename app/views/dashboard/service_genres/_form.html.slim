@@ -1,5 +1,7 @@
 - @sub_category_config ||= sub_category_ui_config
 - sub_config = @sub_category_config
+- admin_form = acting_as_admin?
+- trial_english = !admin_form && I18n.locale.to_s.start_with?("en")
 = form_with scope: :service_genre, url: service_genre.persisted? ? dashboard_service_genre_path(service_genre) : dashboard_service_genres_path, method: service_genre.persisted? ? :patch : :post, local: true do |f|
   - if service_genre.errors.any?
     .form-section
@@ -18,7 +20,7 @@
             path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
           = t("drafity.dashboard.genres.ai_suggest")
 
-    - if acting_as_admin?
+    - if admin_form
       .form-group
         = f.label :client_id, t("drafity.dashboard.labels.client")
         - selected_client_id = service_genre.client_id.presence || ""
@@ -27,21 +29,31 @@
 
     .form-group
       = label_tag "service_genre_company", t("drafity.dashboard.genres.company")
-      = text_field_tag "service_genre[company]", @company_name, class: "form-control", id: "service_genre_company", placeholder: t("drafity.dashboard.genres.ph_company"), autocomplete: "organization", required: (client_signed_in? && !acting_as_admin?)
+      = text_field_tag "service_genre[company]", @company_name, class: "form-control", id: "service_genre_company", placeholder: t("drafity.dashboard.genres.ph_company"), autocomplete: "organization", required: (client_signed_in? && !admin_form)
       small.form-text = t("drafity.dashboard.genres.company_hint")
 
-    .form-group
-      = f.label :key, t("drafity.dashboard.genres.key_label")
-      = f.text_field :key, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_key"), readonly: service_genre.persisted?
-      small.form-text = t("drafity.dashboard.genres.key_hint")
+    - if admin_form
+      .form-group
+        = f.label :key, t("drafity.dashboard.genres.key_label")
+        = f.text_field :key, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_key"), readonly: service_genre.persisted?
+        small.form-text = t("drafity.dashboard.genres.key_hint")
 
-    .form-group
-      = f.label :ja, t("drafity.dashboard.labels.display_name")
-      = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_ja")
+      .form-group
+        = f.label :ja, t("drafity.dashboard.labels.display_name")
+        = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_ja")
 
-    .form-group
-      = f.label :service_name, t("drafity.dashboard.labels.service_name")
-      = f.text_field :service_name, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_service")
+      .form-group
+        = f.label :service_name, t("drafity.dashboard.labels.service_name")
+        = f.text_field :service_name, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_service")
+    - else
+      .form-group
+        - if trial_english && service_genre.has_attribute?(:en)
+          = f.label :en, t("drafity.dashboard.genres.name_one")
+          = f.text_field :en, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_name_one"), required: true, value: (service_genre.en.presence || service_genre.display_name)
+        - else
+          = f.label :ja, t("drafity.dashboard.genres.name_one")
+          = f.text_field :ja, class: "form-control", placeholder: t("drafity.dashboard.genres.ph_name_one"), required: true, value: (service_genre.ja.presence || service_genre.display_name)
+        small.form-text = t("drafity.dashboard.genres.name_one_hint")
 
     .form-group
       = f.label :strong_points, t("drafity.dashboard.genres.strong_points")
@@ -64,50 +76,61 @@
 
   - cta = (params.dig(:service_genre, :column_cta).presence || service_genre.column_cta_for_form).with_indifferent_access
   - by_sub = (cta[:by_sub_genre] || {}).with_indifferent_access
+  - notice_cta = trial_english ? (cta[:en] || {}).with_indifferent_access : cta
+  - notice_param = trial_english ? "service_genre[column_cta][en]" : "service_genre[column_cta]"
   .form-section
     .form-section__header
-      h3.form-section-title = t("drafity.dashboard.genres.cta_section")
+      h3.form-section-title = t(admin_form ? "drafity.dashboard.genres.cta_section" : "drafity.dashboard.genres.notice_section")
     p.sub-categories-intro
-      = t("drafity.dashboard.genres.cta_hint")
+      = t(admin_form ? "drafity.dashboard.genres.cta_hint" : "drafity.dashboard.genres.notice_hint")
     .form-group
       = hidden_field_tag "service_genre[column_cta][enabled]", "0", id: nil
       label.checkbox-inline
         = check_box_tag "service_genre[column_cta][enabled]", "1", service_genre.column_cta_enabled?, id: "service_genre_column_cta_enabled"
-        = " " + t("drafity.dashboard.genres.cta_show")
+        = " " + t(admin_form ? "drafity.dashboard.genres.cta_show" : "drafity.dashboard.genres.notice_show")
+    - if admin_form
+      .form-group
+        = label_tag "service_genre_column_cta_theme", t("drafity.dashboard.genres.theme")
+        = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta.theme_options(admin: true), cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
+    - else
+      .form-group
+        = label_tag "service_genre_column_cta_theme", t("drafity.dashboard.genres.color")
+        = color_field_tag "service_genre[column_cta][theme]", ColumnServiceCta.client_color(cta[:theme]), class: "form-control", id: "service_genre_column_cta_theme"
     .form-group
-      = label_tag "service_genre_column_cta_theme", t("drafity.dashboard.genres.theme")
-      = select_tag "service_genre[column_cta][theme]", options_for_select(ColumnServiceCta.theme_options, cta[:theme].presence || "default"), class: "form-control", id: "service_genre_column_cta_theme"
+      = label_tag "service_genre_column_cta_badge", t(admin_form ? "drafity.dashboard.genres.badge" : "drafity.dashboard.genres.small_label")
+      = text_field_tag "#{notice_param}[badge]", notice_cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: t("drafity.dashboard.genres.ph_badge")
     .form-group
-      = label_tag "service_genre_column_cta_badge", t("drafity.dashboard.genres.badge")
-      = text_field_tag "service_genre[column_cta][badge]", cta[:badge], class: "form-control", id: "service_genre_column_cta_badge", placeholder: t("drafity.dashboard.genres.ph_badge")
+      = label_tag "service_genre_column_cta_title", t(admin_form ? "drafity.dashboard.genres.heading" : "drafity.dashboard.genres.notice_heading")
+      = text_field_tag "#{notice_param}[title]", notice_cta[:title], class: "form-control", id: "service_genre_column_cta_title", placeholder: t("drafity.dashboard.genres.ph_cta_title")
     .form-group
-      = label_tag "service_genre_column_cta_title", t("drafity.dashboard.genres.heading")
-      = text_field_tag "service_genre[column_cta][title]", cta[:title], class: "form-control", id: "service_genre_column_cta_title", placeholder: t("drafity.dashboard.genres.ph_cta_title")
+      = label_tag "service_genre_column_cta_lead", t(admin_form ? "drafity.dashboard.genres.lead" : "drafity.dashboard.genres.notice_lead")
+      = text_area_tag "#{notice_param}[lead]", notice_cta[:lead], class: "form-control", id: "service_genre_column_cta_lead", rows: 3
     .form-group
-      = label_tag "service_genre_column_cta_lead", t("drafity.dashboard.genres.lead")
-      = text_area_tag "service_genre[column_cta][lead]", cta[:lead], class: "form-control", id: "service_genre_column_cta_lead", rows: 3
-    .form-group
-      = label_tag "service_genre_column_cta_cta_label", t("drafity.dashboard.genres.button_label")
-      = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button")
-    - cta_en = (cta[:en] || {}).with_indifferent_access
-    p.sub-categories-intro
-      = t("drafity.dashboard.genres.cta_en_hint")
-    .form-group
-      = label_tag "service_genre_column_cta_en_title", t("drafity.dashboard.genres.heading_en")
-      = text_field_tag "service_genre[column_cta][en][title]", cta_en[:title], class: "form-control", id: "service_genre_column_cta_en_title", placeholder: t("drafity.dashboard.genres.ph_cta_title_en")
-    .form-group
-      = label_tag "service_genre_column_cta_en_lead", t("drafity.dashboard.genres.lead_en")
-      = text_area_tag "service_genre[column_cta][en][lead]", cta_en[:lead], class: "form-control", id: "service_genre_column_cta_en_lead", rows: 3
-    .form-group
-      = label_tag "service_genre_column_cta_en_cta_label", t("drafity.dashboard.genres.button_label_en")
-      = text_field_tag "service_genre[column_cta][en][cta_label]", cta_en[:cta_label], class: "form-control", id: "service_genre_column_cta_en_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button_en")
-    .form-group
-      = label_tag "service_genre_column_cta_en_badge", t("drafity.dashboard.genres.badge_en")
-      = text_field_tag "service_genre[column_cta][en][badge]", cta_en[:badge], class: "form-control", id: "service_genre_column_cta_en_badge"
-    .form-group
-      = label_tag "service_genre_column_cta_path", t("drafity.dashboard.genres.path")
-      = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: t("drafity.dashboard.genres.ph_path")
-      small.form-text = t("drafity.dashboard.genres.path_hint")
+      = label_tag "service_genre_column_cta_cta_label", t(admin_form ? "drafity.dashboard.genres.button_label" : "drafity.dashboard.genres.notice_button")
+      - if admin_form
+        = text_field_tag "service_genre[column_cta][cta_label]", cta[:cta_label], class: "form-control", id: "service_genre_column_cta_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button")
+      - else
+        = select_tag "#{notice_param}[cta_label]", options_for_select(ColumnServiceCta.client_button_choices(current: notice_cta[:cta_label]), notice_cta[:cta_label].presence || I18n.t("drafity.columns.cta.learn_more")), class: "form-control", id: "service_genre_column_cta_cta_label"
+    - if admin_form
+      - cta_en = (cta[:en] || {}).with_indifferent_access
+      p.sub-categories-intro
+        = t("drafity.dashboard.genres.cta_en_hint")
+      .form-group
+        = label_tag "service_genre_column_cta_en_title", t("drafity.dashboard.genres.heading_en")
+        = text_field_tag "service_genre[column_cta][en][title]", cta_en[:title], class: "form-control", id: "service_genre_column_cta_en_title", placeholder: t("drafity.dashboard.genres.ph_cta_title_en")
+      .form-group
+        = label_tag "service_genre_column_cta_en_lead", t("drafity.dashboard.genres.lead_en")
+        = text_area_tag "service_genre[column_cta][en][lead]", cta_en[:lead], class: "form-control", id: "service_genre_column_cta_en_lead", rows: 3
+      .form-group
+        = label_tag "service_genre_column_cta_en_cta_label", t("drafity.dashboard.genres.button_label_en")
+        = text_field_tag "service_genre[column_cta][en][cta_label]", cta_en[:cta_label], class: "form-control", id: "service_genre_column_cta_en_cta_label", placeholder: t("drafity.dashboard.genres.ph_cta_button_en")
+      .form-group
+        = label_tag "service_genre_column_cta_en_badge", t("drafity.dashboard.genres.badge_en")
+        = text_field_tag "service_genre[column_cta][en][badge]", cta_en[:badge], class: "form-control", id: "service_genre_column_cta_en_badge"
+      .form-group
+        = label_tag "service_genre_column_cta_path", t("drafity.dashboard.genres.path")
+        = text_field_tag "service_genre[column_cta][path]", cta[:path], class: "form-control", id: "service_genre_column_cta_path", placeholder: t("drafity.dashboard.genres.ph_path")
+        small.form-text = t("drafity.dashboard.genres.path_hint")
     .form-group
       = label_tag "service_genre_column_cta_url", t("drafity.dashboard.genres.external_url")
       = text_field_tag "service_genre[column_cta][url]", cta[:url], class: "form-control", id: "service_genre_column_cta_url", placeholder: t("drafity.dashboard.genres.ph_url")
@@ -126,7 +149,7 @@
           .form-group style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px;"
             strong = "#{sub_key}#{sub_name.present? ? " (#{sub_name})" : ""}"
             = label_tag nil, t("drafity.dashboard.genres.theme"), style: "display:block;margin-top:8px;"
-            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([[t("drafity.dashboard.genres.theme_same"), ""]] + ColumnServiceCta.theme_options, sub_cta[:theme]), class: "form-control"
+            = select_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][theme]", options_for_select([[t("drafity.dashboard.genres.theme_same"), ""]] + ColumnServiceCta.theme_options(admin: admin_form), sub_cta[:theme]), class: "form-control"
             = label_tag nil, t("drafity.dashboard.genres.badge"), style: "display:block;margin-top:8px;"
             = text_field_tag "service_genre[column_cta][by_sub_genre][#{sub_key}][badge]", sub_cta[:badge], class: "form-control"
             = label_tag nil, t("drafity.dashboard.genres.heading"), style: "display:block;margin-top:8px;"
@@ -169,7 +192,7 @@
 
       template#sub-category-template
         = render "sub_category_fields", item: {}
-  - elsif client_signed_in? && !acting_as_admin?
+  - elsif client_signed_in? && !admin_form
     .form-section
       p.sub-categories-intro
         = t("drafity.dashboard.genres.sub_unavailable")
@@ -223,8 +246,9 @@ javascript:
 
     const applyDraftToForm = (draft) => {
       setFormValue('key', draft.key);
-      setFormValue('ja', draft.ja);
-      setFormValue('service_name', draft.service_name);
+      setFormValue('ja', draft.ja || draft.service_name);
+      setFormValue('en', draft.en || draft.ja || draft.service_name);
+      setFormValue('service_name', draft.service_name || draft.ja);
       setFormValue('strong_points', draft.strong_points);
       if (draft.keywords?.length) {
         setFormValue('keywords_text', draft.keywords.join('\n'));
@@ -366,11 +390,7 @@ javascript:
     };
 
     window.handleGenreAiSuggestClick = () => {
-      if (subCategoriesAllowed) {
-        window.openGenreDraftModal();
-      } else {
-        window.openGenreDraftPlanNoticeModal();
-      }
+      window.openGenreDraftModal();
     };
 
     const bindGenreAiSuggestButton = () => {

@@ -26,6 +26,12 @@ Drafity のご契約内容が更新されました。
 <% if @subscription.trial_ends_at.present? %>
 トライアル終了日: <%= @subscription.trial_ends_at.strftime("%Y年%m月%d日 %H:%M") %>
 <% end %>
+<% if @subscription.known_plan_key? %>
+内容:
+<% @subscription.feature_list.each do |feature| %>
+- <%= feature %>
+<% end %>
+<% end %>
 
 ダッシュボード: <%= @dashboard_url %>
 

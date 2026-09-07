@@ -146,7 +146,9 @@ class GenreRegistryTest < ActiveSupport::TestCase
   test "fallback templates for admin are labels only and do not copy the full registry" do
     templates = GenreRegistry.fallback_templates_for
     assert templates[:cleaning].key?(:ja)
+    assert templates[:cleaning].key?(:en)
     refute templates[:cleaning].key?(:sub_categories)
     assert_equal "清掃", GenreRegistry::FALLBACK_GENRES.dig(:cleaning, :ja)
+    assert_equal "Cleaning", templates[:cleaning][:en]
   end
 end

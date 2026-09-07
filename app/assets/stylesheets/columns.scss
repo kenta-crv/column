@@ -436,6 +436,15 @@
       }
     }
 
+    &--custom {
+      border-color: color-mix(in srgb, var(--cta-accent) 22%, transparent);
+
+      .column-service-cta__badge {
+        background: color-mix(in srgb, var(--cta-accent) 12%, transparent);
+        color: var(--cta-accent);
+      }
+    }
+
     @media (max-width: 768px) {
       margin-top: 40px;
       padding: 22px 18px;
@@ -1653,6 +1662,21 @@ $theme-border: rgba(0, 0, 0, 0.08);
       line-height: 1.5;
     }
 
+    select.form-control {
+      height: auto;
+      min-height: 44px;
+      padding: 10px 40px 10px 1rem;
+      line-height: 1.5;
+      overflow: visible;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-size: 16px;
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
     .form-text {
       display: block;
       margin-top: 0.5rem;
@@ -2768,6 +2792,15 @@ $theme-border: rgba(0, 0, 0, 0.08);
     font-weight: 700;
     letter-spacing: -0.02em;
   }
+}
+
+.subscription-feature-list {
+  margin: 1.25rem 0 0;
+  padding: 0 0 0 1.15rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .subscription-note {

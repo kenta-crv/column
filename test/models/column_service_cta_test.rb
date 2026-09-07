@@ -213,4 +213,9 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
 
     assert_equal "OK特殊クリーン", cta[:badge]
   end
+
+  test "client color helper keeps hex and rejects brand keys" do
+    assert_equal "#2563eb", ColumnServiceCta.client_color("#2563eb")
+    assert_equal ColumnServiceCta::CLIENT_COLOR, ColumnServiceCta.client_color("meetia")
+  end
 end

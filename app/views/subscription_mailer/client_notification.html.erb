@@ -38,6 +38,14 @@
   <% end %>
 </table>
 
+<% if @subscription.known_plan_key? %>
+<ul>
+  <% @subscription.feature_list.each do |feature| %>
+    <li><%= feature %></li>
+  <% end %>
+</ul>
+<% end %>
+
 <p><a href="<%= @dashboard_url %>">ダッシュボードへ移動</a></p>
 <p>ご不明な点がございましたら、<a href="mailto:info@j-work.jp">info@j-work.jp</a> までお問い合わせください。</p>
 <p>株式会社J Work</p>

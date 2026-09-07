@@ -38,6 +38,9 @@ ruby:
           .checkout-confirmation__detail-body
             span.checkout-confirmation__detail-label = t("drafity.auth.checkout_selected_plan", default: "選択プラン")
             strong.checkout-confirmation__detail-value = plan_name
+            ul.checkout-confirmation__features
+              - Subscription.feature_list_for(plan_key.to_sym).each do |feature|
+                li = feature
 
         .checkout-confirmation__detail
           .checkout-confirmation__detail-icon

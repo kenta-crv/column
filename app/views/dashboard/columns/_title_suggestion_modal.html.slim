@@ -54,7 +54,7 @@
             option value="en" selected=(default_article_language == "en") = t("drafity.columns.form.language_en")
           small.form-text = t("drafity.dashboard.title_suggest.language_hint")
         .form-group
-          - suggestion_config = @title_suggestion_config || { default: 1, max: 5, bar_max: 5, remaining: nil }
+          - suggestion_config = @title_suggestion_config || { default: 1, max: Subscription::TITLE_SUGGESTION_BAR_MAX, bar_max: Subscription::TITLE_SUGGESTION_BAR_MAX, remaining: nil }
           - scale_ticks = suggestion_config[:bar_max] <= 10 ? (1..suggestion_config[:bar_max]).to_a : ([1] + (5..suggestion_config[:bar_max]).step(5).to_a).uniq
           label = t("drafity.dashboard.title_suggest.count")
           - if suggestion_config[:remaining]

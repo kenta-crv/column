@@ -18,7 +18,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal 0, subscription.price
     assert_equal [], subscription.feature_list
     assert_equal Subscription::PLANS[:trial], Subscription.config_for(nil)
-    assert_equal Subscription::PLANS[:trial], Subscription.limits_for(nil)
+    assert_equal Subscription.limits_for(:trial), Subscription.limits_for(nil)
   end
 
   test "treats unknown raw plan_type safely" do
@@ -51,6 +51,24 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal 5, trial[:child_articles]
     assert_equal 8, trial[:image_generations]
     assert_equal 3, trial[:title_suggestions]
+    assert_equal 1, trial[:title_suggestion_max_per_use]
+    assert_equal 1, trial[:genre_suggestions]
+    assert_equal 3, Subscription::TITLE_SUGGESTION_BAR_MAX
+    assert_equal 3, Subscription.limits_for(:standard)[:title_suggestion_max_per_use]
+    assert_equal 3, Subscription.limits_for(:business)[:title_suggestion_max_per_use]
+    assert_equal 3, Subscription.limits_for(:enterprise)[:title_suggestion_max_per_use]
+
+    I18n.with_locale(:ja) do
+      trial_features = Subscription.feature_list_for(:trial)
+      assert trial_features.any? { |line| line.include?("AIタイトル提案 3回") && line.include?("1回あたり最大1件") }
+      standard_features = Subscription.feature_list_for(:standard)
+      assert standard_features.any? { |line| line.include?("AIタイトル提案 5回") && line.include?("1回あたり最大3件") }
+
+      trial_faq = TopsHelper::FAQ_ITEMS.find { |item| item[:q] == "無料トライアルの条件は？" }
+      assert_includes trial_faq[:a], "タイトル提案3回（1回あたり最大1件）"
+      plans_faq = TopsHelper::FAQ_ITEMS.find { |item| item[:q] == "料金プランと記事上限は？" }
+      assert_includes plans_faq[:a], "1回あたり最大3件"
+    end
     assert_equal false, trial[:api_enabled]
     assert_equal false, trial[:ai_autonomous]
     assert_equal true, trial[:attribution_required]

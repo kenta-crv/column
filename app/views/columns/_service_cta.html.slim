@@ -2,12 +2,15 @@
 - href = column_service_cta_href(cta, column)
 - return if href.blank?
 - theme = cta[:theme].presence || "default"
+- hex_theme = theme.to_s.match?(/\A#[0-9a-fA-F]{6}\z/)
 - external = href.start_with?("http://", "https://")
 - placement = local_assigns[:placement].presence || (local_assigns[:inline] ? "inline" : nil)
-- wrapper_classes = ["column-service-cta", "column-service-cta--#{theme}"]
+- wrapper_classes = ["column-service-cta"]
+- wrapper_classes << (hex_theme ? "column-service-cta--custom" : "column-service-cta--#{theme}")
 - wrapper_classes << "column-service-cta--#{placement}" if placement.present?
+- cta_style = hex_theme ? "--cta-accent: #{theme}; --cta-accent-deep: #{theme}; --cta-tint: color-mix(in srgb, #{theme} 12%, white); --cta-glow: color-mix(in srgb, #{theme} 30%, transparent);" : nil
 
-section class=wrapper_classes.join(" ") data-column-service-cta="1"
+section class=wrapper_classes.join(" ") style=cta_style data-column-service-cta="1"
   .column-service-cta__glow aria-hidden="true"
   .column-service-cta__inner
     .column-service-cta__copy
