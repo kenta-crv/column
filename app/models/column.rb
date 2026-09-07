@@ -12,6 +12,8 @@ class Column < ApplicationRecord
   scope :pillars, -> { where(article_type: "pillar") }
   scope :clusters, -> { where(article_type: "cluster") }
   scope :without_image_file, -> { where("file IS NULL OR file = ''") }
+  # Flux 保存名（column_<id>_<16hex>.ext）以外は未生成扱い。ストック画像も含める。
+  scope :without_generated_image, -> { where(without_generated_image_sql) }
   scope :with_article_type_filter, ->(article_type) {
     case article_type.to_s
     when "pillar"
@@ -93,6 +95,12 @@ class Column < ApplicationRecord
     SQL
   end
 
+  def self.without_generated_image_sql
+    <<~SQL.squish
+      file IS NULL OR file = '' OR file NOT LIKE 'column\\_%' ESCAPE '\\'
+    SQL
+  end
+
   scope :without_generated_body, -> { where(blank_or_failed_body_sql) }
   scope :with_generated_body, -> { where(usable_body_sql) }
   # ダッシュボード「下書き」: 使える本文がない記事（公開フラグは見ない。本文削除直後を拾う）
@@ -103,8 +111,9 @@ class Column < ApplicationRecord
   }
   scope :pending_review, -> { with_generated_body.where(published_at: nil) }
   # 画像一括生成・サイドバーバッジ用。下書き（本文なし）や公開済みは含めない。
+  # ストック画像や壊れた参照は「未生成」として含める。
   scope :pending_review_missing_image, -> {
-    pending_review.merge(without_image_file)
+    pending_review.merge(without_generated_image)
   }
 
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する

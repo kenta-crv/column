@@ -27,15 +27,20 @@ class GenerateColumnImageJobTest < ActiveJob::TestCase
 
   test "skips when a flux image already exists" do
     column = create_column!
-    column.update_column(:file, "column_#{column.id}_abcdefabcdefabcd.webp")
+    filename = "column_#{column.id}_abcdefabcdefabcd.webp"
+    dir = Rails.root.join("public", "uploads", "column", "file", column.id.to_s)
+    FileUtils.mkdir_p(dir)
+    File.binwrite(dir.join(filename), "webp")
+    column.update_column(:file, filename)
 
     previous = ENV["FAL_API_KEY"]
     ENV["FAL_API_KEY"] = "test-key"
 
     assert_nothing_raised { GenerateColumnImageJob.perform_now(column.id) }
-    assert_equal "column_#{column.id}_abcdefabcdefabcd.webp", column.reload[:file]
+    assert_equal filename, column.reload[:file]
   ensure
     ENV["FAL_API_KEY"] = previous
+    FileUtils.rm_rf(dir) if defined?(dir)
   end
 
   test "assigns a stock image when flux generation fails" do

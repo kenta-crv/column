@@ -325,7 +325,7 @@ class ColumnsController < ApplicationController
         Rails.application.executor.wrap do
           begin
             ActiveRecord::Base.connection_pool.with_connection do
-              Column.where(id: target_ids).merge(Column.without_image_file).find_each do |column|
+              Column.where(id: target_ids).merge(Column.without_generated_image).find_each do |column|
                 begin
                   FluxImageGeneratorService.generate!(column)
                 rescue => e

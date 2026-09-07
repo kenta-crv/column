@@ -21,7 +21,11 @@ class FluxImageGeneratorService
   FLUX_FILENAME_RE = /\Acolumn_\d+_[0-9a-f]{16}\.(webp|jpe?g)\z/i
 
   def self.already_generated?(column)
-    column.present? && stored_filename(column).match?(FLUX_FILENAME_RE)
+    return false unless column.present?
+    return false unless stored_filename(column).match?(FLUX_FILENAME_RE)
+    return true unless column.persisted?
+
+    column.image_file_stored?
   end
 
   def self.stored_filename(column)

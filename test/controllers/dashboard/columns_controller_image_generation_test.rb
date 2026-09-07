@@ -113,6 +113,40 @@ class Dashboard::ColumnsControllerImageGenerationTest < ActionDispatch::Integrat
     assert_match %r{/ #{@missing_total}件を表示}, response.body
   end
 
+  test "image generation list includes pending review articles with stock images" do
+    stock = Column.create!(
+      title: "Stock only pending review",
+      article_type: "child",
+      genre: "security",
+      status: "completed",
+      body: "generated body with stock image only",
+      code: "stock-only-#{SecureRandom.hex(3)}"
+    )
+    stock.update_column(:file, "hero-bg.webp")
+
+    get image_generation_dashboard_columns_path(per: 100)
+    assert_response :success
+    assert_select "a", text: "Stock only pending review"
+    assert_match %r{/ #{@missing_total + 1}件を表示}, response.body
+  end
+
+  test "image generation list includes pending review with broken flux filename after reconcile" do
+    broken = Column.create!(
+      title: "Broken flux reference",
+      article_type: "child",
+      genre: "security",
+      status: "completed",
+      body: "generated body with missing flux file",
+      code: "broken-flux-#{SecureRandom.hex(3)}"
+    )
+    broken.update_column(:file, "column_#{broken.id}_abcdefabcdefabcd.webp")
+
+    get image_generation_dashboard_columns_path(per: 100)
+    assert_response :success
+    assert_select "a", text: "Broken flux reference"
+    assert_nil broken.reload[:file]
+  end
+
   test "sidebar missing_image badge matches pending review without images" do
     get sidebar_badges_dashboard_columns_path
     assert_response :success
