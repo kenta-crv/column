@@ -215,16 +215,28 @@ module GenreRegistry
           industry_weakness: "制度は改正が多く誤情報も流通する。最新は自治体・公的サイトの確認を促し、J Workは案内に留めます。"
         },
         specified_skills: {
-          name: "特定技能・技能実習",
-          name_en: "Specified skilled & technical intern",
-          target: "特定技能・技能実習での受け入れを検討する企業、登録支援機関、監理団体",
-          description: "特定技能と技能実習の制度概要、受け入れ機関の役割、登録支援機関業務、申請の流れを企業向けに整理します。個別の許認可代行ではなく、判断材料と相談導線を提供します。",
-          features: ["制度の違いの整理", "受け入れ企業の義務", "登録支援機関との役割分担", "公的情報への案内"],
-          keywords: ["特定技能", "技能実習", "登録支援機関", "受け入れ機関", "在留資格 特定技能"],
+          name: "特定技能・育成就労",
+          name_en: "Specified skilled & Ikusei Shuro",
+          target: "特定技能・育成就労での受け入れを検討する企業、登録支援機関、監理支援機関",
+          description: "特定技能と育成就労（旧技能実習）の制度概要、受け入れ機関の役割、登録支援機関・監理支援機関、申請の流れを企業向けに整理します。個別の許認可代行ではなく、判断材料と相談導線を提供します。",
+          features: ["制度の違いの整理", "受け入れ企業の義務", "登録支援機関・監理支援機関との役割分担", "公的情報への案内"],
+          keywords: ["特定技能", "育成就労", "技能実習", "登録支援機関", "監理支援機関", "受け入れ機関", "在留資格 特定技能"],
           price_hint: "情報は無料。人材紹介・請負は別途ご相談",
           area: "全国対応",
           strengths: "現場人材の在庫と、制度解説を同じメディアで出せます。登録支援機関との連携にも使えます。",
           industry_weakness: "制度改正と悪質ブローカーが多い領域。断定的な許認可アドバイスはせず、一次情報と専門家・公的窓口へ繋ぎます。"
+        },
+        ikusei_shuro: {
+          name: "育成就労",
+          name_en: "Ikusei Shuro (employment for skill development)",
+          target: "2027年施行の育成就労で、新規受け入れを準備する企業・監理支援機関",
+          description: "育成就労の計画認定、実施者要件、対象分野、転籍、特定技能1号への移行など、新規受け入れの準備を企業向けに整理します。技能実習からの経過措置・比較は特定技能中分類の親記事に任せます。",
+          features: ["計画認定と施行前申請", "監理支援機関", "実施者要件", "対象分野・協議会", "転籍", "特定技能1号への接続"],
+          keywords: ["育成就労", "育成就労計画", "監理支援機関", "育成就労実施者", "転籍", "2027年施行"],
+          price_hint: "情報は無料。人材紹介・請負は別途ご相談",
+          area: "全国対応",
+          strengths: "現場人材の在庫と、制度解説を同じメディアで出せます。",
+          industry_weakness: "制度改正が多い領域。断定的な許認可アドバイスはせず、一次情報と公的窓口へ繋ぎます。"
         },
         support_orgs: {
           name: "支援団体",
@@ -315,32 +327,47 @@ module GenreRegistry
       host: ["meetia.pro"],
       service_name: "Meetia",
       columns_index_description: "MeetiaのAI商談・営業自動化に関する解説記事一覧。導入手順、活用事例、運用のポイントをまとめています。",
+      columns_index_description_en: "Guides on Meetia’s AI sales agent: inbound first-touch, voice rooms from a URL, A–D lead grading, and follow-up.",
       strong_points: "営業担当者が行う商談工程をAIアバター「ミーティア」が代行。資料アップロードだけで24時間365日即時商談を開始し、商談結果の報告・見込み度分析・自動追客まで一気通貫で営業工数をゼロに。",
+      strong_points_en: "Meetia is an inbound AI sales agent, not an outbound email or LinkedIn SDR. Upload a deck, share a URL, and AI runs the first voice conversation 24/7, then grades the lead A–D so humans close the warm ones.",
       keywords: ["AI商談", "AI商談代行", "AI営業代行", "AIアバター", "24時間商談", "商談自動化", "自動追客"],
+      keywords_en: ["AI sales agent", "AI sales assistant", "inbound AI sales agent", "AI lead qualification", "AI sales agent software"],
       sub_categories: {
         ai_negotiation: {
           name: "24時間即時AI商談",
-          name_en: "24/7 instant AI meetings",
+          name_en: "Inbound AI sales agent",
           target: "商談工数を削減し、問い合わせ直後の機会損失を防ぎたいBtoB企業",
+          target_en: "B2B teams that lose warm inbound leads while waiting for a human callback",
           description: "営業資料・FAQをアップロードするだけでAIが内容を深く読解。Web上のアバターを介して24時間365日、待機時間ゼロで双方向のヒアリングと提案を自動実行。BANT情報を抽出しCRMへ連携。",
+          description_en: "Upload decks and FAQs. Buyers join a room by URL. The agent presents materials by voice, answers questions, and captures intent—first-touch only, not a full sales-team replacement.",
           features: ["資料・FAQの自動解析", "商談スクリプトの自動構成・音声化", "24時間365日即時AI商談", "ユーザー情報・BANT情報の自動抽出", "商談結果の即時レポート", "見込み度（A〜Dランク）の自動判定", "離脱ポイント・関心部分の可視化"],
+          features_en: ["Document and FAQ parsing", "Voice first-touch from a shared URL", "24/7 coverage after inquiry or download", "A–D intent grading", "Drop-off and interest logs"],
           keywords: ["AI商談", "AI商談代行", "24時間商談", "AIアバター", "即時商談"],
+          keywords_en: ["AI sales agent", "inbound sales agent", "24/7 sales agent", "AI deal room"],
           price_hint: Subscription.meetia_price_hint,
           area: "全国対応",
           strengths: "資料アップロードのみで即運用開始。深夜・休日のアクセスも取りこぼさず、熱量が最も高い瞬間に質の高い商談を開始。",
-          industry_weakness: "従来の営業は担当者依存で対応品質・速度にばらつきがあり、資料請求後の架電タイムラグで競合に流れるケースが多い。Meetiaは即時商談で機会損失を構造的に解消。"
+          strengths_en: "Go live from existing PDFs. Catch nights and weekends. Start the conversation while interest is highest.",
+          industry_weakness: "従来の営業は担当者依存で対応品質・速度にばらつきがあり、資料請求後の架電タイムラグで競合に流れるケースが多い。Meetiaは即時商談で機会損失を構造的に解消。",
+          industry_weakness_en: "Callback lag after a download cools intent. Rep skill varies. Meetia starts the first conversation immediately and logs a consistent grade."
         },
         auto_followup: {
           name: "自動追客・フォローアップ",
           name_en: "Automated follow-up",
           target: "商談後の追客・ステータス管理を自動化し、成約率を安定させたい営業組織",
+          target_en: "Sales teams that want follow-up timed to intent instead of manual chasing",
           description: "AI商談中に導入検討時期や社内調整タイミングを自然な会話でヒアリング。回答時期をトリガーに、最適な追客コンテンツを自動配信。",
+          description_en: "During the first conversation, the agent hears timing and next steps, then sends follow-up by intent grade (Business plans and above).",
           features: ["導入時期に合わせた自動フォロー", "商談ステータス管理", "見込み度に基づく追客シナリオ", "CRM/Slack連携", "お礼メール・定期アプローチの自動化"],
+          features_en: ["Follow-up by intent and timing", "Status on the dashboard", "Open and click tracking"],
           keywords: ["自動追客", "フォローアップ", "AI営業", "商談後フォロー"],
+          keywords_en: ["AI sales follow-up", "lead nurture", "intent-based follow-up"],
           price_hint: Subscription.meetia_followup_price_hint,
           area: "全国対応",
           strengths: "商談から追客までAIが一気通貫で代行。月曜朝には見込み度でセグメントされた商談結果がCRMに並ぶ。",
-          industry_weakness: "商談後のフォローは人手依存になりがちで取りこぼしが発生するが、AIが検討時期に合わせた最適タイミングで自動追客。"
+          strengths_en: "First conversation and follow-up stay in one flow. Graded leads are waiting on the dashboard.",
+          industry_weakness: "商談後のフォローは人手依存になりがちで取りこぼしが発生するが、AIが検討時期に合わせた最適タイミングで自動追客。",
+          industry_weakness_en: "Post-session follow-up is easy to miss when it depends on a busy rep. Timed, graded follow-up reduces drop-off."
         }
       }
     },
@@ -454,24 +481,33 @@ module GenreRegistry
     # ----------------------------------------------------------------
     ai_interview: {
       ja: "AI面接代行",
-      en: "AI interview agent",
+      en: "AI interview software",
       host: ["recrivo.pro"],
       service_name: "Recrivo",
       columns_index_description: "RecrivoのAI面接代行に関する解説記事一覧。24時間面接、評価・結果の見方、採用オペレーション改善のポイントをまとめています。",
+      columns_index_description_en: "Guides on Recrivo AI interview software for hiring teams: automated first-round screening, scoring, and recruiter workflow—not mock-interview practice for job seekers.",
       strong_points: "求職者との面接をAIが完全代行。24時間いつでも求職者の好きなタイミングで面接ができ、採用結果を把握できるため、応募から面接までのリードタイムを短縮します。",
+      strong_points_en: "Recrivo is AI interview software for employers. Candidates take a structured first-round interview on their schedule; recruiters review scores and decide. It is not a mock-interview or interview-copilot product for job seekers.",
       keywords: ["AI面接", "AI面接代行", "採用自動化", "オンライン面接", "採用DX", "面接スクリーニング"],
+      keywords_en: ["AI interview software", "AI interview platform", "AI interviewer", "automated interview software", "AI candidate screening"],
       sub_categories: {
         ai_screening: {
           name: "AI面接・スクリーニング",
-          name_en: "AI interview & screening",
+          name_en: "AI interview software for hiring",
           target: "応募増に対して面接工数が逼迫している採用チーム・人事",
+          target_en: "Recruiters and hiring managers drowning in first-round interview volume",
           description: "求職者が好きな時間にAI面接を受診。質問・深掘り・評価までを自動化し、採用担当は結果確認と最終判断に集中できる。",
+          description_en: "Candidates complete an AI-led screening interview anytime. Questions, follow-ups, and scoring run automatically so recruiters focus on shortlists and offers.",
           features: ["24時間面接受付", "質問・深掘りの自動化", "評価結果の可視化", "応募〜面接リードタイム短縮"],
+          features_en: ["24/7 first-round interviews", "Structured questions and follow-ups", "Visible scores for hiring teams", "Shorter apply-to-screen time"],
           keywords: ["AI面接", "面接代行", "採用スクリーニング", "24時間面接"],
+          keywords_en: ["AI interview software", "AI candidate screening", "automated first-round interview", "AI interviewer for hiring"],
           price_hint: Subscription.recrivo_price_hint,
           area: "全国対応",
           strengths: "面接枠の調整や一次面接の工数を大幅に削減し、採用スピードと候補者体験を両立。",
-          industry_weakness: "従来の面接は日程調整と一次対応の負荷が大きく取りこぼしが起きやすいが、AI面接で常時受付と初期評価を自動化できる。"
+          strengths_en: "Cut calendar wrangling and first-round hours while candidates interview when they can.",
+          industry_weakness: "従来の面接は日程調整と一次対応の負荷が大きく取りこぼしが起きやすいが、AI面接で常時受付と初期評価を自動化できる。",
+          industry_weakness_en: "Human first rounds stall on scheduling. High-volume hiring drops candidates before a screen. Automated screening interviews keep the pipeline moving."
         }
       }
     }
@@ -667,6 +703,9 @@ module GenreRegistry
       return hash if fallback.blank? || !hash.is_a?(Hash)
 
       hash[:en] = hash[:en].presence || fallback[:en]
+      %i[keywords_en strong_points_en columns_index_description_en].each do |field|
+        hash[field] = hash[field].presence || fallback[field]
+      end
       fb_subs = fallback[:sub_categories] || {}
       unless hash[:sub_categories].is_a?(Hash)
         hash[:sub_categories] = fb_subs.is_a?(Hash) ? fb_subs.deep_dup : {}
@@ -680,7 +719,9 @@ module GenreRegistry
         fb = fb_subs[sub_key.to_sym] || fb_subs[sub_key.to_s]
         next unless fb.is_a?(Hash)
 
-        sub[:name_en] = sub[:name_en].presence || fb[:name_en]
+        %i[name_en target_en description_en features_en keywords_en strengths_en industry_weakness_en].each do |field|
+          sub[field] = sub[field].presence || fb[field]
+        end
       end
       hash
     end
@@ -821,14 +862,28 @@ module GenreRegistry
   end
 
   # AI生成用のプロフィール。中分類がある場合はそれを優先する
-  def self.service_profile(category_key, sub_key = nil, client: nil)
-    return "専門知識に基づいた最適なソリューションを提供。" if category_key.blank?
+  def self.service_profile(category_key, sub_key = nil, client: nil, locale: :ja)
+    english = locale.to_s == "en"
+    fallback = english ? "Provide a solution grounded in specialist knowledge." : "専門知識に基づいた最適なソリューションを提供。"
+    return fallback if category_key.blank?
 
     g = genre_entry(category_key, client: client)
-    return "専門知識に基づいた最適なソリューションを提供。" unless g
+    return fallback unless g
 
     if sub_key && g[:sub_categories] && g[:sub_categories][sub_key.to_sym]
       s = g[:sub_categories][sub_key.to_sym]
+      if english
+        return <<~TEXT
+          Service: #{g[:service_name]} (#{en_field(s, :name)})
+          Audience: #{en_field(s, :target)}
+          What it does: #{en_field(s, :description)}
+          Features: #{Array(en_field(s, :features)).join(", ")}
+          Pricing: #{s[:price_hint]}
+          Strengths: #{en_field(s, :strengths)}
+          Market gap: #{en_field(s, :industry_weakness)}
+        TEXT
+      end
+
       return <<~TEXT
         サービス名: #{g[:service_name]}（#{s[:name]}）
         ターゲット: #{s[:target]}
@@ -840,8 +895,56 @@ module GenreRegistry
       TEXT
     end
 
+    if english
+      return "Service: #{g[:service_name]}\nStrengths: #{en_field(g, :strong_points)}"
+    end
+
     "サービス名: #{g[:service_name]}\n強み: #{g[:strong_points]}"
   end
+
+  # 英語生成時はジャンルの英語フィールドを :ja / :keywords 等に載せてプロンプトへ渡す。
+  # 英語が無いジャンルは日本語のまま（従来どおり）。
+  def self.for_generation(genre_data, sub_data, locale: :ja)
+    return [genre_data, sub_data] unless locale.to_s == "en"
+
+    [localize_genre_for_en(genre_data), localize_sub_for_en(sub_data)]
+  end
+
+  def self.en_field(hash, key)
+    return nil if hash.blank?
+
+    english = hash[:"#{key}_en"]
+    english = nil if english.respond_to?(:blank?) && english.blank?
+    english.presence || hash[key]
+  end
+  private_class_method :en_field
+
+  def self.localize_genre_for_en(data)
+    return data if data.blank?
+
+    data.merge(
+      ja: data[:en].presence || data[:ja],
+      keywords: Array(data[:keywords_en]).presence || data[:keywords],
+      strong_points: data[:strong_points_en].presence || data[:strong_points]
+    )
+  end
+  private_class_method :localize_genre_for_en
+
+  def self.localize_sub_for_en(data)
+    return data if data.blank?
+
+    data.merge(
+      name: data[:name_en].presence || data[:name],
+      target: data[:target_en].presence || data[:target],
+      description: data[:description_en].presence || data[:description],
+      features: Array(data[:features_en]).presence || data[:features],
+      keywords: Array(data[:keywords_en]).presence || data[:keywords],
+      strengths: data[:strengths_en].presence || data[:strengths],
+      industry_weakness: data[:industry_weakness_en].presence || data[:industry_weakness]
+    )
+  end
+  private_class_method :localize_sub_for_en
+
 
   # 元々定義されていたメソッド（Controllerで使用するため必須）
   def self.allowed_hosts(host)

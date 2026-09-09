@@ -52,7 +52,12 @@ class GptTitleGenerator
   def self.build_titles_prompt_ja(pillar_column)
     category_key = detect_category_key(pillar_column)
     target_category = category_label(category_key, locale: :ja)
-    service_info = GenreRegistry.service_profile(category_key)
+    service_info = GenreRegistry.service_profile(
+      category_key,
+      pillar_column.try(:sub_genre),
+      client: pillar_column.try(:client),
+      locale: :ja
+    )
 
     existing_titles = existing_child_titles(pillar_column)
     existing_titles_text = existing_titles.present? ? existing_titles.join("\n") : "（なし）"
@@ -161,7 +166,12 @@ class GptTitleGenerator
   def self.build_titles_prompt_en(pillar_column)
     category_key = detect_category_key(pillar_column)
     target_category = category_label(category_key, locale: :en)
-    service_info = GenreRegistry.service_profile(category_key)
+    service_info = GenreRegistry.service_profile(
+      category_key,
+      pillar_column.try(:sub_genre),
+      client: pillar_column.try(:client),
+      locale: :en
+    )
 
     existing_titles = existing_child_titles(pillar_column)
     existing_titles_text = existing_titles.present? ? existing_titles.join("\n") : "(none)"
@@ -180,8 +190,10 @@ class GptTitleGenerator
       - Service strengths: #{service_info}
       - Extracted title elements: #{extracted_elements.join(', ')}
 
-      Genre / service facts above may be in Japanese. Treat them as source facts and express titles in English.
+      Genre / service facts above are the source of truth for this product. Write all titles in English.
       Do not mix Japanese into the title strings.
+      Do not reframe an inbound AI sales agent as outbound SDR or email sequencing.
+      Do not reframe hiring-side interview software as mock interview or interview copilot for job seekers.
 
       # Workflow (think through this order internally before outputting; do not output the reasoning)
 

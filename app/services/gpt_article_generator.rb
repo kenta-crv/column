@@ -31,13 +31,11 @@ class GptArticleGenerator
                  end
 
     genre_data = GenreRegistry.genre_entry(genre_code, client: client) || {}
-    category = genre_data[:ja] || GenreRegistry.to_ja(genre_code, client: client) || "その他"
-
-    # ==============================
-    # サブカテゴリ判定（保存済み中分類を優先）
-    # ==============================
     sub_genre_code = GenreRegistry.resolve_sub_category_key(column, genre_code, client: client)
     sub_data = sub_genre_code.present? ? genre_data.dig(:sub_categories, sub_genre_code.to_sym) : nil
+    generation_locale = Column.english_language?(column.language) ? :en : :ja
+    genre_data, sub_data = GenreRegistry.for_generation(genre_data, sub_data, locale: generation_locale)
+    category = genre_data[:ja] || GenreRegistry.to_ja(genre_code, client: client) || "その他"
 
     Rails.logger.info("判定カテゴリ: #{category} (コード: #{genre_code}, サブ: #{sub_genre_code})")
 

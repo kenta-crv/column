@@ -188,6 +188,8 @@ class GptPillarQiita
     genre_data = GenreRegistry.genre_entry(current_genre, client: client) || {}
     sub_key    = GenreRegistry.resolve_sub_category_key(column, current_genre, client: client)
     sub_data   = sub_key.present? ? genre_data.dig(:sub_categories, sub_key.to_sym) : nil
+    generation_locale = Column.english_language?(column.language) ? :en : :ja
+    genre_data, sub_data = GenreRegistry.for_generation(genre_data, sub_data, locale: generation_locale)
 
     # ----------------------------------------------------------
     # 自社事実の取得(web_fetchで直接取得。失敗しても記事は続行する)

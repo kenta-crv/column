@@ -608,7 +608,8 @@ class Column < ApplicationRecord
   end
 
   def service_profile
-    GenreRegistry.service_profile(genre, sub_genre, client: client)
+    locale = english_article? ? :en : :ja
+    GenreRegistry.service_profile(genre, sub_genre, client: client, locale: locale)
   end
 
   def category_images

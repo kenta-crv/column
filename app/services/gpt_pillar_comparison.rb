@@ -54,6 +54,8 @@ class GptPillarComparison
     genre_data = GenreRegistry.genre_entry(current_genre, client: client) || {}
     sub_key    = GenreRegistry.resolve_sub_category_key(column, current_genre, client: client)
     sub_data   = sub_key.present? ? genre_data.dig(:sub_categories, sub_key.to_sym) : nil
+    generation_locale = Column.english_language?(column.language) ? :en : :ja
+    genre_data, sub_data = GenreRegistry.for_generation(genre_data, sub_data, locale: generation_locale)
 
     # ----------------------------------------------------------
     # 事実の確定:web_fetchでの直接取得のみを信頼する。

@@ -19,12 +19,13 @@ class PillarTitleSuggestionService
     end
 
     genre_key = GenreRegistry.resolve_key(genre, client: client)
-    genre_label = GenreRegistry.to_ja(genre_key, client: client) || genre.to_s
+    locale = Column.english_language?(language) ? :en : :ja
+    genre_label = GenreRegistry.label_for(genre_key, client: client, locale: locale) || genre.to_s
     sub_genre_key = sub_genre.presence
     sub_genre_label = if sub_genre_key
-                        GenreRegistry.genres(client: client).dig(genre_key.to_sym, :sub_categories, sub_genre_key.to_sym, :name)
+                        GenreRegistry.sub_category_label(genre_key, sub_genre_key, client: client, locale: locale)
                       end
-    service_info = GenreRegistry.service_profile(genre_key, sub_genre_key, client: client)
+    service_info = GenreRegistry.service_profile(genre_key, sub_genre_key, client: client, locale: locale)
     per_use_max = max_suggestion_count || (client ? client.max_title_suggestion_count : ABSOLUTE_MAX_SUGGESTION_COUNT)
     title_count = normalize_suggestion_count(suggestion_count, max: per_use_max)
 

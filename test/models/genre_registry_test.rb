@@ -75,9 +75,13 @@ class GenreRegistryTest < ActiveSupport::TestCase
     assert_equal "外国人", GenreRegistry::FALLBACK_GENRES.dig(:cargo, :ja)
     assert_equal "Amazon外国人配送",
                  GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, :delivery_partner, :name)
-    %i[life_guide specified_skills support_orgs labor_help].each do |key|
+    %i[life_guide specified_skills ikusei_shuro support_orgs labor_help].each do |key|
       assert GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, key).present?, key.to_s
     end
+    assert_equal "特定技能・育成就労",
+                 GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, :specified_skills, :name)
+    assert_equal "育成就労",
+                 GenreRegistry::FALLBACK_GENRES.dig(:cargo, :sub_categories, :ikusei_shuro, :name)
   end
 
   test "specified_skills keyword wins over foreign_hiring" do
@@ -150,5 +154,56 @@ class GenreRegistryTest < ActiveSupport::TestCase
     refute templates[:cleaning].key?(:sub_categories)
     assert_equal "清掃", GenreRegistry::FALLBACK_GENRES.dig(:cleaning, :ja)
     assert_equal "Cleaning", templates[:cleaning][:en]
+  end
+
+  test "English service_profile for Meetia uses inbound sales-agent facts" do
+    profile = GenreRegistry.service_profile("ai_sales_agent", "ai_negotiation", locale: :en)
+
+    assert_includes profile, "AI sales agent"
+    assert_includes profile, "inbound"
+    refute_includes profile, "AI商談"
+    refute_includes profile, "サービス名"
+  end
+
+  test "Japanese service_profile for Meetia stays Japanese" do
+    profile = GenreRegistry.service_profile("ai_sales_agent", "ai_negotiation", locale: :ja)
+
+    assert_includes profile, "AI商談"
+    assert_includes profile, "サービス名"
+  end
+
+  test "for_generation overlays English keywords for Meetia and Recrivo" do
+    meetia = GenreRegistry.genre_entry("ai_sales_agent")
+    sub = meetia.dig(:sub_categories, :ai_negotiation)
+    g, s = GenreRegistry.for_generation(meetia, sub, locale: :en)
+
+    assert_equal "AI sales agent", g[:ja]
+    assert_includes g[:keywords], "AI sales agent"
+    refute_includes g[:keywords], "AI商談"
+    assert_equal "Inbound AI sales agent", s[:name]
+    refute_includes s[:keywords], "AI商談"
+
+    recrivo = GenreRegistry.genre_entry("ai_interview")
+    rsub = recrivo.dig(:sub_categories, :ai_screening)
+    rg, rs = GenreRegistry.for_generation(recrivo, rsub, locale: :en)
+
+    assert_equal "AI interview software", rg[:ja]
+    assert_includes rg[:keywords], "AI interview software"
+    refute_includes rg[:keywords], "AI面接"
+    assert_includes rs[:keywords], "AI candidate screening"
+  end
+
+  test "English column.service_profile uses column language" do
+    column = Column.new(genre: "ai_sales_agent", sub_genre: "ai_negotiation", language: "en")
+
+    assert_includes column.service_profile, "inbound"
+    refute_includes column.service_profile, "サービス名"
+  end
+
+  test "English generation for other genres still falls back to Japanese facts" do
+    g, = GenreRegistry.for_generation(GenreRegistry.genre_entry("cleaning"), nil, locale: :en)
+
+    assert_equal "Cleaning", g[:ja]
+    assert_includes Array(g[:keywords]), "日常清掃"
   end
 end
