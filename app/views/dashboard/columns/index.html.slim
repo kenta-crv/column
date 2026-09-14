@@ -7,8 +7,6 @@
         = hidden_field_tag :scope, params[:scope]
       - if params[:genre].present?
         = hidden_field_tag :genre, params[:genre]
-      - if params[:language].present?
-        = hidden_field_tag :language, params[:language]
       = select_tag :export_format, options_for_select([[t("drafity.dashboard.columns.export_text"), "text"], [t("drafity.dashboard.columns.export_html"), "html"]]), class: "filter-select dashboard-toolbar__export-select"
       = button_tag type: "submit", class: "btn btn-export dashboard-toolbar__export-btn" do
         svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -204,11 +202,6 @@
           @dashboard_genre_options,
           { include_blank: t("drafity.dashboard.columns.all_categories"), selected: params[:genre] },
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
-      .filter-select-wrap
-        = f.select :language,
-          article_language_filter_options_for_select,
-          { selected: params[:language].presence || default_article_language },
-          { class: "filter-select", id: "language-select", onchange: "this.form.submit();" }
 
 / リアルタイム生成状況パネル
 .realtime-generation-panel
@@ -363,8 +356,6 @@
         = hidden_field_tag :scope, params[:scope]
       - if params[:genre].present?
         = hidden_field_tag :genre, params[:genre]
-      - if params[:language].present?
-        = hidden_field_tag :language, params[:language]
       = select_tag :per,
         options_for_select([[t("drafity.dashboard.common.per_page_option", count: 30), 30], [t("drafity.dashboard.common.per_page_option", count: 50), 50], [t("drafity.dashboard.common.per_page_option", count: 100), 100]], @per_page),
         onchange: "this.form.submit();",

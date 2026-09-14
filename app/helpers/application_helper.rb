@@ -106,10 +106,6 @@ module ApplicationHelper
     end
   end
 
-  def article_language_filter_options_for_select
-    [[t("drafity.dashboard.columns.all_languages"), "all"]] + article_language_options_for_select
-  end
-
   def article_language_label(language)
     key = Column.normalize_language(language)
     t("drafity.columns.form.language_#{key}")

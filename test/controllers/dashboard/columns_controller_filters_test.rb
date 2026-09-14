@@ -78,7 +78,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
     refute_match "Published ok", response.body
   end
 
-  test "japanese dashboard hides english articles until all languages is selected" do
+  test "english dashboard lists every article language" do
     admin = Admin.create!(email: "admin-lang-#{SecureRandom.hex(4)}@example.com", password: "password123")
     sign_in admin
 
@@ -98,15 +98,29 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
       language: "en",
       code: "dash-en-#{SecureRandom.hex(3)}"
     )
+    hiragana = Column.create!(
+      title: "ひらがなダッシュボード記事",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "draft",
+      language: "hiragana",
+      code: "dash-hrkt-#{SecureRandom.hex(3)}"
+    )
+
+    get switch_locale_path(locale: "en", return_to: dashboard_columns_path)
 
     get dashboard_columns_path
     assert_response :success
+    assert_includes response.body, "Create pillar article"
     assert_includes response.body, ja.title
-    assert_not_includes response.body, en.title
+    assert_includes response.body, en.title
+    assert_includes response.body, hiragana.title
+    assert_select "#language-select", count: 0
 
-    get dashboard_columns_path(language: "all")
+    get dashboard_columns_path(language: "en")
     assert_response :success
     assert_includes response.body, ja.title
     assert_includes response.body, en.title
+    assert_includes response.body, hiragana.title
   end
 end

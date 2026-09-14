@@ -29,7 +29,6 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
-    filtered_base = apply_dashboard_language_filter(filtered_base)
 
     assign_dashboard_summary_metrics(base_scope, filtered_base)
 
@@ -252,8 +251,6 @@ class Dashboard::ColumnsController < ApplicationController
       scope = scope.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
 
-    scope = apply_dashboard_language_filter(scope)
-
     # 2. CSVエクスポート用のストリーム・ヘッダー準備
     filename = "columns_export_#{Time.current.strftime('%Y%m%d%H%M%S')}.csv"
     keep_html = params[:export_format] == "html"
@@ -440,19 +437,6 @@ class Dashboard::ColumnsController < ApplicationController
   end
 
   private
-
-  # 未指定時は画面の表示言語に合わせる。英語記事が日本語ダッシュボードに混ざるのを防ぐ。
-  def apply_dashboard_language_filter(scope)
-    lang = dashboard_language_filter
-    lang.present? ? scope.where(language: lang) : scope
-  end
-
-  def dashboard_language_filter
-    raw = params[:language].to_s
-    return nil if raw == "all"
-
-    Column.normalize_language(raw.presence || I18n.locale)
-  end
 
   def title_suggestion_ui_config
     if client_signed_in?

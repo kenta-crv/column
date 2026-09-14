@@ -255,7 +255,7 @@ ja:
           avg_score: 平均AIスコア
           quality: 高品質で生成
         genre_summary: "【ジャンル別記事総数】"
-        all_categories: すべてのカテゴリ
+        all_categories: すべて
         all_languages: すべての言語
         language_filter: 記事の言語
         language_ja: 日本語
@@ -974,7 +974,7 @@ en:
           avg_score: Avg. AI score
           quality: High-quality output
         genre_summary: Articles by topic
-        all_categories: All categories
+        all_categories: All
         all_languages: All languages
         language_filter: Article language
         language_ja: Japanese
