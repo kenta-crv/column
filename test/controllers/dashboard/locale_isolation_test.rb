@@ -71,6 +71,8 @@ class Dashboard::LocaleIsolationTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "genre-ai-suggest-btn"
     assert_includes response.body, "window.openGenreDraftModal()"
     assert_includes response.body, "記事の下の案内"
+    assert_includes response.body, "公開記事での見た目"
+    assert_includes response.body, "column-cta-preview"
     assert_includes response.body, "ラベル"
     assert_includes response.body, "type=\"color\""
     assert_includes response.body, "詳しく見る"
@@ -97,6 +99,8 @@ class Dashboard::LocaleIsolationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Service name"
     assert_includes response.body, "Notice under articles"
+    assert_includes response.body, "How it looks on published articles"
+    assert_includes response.body, "column-cta-preview"
     assert_includes response.body, "Label"
     assert_includes response.body, "Learn more"
     assert_includes response.body, "Contact us"

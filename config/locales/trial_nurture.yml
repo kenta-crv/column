@@ -1,0 +1,137 @@
+ja:
+  drafity:
+    trial_nurture:
+      customer_fallback: "お客様"
+      trial_ends: "トライアル終了日: %{date}"
+      offer_badge: "トライアル限定のご案内"
+      offer_title: "スタンダード初回%{months}ヶ月 %{percent}% OFF"
+      offer_price: "通常 ¥%{list}/月 → 割引価格 ¥%{sale}/月"
+      offer_deadline: "このご案内の期限: %{date} まで"
+      offer_checkout_note: "トライアル限定のご案内です。初回%{months}ヶ月 %{percent}% OFF。期限は %{date} までです。"
+      footer_help_html: "ご不明点がございましたら <a href=\"mailto:info@j-work.jp\" style=\"color:#0f766e;\">info@j-work.jp</a> までお問い合わせください。"
+      kinds:
+        day1_not_started:
+          subject: "【%{product}】まずはサービスジャンル登録から始めましょう"
+          headline: "作業開始の第一歩はジャンル登録です"
+          body:
+            - "無料トライアルのご登録ありがとうございます。"
+            - "まだサービスジャンルの登録が完了していないようです。ジャンルを登録すると、AIタイトル提案と記事作成をすぐ始められます。"
+            - "所要時間は数分です。いまのうちに着手して、トライアル期間を最大限ご活用ください。"
+          cta: "ジャンルを登録する"
+        day5_not_started:
+          subject: "【%{product}】まだ未着手です。今日ジャンル登録しませんか"
+          headline: "未着手のまま5日が経過しています"
+          body:
+            - "先日ご案内したジャンル登録が、まだ完了していないようです。"
+            - "トライアルは期間限定です。まずはジャンルを1つ登録し、記事作成フローを体験してみてください。"
+            - "つまずきポイントがあれば、返信またはサポートまでお気軽にご連絡ください。"
+          cta: "今すぐジャンル登録へ"
+        day5_no_pillar:
+          subject: "【%{product}】次はタイトル提案から親記事を作成しましょう"
+          headline: "設定は完了。次は最初の親記事です"
+          body:
+            - "サービスジャンルの登録ありがとうございます。"
+            - "次のステップはAIタイトル提案から親記事を作成することです。ここまで進むと、Drafityの価値を実感しやすくなります。"
+            - "ダッシュボードのワークフローから、タイトル提案を開いてみてください。"
+          cta: "ダッシュボードで続ける"
+        day5_no_child:
+          subject: "【%{product}】親記事の次はクラスター記事で価値を広げましょう"
+          headline: "親記事作成済みです。子記事で効果を高められます"
+          body:
+            - "親記事までのご利用ありがとうございます。"
+            - "次はクラスター（子）記事を作成すると、トピックを広げやすくなり、トライアルの成果をより実感いただけます。"
+            - "記事一覧から子記事作成に進んでみてください。"
+          cta: "親記事一覧を開く"
+        day11_conversion_offer:
+          subject: "【%{product}】トライアル終了間近のご案内"
+          headline: "トライアル終了が近づいています"
+          body:
+            - "無料トライアルの終了が近づいております。"
+            - "継続してご利用いただく場合は、スタンダードプランへの移行をご検討ください。"
+            - "本案内の対象期間中は、スタンダード初回%{months}ヶ月%{percent}%OFFをご利用いただけます。期限を過ぎると本案内の対象外となります。"
+          body_without_offer:
+            - "無料トライアルの終了が近づいております。"
+            - "継続してご利用いただく場合は、スタンダードプランへの移行をご検討ください。"
+            - "ダッシュボードまたはプランページからお手続きいただけます。"
+          cta: "プランを確認する"
+        day15_expired_followup:
+          subject: "【%{product}】トライアル終了のお知らせ"
+          headline: "トライアルは終了しました"
+          body:
+            - "無料トライアル期間が終了しました（自動課金は行われていません）。"
+            - "これまでの設定や下書きはアカウントに残っています。再開時にすぐ続けられます。"
+            - "期限内であれば、スタンダード初回%{months}ヶ月%{percent}%OFFのご案内がご利用いただけます。"
+          body_without_offer:
+            - "無料トライアル期間が終了しました（自動課金は行われていません）。"
+            - "これまでの設定や下書きはアカウントに残っています。再開時にすぐ続けられます。"
+            - "継続をご希望の場合は、スタンダードプランへの移行をご検討ください。"
+          cta: "プランを確認する"
+
+en:
+  drafity:
+    trial_nurture:
+      customer_fallback: "there"
+      trial_ends: "Trial ends on: %{date}"
+      offer_badge: "Trial limited offer"
+      offer_title: "Standard — %{percent}% off for the first %{months} months"
+      offer_price: "Usually ¥%{list}/mo → offer price ¥%{sale}/mo"
+      offer_deadline: "Offer deadline: %{date}"
+      offer_checkout_note: "Trial limited offer: %{percent}% off for %{months} months. Claim by %{date}."
+      footer_help_html: "Questions? Contact <a href=\"mailto:info@j-work.jp\" style=\"color:#0f766e;\">info@j-work.jp</a>."
+      kinds:
+        day1_not_started:
+          subject: "[%{product}] Start by registering a service genre"
+          headline: "Your first step is genre setup"
+          body:
+            - "Thanks for starting a free trial."
+            - "It looks like you have not registered a service genre yet. Once you do, title suggestions and article creation unlock."
+            - "It only takes a few minutes—start now to make the most of your trial."
+          cta: "Register a genre"
+        day5_not_started:
+          subject: "[%{product}] Still not started—set up your genre today"
+          headline: "5 days in and work has not started"
+          body:
+            - "We noticed genre setup is still incomplete."
+            - "Trials are time-limited. Register one genre and try the article workflow."
+            - "If you are stuck, reply to this email or contact support."
+          cta: "Set up a genre now"
+        day5_no_pillar:
+          subject: "[%{product}] Next: create your first pillar article"
+          headline: "Setup done—create your first pillar"
+          body:
+            - "Thanks for registering a service genre."
+            - "Next, use AI title suggestions to create a pillar article. That is where Drafity’s value becomes clear."
+            - "Open the dashboard workflow and start a title suggestion."
+          cta: "Continue in dashboard"
+        day5_no_child:
+          subject: "[%{product}] Add cluster articles after your pillar"
+          headline: "Pillar done—clusters multiply the value"
+          body:
+            - "Thanks for creating a pillar article."
+            - "Next, create cluster (child) articles to expand the topic and get more from your trial."
+            - "Open your pillar list to continue."
+          cta: "Open pillar list"
+        day11_conversion_offer:
+          subject: "[%{product}] Your trial is ending soon"
+          headline: "Your trial is ending soon"
+          body:
+            - "Your free trial is almost over."
+            - "To keep going, consider moving to the Standard plan."
+            - "During this window you can use Standard at %{percent}% off for the first %{months} months. After the deadline, this notice no longer applies."
+          body_without_offer:
+            - "Your free trial is almost over."
+            - "To keep going, consider moving to the Standard plan."
+            - "You can continue from the dashboard or plans page."
+          cta: "View plans"
+        day15_expired_followup:
+          subject: "[%{product}] Your trial has ended"
+          headline: "Trial ended"
+          body:
+            - "Your free trial has ended (no automatic charge)."
+            - "Your setup and drafts remain on the account."
+            - "Within the deadline, you can still use Standard at %{percent}% off for the first %{months} months."
+          body_without_offer:
+            - "Your free trial has ended (no automatic charge)."
+            - "Your setup and drafts remain on the account."
+            - "To continue, consider moving to the Standard plan."
+          cta: "View plans"

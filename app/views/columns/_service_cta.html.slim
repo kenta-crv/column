@@ -22,9 +22,9 @@ section class=wrapper_classes.join(" ") style=cta_style data-column-service-cta=
         p.column-service-cta__lead = cta[:lead]
       - if external
         = link_to href, class: "column-service-cta__btn", target: "_blank", rel: "noopener noreferrer" do
-          span = cta[:cta_label].presence || t("drafity.columns.cta.learn_more")
+          span = cta[:cta_label].presence || column_cta_fallback_label(column)
           span.column-service-cta__btn-arrow aria-hidden="true" →
       - else
         = link_to href, class: "column-service-cta__btn" do
-          span = cta[:cta_label].presence || t("drafity.columns.cta.learn_more")
+          span = cta[:cta_label].presence || column_cta_fallback_label(column)
           span.column-service-cta__btn-arrow aria-hidden="true" →

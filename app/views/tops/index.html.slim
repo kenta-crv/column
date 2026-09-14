@@ -697,9 +697,11 @@
         span.overline RESOURCES
         h2.section-title = t("drafity.lp.resources_title")
         p.section-sub = t("drafity.lp.resources_sub")
-      ul.resources-list
-        - featured_ai_article_columns.each do |item|
-          li = link_to item[:title], item[:path]
+      - featured_items = featured_ai_article_columns
+      - if featured_items.any?
+        ul.resources-list
+          - featured_items.each do |item|
+            li = link_to item[:title], item[:path]
       p.resources-more
         = link_to t("drafity.lp.resources_more"), ai_article_columns_index_path, class: "btn-ghost btn-purple"
 

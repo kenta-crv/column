@@ -80,7 +80,7 @@ module ColumnsHelper
       "@type" => "Article",
       "headline" => column.title,
       "description" => column_seo_description(column),
-      "inLanguage" => Column.normalize_language(column.language) == "en" ? "en" : "ja",
+      "inLanguage" => column_json_ld_language(column),
       "datePublished" => column.published_at&.iso8601,
       "dateModified" => column.updated_at&.iso8601,
       "mainEntityOfPage" => {
@@ -98,6 +98,14 @@ module ColumnsHelper
     }
     data["image"] = [image] if image.present?
     data.compact.to_json
+  end
+
+  def column_json_ld_language(column)
+    case Column.normalize_language(column.language)
+    when "en" then "en"
+    when "hiragana" then "ja-Hrkt"
+    else "ja"
+    end
   end
 
   def public_absolute_url(path)

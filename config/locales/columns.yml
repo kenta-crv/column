@@ -28,6 +28,7 @@ ja:
         language: 記事の言語
         language_ja: 日本語
         language_en: English
+        language_hiragana: ひらがな
         language_hint: 本文・タイトル提案・品質評価の生成言語です。画面の表示言語とは別に保存されます。
         language_inherited: 子記事の言語は親記事から引き継がれます。
         own_service: 言及サービス（管理者専用）
@@ -41,6 +42,7 @@ ja:
         select_please: 選択してください
         no_sub_genre: 中分類はありません
         save: 保存する
+        errors_header: 保存できませんでした
       index:
         title_all: 公開済み記事
         title_pillar: 親記事（ピラー）一覧
@@ -106,6 +108,22 @@ ja:
         related_cross_title: あわせて読みたい
         back_dashboard: ダッシュボードへ
         back_index: 一覧へ戻る
+      show_hiragana:
+        toc: もくじ
+        related_parent_eyebrow: おやきじ
+        related_parent_title: このきじのおやテーマ
+        related_parent_count: 1けん
+        related_parent_index: おや
+        related_children_eyebrow: かんれん
+        related_children_title: このテーマのかんれんきじ
+        related_children_count: "%{count}けん"
+        related_siblings_eyebrow: おなじテーマ
+        related_siblings_title: おなじクラスターのきじ
+        related_cross_eyebrow: かんれんテーマ
+        related_cross_title: あわせてよみたい
+        back_dashboard: ダッシュボードへ
+        back_index: いちらんへもどる
+        learn_more: くわしくみる
       cta:
         learn_more: 詳しく見る
       manage:
@@ -164,8 +182,7 @@ en:
         image: Image
         description: Description
         body: Body
-        genre: Genre
-        sub_genre: Sub-category
+        genre: Topic (top-level)
         article_type: Type
         type_pillar: Pillar
         type_cluster: Child
@@ -175,6 +192,7 @@ en:
         language: Article language
         language_ja: Japanese
         language_en: English
+        language_hiragana: Hiragana
         language_hint: Used for body, title suggestions, and quality scoring. Stored separately from the dashboard UI language.
         language_inherited: Child articles inherit language from the parent.
         own_service: Mentioned service (admin only)
@@ -188,6 +206,7 @@ en:
         select_please: Please select
         no_sub_genre: No sub-categories
         save: Save
+        errors_header: Could not save
       index:
         title_all: Published articles
         title_pillar: Pillar articles
@@ -206,16 +225,16 @@ en:
         empty_child: No cluster articles yet.
         count: "%{count}"
         th_title: Title
-        th_genre: Genre
+        th_genre: Topic
         th_children: Children
         th_type: Type
         th_updated: Updated
         type_pillar: Pillar
         type_cluster: Cluster
         child_count: "%{count}"
-        to_genres: Service & genre settings
+        to_genres: Topic settings
         back_dashboard: ← Back to dashboard
-        filter_genre: "Filter by genre:"
+        filter_genre: "Filter by topic:"
         filter_all: All
       draft:
         title: Drafts & incomplete articles
@@ -225,7 +244,7 @@ en:
         delete_bulk: Delete selected
         delete_bulk_confirm: Delete selected articles?
         th_title: Title
-        th_genre: Genre
+        th_genre: Topic
         th_status: Status
         th_updated: Updated
         th_actions: Actions
@@ -253,6 +272,22 @@ en:
         related_cross_title: You may also like
         back_dashboard: Dashboard
         back_index: Back to list
+      show_hiragana:
+        toc: もくじ
+        related_parent_eyebrow: おやきじ
+        related_parent_title: このきじのおやテーマ
+        related_parent_count: 1けん
+        related_parent_index: おや
+        related_children_eyebrow: かんれん
+        related_children_title: このテーマのかんれんきじ
+        related_children_count: "%{count}けん"
+        related_siblings_eyebrow: おなじテーマ
+        related_siblings_title: おなじクラスターのきじ
+        related_cross_eyebrow: かんれんテーマ
+        related_cross_title: あわせてよみたい
+        back_dashboard: ダッシュボードへ
+        back_index: いちらんへもどる
+        learn_more: くわしくみる
       cta:
         learn_more: Learn more
       manage:

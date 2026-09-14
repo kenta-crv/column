@@ -56,7 +56,9 @@ class Api::V1::ArticlesController < ApplicationController
 
       @column_body_with_ids = GptGenerationLocale.rewrite_structure_headings(@column.body, language: @column.language)
       @headings = extract_headings(@column_body_with_ids)
-      @children = client_articles_scope.where(article_type: %w[child cluster], parent_id: @column.id)
+      @children = client_articles_scope
+                    .where(article_type: %w[child cluster], parent_id: @column.id)
+                    .merge(Column.for_language(@column.language))
 
       html = render_to_string(
         partial: 'api/v1/articles/show',
@@ -68,6 +70,7 @@ class Api::V1::ArticlesController < ApplicationController
       page = [params[:page].to_i, 1].max
       per_page = params[:per_page].present? ? params[:per_page].to_i.clamp(1, 100) : 100
       @columns = client_articles_scope
+                   .merge(Column.for_language(embed_language))
                    .with_list_attributes
                    .order(updated_at: :desc)
                    .offset((page - 1) * per_page)
@@ -118,6 +121,14 @@ class Api::V1::ArticlesController < ApplicationController
     else
       GenreRegistry.equivalent_keys(param).presence || [param]
     end
+  end
+
+  def embed_language
+    raw = params[:language].to_s.strip.downcase
+    return "en" if raw.start_with?("en")
+    return "hiragana" if raw.include?("hiragana") || raw == "ja-hrkt"
+
+    Column.normalize_language(raw.presence || Column::DEFAULT_LANGUAGE)
   end
 
   def parsed_updated_since

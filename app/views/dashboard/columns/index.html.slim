@@ -206,8 +206,8 @@
           { class: "filter-select", id: "genre-select", onchange: "this.form.submit();" }
       .filter-select-wrap
         = f.select :language,
-          [[t("drafity.dashboard.columns.language_ja"), "ja"], [t("drafity.dashboard.columns.language_en"), "en"]],
-          { include_blank: t("drafity.dashboard.columns.all_languages"), selected: params[:language] },
+          article_language_filter_options_for_select,
+          { selected: params[:language].presence || default_article_language },
           { class: "filter-select", id: "language-select", onchange: "this.form.submit();" }
 
 / リアルタイム生成状況パネル
@@ -231,6 +231,7 @@
             .generation-title = c.title
             .generation-status = t("drafity.dashboard.columns.realtime_generating")
           = form_with url: stop_generation_dashboard_column_path(c), method: :patch, local: true, data: { turbolinks: false }, html: { style: "display:inline-flex; margin-left:auto;" } do
+            = dashboard_return_to_hidden_field
             = button_tag type: "submit", class: "generation-stop-btn", style: "background:#ef4444;color:#fff;border:1px solid #dc2626;border-radius:6px;height:28px;padding:0 10px;font-size:12px;font-weight:600;", data: { confirm: t("drafity.dashboard.columns.confirm_stop") }, title: t("drafity.dashboard.columns.stop_title") do
               span = t("drafity.dashboard.columns.stop")
     - else
@@ -240,6 +241,7 @@
 / 5. リッチなデータテーブル一覧
 .table-wrap
   = form_with url: bulk_update_drafts_columns_path, method: :post, local: true, data: { turbo: false } do |bulk_f|
+    = dashboard_return_to_hidden_field
     .bulk-action-bar
       = bulk_f.button t("drafity.dashboard.columns.bulk_approve"), name: "action_type", value: "approve_bulk", class: "btn btn-primary", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_approve") }
       = bulk_f.button t("drafity.dashboard.columns.bulk_publish"), name: "action_type", value: "publish_bulk", class: "btn btn-success", type: "submit", data: { confirm: t("drafity.dashboard.columns.confirm_bulk_publish") }
@@ -283,7 +285,7 @@
                       - elsif c.parent_id.present?
                         span.tag-item = t("drafity.dashboard.columns.parent_id", id: c.parent_id)
                       - if c.genre.present?
-                        span.tag-item = c.genre
+                        span.tag-item = c.genre_label.presence || c.genre
                       span.tag-item = article_language_label(c.language)
               td
                 - if c.published?
@@ -298,28 +300,28 @@
               td.actions-cell
                 .actions-cell-inner
                   - unless c.generated_body?
-                    = link_to approve_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_approve", mode: generation_mode_label(c.generation_mode)) }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: t("drafity.dashboard.columns.generate_title") do
+                    = link_to approve_column_path(c, dashboard_return_to_params), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_approve", mode: generation_mode_label(c.generation_mode)) }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #8b5cf6; border: 1px solid #7c3aed; color: #fff;", title: t("drafity.dashboard.columns.generate_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                         polygon points="5 3 19 12 5 21 5 3"
                       = t("drafity.dashboard.columns.generate")
                   - if c.generated_body? && !c.published?
-                    = link_to publish_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_publish") }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #10b981; border: 1px solid #0ea672; color: #fff;", title: t("drafity.dashboard.columns.publish_title") do
+                    = link_to publish_column_path(c, dashboard_return_to_params), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_publish") }, class: "btn", style: "padding: 0 10px; font-size: 12px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 500; text-decoration: none; box-sizing: border-box; white-space: nowrap; background: #10b981; border: 1px solid #0ea672; color: #fff;", title: t("drafity.dashboard.columns.publish_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"
                         path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
                         polyline points="22 4 12 14.01 9 11.01"
                       = t("drafity.dashboard.columns.publish")
                   - elsif c.published?
-                    = link_to unpublish_column_path(c), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_unpublish") }, class: "btn-row-action", title: t("drafity.dashboard.columns.unpublish_title") do
+                    = link_to unpublish_column_path(c, dashboard_return_to_params), method: :patch, data: { turbolinks: false, confirm: t("drafity.dashboard.columns.confirm_unpublish") }, class: "btn-row-action", title: t("drafity.dashboard.columns.unpublish_title") do
                       svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         path d="M17 2.1l4 4-4 4"
                         path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8"
                         path d="M7 21.9l-4-4 4-4"
                         path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"
-                  = link_to edit_column_path(c), class: "btn-row-action", title: t("drafity.dashboard.common.edit") do
+                  = link_to edit_column_path(c, dashboard_return_to_params), class: "btn-row-action", title: t("drafity.dashboard.common.edit") do
                     svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                       path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"
-                  = link_to column_path(c), method: :delete, data: { confirm: t("drafity.dashboard.common.confirm_delete") }, class: "btn-row-menu", title: t("drafity.dashboard.columns.delete_title") do
+                  = link_to column_path(c, dashboard_return_to_params), method: :delete, data: { confirm: t("drafity.dashboard.common.confirm_delete") }, class: "btn-row-menu", title: t("drafity.dashboard.columns.delete_title") do
                     svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       polyline points="3 6 5 6 21 6"
                       path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"

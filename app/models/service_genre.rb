@@ -24,6 +24,7 @@ class ServiceGenre < ApplicationRecord
   after_save :sync_client_allowed_genres, if: :client_id?
   after_destroy :sync_client_allowed_genres_on_destroy, if: :client_id?
   after_commit :reset_genre_registry_cache
+  after_commit :mark_trial_genre_progress, on: :create
 
   def to_registry_hash
     {
@@ -257,6 +258,12 @@ class ServiceGenre < ApplicationRecord
 
   def reset_genre_registry_cache
     GenreRegistry.reset!
+  end
+
+  def mark_trial_genre_progress
+    return if client_id.blank?
+
+    TrialNurture::ProgressTracker.mark_genre!(client)
   end
 
   def deep_symbolize(value)

@@ -147,7 +147,7 @@ class Column < ApplicationRecord
   PUBLIC_GENERATION_MODES = %w[default comparison recommendation].freeze
   ALL_GENERATION_MODES = %w[default comparison recommendation note qiita zenn].freeze
   INTERNAL_GENERATION_MODES = %w[note qiita zenn].freeze
-  LANGUAGES = %w[ja en].freeze
+  LANGUAGES = %w[ja en hiragana].freeze
   DEFAULT_LANGUAGE = "ja"
 
   scope :for_language, ->(lang) { where(language: normalize_language(lang)) }
@@ -174,8 +174,16 @@ class Column < ApplicationRecord
     normalize_language(value) == "en"
   end
 
+  def self.hiragana_language?(value)
+    normalize_language(value) == "hiragana"
+  end
+
   def english_article?
     self.class.english_language?(language_value)
+  end
+
+  def hiragana_article?
+    self.class.hiragana_language?(language_value)
   end
 
   def assign_stock_image_if_missing!

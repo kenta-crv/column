@@ -4,6 +4,15 @@
       = @column.persisted? ? t("drafity.columns.form.edit_title") : t("drafity.columns.form.new_title")
 
     = form_with model: @column, local: true, html: { multipart: true } do |f|
+      - if params[:return_to].to_s.start_with?("/dashboard")
+        = hidden_field_tag :return_to, params[:return_to]
+      - if @column.errors.any?
+        .column-form-errors role="alert" style="margin: 0 0 16px; padding: 12px 14px; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;"
+          p style="margin: 0 0 8px; font-weight: 600;" = t("drafity.columns.form.errors_header")
+          ul style="margin: 0; padding-left: 1.2em;"
+            - @column.errors.full_messages.each do |message|
+              li = message
+
       .form-group
         = f.label :title, t("drafity.columns.form.title")
         = f.text_field :title, class: "form-control"

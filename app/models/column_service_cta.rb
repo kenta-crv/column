@@ -85,6 +85,12 @@ class ColumnServiceCta
             title: "Find work in Japan on LINE",
             lead: "Job updates including delivery roles. No experience required.",
             cta_label: "Apply via LINE"
+          },
+          hiragana: {
+            badge: "きゅうしょく",
+            title: "にほんでのおしごとさがしはLINEで",
+            lead: "はいそうをふくむきゅうじんをLINEでうけとれます。みけいけんのひともだいじょうぶです。",
+            cta_label: "おうぼする（LINE）"
           }
         },
         life_guide: {
@@ -99,19 +105,39 @@ class ColumnServiceCta
             title: "Work and daily life—ask on LINE",
             lead: "Get help with paperwork and job updates.",
             cta_label: "Chat on LINE"
+          },
+          hiragana: {
+            badge: "せいかつサポート",
+            title: "しごととくらしのそうだんはLINEで",
+            lead: "てつづきでこまったときも、きゅうじんもLINEであんないします。",
+            cta_label: "そうだんする（LINE）"
           }
         },
         specified_skills: {
           theme: "jwork",
           badge: "企業向け",
-          title: "特定技能・技能実習の受け入れ相談はLINEで",
+          title: "特定技能・育成就労の受け入れ相談はLINEで",
           lead: "制度の整理と、現場で動ける人材のご案内をします。",
           cta_label: "受け入れの相談（LINE）",
           url: "https://lin.ee/NZBWRrsD",
           en: {
             badge: "For employers",
-            title: "Specified skilled & intern programs—chat on LINE",
+            title: "Specified skilled & Ikusei Shuro—chat on LINE",
             lead: "We’ll help you sort the system and find people who can start.",
+            cta_label: "Talk hiring (LINE)"
+          }
+        },
+        ikusei_shuro: {
+          theme: "jwork",
+          badge: "企業向け",
+          title: "育成就労の受け入れ準備はLINEで",
+          lead: "計画認定や受け入れ体制の整理と、現場で動ける人材のご案内をします。",
+          cta_label: "受け入れの相談（LINE）",
+          url: "https://lin.ee/NZBWRrsD",
+          en: {
+            badge: "For employers",
+            title: "Ikusei Shuro hiring—chat on LINE",
+            lead: "We’ll help you prepare plans and find people who can start.",
             cta_label: "Talk hiring (LINE)"
           }
         },
@@ -141,6 +167,12 @@ class ColumnServiceCta
             title: "If you’re in trouble, start here—or ask on LINE",
             lead: "Wage theft and harassment belong at official desks. We’ll help you find the right one.",
             cta_label: "Ask where to go (LINE)"
+          },
+          hiragana: {
+            badge: "そうだんまどぐち",
+            title: "こまったときはまずそうだんを。LINEでもあんないします",
+            lead: "みばらい・はらすめんとはこうてきなまどぐちがほんすじです。いきさきがわからないときはLINEでききます。",
+            cta_label: "まどぐちをきく（LINE）"
           }
         }
       }
@@ -382,31 +414,39 @@ class ColumnServiceCta
   end
 
   def self.apply_locale_copy(payload, column, key, sub_key, base, override)
-    return payload unless Column.english_language?(column&.language)
+    locale_key = locale_copy_key(column)
+    return payload unless locale_key
 
     default = default_payload_for(key)
-    en_copy = extract_en_copy(default)
-    en_copy = en_copy.merge(extract_en_copy(base))
+    localized = extract_locale_copy(default, locale_key)
+    localized = localized.merge(extract_locale_copy(base, locale_key))
     if sub_key.present?
-      en_copy = en_copy.merge(extract_en_copy(dig_sub_genre(default, sub_key)))
-      en_copy = en_copy.merge(extract_en_copy(override))
+      localized = localized.merge(extract_locale_copy(dig_sub_genre(default, sub_key), locale_key))
+      localized = localized.merge(extract_locale_copy(override, locale_key))
     end
 
-    data = symbolize_payload(payload.except(:en, "en", :by_sub_genre, "by_sub_genre"))
+    data = symbolize_payload(payload.except(:en, "en", :hiragana, "hiragana", :by_sub_genre, "by_sub_genre"))
     COPY_KEYS.each do |copy_key|
-      data[copy_key] = en_copy[copy_key] if en_copy[copy_key].present?
+      data[copy_key] = localized[copy_key] if localized[copy_key].present?
     end
     data
   end
 
-  def self.extract_en_copy(payload)
+  def self.locale_copy_key(column)
+    return :en if Column.english_language?(column&.language)
+    return :hiragana if Column.hiragana_language?(column&.language)
+
+    nil
+  end
+
+  def self.extract_locale_copy(payload, locale_key)
     return {} if payload.blank?
 
-    en = payload.with_indifferent_access[:en]
-    return {} unless en.is_a?(Hash)
+    localized = payload.with_indifferent_access[locale_key]
+    return {} unless localized.is_a?(Hash)
 
-    symbolize_payload(en).slice(*COPY_KEYS).compact
+    symbolize_payload(localized).slice(*COPY_KEYS).compact
   end
   private_class_method :merge_cta, :dig_sub_genre, :disabled?, :blank_payload?,
-                       :apply_locale_copy, :extract_en_copy
+                       :apply_locale_copy, :locale_copy_key, :extract_locale_copy
 end

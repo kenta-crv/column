@@ -1,0 +1,13 @@
+# Sidekiq Cron（任意）
+# Sidekiq プロセス起動時に読み込む場合:
+#   config/initializers/sidekiq.rb で Sidekiq::Cron::Job.load_from_hash YAML.load_file(...)
+#
+# 本ジョブは ActiveJob :async でも rake から実行可能:
+#   bin/rails trial_nurture:dispatch
+#
+# 本番では cron / スケジューラで毎日1回実行してください。
+dispatch_trial_nurture_emails:
+  cron: "0 10 * * *"
+  class: "DispatchTrialNurtureEmailsJob"
+  queue: default
+  description: "Trial nurture emails by activation progress"

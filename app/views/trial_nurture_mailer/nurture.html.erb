@@ -1,0 +1,26 @@
+<p><%= @client_name %> 様</p>
+
+<p><strong><%= @headline %></strong></p>
+
+<% Array(@body_lines).each do |line| %>
+  <p><%= line %></p>
+<% end %>
+
+<% if @show_offer %>
+  <p>
+    <strong><%= t("drafity.trial_nurture.offer_badge") %></strong><br>
+    <%= t("drafity.trial_nurture.offer_title", percent: @percent_off, months: @months) %><br>
+    <%= t("drafity.trial_nurture.offer_price", list: @list_price, sale: @sale_price) %>
+    <% if @offer_expires_at.present? %>
+      <br><%= t("drafity.trial_nurture.offer_deadline", date: format_mail_date(@offer_expires_at)) %>
+    <% end %>
+  </p>
+<% end %>
+
+<% if @trial_ends_at.present? %>
+  <p><%= t("drafity.trial_nurture.trial_ends", date: format_mail_date(@trial_ends_at)) %></p>
+<% end %>
+
+<p><a href="<%= @cta_url %>"><%= @cta_label %></a></p>
+<p>ご不明な点がございましたら、<a href="mailto:info@j-work.jp">info@j-work.jp</a> までお問い合わせください。</p>
+<p>株式会社J Work</p>

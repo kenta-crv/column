@@ -50,8 +50,8 @@
         .form-group
           label = t("drafity.dashboard.title_suggest.language")
           select#article-language-select
-            option value="ja" selected=(default_article_language == "ja") = t("drafity.columns.form.language_ja")
-            option value="en" selected=(default_article_language == "en") = t("drafity.columns.form.language_en")
+            - article_language_options_for_select.each do |label, value|
+              option value=value selected=(default_article_language == value) = label
           small.form-text = t("drafity.dashboard.title_suggest.language_hint")
         .form-group
           - suggestion_config = @title_suggestion_config || { default: 1, max: Subscription::TITLE_SUGGESTION_BAR_MAX, bar_max: Subscription::TITLE_SUGGESTION_BAR_MAX, remaining: nil }

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# 記事生成の出力言語。日本語プロンプトは既存のまま残し、
-# language=en のときだけ英語システムプロンプトとユーザー指示を使う。
+# 記事生成の出力言語。column.language に応じてプロンプトを切り替える。
 module GptGenerationLocale
   module_function
 
@@ -24,12 +23,21 @@ module GptGenerationLocale
     current == "en"
   end
 
+  def hiragana?
+    current == "hiragana"
+  end
+
   TOC_HEADING_JA = "目次"
   TOC_HEADING_EN = "Contents"
-  TOC_HEADINGS = [TOC_HEADING_JA, TOC_HEADING_EN].freeze
+  TOC_HEADING_HIRAGANA = "もくじ"
+  TOC_HEADINGS = [TOC_HEADING_JA, TOC_HEADING_EN, TOC_HEADING_HIRAGANA].freeze
 
   def toc_heading
-    english? ? TOC_HEADING_EN : TOC_HEADING_JA
+    case current
+    when "en" then TOC_HEADING_EN
+    when "hiragana" then TOC_HEADING_HIRAGANA
+    else TOC_HEADING_JA
+    end
   end
 
   def toc_heading?(text)
@@ -38,30 +46,174 @@ module GptGenerationLocale
 
   def rewrite_structure_headings(body, language: current)
     text = body.to_s
-    return text unless Column.english_language?(language)
+    lang = Column.normalize_language(language)
 
-    text.sub(/^##[[:space:]]*目次[[:space:]]*$/, "## #{TOC_HEADING_EN}")
-        .gsub(/^##[[:space:]]*まとめ[[:space:]]*$/, "## Conclusion")
+    case lang
+    when "en"
+      text.sub(/^##[[:space:]]*目次[[:space:]]*$/, "## #{TOC_HEADING_EN}")
+          .gsub(/^##[[:space:]]*もくじ[[:space:]]*$/, "## #{TOC_HEADING_EN}")
+          .gsub(/^##[[:space:]]*まとめ[[:space:]]*$/, "## Conclusion")
+    when "hiragana"
+      normalize_hiragana_markdown(text)
+        .sub(/^##[[:space:]]*目次[[:space:]]*$/, "## #{TOC_HEADING_HIRAGANA}")
+        .gsub(/^##[[:space:]]*Contents[[:space:]]*$/, "## #{TOC_HEADING_HIRAGANA}")
+        .gsub(/^##[[:space:]]*Conclusion[[:space:]]*$/, "## まとめ")
+    else
+      text
+    end
+  end
+
+  ATX_HEADING = /\#{2,3}[[:space:]]+/
+
+  def normalize_hiragana_markdown(text)
+    text.to_s
+      .tr("．", "。")
+      .tr("，", "、")
+      .gsub(/[ \t]+\n/, "\n")
+      .gsub(/([^\n])(#{ATX_HEADING})/, "\\1\n\n\\2")
+      .gsub(/(#{ATX_HEADING}[^\n]+)(?=#{ATX_HEADING})/, "\\1\n\n")
+      .gsub(/([^\n])\n(#{ATX_HEADING})/, "\\1\n\n\\2")
+      .gsub(/(#{ATX_HEADING}[^\n]+)\n(?!\n)/, "\\1\n\n")
   end
 
   def prepare_user_prompt(prompt)
-    return prompt unless english?
+    text = prompt.to_s
+    return text if language_locked_prompt?(text)
 
-    task = neutralize_japanese_output_instructions(prompt.to_s)
+    pack = GptPromptPack.for(current)
+    return text unless pack.exist?("wrap")
 
-    <<~EN
-      LANGUAGE: Write the entire response in English.
-      The task below was originally written for Japanese articles. Override every Japanese-output rule.
-      JSON string values (description, keyword, h2_title, captions, titles) must be English.
-      If the task says to start with "## まとめ", start with "## Conclusion" instead.
-      Use "## Contents" for the table of contents heading, never the Japanese equivalent.
-      Character counts in 文字 are Japanese-density targets. For English, write roughly 45–55% as many words as that number (900文字 ≈ 400–500 words). Do not output a short English stub of only 900 characters.
+    pack.render("wrap", task: neutralize_task(text))
+  end
 
-      Genre / EEAT facts below may be in Japanese. Treat them as source facts and express them in English. Do not mix Japanese into the article body.
+  def language_locked_prompt?(prompt)
+    prompt.to_s.start_with?("LANGUAGE:")
+  end
 
-      --- Task ---
-      #{task}
-    EN
+  def neutralize_task(text)
+    case current
+    when "en"
+      neutralize_japanese_output_instructions(text)
+    when "hiragana"
+      neutralize_japanese_output_instructions_for_hiragana(text)
+    else
+      text
+    end
+  end
+
+  def neutralize_japanese_output_instructions_for_hiragana(text)
+    text.to_s
+      .gsub("全て日本語", "ひらがなのみ")
+      .gsub("すべて日本語", "ひらがなのみ")
+      .gsub("日本語のみで出力", "ひらがなのみで出力")
+      .gsub("日本語のみ", "ひらがなのみ")
+      .gsub("日本語で出力", "ひらがなで出力")
+      .gsub("日本語で書く", "ひらがなで書く")
+      .gsub("日本語で書け", "ひらがなで書け")
+      .gsub("日本語説明", "ひらがなのせつめい")
+      .gsub("## 目次", "## もくじ")
+      .gsub("## Contents", "## もくじ")
+      .gsub("## Conclusion", "## まとめ")
+      .gsub("700〜1100文字", "200字前後")
+      .gsub("900〜1400文字", "250字前後")
+      .gsub(/H2は4〜7個[^。\n]*/, "H2は3〜4個")
+      .gsub(/(^|\n)(\s*[-*]\s*)日本語(\s*)(?=\n|$)/, '\1\2ひらがなのみ\3')
+  end
+
+  KANJI_PATTERN = /[\u4e00-\u9fff]/
+
+  def contains_kanji?(text)
+    text.to_s.match?(KANJI_PATTERN)
+  end
+
+  def hiragana_kanji_violation?(text)
+    hiragana? && contains_kanji?(text)
+  end
+
+  def kanji_rewrite_user_prompt(text)
+    tokens = text.to_s.scan(/[\u4e00-\u9fff]+/).uniq
+    token_lines = tokens.map { |token| "- #{token}" }.join("\n")
+    GptPromptPack.for("hiragana").render(
+      "kanji_rewrite",
+      text: text,
+      token_lines: token_lines.presence || "- （検出分をすべて置換）"
+    )
+  end
+
+  def strip_code_fences(content)
+    content.to_s.sub(/\A```[a-z]*\n/i, "").sub(/```\z/m, "")
+  end
+
+  def rewrite_until_hiragana(content)
+    text = strip_code_fences(content).strip
+    raise "empty content" if text.blank?
+    unless hiragana_kanji_violation?(text)
+      return hiragana? ? normalize_hiragana_markdown(text) : text
+    end
+    return normalize_hiragana_markdown(text) unless block_given?
+
+    3.times do
+      rewritten = strip_code_fences(yield(kanji_rewrite_user_prompt(text))).strip
+      next if rewritten.blank?
+
+      text = rewritten
+      break unless hiragana_kanji_violation?(text)
+    end
+    raise "kanji remaining" if hiragana_kanji_violation?(text)
+
+    normalize_hiragana_markdown(text)
+  end
+
+  def finalize_text_section(content, &block)
+    rewrite_until_hiragana(content, &block)
+  end
+
+  def ensure_hiragana_document(body)
+    text = normalize_hiragana_markdown(body.to_s)
+    if hiragana_kanji_violation?(text) && block_given?
+      text = text.split(/(?=^\#\# )/m).map do |chunk|
+        next chunk if chunk.strip.blank?
+
+        rewrite_until_hiragana(chunk) { |prompt| yield(prompt) }
+      end.join
+    end
+    normalize_hiragana_markdown(text)
+  end
+
+  HIRAGANA_ARTICLE_MAX_CHARS = 1800
+
+  def compact_hiragana_user_prompt(text)
+    GptPromptPack.for("hiragana").render(
+      "compact",
+      text: text,
+      max_chars: HIRAGANA_ARTICLE_MAX_CHARS
+    )
+  end
+
+  def compact_hiragana_article(body)
+    text = normalize_hiragana_markdown(body.to_s)
+    return text unless hiragana?
+    return text unless block_given?
+    return text if text.blank?
+
+    3.times do
+      rewritten = strip_code_fences(yield(compact_hiragana_user_prompt(text))).strip
+      next if rewritten.blank?
+
+      text = normalize_hiragana_markdown(rewritten)
+      break unless contains_kanji?(text) || text.length > HIRAGANA_ARTICLE_MAX_CHARS
+    end
+    raise "kanji remaining" if contains_kanji?(text)
+
+    text
+  end
+
+  def finalize_hiragana_article(body, &block)
+    text = normalize_hiragana_markdown(body.to_s)
+    return text unless hiragana?
+    return text if text.present? && !contains_kanji?(text) && text.length <= HIRAGANA_ARTICLE_MAX_CHARS
+
+    compact_hiragana_article(text, &block)
   end
 
   def neutralize_japanese_output_instructions(text)
@@ -75,48 +227,31 @@ module GptGenerationLocale
       .gsub("日本語で書け", "write in English")
       .gsub("日本語説明", "English explanation")
       .gsub("## 目次", "## Contents")
+      .gsub("## もくじ", "## Contents")
       .gsub("## まとめ", "## Conclusion")
       .gsub(/(^|\n)(\s*[-*]\s*)日本語(\s*)(?=\n|$)/, '\1\2English\3')
   end
 
   def resolve_system_prompt(japanese_system, json_mode:)
-    return japanese_system unless english?
+    pack = GptPromptPack.for(current)
+    # 日本語はジェネレータごとの system（Qiita / Zenn など）を維持する。
+    return japanese_system if current == "ja" || !pack.exist?("system")
 
-    system_content = <<~SYSTEM
-      You are a professional SEO / editorial writer.
-
-      CRITICAL RULES
-      - English only
-      - Neutral, practical explanation — not a sales page or roundup-affiliate article
-      - No hype, no fabricated anecdotes
-      - Explain industry structure from primary-source style facts
-      - Avoid AI-sounding filler, rigid PREP templates, and bullet-point spam
-      - Do not start sections with "In this article" / "This article will"
-      - Do not overuse "recommended"
-      - Follow Google E-E-A-T
-      - Do not restate another section's conclusion; add a new angle
-      - Use Markdown tables/checklists only when the user task asks for them
-      - Vary sentence endings; do not repeat the same wrap-up phrase twice in one section
-      - Follow the user task's genre (SEO guide, comparison, essay, Qiita/Zenn-style technical post) in English
-    SYSTEM
-
-    if json_mode
-      system_content + "\nOutput JSON only."
-    else
-      system_content + "\nOutput body text only.\nNo JSON.\nNo extra headings unless the task asks for them."
-    end
+    pack.system_prompt(json_mode: json_mode)
   end
 
   def resolve_title_system_prompt(japanese_system)
-    return japanese_system unless english?
+    pack = GptPromptPack.for(current)
+    return japanese_system unless pack.exist?("title_system")
 
-    "You are an SEO consultant. Return only a JSON object in the specified format. No markdown fences, backticks, or commentary. All title strings must be in English."
+    pack.render("title_system").to_s.strip
   end
 
   def min_length(japanese_min)
-    return japanese_min unless english?
+    return (japanese_min.to_i * 1.8).to_i if english?
+    return (japanese_min.to_i * 0.35).to_i if hiragana?
 
-    (japanese_min.to_i * 1.8).to_i
+    japanese_min
   end
 
   def extract_gist(section_body)
@@ -167,8 +302,11 @@ module GptGenerationLocale
   end
 
   def section_failure_message(name)
-    if english?
+    case current
+    when "en"
       "(Body generation failed for #{name}. Please regenerate.)"
+    when "hiragana"
+      "（#{name}の本文生成に失敗しました。もういちどつくってください。）"
     else
       "（#{name}の本文生成に失敗しました。再生成してください。）"
     end

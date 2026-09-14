@@ -93,6 +93,33 @@ class ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, ja_column.title
     assert_includes response.body, en_column.title
+
+    get columns_index_path(genre: CrawlPolicy::GENRE_KEY)
+    assert_response :success
+    assert_includes response.body, ja_column.title
+    assert_not_includes response.body, en_column.title
+  end
+
+  test "english published article on japanese public path redirects to /en" do
+    column = Column.create!(
+      title: "Event tracking churn points for B2B sales",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "completed",
+      code: "event-tracking-churn-points-b2b-sales-#{SecureRandom.hex(3)}",
+      body: "# English body\n\nPublished English article.",
+      published_at: Time.current,
+      language: "en"
+    )
+
+    host! "drafity.pro"
+    get columns_show_path(genre: CrawlPolicy::GENRE_KEY, id: column.code)
+    assert_response :moved_permanently
+    assert_redirected_to localized_columns_show_path(
+      locale: :en,
+      genre: CrawlPolicy::GENRE_KEY,
+      id: column.code
+    )
   end
 
   test "english client sees publish status panel in english" do

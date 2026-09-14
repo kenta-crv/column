@@ -9,6 +9,8 @@ class Client < ApplicationRecord
   has_many :columns, dependent: :nullify
   has_many :service_genres, dependent: :destroy
   has_many :autonomous_content_runs, dependent: :destroy
+  has_one :client_trial_progress, dependent: :destroy
+  has_many :trial_nurture_email_logs, dependent: :destroy
 
   has_one :plan
   has_many :subscriptions, dependent: :destroy
@@ -161,10 +163,12 @@ class Client < ApplicationRecord
 
   def record_pillar_creation!(count: 1)
     current_usage_log.increment!(:pillar_created_count, count)
+    TrialNurture::ProgressTracker.mark_pillar_created!(self)
   end
 
   def record_child_creation!(count: 1)
     current_usage_log.increment!(:child_created_count, count)
+    TrialNurture::ProgressTracker.mark_child_created!(self)
   end
 
   def current_usage_log
@@ -205,11 +209,11 @@ class Client < ApplicationRecord
   end
 
   def can_create_pillar?(count: 1, excluding: nil)
-    pillar_slots_used(excluding: excluding) + count <= plan_limits[:pillar_articles]
+    pillar_usage_count + count <= plan_limits[:pillar_articles]
   end
 
   def can_create_child?(count: 1, excluding: nil)
-    child_slots_used(excluding: excluding) + count <= plan_limits[:child_articles]
+    child_usage_count + count <= plan_limits[:child_articles]
   end
 
   def can_suggest_titles?
@@ -297,6 +301,16 @@ class Client < ApplicationRecord
 
   def record_title_suggestion!
     current_usage_log.increment!(:title_suggestion_count)
+    TrialNurture::ProgressTracker.mark_title_suggestion!(self)
+  end
+
+  def trial_conversion_offer_active?(at: Time.current)
+    return false unless Subscription.trial_conversion_offer_configured?
+    return false if subscription_plan.to_s != "trial" && !trial_expired_without_paid?
+
+    progress = client_trial_progress || TrialNurture::ProgressTracker.ensure_progress(self)
+    progress&.ensure_conversion_offer_expires_at!
+    progress&.conversion_offer_active?(at: at)
   end
 
   def record_image_generation!(count: 1)
@@ -422,6 +436,7 @@ class Client < ApplicationRecord
   end
 
   after_create :bootstrap_trial_subscription
+  after_create :bootstrap_trial_progress
   before_create :generate_api_key_if_blank
 
   private
@@ -432,6 +447,10 @@ class Client < ApplicationRecord
 
   def bootstrap_trial_subscription
     initialize_trial_subscription!
+  end
+
+  def bootstrap_trial_progress
+    TrialNurture::ProgressTracker.ensure_progress(self)
   end
 
 end

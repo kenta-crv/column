@@ -230,7 +230,7 @@ en:
       plans_usage_child: "Child articles"
       plans_usage_titles: "AI title suggestions"
       plans_usage_images: "Image generation"
-      plans_usage_genres: "Genres"
+      plans_usage_genres: "Topics"
       plans_usage_api: "API"
       plans_usage_api_on: "Available"
       plans_usage_api_off: "Unavailable"

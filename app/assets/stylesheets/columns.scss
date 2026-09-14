@@ -2309,6 +2309,45 @@ $theme-border: rgba(0, 0, 0, 0.08);
   border-radius: 6px;
 }
 
+.column-cta-preview-wrap {
+  position: sticky;
+  top: 12px;
+  z-index: 3;
+  margin: 0 0 20px;
+  padding: 14px 16px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+
+  &__label {
+    margin: 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+
+  &__off {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  &.is-off .column-service-cta {
+    opacity: 0.42;
+    pointer-events: none;
+  }
+}
+
+.column-cta-live-preview.blog-container {
+  background: transparent;
+  padding: 0;
+
+  .column-service-cta {
+    margin: 0;
+  }
+}
+
 .service-genres-page {
   max-width: 1100px;
 

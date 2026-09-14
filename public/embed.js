@@ -19,11 +19,18 @@
         return;
       }
       
-      loadArticles(apiKey, container);
+      loadArticles(apiKey, container, resolveLanguage(script));
     });
   }
 
-  function loadArticles(apiKey, container) {
+  function resolveLanguage(script) {
+    var raw = ((script && script.dataset.language) || document.documentElement.getAttribute('lang') || 'ja').toString().toLowerCase();
+    if (raw.indexOf('en') === 0) return 'en';
+    if (raw === 'hiragana' || raw === 'ja-hrkt') return 'hiragana';
+    return 'ja';
+  }
+
+  function loadArticles(apiKey, container, language) {
     container.innerHTML = '<div class="embed-loading" style="padding:20px; text-align:center;">読み込み中...</div>';
     
     // 💡 URLのパラメータから「column」の名前でコード値を取得する
@@ -32,6 +39,7 @@
     
     const apiEndpoint = determineApiEndpoint();
     let url = apiEndpoint + '/api/v1/articles/render_html?api_key=' + encodeURIComponent(apiKey);
+    url += '&language=' + encodeURIComponent(language || 'ja');
     
     // 💡 コード値がURLに含まれていれば、3001番側にもそのまま転送して詳細HTMLを要求する
     if (columnCode) {

@@ -26,9 +26,14 @@ ruby:
           = t("drafity.auth.checkout_trial_body", days: Subscription::TRIAL_DAYS, default: "の期間は費用は発生しません。新規アカウントは%{days}日間の無料トライアルが利用できます（カード不要）。")
       - elsif @intro_discount
         .checkout-confirmation__notice
-          strong = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "初回%{months}ヶ月 %{percent}% OFF")
-          span.checkout-confirmation__notice-sub
-            = t("drafity.auth.intro_discount_note", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "スタンダードプランの最初の%{months}ヶ月間、月額料金が%{percent}%割引になります。")
+          - if @trial_conversion_offer
+            strong = t("drafity.trial_nurture.offer_title", percent: @discount_percent, months: @discount_months)
+            span.checkout-confirmation__notice-sub
+              = t("drafity.trial_nurture.offer_checkout_note", percent: @discount_percent, months: @discount_months, date: (@trial_conversion_offer_expires_at.to_date.strftime(I18n.locale.to_s.start_with?("en") ? "%Y-%m-%d" : "%Y年%m月%d日")))
+          - else
+            strong = t("drafity.auth.intro_discount_title", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "初回%{months}ヶ月 %{percent}% OFF")
+            span.checkout-confirmation__notice-sub
+              = t("drafity.auth.intro_discount_note", percent: Subscription::STANDARD_INTRO_PERCENT_OFF, months: Subscription::STANDARD_INTRO_MONTHS, default: "スタンダードプランの最初の%{months}ヶ月間、月額料金が%{percent}%割引になります。")
 
       .checkout-confirmation__details
         .checkout-confirmation__detail

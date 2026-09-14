@@ -188,6 +188,11 @@ class GptPillarGenerator
 
     body_content += "\n\n{::options auto_ids=\"false\" /}"
 
+    body_content = GptGenerationLocale.finalize_hiragana_article(body_content) do |retry_prompt|
+      retry_response = call_gpt_api(retry_prompt, json_mode: false)
+      retry_response&.dig("choices", 0, "message", "content")
+    end
+
     # ----------------------------------------------------------
     # 保存
     # ----------------------------------------------------------
@@ -272,43 +277,7 @@ class GptPillarGenerator
   # SEOメタ生成
   # ==========================================================
   def self.generate_meta_info(column, category, genre_data, sub_data, eeat_context)
-    prompt = <<~PROMPT
-      以下の記事情報からSEO向けメタ情報をJSON形式で生成してください。
-
-      【記事タイトル】
-      #{column.title}
-
-      【業種】
-      #{category}
-
-      【記事テーマ】
-      #{column.prompt}
-
-      【重要】
-      - サービス宣伝記事にしない
-      - 比較サイトのような記事にしない
-      - 中立的なSEO記事にする
-      - 誇張禁止
-      - 汎用記事として成立させる
-      - 読者課題を主軸にする
-      - 業界調査型の記事にする
-      - descriptionは自然なSEO説明文
-      - codeは英語スラッグ
-      - JSON以外禁止
-
-      【業界情報】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      出力形式:
-      {
-        "code": "english-slug",
-        "description": "日本語説明",
-        "keyword": "SEOキーワード"
-      }
-    PROMPT
+    prompt = meta_prompt(column, category, genre_data, sub_data, eeat_context)
 
     res = call_gpt_api(prompt, json_mode: true)
 
@@ -337,59 +306,7 @@ class GptPillarGenerator
     )
 
     child_titles = child_columns.map(&:title)
-
-    prompt = <<~PROMPT
-      以下の記事のH2構成をJSON形式で生成してください。
-
-      【記事タイトル】
-      #{column.title}
-
-      【業種】
-      #{category}
-
-      【関連子記事】
-      #{child_titles.join("\n")}
-
-      【記事方針】
-      - 中立的な情報記事
-      - サービス誘導禁止
-      - 比較サイト化禁止
-      - 業界分析型にする
-      - 実務目線で構成
-      - 現場課題を解説
-      - SEOテンプレ禁止
-      - 「おすすめ」「ランキング」禁止
-      - ノウハウ型記事にする
-      - 業界理解が深まる構成にする
-      - 各H2は異なる論点・異なる結論を扱うこと（同じ主張の言い換え禁止）
-      - 各H2について、想定される結論の性質（例: "KPI定義の統一", "責任分界の明確化", "データ受け渡しルール", "教育・再現性の担保" など）を conclusion_type として付与する
-      - conclusion_type が同じH2が3つ以上連続しないよう、見出しの切り口を調整する
-
-      【業界背景】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      【出力条件】
-      - H2は4〜7個の範囲で、テーマの複雑さに応じて過不足なく設計する（網羅性を優先して見出しを増やさない。読者の意思決定に必要な論点だけに絞る）
-      - 全て日本語
-      - 見出しのみ
-      - SEOワードを自然に含める
-      - 汎用的な構成にする
-      - 各H2について、以下のいずれかに該当する場合は has_table を true にしてよい（無理な絞り込みは不要）
-        (a) 複数の項目を軸で比較・分類する内容 → 本文側で表として表現される
-        (b) 確認すべき項目・実施すべき手順・揃えるべき条件のように、Yes/No的にチェックできる内容 → 本文側でチェックリストとして表現される
-      - 判断軸や心構え・注意点の解説など、文章のみで十分伝わる見出しは無理に true にせず false のままにする
-      - JSON以外禁止
-
-      出力形式:
-      {
-        "structure": [
-          { "h2_title": "見出し", "has_table": false }
-        ]
-      }
-    PROMPT
+    prompt = structure_prompt(column, category, genre_data, sub_data, eeat_context, child_titles)
 
     res = call_gpt_api(prompt, json_mode: true)
 
@@ -417,10 +334,12 @@ class GptPillarGenerator
 
       raise "empty content" if content.blank?
 
-      content.gsub!(/\A```[a-z]*\n/i, "")
-      content.gsub!(/```\z/m, "")
+      content = GptGenerationLocale.finalize_text_section(content) do |retry_prompt|
+        retry_response = call_gpt_api(retry_prompt, json_mode: false)
+        retry_response&.dig("choices", 0, "message", "content")
+      end
 
-      content.strip
+      content
     rescue => e
       retries += 1
 
@@ -474,42 +393,7 @@ class GptPillarGenerator
     req["Content-Type"] = "application/json"
     req["Authorization"] = "Bearer #{ENV["GPT_API_KEY"]}"
 
-    system_content = <<~SYSTEM
-      あなたはSEO記事専門ライターです。
-
-      【最重要ルール】
-      - 日本語のみ
-      - 中立的に解説
-      - サービス販売ページ化禁止
-      - 比較サイト化禁止
-      - 誇張禁止
-      - 業界構造を解説する
-      - 一次情報ベースの文体
-      - 実務レベルで解説
-      - AI臭い文章禁止
-      - PREP法固定禁止
-      - 箇条書き乱用禁止
-      - 体験談風の嘘を作らない
-      - 「この記事では」禁止
-      - 「おすすめです」連発禁止
-      - 業界メディア品質で書く
-      - 専門性と網羅性を重視
-      - Google EEATを意識
-      - 他セクションで述べた結論・ロジックの再掲禁止（新しい論点・情報を追加すること）
-      - 表・チェックリストの指示がある場合のみMarkdown記法を使用し、それ以外では表記法を使わない
-      【文末表現の多様化（厳守）】
-      - 「〜が重要です」「〜が実務的です」「〜が求められます」を1セクション内で2回以上使うことを禁止する
-      - 結論文は、断定（〜になる／〜が起きる）、具体例の提示、問いかけ、条件提示など異なる形式を混在させる
-    SYSTEM
-
-    if json_mode
-      system_content += "\n出力はJSONのみ。"
-    else
-      system_content += "\n本文テキストのみ出力。"
-      system_content += "\nJSON禁止。"
-      system_content += "\n見出し出力禁止。"
-    end
-
+    system_content = GptPromptPack.for("ja").system_prompt(json_mode: json_mode)
     system_content = GptGenerationLocale.resolve_system_prompt(system_content, json_mode: json_mode)
 
     payload = GptGenerationLocale.chat_completions_payload(
@@ -555,89 +439,59 @@ class GptPillarGenerator
     end
   end
 
+  def self.pillar_prompt_locals(column, category, genre_data, sub_data, eeat_context, extra = {})
+    {
+      title: column.title,
+      category: category,
+      extra_prompt: column.prompt,
+      industry_context: build_industry_context(genre_data, sub_data),
+      eeat_context: eeat_context
+    }.merge(extra)
+  end
+  private_class_method :pillar_prompt_locals
+
+  def self.meta_prompt(column, category, genre_data, sub_data, eeat_context)
+    GptPromptPack.for("ja").render("meta", **pillar_prompt_locals(column, category, genre_data, sub_data, eeat_context))
+  end
+
+  def self.structure_prompt(column, category, genre_data, sub_data, eeat_context, child_titles = [])
+    GptPromptPack.for("ja").render(
+      "structure",
+      **pillar_prompt_locals(
+        column,
+        category,
+        genre_data,
+        sub_data,
+        eeat_context,
+        child_titles_text: Array(child_titles).join("\n")
+      )
+    )
+  end
+
   # ==========================================================
   # 導入文
   # ==========================================================
   def self.introduction_prompt(column, category, genre_data, sub_data, eeat_context)
-    <<~PROMPT
-      「#{column.title}」の記事導入文を作成してください。
-
-      【条件】
-      - 日本語
-      - 700〜1100文字
-      - SEO記事として自然に
-      - 中立的に解説
-      - 業界背景から入る
-      - 読者課題から始める
-      - サービス宣伝禁止
-      - AIテンプレ禁止
-      - 見出し禁止
-      - 汎用記事として成立させる
-      - 専門メディア品質で執筆
-
-      【業界背景】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      【追加指示】
-      #{column.prompt}
-    PROMPT
+    GptPromptPack.for("ja").render("introduction", **pillar_prompt_locals(column, category, genre_data, sub_data, eeat_context))
   end
 
   # ==========================================================
   # H2本文（has_table対応）
   # ==========================================================
   def self.h2_content_prompt(column, category, section, genre_data, sub_data, eeat_context, covered_points = [])
-    <<~PROMPT
-      以下H2見出しの本文を執筆してください。
-
-      【記事タイトル】
-      #{column.title}
-
-      【見出し】
-      #{section["h2_title"]}
-
-      #{build_covered_points_block(covered_points)}
-
-      #{build_table_instruction(section)}
-
-      【禁止ルール（厳守）】
-      - 書き出しの一言目に「#{section["h2_title"]}は、」や「#{section["h2_title"]}において、」など、見出しの言葉をそのまま主語としてオウム返しする不自然な解説開始文を「絶対に禁止」します。文脈から自然に書き出してください。
-      - 上記【既出セクションの要旨】に記載された主張・結論・具体例と同じ内容を繰り返すことを「絶対に禁止」します。この見出し特有の新しい論点・視点・情報を中心に書いてください。
-
-      【セクション末尾の書き方】
-      - 最後の1〜2文は、「〜が重要です」「〜が実務的です」のような一般原則の再掲で終えず、具体的な数値・条件・チェック項目・失敗例のいずれかで締めること
-      - 全体の結論（責任分界や情報連携の重要性など）に触れる場合は、この見出し固有の切り口（例：KPIの話なら分母定義、契約の話なら成果対象の置き方）に紐づけた形でのみ言及してよい
-
-      【条件】
-      - 日本語
-      - 900〜1400文字（テーマの核心に必要な具体例・実務背景のみを扱い、無理な水増しはしない。表やチェックリストを入れる場合、その文字数も含めてよい）
-      - 専門性を持たせる
-      - 実務視点で解説
-      - 中立的に解説
-      - 比較サイト化禁止
-      - 宣伝禁止
-      - 「弊社では」禁止
-      - AIテンプレ禁止
-      - PREP法固定禁止
-      - 見出しを本文に含めない
-      - 実際の業界構造を解説
-      - 表面的説明で終わらせない
-      - 業界背景まで掘り下げる
-      - EEATを意識する
-      - 現場理解が伝わる文章にする
-
-      【業界背景】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      【追加指示】
-      #{column.prompt}
-    PROMPT
+    GptPromptPack.for("ja").render(
+      "h2",
+      **pillar_prompt_locals(
+        column,
+        category,
+        genre_data,
+        sub_data,
+        eeat_context,
+        h2_title: section["h2_title"],
+        covered_points_block: build_covered_points_block(covered_points),
+        table_instruction: build_table_instruction(section)
+      )
+    )
   end
 
   # ==========================================================
@@ -674,36 +528,17 @@ class GptPillarGenerator
   # まとめ
   # ==========================================================
   def self.conclusion_prompt(column, category, genre_data, sub_data, eeat_context, covered_points = [])
-    <<~PROMPT
-      「#{column.title}」の記事まとめを執筆してください。
-
-      #{build_covered_points_block(covered_points)}
-
-      【セクション末尾の書き方】
-      - 最後の1〜2文は、「〜が重要です」のような一般原則の再掲で終えず、記事全体を通じて得られた具体的な視点や確認すべき観点で締めること
-
-      【条件】
-      - 「## まとめ」から開始
-      - 日本語
-      - 中立的
-      - 宣伝禁止
-      - 誇張禁止
-      - 記事全体を自然に総括
-      - 業界全体の視点で締める
-      - SEO記事として自然に終える
-      - 汎用記事として成立させる
-      - 上記【既出セクションの要旨】を踏まえ、各セクションの言い換えではなく統合的な総括にする
-      - まとめでは表・チェックリストは使用しない(通常の文章のみ)
-
-      【業界背景】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      【追加指示】
-      #{column.prompt}
-    PROMPT
+    GptPromptPack.for("ja").render(
+      "conclusion",
+      **pillar_prompt_locals(
+        column,
+        category,
+        genre_data,
+        sub_data,
+        eeat_context,
+        covered_points_block: build_covered_points_block(covered_points)
+      )
+    )
   end
 
   # ==========================================================

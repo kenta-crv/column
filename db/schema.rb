@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_08_24_140000) do
+ActiveRecord::Schema.define(version: 2026_09_10_101833) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -42,6 +42,20 @@ ActiveRecord::Schema.define(version: 2026_08_24_140000) do
     t.index ["client_id"], name: "index_autonomous_content_runs_on_client_id"
     t.index ["pillar_column_id"], name: "index_autonomous_content_runs_on_pillar_column_id"
     t.index ["status"], name: "index_autonomous_content_runs_on_status"
+  end
+
+  create_table "client_trial_progresses", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.datetime "genre_setup_at"
+    t.datetime "first_title_suggestion_at"
+    t.datetime "first_pillar_created_at"
+    t.datetime "first_pillar_body_completed_at"
+    t.datetime "first_child_created_at"
+    t.datetime "conversion_offer_expires_at"
+    t.datetime "converted_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["client_id"], name: "index_client_trial_progresses_on_client_id", unique: true
   end
 
   create_table "client_usage_logs", force: :cascade do |t|
@@ -226,11 +240,26 @@ ActiveRecord::Schema.define(version: 2026_08_24_140000) do
     t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
   end
 
+  create_table "trial_nurture_email_logs", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.string "kind", null: false
+    t.datetime "sent_at", null: false
+    t.string "stage_at_send"
+    t.json "metadata"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["client_id", "kind"], name: "index_trial_nurture_email_logs_on_client_id_and_kind", unique: true
+    t.index ["client_id"], name: "index_trial_nurture_email_logs_on_client_id"
+    t.index ["kind"], name: "index_trial_nurture_email_logs_on_kind"
+  end
+
   add_foreign_key "autonomous_content_runs", "clients"
   add_foreign_key "autonomous_content_runs", "columns", column: "pillar_column_id"
+  add_foreign_key "client_trial_progresses", "clients"
   add_foreign_key "client_usage_logs", "clients"
   add_foreign_key "columns", "clients"
   add_foreign_key "payments", "clients"
   add_foreign_key "service_genres", "clients"
   add_foreign_key "subscriptions", "clients"
+  add_foreign_key "trial_nurture_email_logs", "clients"
 end

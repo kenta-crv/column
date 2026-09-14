@@ -27,7 +27,7 @@
     / 目次
     - if @headings.any?
       .toc
-        h2.toc-title = t("drafity.columns.show.toc", locale: column_content_locale(@column))
+        h2.toc-title = column_toc_title(@column)
         ul.toc-list
           - @headings.each do |h|
             li class="toc-item toc-level-#{h[:level]}"
@@ -165,13 +165,13 @@
       section.related-articles.related-articles--parent
         .related-articles__header
           div
-            p.related-articles__eyebrow = t("drafity.columns.show.related_parent_eyebrow")
-            h2.related-articles__title = t("drafity.columns.show.related_parent_title")
-          span.related-articles__count = t("drafity.columns.show.related_parent_count")
+            p.related-articles__eyebrow = column_show_t(@column, :related_parent_eyebrow)
+            h2.related-articles__title = column_show_t(@column, :related_parent_title)
+          span.related-articles__count = column_show_t(@column, :related_parent_count)
         ul.related-articles__list
           li.related-articles__item
             = link_to public_related_column_path(parent), class: "related-articles__link" do
-              span.related-articles__index = t("drafity.columns.show.related_parent_index")
+              span.related-articles__index = column_show_t(@column, :related_parent_index)
               span.related-articles__body
                 span.related-articles__item-title = parent.title
                 - desc = related_article_excerpt(parent, length: 96)
@@ -186,9 +186,9 @@
         section.related-articles.related-articles--children
           .related-articles__header
             div
-              p.related-articles__eyebrow = t("drafity.columns.show.related_children_eyebrow")
-              h2.related-articles__title = t("drafity.columns.show.related_children_title")
-            span.related-articles__count = t("drafity.columns.show.related_children_count", count: public_children.size)
+              p.related-articles__eyebrow = column_show_t(@column, :related_children_eyebrow)
+              h2.related-articles__title = column_show_t(@column, :related_children_title)
+            span.related-articles__count = column_show_t(@column, :related_children_count, count: public_children.size)
           ul.related-articles__list
             - public_children.each_with_index do |child, idx|
               li.related-articles__item
@@ -205,9 +205,9 @@
       section.related-articles.related-articles--siblings
         .related-articles__header
           div
-            p.related-articles__eyebrow = t("drafity.columns.show.related_siblings_eyebrow")
-            h2.related-articles__title = t("drafity.columns.show.related_siblings_title")
-          span.related-articles__count = t("drafity.columns.show.related_children_count", count: @sibling_columns.size)
+            p.related-articles__eyebrow = column_show_t(@column, :related_siblings_eyebrow)
+            h2.related-articles__title = column_show_t(@column, :related_siblings_title)
+          span.related-articles__count = column_show_t(@column, :related_children_count, count: @sibling_columns.size)
         ul.related-articles__list
           - @sibling_columns.each_with_index do |sibling, idx|
             li.related-articles__item
@@ -224,9 +224,9 @@
       section.related-articles.related-articles--cross
         .related-articles__header
           div
-            p.related-articles__eyebrow = t("drafity.columns.show.related_cross_eyebrow")
-            h2.related-articles__title = t("drafity.columns.show.related_cross_title")
-          span.related-articles__count = t("drafity.columns.show.related_children_count", count: @cross_cluster_columns.size)
+            p.related-articles__eyebrow = column_show_t(@column, :related_cross_eyebrow)
+            h2.related-articles__title = column_show_t(@column, :related_cross_title)
+          span.related-articles__count = column_show_t(@column, :related_children_count, count: @cross_cluster_columns.size)
         ul.related-articles__list
           - @cross_cluster_columns.each_with_index do |related, idx|
             li.related-articles__item
@@ -241,8 +241,8 @@
 
     .column-footer.column-footer--public
       - if client_signed_in?
-        = link_to t("drafity.columns.show.back_dashboard"), dashboard_root_path, class: 'btn btn-default'
+        = link_to column_show_t(@column, :back_dashboard), dashboard_root_path, class: 'btn btn-default'
       - else
         - index_genre = GenreRegistry.resolve_key(@column.genre, client: @column.client).presence || @column.genre
         - index_path = platform_host? ? public_columns_index_path(genre: index_genre) : "/columns"
-        = link_to t("drafity.columns.show.back_index"), index_path, class: 'column-footer__back'
+        = link_to column_show_t(@column, :back_index), index_path, class: 'column-footer__back'

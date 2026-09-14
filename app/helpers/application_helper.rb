@@ -23,6 +23,20 @@ module ApplicationHelper
     ["clients/registrations", "new"] => "drafity.auth.signup_title"
   }.freeze
 
+  def dashboard_return_to_params
+    path = request.fullpath.to_s
+    return {} unless path.start_with?("/dashboard")
+
+    { return_to: path }
+  end
+
+  def dashboard_return_to_hidden_field
+    path = request.fullpath.to_s
+    return unless path.start_with?("/dashboard")
+
+    hidden_field_tag :return_to, path
+  end
+
   def default_meta_tags
     {
       site: "豊富な人材集客力で企業の人材不足を解消|『J Work』",
@@ -87,10 +101,13 @@ module ApplicationHelper
   end
 
   def article_language_options_for_select
-    [
-      [t("drafity.columns.form.language_ja"), "ja"],
-      [t("drafity.columns.form.language_en"), "en"]
-    ]
+    Column::LANGUAGES.map do |key|
+      [t("drafity.columns.form.language_#{key}"), key]
+    end
+  end
+
+  def article_language_filter_options_for_select
+    [[t("drafity.dashboard.columns.all_languages"), "all"]] + article_language_options_for_select
   end
 
   def article_language_label(language)
@@ -100,6 +117,26 @@ module ApplicationHelper
 
   def column_content_locale(column)
     Column.english_language?(column&.language) ? :en : :ja
+  end
+
+  def column_show_t(column, key, **options)
+    if Column.hiragana_language?(column&.language)
+      t("drafity.columns.show_hiragana.#{key}", **options)
+    else
+      t("drafity.columns.show.#{key}", locale: column_content_locale(column), **options)
+    end
+  end
+
+  def column_toc_title(column)
+    column_show_t(column, :toc)
+  end
+
+  def column_cta_fallback_label(column)
+    if Column.hiragana_language?(column&.language)
+      t("drafity.columns.show_hiragana.learn_more")
+    else
+      t("drafity.columns.cta.learn_more", locale: column_content_locale(column))
+    end
   end
 
   def default_article_language

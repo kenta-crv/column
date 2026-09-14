@@ -1,0 +1,81 @@
+.container-fluid.py-4
+  .api-settings-page
+    .api-settings-header
+      h1.api-settings-title = t("drafity.dashboard.trial_progress.title")
+      p.api-settings-subtitle = t("drafity.dashboard.trial_progress.subtitle")
+
+    .api-settings-card
+      .api-settings-card__body
+        .management-table-wrap
+          table.management-table
+            thead
+              tr
+                th = t("drafity.dashboard.trial_progress.col_id")
+                th = t("drafity.dashboard.trial_progress.col_client")
+                th = t("drafity.dashboard.trial_progress.col_plan")
+                th = t("drafity.dashboard.trial_progress.col_stage")
+                th = t("drafity.dashboard.trial_progress.col_genre")
+                th = t("drafity.dashboard.trial_progress.col_title")
+                th = t("drafity.dashboard.trial_progress.col_pillar")
+                th = t("drafity.dashboard.trial_progress.col_body")
+                th = t("drafity.dashboard.trial_progress.col_child")
+                th = t("drafity.dashboard.trial_progress.col_converted")
+                th = t("drafity.dashboard.trial_progress.col_emails")
+
+            tbody
+              - @clients.each do |client|
+                - progress = client.client_trial_progress
+                - subscription = client.subscriptions.max_by(&:created_at)
+                - stage = progress&.stage || :registered
+                tr
+                  td
+                    .client-id = client.id
+                  td
+                    .client-company = client.company.presence || "-"
+                    .client-email = client.email
+                  td
+                    - if subscription.present?
+                      .plan-badge class="plan-#{subscription.plan_type}"
+                        = subscription.plan_name rescue subscription.plan_type
+                    - else
+                      span.empty-text -
+                  td
+                    .plan-badge = t("drafity.dashboard.trial_progress.stages.#{stage}")
+                  td
+                    - if progress&.genre_setup_at.present?
+                      = l(progress.genre_setup_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - if progress&.first_title_suggestion_at.present?
+                      = l(progress.first_title_suggestion_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - if progress&.first_pillar_created_at.present?
+                      = l(progress.first_pillar_created_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - if progress&.first_pillar_body_completed_at.present?
+                      = l(progress.first_pillar_body_completed_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - if progress&.first_child_created_at.present?
+                      = l(progress.first_child_created_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - if progress&.converted_at.present?
+                      = l(progress.converted_at, format: :default)
+                    - else
+                      span.empty-text -
+                  td
+                    - logs = client.trial_nurture_email_logs.sort_by(&:sent_at)
+                    - if logs.present?
+                      - logs.each do |log|
+                        div style="white-space: nowrap; font-size: 0.85rem;"
+                          = "#{log.kind} (#{l(log.sent_at, format: :default)})"
+                    - else
+                      span.empty-text -

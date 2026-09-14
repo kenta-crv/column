@@ -24,6 +24,9 @@ class Subscription < ApplicationRecord
   POST_TRIAL_PLAN = :standard
   STANDARD_INTRO_PERCENT_OFF = 15
   STANDARD_INTRO_MONTHS = 3
+  # トライアル転換オファーは通常の初回15%と同一（申込期限だけ終了+猶予日）
+  TRIAL_CONVERSION_PERCENT_OFF = STANDARD_INTRO_PERCENT_OFF
+  TRIAL_CONVERSION_MONTHS = STANDARD_INTRO_MONTHS
   TITLE_SUGGESTION_BAR_MAX = 3
   TITLE_SUGGESTION_ADMIN_BAR_MAX = 50
 
@@ -226,8 +229,16 @@ class Subscription < ApplicationRecord
     end
 
     def intro_price_for(plan_type, currency: :jpy)
+      discounted_price_for(plan_type, percent_off: STANDARD_INTRO_PERCENT_OFF, currency: currency)
+    end
+
+    def trial_conversion_price_for(plan_type, currency: :jpy)
+      discounted_price_for(plan_type, percent_off: TRIAL_CONVERSION_PERCENT_OFF, currency: currency)
+    end
+
+    def discounted_price_for(plan_type, percent_off:, currency: :jpy)
       base = price_for(plan_type, currency: currency).to_f
-      (base * (100 - STANDARD_INTRO_PERCENT_OFF) / 100.0).round
+      (base * (100 - percent_off.to_i) / 100.0).round
     end
 
     def format_price(plan_type, currency: :jpy)
@@ -381,6 +392,15 @@ class Subscription < ApplicationRecord
       return nil if env_key.blank?
 
       ENV[env_key].presence
+    end
+
+    def trial_conversion_coupon_id_for(plan_type)
+      intro_coupon_id_for(plan_type)
+    end
+
+    # 初回15%クーポンが設定されていれば、期限付き案内を出せる
+    def trial_conversion_offer_configured?
+      intro_coupon_id_for(:standard).present?
     end
 
     def sub_category_feature_for(plan_key)

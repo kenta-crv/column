@@ -28,6 +28,8 @@ class ColumnTest < ActiveSupport::TestCase
     refute loaded.english_article?
     refute Column.new.english_article?
     assert Column.new(language: "en").english_article?
+    assert Column.new(language: "hiragana").hiragana_article?
+    refute Column.new(language: "hiragana").english_article?
   end
 
   test "blank or unusable code is not replaced with a UUID by FriendlyId" do

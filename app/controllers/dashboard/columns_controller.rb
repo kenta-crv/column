@@ -5,7 +5,7 @@ class Dashboard::ColumnsController < ApplicationController
   IMAGE_GENERATION_PER_PAGE_OPTIONS = [30, 50, 100].freeze
 
   before_action :authenticate_admin_or_client!
-  before_action :require_admin!, only: [:management]
+  before_action :require_admin!, only: [:management, :trial_progress]
   before_action :enforce_client_genre_param!, only: [:index, :export]
   before_action :assign_dashboard_genre_options, only: [:index, :image_generation]
 
@@ -29,9 +29,7 @@ class Dashboard::ColumnsController < ApplicationController
     if params[:genre].present?
       filtered_base = filtered_base.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
-    if params[:language].present?
-      filtered_base = filtered_base.where(language: Column.normalize_language(params[:language]))
-    end
+    filtered_base = apply_dashboard_language_filter(filtered_base)
 
     assign_dashboard_summary_metrics(base_scope, filtered_base)
 
@@ -254,9 +252,7 @@ class Dashboard::ColumnsController < ApplicationController
       scope = scope.where(genre: GenreRegistry.equivalent_keys(params[:genre]))
     end
 
-    if params[:language].present?
-      scope = scope.where(language: params[:language])
-    end
+    scope = apply_dashboard_language_filter(scope)
 
     # 2. CSVエクスポート用のストリーム・ヘッダー準備
     filename = "columns_export_#{Time.current.strftime('%Y%m%d%H%M%S')}.csv"
@@ -298,9 +294,9 @@ class Dashboard::ColumnsController < ApplicationController
     column = dashboard_columns_base_scope.find(params[:id])
     column.update(file: nil)
 
-    redirect_to dashboard_columns_path
+    redirect_to after_dashboard_columns_path
   rescue ActiveRecord::RecordNotFound
-    redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
+    redirect_to after_dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
   end
 
   def stop_generation
@@ -308,20 +304,26 @@ class Dashboard::ColumnsController < ApplicationController
     Rails.logger.info("[StopGeneration] request received column_id=#{column.id} status=#{column.generation_status}")
 
     unless %w[generating queued].include?(column.generation_status)
-      return redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.stop_only_generating")
+      return redirect_to after_dashboard_columns_path, alert: t("drafity.dashboard.flashes.stop_only_generating")
     end
 
     GenerateColumnBodyJob.request_stop!(column.id)
     column.update!(generation_status: "cancelled")
-    redirect_to dashboard_columns_path, notice: t("drafity.dashboard.flashes.generation_stopped")
+    redirect_to after_dashboard_columns_path, notice: t("drafity.dashboard.flashes.generation_stopped")
   rescue ActiveRecord::RecordNotFound
-    redirect_to dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
+    redirect_to after_dashboard_columns_path, alert: t("drafity.dashboard.flashes.column_access_denied")
   end
 
   def setting; end
 
   def management
     @clients = Client.includes(:subscriptions).order(created_at: :desc)
+  end
+
+  def trial_progress
+    @clients = Client
+               .includes(:client_trial_progress, :trial_nurture_email_logs, :subscriptions)
+               .order(created_at: :desc)
   end
 
   def suggest_titles
@@ -405,7 +407,7 @@ class Dashboard::ColumnsController < ApplicationController
     created_count = 0
     errors = []
     remaining_slots = if client_signed_in?
-                        [current_client.plan_limits[:pillar_articles] - current_client.pillar_slots_used, 0].max
+                        [current_client.plan_limits[:pillar_articles] - current_client.pillar_usage_count, 0].max
                       else
                         titles.size
                       end
@@ -439,6 +441,19 @@ class Dashboard::ColumnsController < ApplicationController
 
   private
 
+  # 未指定時は画面の表示言語に合わせる。英語記事が日本語ダッシュボードに混ざるのを防ぐ。
+  def apply_dashboard_language_filter(scope)
+    lang = dashboard_language_filter
+    lang.present? ? scope.where(language: lang) : scope
+  end
+
+  def dashboard_language_filter
+    raw = params[:language].to_s
+    return nil if raw == "all"
+
+    Column.normalize_language(raw.presence || I18n.locale)
+  end
+
   def title_suggestion_ui_config
     if client_signed_in?
       plan_max = current_client.max_title_suggestion_count
@@ -467,6 +482,10 @@ class Dashboard::ColumnsController < ApplicationController
     return if admin_or_allowed_genre?(params[:genre])
 
     redirect_to dashboard_columns_path(scope: params[:scope]), alert: t("drafity.dashboard.flashes.genre_access_denied")
+  end
+
+  def after_dashboard_columns_path
+    safe_dashboard_return_path.presence || dashboard_columns_path
   end
 
   def assign_dashboard_genre_options

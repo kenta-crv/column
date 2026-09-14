@@ -17,6 +17,7 @@ ja:
           service_genres: サービス・ジャンル管理
           autonomous: AI主導生成
           management: クライアント管理
+          trial_progress: トライアル着手ログ
           settings: 設定
           plans: プラン・料金
           api_settings: API設定
@@ -177,6 +178,28 @@ ja:
         count_unit: "%{count} 件"
         count_of: " / %{count} 件"
         api_settings: API設定
+      trial_progress:
+        title: トライアル着手ログ
+        subtitle: 新規トライアルユーザーの着手状況と促進メール送信履歴
+        col_id: ID
+        col_client: クライアント
+        col_plan: プラン
+        col_stage: 段階
+        col_genre: ジャンル登録
+        col_title: タイトル提案
+        col_pillar: 親記事作成
+        col_body: 本文完了
+        col_child: 子記事作成
+        col_converted: 有料化
+        col_emails: 促進メール
+        stages:
+          registered: 登録のみ（未着手）
+          genre: ジャンル登録済
+          title: タイトル提案済
+          pillar: 親記事作成済
+          pillar_body: 本文完了
+          child: 子記事着手済
+          converted: 有料化済
       setting:
         title: 設定
         subtitle: アカウント設定
@@ -237,6 +260,7 @@ ja:
         language_filter: 記事の言語
         language_ja: 日本語
         language_en: English
+        language_hiragana: ひらがな
         realtime_title: "\U0001F504 リアルタイム生成状況"
         realtime_generating: 生成中
         realtime_completed: 今回の完了
@@ -436,10 +460,14 @@ ja:
         ph_optional: 空欄可
         keywords_hint: AIタイトル提案・記事生成の参考に使われます。
         cta_section: 記事下部のサービス案内（CTA）
-        cta_hint: 公開記事の「関連記事」の直前に表示される自社案内です。
+        cta_hint: 公開記事の「関連記事」の直前に表示される自社案内です。入力すると下のプレビューにすぐ反映されます。
+        cta_preview: 公開記事での見た目
+        cta_preview_off: 「CTAを表示する」のチェックを外すと、記事には出ません。
+        js_cta_preview_title: 見出しを入力してください
+        notice_preview_off: 「案内を表示する」のチェックを外すと、記事には出ません。
         cta_show: CTAを表示する
         notice_section: 記事の下の案内
-        notice_hint: 公開した記事の下に、問い合わせへの案内を出せます。
+        notice_hint: 公開した記事の下に、問い合わせへの案内を出せます。入力すると下のプレビューにすぐ反映されます。
         notice_show: 案内を表示する
         theme: テーマ色
         color: 色
@@ -678,6 +706,14 @@ ja:
         quota_title: 利用枠が残りわずかです
         quota_body: 今月の使用量が上限の80%に達しています。プラン変更で枠を増やせます。
         check_plans: プランを確認
+      trial_offer_modal:
+        eyebrow: トライアル終了間近
+        title: 初回割引のご案内
+        price_compare: "通常 ¥%{list}/月 → ¥%{sale}/月（初回%{months}ヶ月）"
+        note: "スタンダードは初回%{months}ヶ月%{percent}%OFFです。期限内のお申込みでご利用いただけます。"
+        deadline: "ご案内期限: %{date} まで"
+        cta: 割引価格で続ける
+        later: あとで
 en:
   drafity:
     dashboard:
@@ -693,9 +729,10 @@ en:
           cluster_bulk: Bulk cluster articles
           published: Published
           image_generation: Image generation
-          service_genres: Genres
+          service_genres: Topics
           autonomous: Autonomous runs
           management: Management
+          trial_progress: Trial progress
           settings: Settings
           plans: Billing
           api_settings: API
@@ -738,9 +775,9 @@ en:
         image_generation: Image generation
         management: Management
         setting: Settings
-        service_genres: Genres
-        service_genres_new: New genre
-        service_genres_edit: Edit genre
+        service_genres: Topics
+        service_genres_new: New topic
+        service_genres_edit: Edit topic
         api_settings: API settings
         api_guide: API guide
         autonomous: Autonomous runs
@@ -759,7 +796,7 @@ en:
       flashes:
         admin_required: Admin access required.
         login_please: Please sign in.
-        genre_access_denied: You cannot access that genre.
+        genre_access_denied: You cannot access that topic.
         column_access_denied: You cannot access that article.
         image_busy: Another image generation job is running. Please wait.
         image_select_required: Select articles to generate images for.
@@ -784,13 +821,13 @@ en:
         stripe_cancel_failed: Stripe cancellation failed.
         forbidden: You do not have permission.
         client_required: Please specify a client.
-        genre_created: Genre created.
-        genre_updated: Genre updated.
+        genre_created: Topic created.
+        genre_updated: Topic updated.
         company_required: Enter your company name.
-        genre_deleted: Genre deleted.
-        genre_key_unavailable: This genre key is unavailable.
+        genre_deleted: Topic deleted.
+        genre_key_unavailable: This topic key is unavailable.
         template_unavailable: This template is unavailable.
-        genre_access_denied_short: You cannot access this genre.
+        genre_access_denied_short: You cannot access this topic.
         plan_standard_required: Available on Standard plan or higher.
         autonomous_started: Autonomous run started in the background.
         child_body_started: Started generating child article bodies.
@@ -805,7 +842,7 @@ en:
         settings_saved: Settings saved.
         autonomous_plan_required: Autonomous runs require Business plan or higher.
         access_denied: Access denied.
-        title_genre_required: Title and genre are required.
+        title_genre_required: Title and topic are required.
         column_create_failed: 'Could not create article: %{errors}'
         sub_key_required: Enter a subcategory key.
         sub_key_invalid: Subcategory key "%{key}" may only use lowercase letters,
@@ -816,7 +853,7 @@ en:
         headers:
           id: ID
           title: Title
-          genre: Genre
+          genre: Topic
           article_type: Type
           status: Status
           body: Body
@@ -836,7 +873,7 @@ en:
         active: Active
         cancelled: Cancelled
         expired: Expired
-        genre: Genre
+        genre: Topic
         title: Title
         status: Status
         actions: Actions
@@ -860,6 +897,28 @@ en:
         count_unit: "%{count}"
         count_of: " / %{count}"
         api_settings: API
+      trial_progress:
+        title: Trial progress logs
+        subtitle: Activation milestones and nurture email history for trial clients
+        col_id: ID
+        col_client: Client
+        col_plan: Plan
+        col_stage: Stage
+        col_genre: Genre setup
+        col_title: Title suggestion
+        col_pillar: Pillar created
+        col_body: Body completed
+        col_child: Child created
+        col_converted: Converted
+        col_emails: Nurture emails
+        stages:
+          registered: Registered only
+          genre: Genre set up
+          title: Title suggested
+          pillar: Pillar created
+          pillar_body: Body completed
+          child: Child started
+          converted: Converted
       setting:
         title: Settings
         subtitle: Account settings
@@ -914,12 +973,13 @@ en:
           pending_hint: "(generated, unpublished)"
           avg_score: Avg. AI score
           quality: High-quality output
-        genre_summary: Articles by genre
+        genre_summary: Articles by topic
         all_categories: All categories
         all_languages: All languages
         language_filter: Article language
         language_ja: Japanese
         language_en: English
+        language_hiragana: Hiragana
         realtime_title: "\U0001F504 Live generation"
         realtime_generating: Generating
         realtime_completed: Completed this session
@@ -960,14 +1020,14 @@ en:
         score_overall: 'Overall: %{score}'
         stop_request_failed: Stop request failed.
         sub_optional: None (optional)
-        sub_select_genre_first: Select a genre first
+        sub_select_genre_first: Select a topic first
         sub_none: No subcategories
         genre_need_input: Enter a service name or value proposition.
-        genre_registering: AI is registering the genre…
-        genre_register_failed: Failed to register genre.
-        genre_registered: Genre registered. Continue to title generation.
+        genre_registering: AI is registering the topic…
+        genre_register_failed: Failed to register topic.
+        genre_registered: Topic registered. Continue to title generation.
         network_error: Network error.
-        keywords_genre_required: Enter keywords and genre.
+        keywords_genre_required: Enter keywords and topic.
         parse_error: Could not read the server response. Reload and try again.
         generic_error: An error occurred
         select_titles: Select titles.
@@ -976,12 +1036,12 @@ en:
         error_prefix: 'Error: %{message}'
       workflow:
         title: Article workflow
-        genres: Genres & services
+        genres: Topics & services
         titles: AI titles
         pillar_body: Pillar body
         child_titles: Child titles
         child_body: Child body
-        genres_hint: Register service info and genres
+        genres_hint: Register service info and topics
         titles_hint: Suggest pillar titles with AI
         pillar_body_hint: Generate bodies from the pillar list
         child_titles_hint: Add child titles from the manage page
@@ -995,18 +1055,18 @@ en:
         keyword2: Keyword 2 *
         ph_keyword1: e.g. logistics
         ph_keyword2: e.g. delivery
-        no_genre: No genres yet. Register service info with AI before suggesting titles.
+        no_genre: No topics yet. Register service info with AI before suggesting titles.
         service_name: Service name *
         ph_service: e.g. Acme Inc.
         strong_points: Strengths / value prop *
         ph_strong: e.g. B2B solution with 100+ customers.
-        register_genre: Register genre with AI & continue
+        register_genre: Register topic with AI & continue
         target: Audience
         target_big: Broad keywords (wide audience)
         target_middle: Mid keywords (specific needs)
         target_small: Narrow keywords (high intent)
-        genre: Genre *
-        genre_after_ai: Available after registering a genre with AI above.
+        genre: Topic *
+        genre_after_ai: Available after registering a topic with AI above.
         sub_optional: Subcategory (optional)
         sub_hint: Titles will lean toward the selected subcategory.
         custom: Freeform (optional)
@@ -1072,12 +1132,12 @@ en:
           failed: Failed
           paused: Paused (limit reached)
       genres:
-        title: Genres
-        subtitle: Manage article generation, API, and footer CTAs by genre
+        title: Topics
+        subtitle: Manage article generation, API, and footer CTAs by topic
         subtitle_trial: Set your article topic and the notice under articles
         new: New
-        create_first: Create your first genre
-        empty: No genres yet.
+        create_first: Create your first topic
+        empty: No topics yet.
         cta_active: CTA on
         cta_needed: CTA needed
         cta_off: CTA off
@@ -1086,10 +1146,10 @@ en:
         notice_off: Notice off
         notice_col: Notice
         confirm_delete: Delete "%{name}"?
-        new_title: New genre
-        new_subtitle: Register a new genre and service info
+        new_title: New topic
+        new_subtitle: Register a new topic and service info
         new_subtitle_trial: Add your service name and the notice under articles
-        edit_title: Edit genre
+        edit_title: Edit topic
         template_label: Load from template
         submit_create: Create
         submit_update: Update
@@ -1097,8 +1157,8 @@ en:
         basic: Basics
         ai_suggest: AI suggest
         system_shared: System-wide
-        client_hint: Leave blank for admin-wide genres. Selecting a client also adds
-          it to API-allowed genres.
+        client_hint: Leave blank for admin-wide topics. Selecting a client also adds
+          it to API-allowed topics.
         company: Company name
         ph_company: e.g. Acme Inc.
         company_hint: Used as your company name in generated articles.
@@ -1125,10 +1185,14 @@ en:
         ph_optional: Optional
         keywords_hint: Used for AI title suggestions and article generation.
         cta_section: Footer service CTA
-        cta_hint: Shown before related articles on public pages.
+        cta_hint: Shown before related articles on public pages. The preview below updates as you type.
+        cta_preview: How it looks on published articles
+        cta_preview_off: Uncheck “Show CTA” to hide this from articles.
+        js_cta_preview_title: Enter a headline
+        notice_preview_off: Uncheck “Show this notice” to hide this from articles.
         cta_show: Show CTA
         notice_section: Notice under articles
-        notice_hint: Shown at the bottom of published articles so readers can contact you.
+        notice_hint: Shown at the bottom of published articles so readers can contact you. The preview below updates as you type.
         notice_show: Show this notice
         theme: Theme color
         color: Color
@@ -1142,8 +1206,11 @@ en:
         notice_button: Button
         notice_button_choices:
           - Learn more
+
           - Contact us
+
           - Book a free consult
+
         path: Path (same domain)
         path_hint: Path on your site. External URL below takes priority when set.
         external_url: External URL (optional)
@@ -1184,10 +1251,10 @@ en:
         sub_ai_hint: Auto-generate from key, display name, and value prop. Replaces
           existing subcategories.
         add_sub: "+ Add subcategory"
-        sub_unavailable: Subcategories are not available on your plan. Genre-level
+        sub_unavailable: Subcategories are not available on your plan. Topic-level
           value props are used. Upgrade to Standard+ for subcategories.
         js_need_service: Enter a service name or value proposition.
-        js_suggesting: AI is suggesting a genre…
+        js_suggesting: AI is suggesting a topic…
         js_suggest_failed: Failed to generate suggestion.
         js_network: Network error.
         js_new_sub: New subcategory
@@ -1199,11 +1266,11 @@ en:
         js_sub_done: Suggested %{count} subcategories. Review and save.
         js_timeout: Timed out. Try fewer suggestions or retry later.
         js_retry_network: Network error. Please try again later.
-        draft_title: AI genre suggestion
+        draft_title: AI topic suggestion
         draft_lead: Enter service name and value prop; AI suggests key, display name,
           and copy.
         draft_sub_max: Subcategories can also be suggested (up to %{max}).
-        draft_sub_off: Subcategories unavailable on your plan (genre-level value props
+        draft_sub_off: Subcategories unavailable on your plan (topic-level value props
           only).
         draft_service: Service name *
         draft_ph_service: e.g. Restaurant consulting
@@ -1260,10 +1327,10 @@ en:
           Update embeds and integrations. Continue?
         key_hint: API keys are auto-generated. Regenerating disables the old key immediately.
         webhook: Webhook URL on article updates (optional)
-        genres: Genres
-        no_genres: No genres registered.
-        genres_manage_link: Genres
-        genres_manage_suffix: " — add/edit there. API-exposed genres come from the
+        genres: Topics
+        no_genres: No topics registered.
+        genres_manage_link: Topics
+        genres_manage_suffix: " — add/edit there. API-exposed topics come from the
           same list."
         embed: Embed settings
         embed_json: Embed settings (JSON)
@@ -1297,7 +1364,7 @@ en:
         embed_li1_before: 'To change the mount point, add '
         embed_li1_mid: " and match the container "
         embed_li1_after: "."
-        embed_li2: Title, body, image, genre, keywords, and updated time render automatically.
+        embed_li2: Title, body, image, topic, keywords, and updated time render automatically.
         embed_li3_before: 'To style, target CSS classes like '
         embed_li3_after: "."
         json_section: 2. Fetch articles via JSON API
@@ -1306,7 +1373,7 @@ en:
         json_lead_mid: " header (or "
         json_lead_after: " parameter) on every request."
         list_title: List articles
-        param_genre: Filter by genre (key or Japanese name)
+        param_genre: Filter by topic (key or Japanese name)
         param_type: Filter by article type (pillar / child / cluster)
         param_updated: Only articles updated since this time (ISO8601; good for sync)
         param_page: 'Page number (default: 1)'
@@ -1328,12 +1395,12 @@ en:
         col_meaning: Meaning / fix
         err_401: Wrong API key. Check API settings.
         err_403: API unavailable on your plan. Upgrade required.
-        err_404: Article missing or outside allowed genres/visibility.
+        err_404: Article missing or outside allowed topics/visibility.
         err_429_before: 'Rate limit exceeded (60/min per API key). Wait the seconds
           in '
         err_429_after: " and retry."
-        footer_note: If articles don’t show, confirm they are published and the genre
-          is allowed under Genres.
+        footer_note: If articles don’t show, confirm they are published and the topic
+          is allowed under Topics.
       subscription:
         title: Billing
         subtitle: Review your plan, changes, and payment history
@@ -1379,3 +1446,11 @@ en:
         quota_title: Usage nearly full
         quota_body: You've used 80% of this month's quota. Upgrade for more.
         check_plans: Check plans
+      trial_offer_modal:
+        eyebrow: Trial ending soon
+        title: Intro discount offer
+        price_compare: "Usually ¥%{list}/mo → ¥%{sale}/mo (first %{months} months)"
+        note: "Standard is %{percent}% off for the first %{months} months. Claim within the deadline."
+        deadline: "Offer deadline: %{date}"
+        cta: Continue with discount
+        later: Later

@@ -41,6 +41,17 @@ class CheckoutController < ApplicationController
     else
       @description = I18n.locale.to_s == "en" ? (@plan_config[:name_en] || @plan_config[:name]) : @plan_config[:name]
       @intro_discount = (@plan_type.to_s == "standard")
+      if @intro_discount && current_client.trial_conversion_offer_active?
+        progress = current_client.client_trial_progress || TrialNurture::ProgressTracker.ensure_progress(current_client)
+        @trial_conversion_offer_expires_at = progress&.conversion_offer_expires_at
+        @trial_conversion_offer = true
+        @discount_percent = Subscription::STANDARD_INTRO_PERCENT_OFF
+        @discount_months = Subscription::STANDARD_INTRO_MONTHS
+      elsif @intro_discount
+        @trial_conversion_offer = false
+        @discount_percent = Subscription::STANDARD_INTRO_PERCENT_OFF
+        @discount_months = Subscription::STANDARD_INTRO_MONTHS
+      end
     end
 
     @subscription = Subscription.new(plan_type: @plan_type)
@@ -121,6 +132,8 @@ class CheckoutController < ApplicationController
               trial_ends_at: nil
             )
           end
+
+          TrialNurture::ProgressTracker.mark_converted!(current_client)
 
           @subscription = current_client.subscriptions.find_by(stripe_subscription_id: @session.subscription)
         end
@@ -208,7 +221,11 @@ class CheckoutController < ApplicationController
     }
 
     if plan_type.to_s == "standard"
-      coupon_id = Subscription.intro_coupon_id_for(:standard)
+      coupon_id = if current_client.trial_conversion_offer_active?
+                    Subscription.trial_conversion_coupon_id_for(:standard)
+                  else
+                    Subscription.intro_coupon_id_for(:standard)
+                  end
       session_params[:discounts] = [{ coupon: coupon_id }] if coupon_id.present?
     end
 

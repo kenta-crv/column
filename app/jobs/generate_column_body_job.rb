@@ -32,6 +32,7 @@ class GenerateColumnBodyJob < ApplicationJob
     if column.article_type == "pillar" && column.generated_body?
       ensure_column_image!(column)
       run_quality_evaluation!(column.id) unless quality_score_present?(column)
+      mark_trial_pillar_body_completed!(column)
       if autonomous_run_id.present?
         AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
       end
@@ -72,6 +73,7 @@ class GenerateColumnBodyJob < ApplicationJob
       ensure_column_image!(column)
       broadcast_generation_status(column.reload)
       Rails.logger.info("[GenerateColumnBodyJob] completed column_id=#{column_id}")
+      mark_trial_pillar_body_completed!(column)
 
       if autonomous_run_id.present?
         AutonomousContentRun.advance_after_column_generated!(autonomous_run_id, column.id)
@@ -225,5 +227,13 @@ class GenerateColumnBodyJob < ApplicationJob
     EvaluateColumnQualityJob.perform_now(column_id)
   rescue => e
     Rails.logger.error("❌ Evaluation error for column #{column_id}: #{e.message}")
+  end
+
+  def mark_trial_pillar_body_completed!(column)
+    return unless column&.pillar?
+    return if column.client_id.blank?
+    return unless column.generation_status.to_s == "completed" || column.body.present?
+
+    TrialNurture::ProgressTracker.mark_pillar_body_completed!(column.client)
   end
 end

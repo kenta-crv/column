@@ -83,6 +83,27 @@
       h3.form-section-title = t(admin_form ? "drafity.dashboard.genres.cta_section" : "drafity.dashboard.genres.notice_section")
     p.sub-categories-intro
       = t(admin_form ? "drafity.dashboard.genres.cta_hint" : "drafity.dashboard.genres.notice_hint")
+    - preview_theme = cta[:theme].presence || "default"
+    - preview_hex = preview_theme.to_s.match?(/\A#[0-9a-fA-F]{6}\z/)
+    - preview_classes = ["column-service-cta"]
+    - preview_classes << (preview_hex ? "column-service-cta--custom" : "column-service-cta--#{preview_theme}")
+    - preview_style = preview_hex ? "--cta-accent: #{preview_theme}; --cta-accent-deep: #{preview_theme}; --cta-tint: color-mix(in srgb, #{preview_theme} 12%, white); --cta-glow: color-mix(in srgb, #{preview_theme} 30%, transparent);" : nil
+    - preview_title = notice_cta[:title].presence || t("drafity.dashboard.genres.js_cta_preview_title")
+    - preview_label = notice_cta[:cta_label].presence || t("drafity.columns.cta.learn_more")
+    .column-cta-preview-wrap id="column-cta-preview-wrap" class=(service_genre.column_cta_enabled? ? nil : "is-off")
+      p.column-cta-preview-wrap__label = t("drafity.dashboard.genres.cta_preview")
+      .blog-container.column-cta-live-preview
+        section class=preview_classes.join(" ") style=preview_style id="column-cta-preview"
+          .column-service-cta__glow aria-hidden="true"
+          .column-service-cta__inner
+            span.column-service-cta__badge id="column-cta-preview-badge" hidden=notice_cta[:badge].blank? = notice_cta[:badge]
+            .column-service-cta__title id="column-cta-preview-title" = preview_title
+            p.column-service-cta__lead id="column-cta-preview-lead" hidden=notice_cta[:lead].blank? = notice_cta[:lead]
+            span.column-service-cta__btn
+              span id="column-cta-preview-btn" = preview_label
+              span.column-service-cta__btn-arrow aria-hidden="true" →
+      p.column-cta-preview-wrap__off id="column-cta-preview-off" hidden=service_genre.column_cta_enabled?
+        = t(admin_form ? "drafity.dashboard.genres.cta_preview_off" : "drafity.dashboard.genres.notice_preview_off")
     .form-group
       = hidden_field_tag "service_genre[column_cta][enabled]", "0", id: nil
       label.checkbox-inline
@@ -221,7 +242,9 @@ ruby:
     subFailed: t("drafity.dashboard.genres.js_sub_failed"),
     subDone: t("drafity.dashboard.genres.js_sub_done", count: "%{count}"),
     timeout: t("drafity.dashboard.genres.js_timeout"),
-    retryNetwork: t("drafity.dashboard.genres.js_retry_network")
+    retryNetwork: t("drafity.dashboard.genres.js_retry_network"),
+    ctaPreviewTitle: t("drafity.dashboard.genres.js_cta_preview_title"),
+    ctaDefaultBtn: t("drafity.columns.cta.learn_more")
   }.to_json.html_safe
 javascript:
   (function() {
@@ -607,10 +630,72 @@ javascript:
       updateTitles();
     };
 
+    const initCtaPreview = () => {
+      const preview = document.getElementById('column-cta-preview');
+      const wrap = document.getElementById('column-cta-preview-wrap');
+      if (!preview || !wrap || wrap.dataset.initialized === 'true') return;
+      wrap.dataset.initialized = 'true';
+
+      const badgeEl = document.getElementById('column-cta-preview-badge');
+      const titleEl = document.getElementById('column-cta-preview-title');
+      const leadEl = document.getElementById('column-cta-preview-lead');
+      const btnEl = document.getElementById('column-cta-preview-btn');
+      const offEl = document.getElementById('column-cta-preview-off');
+      const enabledEl = document.getElementById('service_genre_column_cta_enabled');
+      const themeEl = document.getElementById('service_genre_column_cta_theme');
+      const badgeInput = document.getElementById('service_genre_column_cta_badge');
+      const titleInput = document.getElementById('service_genre_column_cta_title');
+      const leadInput = document.getElementById('service_genre_column_cta_lead');
+      const btnInput = document.getElementById('service_genre_column_cta_cta_label');
+      const hexRe = /^#[0-9a-fA-F]{6}$/;
+
+      const applyTheme = (theme) => {
+        const value = (theme || 'default').trim();
+        preview.className = 'column-service-cta';
+        if (hexRe.test(value)) {
+          preview.classList.add('column-service-cta--custom');
+          preview.style.cssText = `--cta-accent: ${value}; --cta-accent-deep: ${value}; --cta-tint: color-mix(in srgb, ${value} 12%, white); --cta-glow: color-mix(in srgb, ${value} 30%, transparent);`;
+        } else {
+          preview.style.cssText = '';
+          preview.classList.add(`column-service-cta--${value || 'default'}`);
+        }
+      };
+
+      const sync = () => {
+        const badge = badgeInput?.value.trim() || '';
+        const title = titleInput?.value.trim() || '';
+        const lead = leadInput?.value.trim() || '';
+        const btn = btnInput?.value.trim() || '';
+        const on = !enabledEl || enabledEl.checked;
+
+        if (badgeEl) {
+          badgeEl.textContent = badge;
+          badgeEl.hidden = !badge;
+        }
+        if (titleEl) titleEl.textContent = title || I18nDash.ctaPreviewTitle;
+        if (leadEl) {
+          leadEl.textContent = lead;
+          leadEl.hidden = !lead;
+        }
+        if (btnEl) btnEl.textContent = btn || I18nDash.ctaDefaultBtn;
+        applyTheme(themeEl?.value);
+        wrap.classList.toggle('is-off', !on);
+        if (offEl) offEl.hidden = on;
+      };
+
+      [enabledEl, themeEl, badgeInput, titleInput, leadInput, btnInput].forEach((el) => {
+        if (!el) return;
+        el.addEventListener('input', sync);
+        el.addEventListener('change', sync);
+      });
+      sync();
+    };
+
     const boot = () => {
       initGenreDraftModal();
       initSubCategories();
       bindGenreAiSuggestButton();
+      initCtaPreview();
     };
 
     document.addEventListener('turbolinks:load', boot);

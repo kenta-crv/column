@@ -29,6 +29,74 @@ class PillarTitleSuggestionService
     per_use_max = max_suggestion_count || (client ? client.max_title_suggestion_count : ABSOLUTE_MAX_SUGGESTION_COUNT)
     title_count = normalize_suggestion_count(suggestion_count, max: per_use_max)
 
+    prompt = build_prompt(
+      language: language,
+      keyword1: keyword1,
+      keyword2: keyword2,
+      target_layer: target_layer,
+      genre_label: genre_label,
+      sub_genre_label: sub_genre_label,
+      service_info: service_info,
+      custom_prompt: custom_prompt,
+      title_count: title_count
+    )
+
+    locale_carrier = Column.new(language: Column.normalize_language(language))
+    res = GptGenerationLocale.with_language(locale_carrier) { call_gpt_api(prompt) }
+    return { success: false, error: "API通信エラーが発生しました", titles: [] } if res.nil?
+
+    begin
+      json_content = JSON.parse(res.dig("choices", 0, "message", "content"))
+      titles = json_content["titles"] || []
+      { success: true, titles: titles.map { |t| t["title"] }.compact.reject(&:blank?) }
+    rescue => e
+      Rails.logger.error("PillarTitleSuggestionService: タイトルパースエラー: #{e.message}")
+      { success: false, error: "タイトルの解析に失敗しました", titles: [] }
+    end
+  end
+
+  def self.build_prompt(language:, keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
+    if Column.hiragana_language?(language)
+      build_prompt_hiragana(
+        keyword1: keyword1,
+        keyword2: keyword2,
+        target_layer: target_layer,
+        genre_label: genre_label,
+        sub_genre_label: sub_genre_label,
+        service_info: service_info,
+        custom_prompt: custom_prompt,
+        title_count: title_count
+      )
+    else
+      build_prompt_ja(
+        keyword1: keyword1,
+        keyword2: keyword2,
+        target_layer: target_layer,
+        genre_label: genre_label,
+        sub_genre_label: sub_genre_label,
+        service_info: service_info,
+        custom_prompt: custom_prompt,
+        title_count: title_count
+      )
+    end
+  end
+
+  def self.build_prompt_hiragana(keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
+    GptPromptPack.for("hiragana").render(
+      "parent_titles",
+      keyword1: keyword1,
+      keyword2: keyword2,
+      target_layer: target_layer,
+      genre_label: genre_label,
+      sub_genre_label: sub_genre_label.to_s,
+      service_info: service_info,
+      extra_prompt: custom_prompt.to_s.strip.presence || "なし",
+      title_count: title_count
+    )
+  end
+  private_class_method :build_prompt_hiragana
+
+  def self.build_prompt_ja(keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
     target_layer_description = case target_layer
     when "big"
       "ビッグキーワード：検索ボリュームが大きく、広範なユーザー層を対象とする包括的なトピック"
@@ -61,7 +129,7 @@ class PillarTitleSuggestionService
       ""
     end
 
-    prompt = <<~PROMPT
+    <<~PROMPT
       # あなたの役割
       あなたは高度なSEO戦略家およびコンテンツマーケターです。
       与えられたキーワードとターゲット層に基づいて、検索エンジンとユーザーの双方から高く評価される「親記事（ピラーページ）タイトル案」を#{title_count}個生成してください。
@@ -110,20 +178,8 @@ class PillarTitleSuggestionService
         ]
       }
     PROMPT
-
-    locale_carrier = Column.new(language: Column.normalize_language(language))
-    res = GptGenerationLocale.with_language(locale_carrier) { call_gpt_api(prompt) }
-    return { success: false, error: "API通信エラーが発生しました", titles: [] } if res.nil?
-
-    begin
-      json_content = JSON.parse(res.dig("choices", 0, "message", "content"))
-      titles = json_content["titles"] || []
-      { success: true, titles: titles.map { |t| t["title"] }.compact.reject(&:blank?) }
-    rescue => e
-      Rails.logger.error("PillarTitleSuggestionService: タイトルパースエラー: #{e.message}")
-      { success: false, error: "タイトルの解析に失敗しました", titles: [] }
-    end
   end
+  private_class_method :build_prompt_ja
 
   def self.normalize_suggestion_count(value, max: ABSOLUTE_MAX_SUGGESTION_COUNT)
     count = value.to_i
@@ -137,7 +193,8 @@ class PillarTitleSuggestionService
   private
 
   def self.call_gpt_api(prompt)
-    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
+    # ひらがなは専用プロンプトを使うため、日本語本文用ラップは不要。英語は従来どおり wrap する。
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt) unless GptGenerationLocale.hiragana?
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"

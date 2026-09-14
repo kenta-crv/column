@@ -1,0 +1,36 @@
+- return unless client_signed_in?
+- return if acting_as_admin?
+- return unless current_client.trial_conversion_offer_active?
+
+- progress = current_client.client_trial_progress || TrialNurture::ProgressTracker.ensure_progress(current_client)
+- progress&.ensure_conversion_offer_expires_at!
+- offer_expires_at = progress&.conversion_offer_expires_at || (current_client.trial_ends_at + ClientTrialProgress::CONVERSION_OFFER_GRACE_DAYS.days)
+- percent = Subscription::STANDARD_INTRO_PERCENT_OFF
+- months = Subscription::STANDARD_INTRO_MONTHS
+- list_price = Subscription.price_for(:standard, currency: :jpy)
+- sale_price = Subscription.intro_price_for(:standard, currency: :jpy)
+- deadline_label = offer_expires_at.to_date.strftime("%Y/%m/%d")
+- checkout_url = checkout_confirmation_path(plan_type: "standard")
+
+#trial-conversion-offer-modal.modal-overlay.trial-conversion-offer-modal style="display: none;" data-expires-on=deadline_label
+  .modal-content.trial-conversion-offer-modal__content
+    .trial-conversion-offer-modal__accent aria-hidden="true"
+    .modal-header.trial-conversion-offer-modal__header
+      .trial-conversion-offer-modal__titles
+        p.trial-conversion-offer-modal__eyebrow = t("drafity.dashboard.trial_offer_modal.eyebrow")
+        h3 = t("drafity.dashboard.trial_offer_modal.title")
+      button.modal-close type="button" onclick="closeTrialConversionOfferModal()" aria-label=t("drafity.dashboard.common.close") ✕
+    .modal-body.trial-conversion-offer-modal__body
+      p.trial-conversion-offer-modal__percent
+        span = "#{percent}%"
+        span.trial-conversion-offer-modal__off = "OFF"
+      p.trial-conversion-offer-modal__price
+        = t("drafity.dashboard.trial_offer_modal.price_compare", list: number_with_delimiter(list_price), sale: number_with_delimiter(sale_price), months: months)
+      p.trial-conversion-offer-modal__note
+        = t("drafity.dashboard.trial_offer_modal.note", percent: percent, months: months)
+      .trial-conversion-offer-modal__deadline
+        = t("drafity.dashboard.trial_offer_modal.deadline", date: deadline_label)
+      .trial-conversion-offer-modal__actions
+        = link_to t("drafity.dashboard.trial_offer_modal.cta"), checkout_url, class: "btn btn-primary trial-conversion-offer-modal__cta"
+        button.trial-conversion-offer-modal__later type="button" onclick="closeTrialConversionOfferModal()"
+          = t("drafity.dashboard.trial_offer_modal.later")

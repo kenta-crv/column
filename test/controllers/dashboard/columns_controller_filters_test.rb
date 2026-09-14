@@ -19,7 +19,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
     admin = Admin.create!(email: "admin-tabs-#{SecureRandom.hex(4)}@example.com", password: "password123")
     sign_in admin
 
-    Column.create!(
+    empty_draft = Column.create!(
       title: "Empty draft",
       article_type: "child",
       genre: "other",
@@ -27,7 +27,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
       body: nil,
       code: "tab-empty-#{SecureRandom.hex(3)}"
     )
-    Column.create!(
+    runtime_dump = Column.create!(
       title: "Runtime dump",
       article_type: "child",
       genre: "other",
@@ -36,7 +36,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
       body: "❌ 失敗: RuntimeError - 本文の生成に失敗しました\n場所: generate_column_body_job.rb:54",
       code: "tab-dump-#{SecureRandom.hex(3)}"
     )
-    Column.create!(
+    published_ok = Column.create!(
       title: "Published ok",
       article_type: "child",
       genre: "other",
@@ -45,7 +45,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
       body: "# 公開本文\n\n現場の条件を整理する。",
       code: "tab-pub-#{SecureRandom.hex(3)}"
     )
-    Column.create!(
+    body_deleted = Column.create!(
       title: "Body deleted but still published",
       article_type: "child",
       genre: "other",
@@ -60,7 +60,7 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
 
     counts = Dashboard::ColumnsController.new.send(
       :compute_dashboard_tab_counts,
-      Column.all
+      Column.where(id: [empty_draft.id, runtime_dump.id, published_ok.id, body_deleted.id])
     )
     draft_count = counts[1]
     published_count = counts[5]
@@ -76,5 +76,37 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
     assert_match "Empty draft", response.body
     assert_match "Body deleted but still published", response.body
     refute_match "Published ok", response.body
+  end
+
+  test "japanese dashboard hides english articles until all languages is selected" do
+    admin = Admin.create!(email: "admin-lang-#{SecureRandom.hex(4)}@example.com", password: "password123")
+    sign_in admin
+
+    ja = Column.create!(
+      title: "日本語ダッシュボード記事",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "draft",
+      language: "ja",
+      code: "dash-ja-#{SecureRandom.hex(3)}"
+    )
+    en = Column.create!(
+      title: "English dashboard article XYZ",
+      article_type: "pillar",
+      genre: CrawlPolicy::GENRE_KEY,
+      status: "draft",
+      language: "en",
+      code: "dash-en-#{SecureRandom.hex(3)}"
+    )
+
+    get dashboard_columns_path
+    assert_response :success
+    assert_includes response.body, ja.title
+    assert_not_includes response.body, en.title
+
+    get dashboard_columns_path(language: "all")
+    assert_response :success
+    assert_includes response.body, ja.title
+    assert_includes response.body, en.title
   end
 end

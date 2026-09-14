@@ -312,7 +312,7 @@ class ApplicationController < ActionController::Base
     columns_manage_view? ? columns_path(extras) : nil
   end
 
-  def public_column_show_path(column, locale: I18n.locale)
+  def public_column_show_path(column, locale: nil)
     return "#" unless column
 
     # 管理画面では公開用ジャンル制約ルートを使わず、通常の columns リソースへ戻す
@@ -322,7 +322,8 @@ class ApplicationController < ActionController::Base
     return column_path(column) unless routable_public_genre_key?(genre_key)
 
     id = column.code.presence || column.id
-    if locale.to_s == "en"
+    locale = (locale.presence || Column.normalize_language(column.language)).to_s
+    if locale == "en"
       localized_columns_show_path(locale: :en, genre: genre_key, id: id)
     else
       columns_show_path(genre: genre_key, id: id)
@@ -370,8 +371,52 @@ class ApplicationController < ActionController::Base
   def columns_manage_view?
     return false unless admin_signed_in? || client_signed_in?
 
-    # /:genre/columns と /en/:genre/columns は公開表示（言語フィルタ対象）
-    params[:genre].blank?
+    # /:genre/columns と /en/:genre/columns は公開表示。
+    # Dashboard の ?genre= 絞り込みは query なので、params[:genre] では判定しない。
+    !public_article_request?
+  end
+
+  def public_article_request?
+    path = request.path.to_s
+    return true if public_genre_columns_path?(path)
+
+    stripped = path.sub(%r{\A/en(?=/)}, "")
+    stripped != path && public_genre_columns_path?(stripped)
+  end
+
+  # Dashboard から来た操作は、ジャンル/タブ付きの一覧へ戻す。
+  # /columns（公開・旧管理一覧）や外部URLへは戻さない。
+  def safe_dashboard_return_path(raw = params[:return_to])
+    candidate = raw.to_s
+    candidate = dashboard_referer_path if candidate.blank?
+    return if candidate.blank?
+    return unless dashboard_return_path?(candidate)
+
+    candidate
+  end
+
+  def dashboard_referer_path
+    referer = request.referer.to_s
+    return if referer.blank?
+
+    uri = URI.parse(referer)
+    return if uri.host.present? && uri.host != request.host
+
+    path = uri.request_uri.to_s
+    path.start_with?("/") ? path : nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  def dashboard_return_path?(path)
+    value = path.to_s
+    return false if value.blank?
+    return false unless value.start_with?("/")
+    return false if value.start_with?("//")
+    return false if value.include?("://")
+    return false unless value.match?(%r{\A/dashboard(?:/|\?|\z)})
+
+    true
   end
 
   def public_genre_filter_values(genre_key, client: nil)

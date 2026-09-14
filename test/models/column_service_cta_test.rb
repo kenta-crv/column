@@ -97,6 +97,19 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_includes cta[:cta_label], "受け入れ"
   end
 
+  test "resolves ikusei_shuro CTA to employer LINE" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "ikusei_shuro",
+      title: "育成就労の受け入れ準備",
+      keyword: "育成就労"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "企業向け", cta[:badge]
+    assert_includes cta[:title], "育成就労"
+  end
+
   test "resolves labor_help CTA" do
     column = Column.new(
       genre: "cargo",
@@ -188,6 +201,21 @@ class ColumnServiceCtaTest < ActiveSupport::TestCase
     assert_includes cta[:title], "LINE"
     assert_not_includes cta[:badge], "求職"
     assert_includes cta[:title], "Japan"
+  end
+
+  test "uses hiragana CTA copy for hiragana labor help articles" do
+    column = Column.new(
+      genre: "cargo",
+      sub_genre: "labor_help",
+      language: "hiragana",
+      title: "ろうどうきじゅんかんとくしょとは？"
+    )
+    cta = ColumnServiceCta.resolve(column)
+
+    assert_equal "そうだんまどぐち", cta[:badge]
+    refute_match(/[\u4e00-\u9fff]/, cta[:title])
+    refute_match(/[\u4e00-\u9fff]/, cta[:lead])
+    assert_includes cta[:cta_label], "LINE"
   end
 
   test "resolves cleaning special CTA" do

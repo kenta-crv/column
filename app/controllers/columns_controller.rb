@@ -100,6 +100,10 @@ class ColumnsController < ApplicationController
         @child_article_quota = child_article_quota_for(@column)
       else
         @children = @column.children.merge(Column.published).merge(Column.for_language(@column.language)).with_list_attributes.order(updated_at: :desc)
+        if @column.language.to_s == "ja"
+          hiragana_children = @column.children.merge(Column.published).merge(Column.for_language("hiragana")).with_list_attributes
+          @children = Column.where(id: (@children.map(&:id) + hiragana_children.map(&:id))).with_list_attributes.order(updated_at: :desc)
+        end
       end
     else
       @children = []
@@ -236,7 +240,7 @@ class ColumnsController < ApplicationController
     end
 
     if @column.save
-      redirect_to dashboard_root_path, notice: "作成しました"
+      redirect_to after_column_action_path, notice: "作成しました"
     else
       render :new, status: :unprocessable_entity
     end
@@ -258,7 +262,7 @@ class ColumnsController < ApplicationController
     inherit_parent_article_language!(@column)
 
     if @column.save
-      redirect_to dashboard_root_path, notice: "更新しました"
+      redirect_to after_column_action_path, notice: "更新しました"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -266,7 +270,7 @@ class ColumnsController < ApplicationController
 
   def destroy
     @column.destroy
-    redirect_to columns_path, notice: "削除しました"
+    redirect_after_column_action notice: "削除しました"
   end
 
   # ======================
@@ -360,34 +364,34 @@ class ColumnsController < ApplicationController
 
   def approve
     if @column.generated_body?
-      return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
+      return redirect_after_column_action alert: Column::ALREADY_GENERATED_NOTICE
     end
 
     pending_ids = prepare_columns_for_generation!(@column.id)
     if pending_ids.blank?
-      return redirect_to dashboard_root_path, alert: Column::ALREADY_GENERATED_NOTICE
+      return redirect_after_column_action alert: Column::ALREADY_GENERATED_NOTICE
     end
 
     spawn_sequential_body_generation!(pending_ids)
     Rails.logger.info("[ApproveGenerate] started column_id=#{@column.id} mode=#{@column.generation_mode}")
 
-    redirect_to dashboard_root_path, notice: "本文生成を開始しました（#{generation_mode_label(@column.generation_mode)}）"
+    redirect_after_column_action notice: "本文生成を開始しました（#{generation_mode_label(@column.generation_mode)}）"
   end
 
   def publish
     unless @column.generated_body?
-      return redirect_back fallback_location: dashboard_root_path, alert: t("drafity.columns.manage.publish_no_body")
+      return redirect_after_column_action alert: t("drafity.columns.manage.publish_no_body")
     end
 
     @column.publish!
     Rails.logger.info("[Publish] column_id=#{@column.id}")
-    redirect_back fallback_location: dashboard_root_path, notice: t("drafity.columns.manage.published_notice")
+    redirect_after_column_action notice: t("drafity.columns.manage.published_notice")
   end
 
   def unpublish
     @column.unpublish!
     Rails.logger.info("[Unpublish] column_id=#{@column.id}")
-    redirect_back fallback_location: dashboard_root_path, notice: t("drafity.columns.manage.unpublished_notice")
+    redirect_after_column_action notice: t("drafity.columns.manage.unpublished_notice")
   end
 
   def generate_pillar
@@ -688,7 +692,20 @@ class ColumnsController < ApplicationController
 
     return draft_columns_path if params[:redirect_context] == "draft"
 
-    dashboard_root_path
+    after_column_action_path
+  end
+
+  def after_column_action_path
+    safe_dashboard_return_path.presence || dashboard_root_path
+  end
+
+  def redirect_after_column_action(**flash)
+    path = safe_dashboard_return_path
+    if path.present?
+      redirect_to path, **flash
+    else
+      redirect_back fallback_location: dashboard_root_path, **flash
+    end
   end
 
   def prepare_columns_for_generation!(column_ids)

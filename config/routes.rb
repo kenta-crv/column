@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   namespace :dashboard do
     get 'setting', to: 'columns#setting'
     get 'management', to: 'columns#management'
+    get 'trial_progress', to: 'columns#trial_progress'
     
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'

@@ -147,6 +147,11 @@ class GptArticleGenerator
     full_article.gsub!(/<(h[23])[^>]*>/i, '<\1>')
     full_article += "\n\n{::options auto_ids=\"false\" /}"
 
+    full_article = GptGenerationLocale.finalize_hiragana_article(full_article) do |retry_prompt|
+      retry_response = call_gpt_api(retry_prompt, json_mode: false)
+      retry_response&.dig("choices", 0, "message", "content")
+    end
+
     if GptGenerationLocale.failed_output?(full_article)
       raise ColumnBodyGenerator::EmptyOutputError,
             "本文の生成に失敗しました（内容が空、またはエラーメッセージが含まれています）"
@@ -163,8 +168,12 @@ class GptArticleGenerator
       response = call_gpt_api(prompt, json_mode: json_mode)
       content = response&.dig("choices", 0, "message", "content")
       
-      if content.present? && content.strip.length >= min_length
-        return content.strip
+      if content.present?
+        content = GptGenerationLocale.finalize_text_section(content) do |retry_prompt|
+          retry_response = call_gpt_api(retry_prompt, json_mode: json_mode)
+          retry_response&.dig("choices", 0, "message", "content")
+        end
+        return content if content.length >= min_length
       end
 
       Rails.logger.warn("#{name} の本文が抽出できない、または文字数が足りないためリトライします（制限: #{min_length}文字以上） (#{i+1}/#{MAX_RETRIES})")
@@ -229,43 +238,7 @@ class GptArticleGenerator
   # SEOメタ生成
   # ==========================================================
   def self.generate_meta_info(column, category, genre_data, sub_data, eeat_context)
-    prompt = <<~PROMPT
-      以下の記事情報からSEO向けメタ情報をJSON形式で生成してください。
-
-      【記事タイトル】
-      #{column.title}
-
-      【業種】
-      #{category}
-
-      【記事テーマ】
-      #{column.prompt}
-
-      【重要】
-      - サービス宣伝記事にしない
-      - 比較サイトのような記事にしない
-      - 中立的なSEO記事にする
-      - 誇張禁止
-      - 汎用記事として成立させる
-      - 読者課題を主軸にする
-      - 業界調査型の記事にする
-      - descriptionは自然なSEO説明文
-      - codeは英語スラッグ
-      - JSON以外禁止
-
-      【業界情報】
-      #{build_industry_context(genre_data, sub_data)}
-
-      【EEAT強化情報】
-      #{eeat_context}
-
-      出力形式:
-      {
-        "code": "english-slug",
-        "description": "日本語説明",
-        "keyword": "SEOキーワード"
-      }
-    PROMPT
+    prompt = meta_prompt(column, category, genre_data, sub_data, eeat_context)
 
     res = call_gpt_api(prompt, json_mode: true)
 
@@ -360,8 +333,62 @@ class GptArticleGenerator
     )
 
     child_titles = child_columns.map(&:title)
+    prompt = structure_prompt(column, category, genre_data, sub_data, eeat_context, child_titles)
 
-    prompt = <<~PROMPT
+    res = call_gpt_api(prompt, json_mode: true)
+
+    return nil unless res
+
+    JSON.parse(
+      res.dig("choices", 0, "message", "content")
+    )
+  rescue => e
+    Rails.logger.error("構成生成エラー: #{e.message}")
+    nil
+  end
+
+  def self.meta_prompt(column, category, genre_data, sub_data, eeat_context)
+    <<~PROMPT
+      以下の記事情報からSEO向けメタ情報をJSON形式で生成してください。
+
+      【記事タイトル】
+      #{column.title}
+
+      【業種】
+      #{category}
+
+      【記事テーマ】
+      #{column.prompt}
+
+      【重要】
+      - サービス宣伝記事にしない
+      - 比較サイトのような記事にしない
+      - 中立的なSEO記事にする
+      - 誇張禁止
+      - 汎用記事として成立させる
+      - 読者課題を主軸にする
+      - 業界調査型の記事にする
+      - descriptionは自然なSEO説明文
+      - codeは英語スラッグ
+      - JSON以外禁止
+
+      【業界情報】
+      #{build_industry_context(genre_data, sub_data)}
+
+      【EEAT強化情報】
+      #{eeat_context}
+
+      出力形式:
+      {
+        "code": "english-slug",
+        "description": "日本語説明",
+        "keyword": "SEOキーワード"
+      }
+    PROMPT
+  end
+
+  def self.structure_prompt(column, category, genre_data, sub_data, eeat_context, child_titles = [])
+    <<~PROMPT
       以下の記事のH2構成をJSON形式で生成してください。
 
       【記事タイトル】
@@ -371,7 +398,7 @@ class GptArticleGenerator
       #{category}
 
       【関連子記事】
-      #{child_titles.join("\n")}
+      #{Array(child_titles).join("\n")}
 
       【記事方針】
       - 中立的な情報記事
@@ -412,17 +439,6 @@ class GptArticleGenerator
         ]
       }
     PROMPT
-
-    res = call_gpt_api(prompt, json_mode: true)
-
-    return nil unless res
-
-    JSON.parse(
-      res.dig("choices", 0, "message", "content")
-    )
-  rescue => e
-    Rails.logger.error("構成生成エラー: #{e.message}")
-    nil
   end
 
   # ==========================================================

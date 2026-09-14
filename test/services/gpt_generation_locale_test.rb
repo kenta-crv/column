@@ -64,7 +64,9 @@ class GptGenerationLocaleTest < ActiveSupport::TestCase
   test "blank language falls back to japanese" do
     assert_equal "ja", Column.normalize_language(nil)
     assert_equal "ja", Column.normalize_language("fr")
+    assert_equal "hiragana", Column.normalize_language("hiragana")
     refute Column.new(language: nil).english_article?
+    assert Column.new(language: "hiragana").hiragana_article?
   end
 
   test "english articles use Contents instead of 目次" do
@@ -87,5 +89,110 @@ class GptGenerationLocaleTest < ActiveSupport::TestCase
     assert GptGenerationLocale.toc_heading?("目次")
     assert GptGenerationLocale.toc_heading?("Contents")
     refute GptGenerationLocale.toc_heading?("Amazon delivery")
+  end
+
+  test "hiragana path wraps user prompt and bans kanji" do
+    prompt = "全て日本語で書いてください。## 目次 を入れてください。健康保険について。"
+
+    GptGenerationLocale.with_language(Column.new(language: "hiragana")) do
+      assert_equal "hiragana", GptGenerationLocale.current
+      assert GptGenerationLocale.hiragana?
+      refute GptGenerationLocale.english?
+
+      wrapped = GptGenerationLocale.prepare_user_prompt(prompt)
+      assert_includes wrapped, "漢字は禁止"
+      assert_includes wrapped, "本文に「## もくじ」や「## 目次」は書かない"
+      refute_includes wrapped, "全て日本語"
+      refute_match(/(^|\n)\s*-\s*日本語(\s|$)/, wrapped)
+      assert GptGenerationLocale.contains_kanji?("健康保険")
+      refute GptGenerationLocale.contains_kanji?("けんこうほけん")
+
+      system = GptGenerationLocale.resolve_system_prompt("通常システム", json_mode: false)
+      assert_includes system, "漢字は一文字も使わない"
+      assert_includes system, "「。」と「、」を必ず使う"
+      refute_equal "通常システム", system
+
+      assert_equal 210, GptGenerationLocale.min_length(600)
+      assert_includes wrapped, "「。」と「、」を使う"
+      assert_includes wrapped, "見出しは必ず独立した行"
+      assert_includes wrapped, "H2は3〜4個"
+      assert_equal "もくじ", GptGenerationLocale.toc_heading
+      title_system = GptGenerationLocale.resolve_title_system_prompt("通常")
+      assert_includes title_system, "漢字は一文字も使わず"
+    end
+
+    body = "はじめに\n\n## 目次\n\n- A\n"
+    rewritten = GptGenerationLocale.rewrite_structure_headings(body, language: "hiragana")
+    assert_includes rewritten, "## もくじ"
+    refute_includes rewritten, "## 目次"
+  end
+
+  test "hiragana markdown puts glued headings onto their own lines" do
+    glued = "せつめいします。## もくじ\n- やくわり## やくわり"
+    rewritten = GptGenerationLocale.rewrite_structure_headings(glued, language: "hiragana")
+
+    assert_includes rewritten, "せつめいします。\n\n## もくじ"
+    assert_match(/^## やくわり/, rewritten.lines.grep(/^## /).last)
+    refute_includes rewritten, "します。## もくじ"
+  end
+
+  test "hiragana markdown inserts a blank line before headings for kramdown" do
+    text = "さいごのぶんです。\n## もくじ\n- やくわり\n## やくわり\nないようです。"
+    rewritten = GptGenerationLocale.normalize_hiragana_markdown(text)
+
+    assert_includes rewritten, "さいごのぶんです。\n\n## もくじ\n"
+    assert_includes rewritten, "## もくじ\n\n- やくわり"
+    assert_includes rewritten, "- やくわり\n\n## やくわり\n"
+    html = Kramdown::Document.new(rewritten).to_html
+    assert_equal 2, html.scan(/<h2/).size
+  end
+
+  test "hiragana compact prompt bans kanji and asks for a short article" do
+    GptGenerationLocale.with_language(Column.new(language: "hiragana")) do
+      prompt = GptGenerationLocale.compact_hiragana_user_prompt("健康保険について。## まとめ")
+      assert_includes prompt, "漢字ゼロ"
+      assert_includes prompt, "1200"
+      compacted = GptGenerationLocale.compact_hiragana_article("けんこうほけんについて。\n\n## まとめ\n") { |_p| "けんこうほけんについてです。\n\n## まとめ\n" }
+      refute GptGenerationLocale.contains_kanji?(compacted)
+    end
+  end
+
+  test "hiragana rewrite loop replaces kanji text" do
+    GptGenerationLocale.with_language(Column.new(language: "hiragana")) do
+      rewritten = GptGenerationLocale.rewrite_until_hiragana("健康保険の窓口です。") { |_prompt| "けんこうほけんのまどぐちです。" }
+      assert_equal "けんこうほけんのまどぐちです。", rewritten
+      refute GptGenerationLocale.contains_kanji?(rewritten)
+    end
+  end
+
+  test "language-locked prompts skip wrap overlays" do
+    locked = "LANGUAGE: ひらがなのみ。\n本文だけ"
+
+    GptGenerationLocale.with_language(Column.new(language: "hiragana")) do
+      assert_equal locked, GptGenerationLocale.prepare_user_prompt(locked)
+    end
+  end
+
+  test "prompt files are split by language" do
+    refute GptPromptPack.for("ja").exist?("wrap")
+    refute GptPromptPack.for("ja").exist?("article")
+    assert GptPromptPack.for("ja").exist?("system")
+    assert GptPromptPack.for("ja").exist?("introduction")
+    assert GptPromptPack.for("ja").exist?("title_system")
+
+    assert GptPromptPack.for("en").exist?("wrap")
+    assert GptPromptPack.for("en").exist?("system")
+
+    hiragana = GptPromptPack.for("hiragana")
+    assert hiragana.exist?("system")
+    assert hiragana.exist?("article")
+    assert hiragana.exist?("child_titles")
+    assert hiragana.exist?("parent_titles")
+    assert hiragana.exist?("kanji_rewrite")
+    refute GptPromptPack.for("ja").exist?("child_titles")
+    refute GptPromptPack.for("ja").exist?("parent_titles")
+    refute GptPromptPack.for("en").exist?("child_titles")
+    refute GptPromptPack.for("en").exist?("parent_titles")
+    assert_includes hiragana.render("article", title: "たいとる", article_type: "pillar", source_facts: "cargo", extra_prompt: "なし"), "漢字ゼロ"
   end
 end

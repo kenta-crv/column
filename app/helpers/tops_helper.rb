@@ -12,14 +12,6 @@ module TopsHelper
     { title: "SEOに強いAI記事を作るためのステップバイステップ", path: "/ai_article/columns/seo-ai-article-creation-steps" }
   ].freeze
  
-  AI_ARTICLE_FEATURED_FALLBACK_EN = [
-    { title: "GEO-powered content strategy that works", path: "/ai_article/columns/geo-content-strategy" },
-    { title: "Using AI for the next era of SEO", path: "/ai_article/columns/ai-article-generation-seo-future" },
-    { title: "How to choose and use AI writing tools", path: "/ai_article/columns/ai-article-generation-tool-selection-and-utilization" },
-    { title: "Pitfalls of mass-produced blogs — and fixes", path: "/ai_article/columns/ryousangata-blog-no-otoshiana-to-taisaku" },
-    { title: "Step-by-step: SEO-strong AI articles", path: "/ai_article/columns/seo-ai-article-creation-steps" }
-  ].freeze
-
   def lp_english?
     I18n.locale.to_s == "en"
   end
@@ -30,6 +22,7 @@ module TopsHelper
 
   def featured_ai_article_columns(limit: 5)
     live = CrawlPolicy.crawlable_columns
+                      .merge(Column.for_ui_locale)
                       .order(updated_at: :desc)
                       .limit(limit)
                       .filter_map do |column|
@@ -40,15 +33,15 @@ module TopsHelper
     end
 
     return live if live.any?
+    return [] if lp_english?
 
     featured_fallback.first(limit)
   rescue StandardError
-    featured_fallback.first(limit)
+    lp_english? ? [] : featured_fallback.first(limit)
   end
 
   def featured_fallback
-    rows = lp_english? ? AI_ARTICLE_FEATURED_FALLBACK_EN : AI_ARTICLE_FEATURED_FALLBACK
-    rows.map { |item| item.merge(path: lp_public_path(item[:path])) }
+    AI_ARTICLE_FEATURED_FALLBACK.map { |item| item.merge(path: lp_public_path(item[:path])) }
   end
 
   def lp_public_path(path)
@@ -62,7 +55,7 @@ module TopsHelper
       [
         { class: "icon-lightning", title: "Ship faster", desc: "Articles in minutes" },
         { class: "icon-shield", title: "SEO-strong", desc: "Built around Google intent" },
-        { class: "icon-growth", title: "Corporate web assets", desc: "Grow owned-media equity" }
+        { class: "icon-growth", title: "SEO content at scale", desc: "Grow content marketing equity" }
       ]
     else
       [
@@ -78,8 +71,8 @@ module TopsHelper
       [
         { icon_class: "icon-clock", icon_type: "clock", text: "In-house writing eats<br>marketing bandwidth", desc: "Planning, outlining, drafting, and editing crowd out campaigns and core growth work." },
         { icon_class: "icon-search", icon_type: "search", text: "Hard to keep SEO quality<br>at the volume you need", desc: "You need rankings, but keyword design and structure don’t scale across the team." },
-        { icon_class: "icon-chart", icon_type: "chart", text: "Quality varies by writer<br>and brand trust suffers", desc: "Freelancer and agency variance weakens consistency across owned media." },
-        { icon_class: "icon-analytics", icon_type: "analytics", text: "Traffic and leads stall with<br>no clear content next step", desc: "Analysis and iteration never get enough time — content PDCA does not turn." },
+        { icon_class: "icon-chart", icon_type: "chart", text: "Quality varies by writer<br>and brand trust suffers", desc: "Freelancer and agency variance weakens consistency across your content program." },
+        { icon_class: "icon-analytics", icon_type: "analytics", text: "Traffic and leads stall with<br>no clear content next step", desc: "Analysis and iteration never get enough time — the optimization cycle stalls." },
         { icon_class: "icon-calc", icon_type: "calc", text: "Outsourcing costs keep rising<br>while publish volume stays flat", desc: "Writer and editor fees stack up without a path to sustainable in-house scale." },
         { icon_class: "icon-bell", icon_type: "bell", text: "Competitors publish more SEO<br>content and pull ahead", desc: "Keeping pillar/cluster coverage fresh is tough when capacity is limited." }
       ]
@@ -114,7 +107,7 @@ module TopsHelper
   def lp_ea_steps
     if lp_english?
       [
-        { num: "01", title: "Set genre & CTA", desc: "Define the topic, strengths, and article footer CTA once.", icon: "target" },
+        { num: "01", title: "Set topic & CTA", desc: "Define the topic, strengths, and article footer CTA once.", icon: "target" },
         { num: "02", title: "Design & write pillars", desc: "AI proposes SEO-strong parent titles and generates the bodies.", icon: "pen" },
         { num: "03", title: "Approve child titles", desc: "Review cluster titles, then approve to generate bodies.", icon: "layers" },
         { num: "04", title: "Notify when done", desc: "Email alerts — even if the browser is closed.", icon: "bell" }
@@ -149,8 +142,8 @@ module TopsHelper
     if lp_english?
       [
         {
-          num: "01", title: "Genre & CTA setup", desc: "Manage strengths, keywords, and footer CTAs per genre — your owned-media brief in one place.",
-          mock_header: "Genre brief",
+          num: "01", title: "Topic & CTA setup", desc: "Manage strengths, keywords, and footer CTAs per topic — your content marketing brief in one place.",
+          mock_header: "Topic brief",
           kw_head: %w[Item Value],
           kw_rows: [
             { kw: "Strengths", vol: "3 set", b_class: "low", b_text: "Ready" },
@@ -162,26 +155,26 @@ module TopsHelper
           num: "02", title: "Auto pillar title ideas", desc: "AI builds SEO-strong, intent-aligned title structures automatically.",
           mock_header: "Outline",
           headings: [
-            "What is an AI article tool?",
-            "Benefits of AI article tools",
-            "Recommended AI writing tools",
+            "What is an AI SEO content platform?",
+            "Benefits of SEO content automation",
+            "Recommended AI SEO content agents",
             "How to choose one",
             "Summary"
           ]
         },
         {
-          num: "03", title: "Auto body writing", desc: "Natural prose from AI — high-quality corporate articles at volume, faster.",
-          editor_p1: "AI writing tools cut production time dramatically while helping teams ship higher-quality content at scale.",
-          editor_p2: "This guide covers the strengths, benefits, and selection tips for AI article generators."
+          num: "03", title: "Auto body writing", desc: "Natural prose from AI — SEO-ready articles for marketing teams, at volume.",
+          editor_p1: "An AI SEO content agent cuts production time while helping teams ship higher-quality pillar and cluster content at scale.",
+          editor_p2: "This guide covers planning, writing, quality scoring, and publishing workflows for SEO content operations."
         },
         {
-          num: "04", title: "Auto image generation", desc: "AI generates and suggests images and eye-catchers that match the article."
+          num: "04", title: "Auto image generation", desc: "AI generates and suggests images and featured images that match the article."
         },
         {
-          num: "05", title: "Cluster titles & drafts", desc: "From a parent title, AI proposes ~15 child titles. Approve them, then generate bodies.",
+          num: "05", title: "Cluster expansion & quality scores", desc: "From a parent title, AI proposes ~15 child titles. Approve them, then generate bodies—scored across structure, SEO, and readability.",
           mock_header: "Cluster titles",
           suggestions: [
-            "How to choose an AI writing tool",
+            "How to choose an AI SEO platform",
             "Pillar vs cluster SEO structure",
             "Measuring content quality scores"
           ]
@@ -251,7 +244,7 @@ module TopsHelper
     if lp_english?
       [
         { class: "icon-blue", type: "pie", label: "Key metrics at a glance", desc: "See total generations, published, drafts, and average AI quality score." },
-        { class: "icon-amber", type: "folder", label: "Genre-level article status", desc: "Totals and Pillar / Cluster breakdowns to refine content strategy." },
+        { class: "icon-amber", type: "folder", label: "Topic-level article status", desc: "Totals and Pillar / Cluster breakdowns to refine content strategy." },
         { class: "icon-indigo", type: "filter", label: "Filter by status instantly", desc: "Switch statuses in one click and find the articles you need." },
         { class: "icon-purple", type: "clock", label: "Live generation progress", desc: "Track AI generation as it happens — stop runs when needed." }
       ]
@@ -292,7 +285,7 @@ module TopsHelper
         },
         {
           avatar_class: "avatar-manager", badge_class: "badge-indigo", badge_text: "B2B marketing",
-          name: "Owned-media lead", stars: "★★★★★", rating: "5.0",
+          name: "Content marketing lead", stars: "★★★★★", rating: "5.0",
           quote: "“Target keywords climbed — and CV followed.”",
           body: "Pillar/cluster coverage plus quality scoring kept our publish cadence. More top rankings on strategic keywords drove stronger leads.",
           metrics: [
@@ -366,7 +359,7 @@ module TopsHelper
   def lp_industry_tags
     if lp_english?
       [
-        { icon: "💻", name: "B2B / SaaS owned media" },
+        { icon: "💻", name: "B2B / SaaS content marketing" },
         { icon: "🏢", name: "Corporate marketing sites" },
         { icon: "🛒", name: "EC & retail content" },
         { icon: "📈", name: "Finance & real estate" },
@@ -442,7 +435,7 @@ module TopsHelper
 
   FAQ_ITEMS_EN = [
     # service
-    { category: "service", q: "What is Drafity?", a: "An AI content-volume platform for corporate owned media—SEO outlines, article and image generation, quality scoring, and publish via embed/API/Webhooks in one place, including pillar/cluster structures." },
+    { category: "service", q: "What is Drafity?", a: "An AI SEO Content Platform for marketing and SEO teams—pillar/cluster planning, article and image generation, quality scoring, and publishing via embed/API/Webhooks in one place. Think of it as an AI SEO Content Agent that runs your SEO content engine at scale." },
     { category: "service", q: "How is the quality score calculated?", a: "AI scores structure, SEO, readability, usefulness, and originality. Review scores in the list and edit in the editor after generation." },
     { category: "service", q: "Can I close the browser while generating?", a: "Yes. Generation continues server-side. On Business+, autonomous runs also email you when complete." },
     { category: "service", q: "How do I publish to my site?", a: "Use embed.js (one script tag), JSON API sync, or Webhooks. HTML/text export is also available. API requires Standard+. There is no WordPress-only one-click publisher." },
@@ -455,13 +448,13 @@ module TopsHelper
     { category: "pricing", q: "Can I change plans or pay by invoice?", a: "Yes—change plans from dashboard billing. Invoice payment depends on contract type; contact us for company billing." },
 
     # setup
-    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Set genre and generate outline/body from keywords → 4) Edit and publish; deliver to your site via embed.js / API / Webhooks. Upgrade later from /plans when ready." },
+    { category: "setup", q: "What are the steps from signup to first article?", a: "1) Sign up via Free start → 2) Trial begins immediately (no card) → 3) Set your topic and generate outline/body from keywords → 4) Edit and publish; deliver to your site via embed.js / API / Webhooks. Upgrade later from /plans when ready." },
     { category: "setup", q: "What do I need to prepare?", a: "Nothing special—just target keywords or themes. No coding skills required (embed is one HTML line)." },
     { category: "setup", q: "How do I switch to a paid plan?", a: "Choose a plan on /plans and complete Stripe Checkout. Enterprise also has a contact CTA." },
 
     # usage
     { category: "usage", q: "Can I edit existing articles?", a: "Yes—edit in the post-generation editor. There is no dedicated rewrite-suggestion feature, but you can regenerate and refine while watching quality scores." },
-    { category: "usage", q: "Can one account run multiple media sites?", a: "Yes—manage multiple topic areas via service genres. There is no invite-based shared team workspace." },
+    { category: "usage", q: "Can one account run multiple content programs?", a: "Yes—manage multiple topic areas via topic/content categories. There is no invite-based shared team workspace." },
     { category: "usage", q: "Which plans include AI autonomous generation?", a: "Business and Enterprise only—with child-title approval gates and email completion alerts. Not on Standard." }
   ].freeze
 
@@ -497,7 +490,7 @@ module TopsHelper
         { th: "Founded", td: "August 22, 2023", html: false },
         { th: "Capital", td: "JPY 5,000,000", html: false },
         { th: "Address", td: "2F, 2-2-15 Hamamatsucho, Minato-ku, Tokyo", html: true },
-        { th: "Business", td: "Development and delivery of Drafity, an AI article SaaS<br>Media & content marketing support", html: true }
+        { th: "Business", td: "Development and delivery of Drafity, an AI SEO Content Platform<br>Media & content marketing support", html: true }
       ]
     else
       [
