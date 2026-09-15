@@ -161,7 +161,7 @@
     .genre-summary-grid
       - summary_genres.each do |genre|
         .genre-summary-item
-          strong.genre-summary-name = genre
+          strong.genre-summary-name = dashboard_genre_summary_label(genre)
           span.genre-summary-counts
             = link_to dashboard_columns_path(scope: "pillar", genre: genre), class: "genre-summary-link genre-summary-link--pillar" do
               | Pillar: #{@genre_pillar_counts&.[](genre) || 0}

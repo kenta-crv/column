@@ -34,14 +34,13 @@ class Dashboard::GenreCompanySyncTest < ActionDispatch::IntegrationTest
     assert_nil client.company.presence
 
     sign_in client
-    post dashboard_service_genres_path, params: {
-      service_genre: {
-        ja: "美容院",
+    post dashboard_start_service_path, params: {
+      onboarding: {
         company: "株式会社サンプル",
-        column_cta: { enabled: "1", theme: "#2563eb", title: "案内" }
+        service_name: "美容院"
       }
     }
-    assert_redirected_to dashboard_service_genres_path
+    assert_redirected_to dashboard_start_path
     assert_equal "株式会社サンプル", client.reload.company
 
     sign_out client
@@ -54,14 +53,14 @@ class Dashboard::GenreCompanySyncTest < ActionDispatch::IntegrationTest
   test "client genre update overwrites the company shown on management" do
     client = create_client!(company: "旧社名")
     sign_in client
-    post dashboard_service_genres_path, params: {
-      service_genre: {
-        ja: "美容院",
+    post dashboard_start_service_path, params: {
+      onboarding: {
         company: "旧社名",
-        column_cta: { enabled: "1", theme: "#2563eb", title: "案内" }
+        service_name: "美容院"
       }
     }
     genre = ServiceGenre.order(:id).last
+    complete_client_first_run!(client)
 
     patch dashboard_service_genre_path(genre), params: {
       service_genre: {

@@ -21,6 +21,11 @@ Rails.application.routes.draw do
     get 'setting', to: 'columns#setting'
     get 'management', to: 'columns#management'
     get 'trial_progress', to: 'columns#trial_progress'
+    get 'start', to: 'onboarding#show', as: :start
+    post 'start/service', to: 'onboarding#create_service', as: :start_service
+    match 'start/suggest', to: 'onboarding#suggest_titles', via: [:get, :post], as: :start_suggest
+    post 'start/title', to: 'onboarding#create_title', as: :start_title
+    post 'start/generate', to: 'onboarding#generate', as: :start_generate
     
     get 'api_settings', to: 'clients#my_api_settings'
     patch 'api_settings', to: 'clients#update_my_api_settings'

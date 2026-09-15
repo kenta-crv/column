@@ -14,6 +14,7 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
 
   test "japanese login page does not overwrite account preferred_locale" do
     client = create_client!(preferred_locale: "en")
+    complete_client_first_run!(client)
 
     get new_client_session_path
     assert_response :success
@@ -30,6 +31,7 @@ class Clients::SessionsLocaleTest < ActionDispatch::IntegrationTest
 
   test "english login page does not overwrite account preferred_locale" do
     client = create_client!(preferred_locale: "ja")
+    complete_client_first_run!(client)
 
     post client_session_en_path(locale: :en), params: { client: { email: client.email, password: "password123" } }
     assert_redirected_to dashboard_root_path

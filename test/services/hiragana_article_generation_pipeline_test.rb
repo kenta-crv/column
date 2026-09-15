@@ -63,9 +63,34 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
     assert_includes prompt, "1200〜1800字"
     assert_includes prompt, "じゅうみんひょうのとうろく"
     assert_includes prompt, "本文に ## もくじ は書かない"
+    assert_includes prompt, "pillar のとき"
+    assert_includes prompt, "わるいまとめの例"
+    assert_includes prompt, "よめない当て字"
+    assert_includes prompt, "タイトルにないしょくしゅ"
+    assert_includes prompt, "わるい本文の例4"
+    assert_includes prompt, "わるい本文の例5"
+    assert_includes prompt, "タイトルを # でくり返さない"
+    assert_includes prompt, "漢字を1字ずつよもうとして"
+    assert_includes prompt, "driver_recruitment"
     refute_includes prompt, "つぎに独立した行で ## もくじ"
     refute_includes prompt, "700〜1100文字"
     refute_includes prompt, "下のタスクは通常の日本語記事向け"
+  end
+
+  test "hiragana article prompt does not dump english sub_genre keys as facts" do
+    column = Column.new(
+      title: "ビザのしゅるいごとに、はたらけるしごと",
+      language: "hiragana",
+      article_type: "pillar",
+      genre: "cargo",
+      sub_genre: "driver_recruitment",
+      keyword: "ビザ しごと"
+    )
+    prompt = GptHiraganaArticleGenerator.build_article_prompt(column)
+
+    refute_includes prompt, "ジャンル: cargo"
+    refute_includes prompt, "中分類キー"
+    assert_includes prompt, "ビザ しごと"
   end
 
   test "column body generator routes hiragana to the dedicated generator" do

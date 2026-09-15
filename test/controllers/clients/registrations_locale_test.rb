@@ -24,15 +24,15 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
         preferred_locale: "ja"
       }
     }
-    assert_redirected_to dashboard_root_path
+    assert_redirected_to dashboard_start_path
 
     client = Client.find_by!(email: email)
     assert_equal "ja", client.preferred_locale
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "親記事の作成開始"
-    assert_not_includes response.body, "Create pillar article"
+    assert_includes response.body, "3つのステップで最初の記事を作ります"
+    assert_not_includes response.body, "Create your first article in 3 steps"
   end
 
   test "japanese signup post stays japanese when cookie is en even without preferred_locale param" do
@@ -46,13 +46,13 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
         password_confirmation: "password123"
       }
     }
-    assert_redirected_to dashboard_root_path
+    assert_redirected_to dashboard_start_path
     assert_equal "ja", Client.find_by!(email: email).preferred_locale
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "親記事の作成開始"
-    assert_not_includes response.body, "Create pillar article"
+    assert_includes response.body, "3つのステップで最初の記事を作ります"
+    assert_not_includes response.body, "Create your first article in 3 steps"
   end
 
   test "english signup keeps dashboard in english even if ui_locale cookie is ja" do
@@ -67,15 +67,15 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
         preferred_locale: "en"
       }
     }
-    assert_redirected_to dashboard_root_path
+    assert_redirected_to dashboard_start_path
 
     client = Client.find_by!(email: email)
     assert_equal "en", client.preferred_locale
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "Create pillar article"
-    assert_not_includes response.body, "親記事の作成開始"
+    assert_includes response.body, "Create your first article in 3 steps"
+    assert_not_includes response.body, "3つのステップで最初の記事を作ります"
   end
 
   test "japanese signup ignores leftover english session locale" do
@@ -95,13 +95,13 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
         preferred_locale: "en"
       }
     }
-    assert_redirected_to dashboard_root_path
+    assert_redirected_to dashboard_start_path
     assert_equal "ja", Client.find_by!(email: email).preferred_locale
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "親記事の作成開始"
-    assert_not_includes response.body, "Create pillar article"
+    assert_includes response.body, "3つのステップで最初の記事を作ります"
+    assert_not_includes response.body, "Create your first article in 3 steps"
   end
 
   test "client signup is rejected while admin is signed in" do
@@ -129,7 +129,7 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "ログアウト (管理者)"
   end
 
-  test "new signup fires yahoo ads conversion once on dashboard" do
+  test "new signup fires yahoo ads conversion once on first-run wizard" do
     email = "trial-cv-#{SecureRandom.hex(4)}@example.com"
     post "/clients", params: {
       client: {
@@ -138,14 +138,14 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
         password_confirmation: "password123"
       }
     }
-    assert_redirected_to dashboard_root_path
+    assert_redirected_to dashboard_start_path
 
     follow_redirect!
     assert_response :success
     assert_includes response.body, "PI10CNNARJJWSR9XZS1366128"
     assert_includes response.body, "yjad_conversion"
 
-    get dashboard_root_path
+    get dashboard_start_path
     assert_response :success
     assert_not_includes response.body, "PI10CNNARJJWSR9XZS1366128"
   end

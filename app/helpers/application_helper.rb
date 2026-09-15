@@ -100,6 +100,21 @@ module ApplicationHelper
     I18n.t("drafity.dashboard.generation_modes.#{key}", default: t("drafity.dashboard.generation_modes.default"))
   end
 
+  def dashboard_genre_summary_label(genre_key)
+    key = genre_key.to_s
+    return key if key.blank?
+
+    from_options = Array(@dashboard_genre_options).find { |_label, value| value.to_s == key }&.first
+    return from_options if from_options.present?
+
+    client = current_client if client_signed_in?
+    label = GenreRegistry.label_for(key, client: client).presence
+    return label if label.present? && label != key
+
+    genre = client&.service_genres&.find_by(key: key)
+    genre&.display_name.presence || genre&.service_name.presence || genre&.ja.presence || key
+  end
+
   def article_language_options_for_select
     Column::LANGUAGES.map do |key|
       [t("drafity.columns.form.language_#{key}"), key]

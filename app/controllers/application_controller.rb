@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   before_action :stash_omniauth_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :check_trial_expiration
+  before_action :redirect_first_run_client!
   before_action :init_breadcrumbs
 
   helper_method :breadcrumbs, :current_client_usage_summary, :can_manage_column?, :child_article_quota_for,
@@ -702,13 +703,27 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def signed_in_home_path_for(resource = current_client)
+    return dashboard_root_path unless resource.is_a?(Client)
+    return dashboard_start_path if resource.first_run?
+
+    dashboard_root_path
+  end
+
   def after_sign_in_path_for(resource)
     case resource
     when Admin
       sign_out(:client) if client_signed_in?
       stored_location_for(:admin).presence || dashboard_root_path
     when Client
-      stored_location_for(:client).presence || dashboard_root_path
+      stored = stored_location_for(:client)
+      if resource.first_run?
+        return stored if stored.present? && first_run_allowed_stored_path?(stored)
+
+        dashboard_start_path
+      else
+        stored.presence || dashboard_root_path
+      end
     else
       locale_root_href
     end
@@ -744,6 +759,52 @@ class ApplicationController < ActionController::Base
     return "auth" if devise_controller? && !admin_controller?
 
     "application"
+  end
+
+  def redirect_first_run_client!
+    return unless client_signed_in?
+    return if acting_as_admin?
+    return unless current_client.first_run?
+    return if first_run_allowed_request?
+
+    if request.format.json? || request.xhr?
+      render json: { success: false, error: "complete_first_run", redirect: dashboard_start_path }, status: :forbidden
+      return
+    end
+
+    redirect_to dashboard_start_path
+  end
+
+  def first_run_allowed_request?
+    return true if devise_controller?
+    return true if is_a?(Dashboard::OnboardingController)
+    return true if is_a?(LocalesController)
+    return true if is_a?(PlansController)
+    return true if is_a?(CheckoutController)
+    return true if is_a?(TopsController)
+    return true if is_a?(SeoCheckersController)
+    return true if is_a?(SitemapsController)
+    return true if is_a?(RobotsController)
+    return true if is_a?(WebhooksController)
+    return true if is_a?(UnsubscribesController)
+    return true if controller_path.start_with?("api/")
+    return true if controller_path.start_with?("active_storage/")
+    return true if is_a?(Dashboard::ColumnsController) && %w[generation_status stop_generation].include?(action_name)
+    return true if is_a?(ColumnsController) && %w[index show].include?(action_name)
+
+    false
+  end
+
+  def first_run_allowed_stored_path?(path)
+    path = path.to_s
+    return false unless path.start_with?("/") && !path.start_with?("//")
+
+    clean = path.split("?", 2).first.to_s.sub(%r{\A/en(?=/|$)}, "")
+    clean = "/" if clean.blank?
+    clean.start_with?("/plans") ||
+      clean.start_with?("/checkout") ||
+      clean.start_with?("/dashboard/start") ||
+      clean.start_with?("/tools/seo-checker")
   end
 
   def authenticate_client!

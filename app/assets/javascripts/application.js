@@ -70,7 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const mountDataTargetNav = () => {
   document.body.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-target]');
+    const target = e.target instanceof Element ? e.target : e.target && e.target.parentElement;
+    if (!target || typeof target.closest !== 'function') return;
+    const a = target.closest('a[data-target]');
     if (!a) return;
 
     e.preventDefault();

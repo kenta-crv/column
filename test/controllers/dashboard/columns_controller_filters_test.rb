@@ -123,4 +123,31 @@ class Dashboard::ColumnsControllerFiltersTest < ActionDispatch::IntegrationTest
     assert_includes response.body, en.title
     assert_includes response.body, hiragana.title
   end
+
+  test "genre summary shows the service name instead of the generated key" do
+    client = Client.create!(
+      email: "genre-summary-#{SecureRandom.hex(4)}@example.com",
+      password: "password123",
+      name: "Genre Summary Client",
+      subscription_plan: "trial",
+      subscription_status: "trialing",
+      trial_ends_at: 14.days.from_now,
+      preferred_locale: "ja"
+    )
+    sign_in client
+    post dashboard_start_service_path, params: {
+      onboarding: {
+        company: "株式会社サンプル",
+        service_name: "オンライン英会話"
+      }
+    }
+    genre = client.reload.service_genres.order(:id).last
+    assert_match(/\Asvc/, genre.key)
+    complete_client_first_run!(client)
+
+    get dashboard_columns_path
+    assert_response :success
+    assert_select ".genre-summary-name", text: "オンライン英会話"
+    assert_select ".genre-summary-name", text: genre.key, count: 0
+  end
 end

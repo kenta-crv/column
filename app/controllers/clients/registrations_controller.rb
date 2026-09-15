@@ -52,9 +52,9 @@ class Clients::RegistrationsController < Devise::RegistrationsController
     end
   end
 
-  def after_sign_up_path_for(_resource)
+  def after_sign_up_path_for(resource)
     mark_yahoo_trial_conversion!
-    dashboard_root_path
+    signed_in_home_path_for(resource)
   end
 
   private

@@ -1,0 +1,19 @@
+= form_with url: dashboard_start_service_path, method: :post, local: true, html: { class: "onboarding-form" } do
+  h2.onboarding-card__title = t("drafity.dashboard.onboarding.service_heading")
+  p.onboarding-card__help = t("drafity.dashboard.onboarding.service_help")
+
+  .onboarding-field
+    label for="onboarding_company" = t("drafity.dashboard.onboarding.company")
+    input#onboarding_company.input-field type="text" name="onboarding[company]" value=(@company_name.presence || current_client.company) placeholder=t("drafity.dashboard.onboarding.ph_company") required="required" autocomplete="organization"
+
+  .onboarding-field
+    label for="onboarding_service_name" = t("drafity.dashboard.onboarding.service_name")
+    input#onboarding_service_name.input-field type="text" name="onboarding[service_name]" value=(@service_name.presence || @service_genre&.service_name.presence || @service_genre&.display_name) placeholder=t("drafity.dashboard.onboarding.ph_service") required="required"
+
+  .onboarding-field
+    label for="onboarding_strong_points" = t("drafity.dashboard.onboarding.strong_points")
+    textarea#onboarding_strong_points.input-field name="onboarding[strong_points]" rows="3" placeholder=t("drafity.dashboard.onboarding.ph_strong")
+      = @strong_points.presence || @service_genre&.strong_points
+    small.onboarding-hint = t("drafity.dashboard.onboarding.strong_hint")
+
+  button.onboarding-submit type="submit" = t("drafity.dashboard.onboarding.service_submit")

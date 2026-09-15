@@ -1,0 +1,34 @@
+doctype html
+html lang=current_locale
+  head
+    title = [t("drafity.dashboard.onboarding.page_title"), "Drafity"].compact.join(" | ")
+    = csrf_meta_tags
+    = csp_meta_tag
+    meta name="turbo-cache-control" content="no-cache"
+    = stylesheet_link_tag "application", media: "all"
+    = javascript_include_tag "application"
+    = favicon_link_tag "favicon.ico"
+    meta name="viewport" content="width=device-width, initial-scale=1"
+    script async=true src="https://s.yimg.jp/images/listing/tool/cv/ytag.js"
+    javascript:
+      window.yjDataLayer = window.yjDataLayer || [];
+      function ytag() { yjDataLayer.push(arguments); }
+      ytag({"type":"ycl_cookie", "config":{"ycl_use_non_cookie_storage":true}});
+    - if yahoo_trial_conversion_pending?
+      = yahoo_ads_conversion_tags
+
+  body.onboarding-body
+    .onboarding-shell
+      header.onboarding-top
+        = link_to locale_root_href, class: "onboarding-logo" do
+          = image_tag drafity_logo_image, alt: "Drafity"
+        .onboarding-top__actions
+          = render "shared/lang_switch"
+          = link_to t("drafity.dashboard.layout.logout"), destroy_client_session_path, method: :delete, class: "onboarding-logout"
+
+      - flash.each do |type, message|
+        - tag_class = (type.to_s == "notice" ? "success" : "danger")
+        div class="onboarding-flash onboarding-flash--#{tag_class}" role="alert"
+          = message
+
+      = yield

@@ -92,6 +92,32 @@ class Client < ApplicationRecord
     update(company: name)
   end
 
+  def first_run?
+    return false if columns.pillars.merge(Column.with_generated_body).exists?
+
+    pillar = columns.pillars.order(:id).first
+    return true if pillar.nil?
+
+    status = pillar.generation_status.to_s
+    status.blank? || status == "idle"
+  end
+
+  def first_run_step
+    return :service if service_genres.none?
+    return :title unless columns.pillars.exists?
+    return :generate if first_run?
+
+    nil
+  end
+
+  def first_service_genre
+    service_genres.order(:id).first
+  end
+
+  def first_run_pillar
+    columns.pillars.order(:id).first
+  end
+
   CHILD_ARTICLE_TYPES = %w[child cluster].freeze
 
   def plan_limits

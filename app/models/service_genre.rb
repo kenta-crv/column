@@ -1,3 +1,5 @@
+require "digest"
+
 class ServiceGenre < ApplicationRecord
   belongs_to :client, optional: true
 
@@ -254,6 +256,31 @@ class ServiceGenre < ApplicationRecord
     return unless client
 
     client.update!(allowed_genres: client.service_genres.pluck(:key))
+  end
+
+  def self.unique_key_for(name:, client:, except_id: nil, host: nil)
+    base = name.to_s.parameterize(separator: "_").gsub(/[^a-z0-9_]/, "")
+    base = "svc#{Digest::SHA256.hexdigest(name.to_s)[0, 10]}" if base.blank?
+    base = base[0, 40]
+    candidate = base
+    suffix = 2
+    owner_id = client&.id
+    scope = where(client_id: owner_id, key: candidate)
+    scope = scope.where.not(id: except_id) if except_id.present?
+    while scope.exists? || key_blocked_for_client?(candidate, client: client, host: host)
+      candidate = "#{base}_#{suffix}"
+      suffix += 1
+      scope = where(client_id: owner_id, key: candidate)
+      scope = scope.where.not(id: except_id) if except_id.present?
+    end
+    candidate
+  end
+
+  def self.key_blocked_for_client?(key, client:, host: nil)
+    return false if client.blank? || key.blank?
+    return false if GenreRegistry.custom_genre_key_allowed_for_client?(key, client: client)
+
+    !GenreRegistry.template_allowed_for_client?(key, client: client, host: host)
   end
 
   def reset_genre_registry_cache

@@ -408,20 +408,12 @@ class Dashboard::ServiceGenresController < ApplicationController
   end
 
   def unique_client_genre_key(name)
-    base = name.to_s.parameterize(separator: "_").gsub(/[^a-z0-9_]/, "")
-    # parameterize は日本語など非ASCIIだと空になり、従来はキーが "genre" 固定だった。
-    # タイトル提案の選択肢が内部キーを出す経路と重なり、「Genre」しか見えない状態になる。
-    base = "svc#{Digest::SHA256.hexdigest(name.to_s)[0, 10]}" if base.blank?
-    base = base[0, 40]
-    candidate = base
-    suffix = 2
-    owner_id = current_client&.id
-    while ServiceGenre.where(client_id: owner_id, key: candidate).where.not(id: @service_genre&.id).exists? ||
-          unauthorized_genre_key?(candidate, except: @service_genre&.key)
-      candidate = "#{base}_#{suffix}"
-      suffix += 1
-    end
-    candidate
+    ServiceGenre.unique_key_for(
+      name: name,
+      client: current_client,
+      except_id: @service_genre&.id,
+      host: request.host
+    )
   end
 
   def stored_column_cta_copy

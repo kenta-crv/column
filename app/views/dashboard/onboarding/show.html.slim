@@ -1,0 +1,21 @@
+- steps = %i[service title generate]
+.onboarding-page
+  p.onboarding-eyebrow = t("drafity.dashboard.onboarding.eyebrow")
+  h1.onboarding-title = t("drafity.dashboard.onboarding.title")
+  p.onboarding-lead = t("drafity.dashboard.onboarding.lead")
+
+  ol.onboarding-progress
+    - current_index = steps.index(@step).to_i
+    - steps.each_with_index do |key, index|
+      - state = current_index == index ? "is-current" : (current_index > index ? "is-done" : "is-todo")
+      li class=state
+        span.onboarding-progress__num = index + 1
+        span.onboarding-progress__label = t("drafity.dashboard.onboarding.steps.#{key}")
+
+  .onboarding-card
+    - if @step == :service
+      = render "dashboard/onboarding/service_step"
+    - elsif @step == :title
+      = render "dashboard/onboarding/title_step"
+    - else
+      = render "dashboard/onboarding/generate_step"

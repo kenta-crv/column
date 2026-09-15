@@ -1,0 +1,24 @@
+- genre = @service_genre || current_client.first_service_genre
+- default_language = I18n.locale.to_s.start_with?("en") ? "en" : "ja"
+h2.onboarding-card__title = t("drafity.dashboard.onboarding.title_heading")
+p.onboarding-card__help = t("drafity.dashboard.onboarding.title_help", service: genre&.display_name)
+
+.onboarding-suggest
+  .onboarding-field
+    label for="onboarding_keyword1" = t("drafity.dashboard.onboarding.keyword1")
+    input#onboarding_keyword1.input-field type="text" placeholder=t("drafity.dashboard.onboarding.ph_keyword1")
+  .onboarding-field
+    label for="onboarding_keyword2" = t("drafity.dashboard.onboarding.keyword2")
+    input#onboarding_keyword2.input-field type="text" placeholder=t("drafity.dashboard.onboarding.ph_keyword2")
+  .onboarding-suggest__actions
+    button#onboarding-suggest-btn.onboarding-secondary type="button" onclick="if (window.DrafityOnboardingSuggest) { window.DrafityOnboardingSuggest(this); } return false;" data={ "suggest-url" => dashboard_start_suggest_path, "language" => default_language, "msg-keywords" => t("drafity.dashboard.onboarding.keywords_required"), "msg-suggesting" => t("drafity.dashboard.onboarding.suggesting"), "msg-failed" => t("drafity.dashboard.onboarding.suggest_failed"), "msg-pick" => t("drafity.dashboard.onboarding.suggest_pick"), "msg-label" => t("drafity.dashboard.onboarding.suggest") }
+      = t("drafity.dashboard.onboarding.suggest")
+  p#onboarding-suggest-status.onboarding-hint hidden="hidden"
+  #onboarding-suggestions.onboarding-suggestions hidden="hidden"
+
+= form_with url: dashboard_start_title_path, method: :post, local: true, html: { class: "onboarding-form onboarding-form--title", id: "onboarding-title-form" } do
+  .onboarding-field
+    label for="onboarding_title" = t("drafity.dashboard.onboarding.article_title")
+    input#onboarding_title.input-field type="text" name="onboarding[title]" value=@pillar&.title placeholder=t("drafity.dashboard.onboarding.ph_title") required="required"
+  input type="hidden" name="onboarding[language]" value=default_language
+  button.onboarding-submit type="submit" = t("drafity.dashboard.onboarding.title_submit")

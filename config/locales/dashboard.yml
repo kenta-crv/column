@@ -30,6 +30,62 @@ ja:
         usage_unlimited: "/ 無制限"
         usage_articles: "/ %{count} 記事"
         usage_zero: "/ 0 記事"
+      onboarding:
+        page_title: 最初の記事
+        eyebrow: はじめかた
+        title: 3つのステップで最初の記事を作ります
+        lead: 会社名とサービスを登録し、タイトルを決めて生成します。専門的な設定はあとからで構いません。
+        steps:
+          service: サービス登録
+          title: タイトル決定
+          generate: 記事生成
+        service_heading: 会社とサービスを登録
+        service_help: 会社名は管理画面の一覧に表示されます。サービス名は記事のテーマになります。
+        company: 会社名
+        service_name: サービス名
+        strong_points: 強み・特徴（任意）
+        strong_hint: 後から記事の案内文にも使えます。空欄でも進められます。
+        ph_company: 株式会社サンプル
+        ph_service: オンライン英会話
+        ph_strong: 初心者でも続けやすい、日本人講師 など
+        service_submit: 次へ進む
+        service_required: 会社名とサービス名を入力してください。
+        service_failed: サービスを保存できませんでした。
+        service_saved: サービスを登録しました。
+        need_service: 先にサービスを登録してください。
+        title_heading: 最初の記事タイトルを決める
+        title_help: 「%{service}」向けの記事タイトルです。キーワードから提案を受けるか、自分で入力できます。
+        keyword1: キーワード1
+        keyword2: キーワード2
+        ph_keyword1: "例: 始め方"
+        ph_keyword2: "例: 初心者"
+        suggest: タイトルを提案する
+        suggesting: 提案を作成しています…
+        suggest_pick: 使いたいタイトルを選ぶか、下の欄を直接編集してください。
+        suggest_failed: タイトルを提案できませんでした。自分で入力して進めてください。
+        keywords_required: キーワードを2つ入力してください。
+        article_title: 記事タイトル
+        ph_title: 初めての方向けの始め方
+        title_submit: このタイトルで進む
+        title_required: 記事タイトルを入力してください。
+        title_saved: タイトルを保存しました。
+        need_title: 先にタイトルを決めてください。
+        generate_heading: 記事を生成する
+        generate_help: 書き方を1つ選ぶと本文の作成を開始し、ダッシュボードへ進みます。
+        your_title: 生成するタイトル
+        mode_heading: 記事の書き方
+        mode_hint: どれか1つを選んでください。
+        mode_required: 記事の書き方を選んでください。
+        mode_default: 通常記事
+        mode_default_help: 解説や始め方など、一般的な記事です。
+        mode_comparison: 比較
+        mode_comparison_help: 選択肢の違いが分かる記事です。
+        mode_recommendation: 自社おすすめ
+        mode_recommendation_help: 自社の強みを打ち出す記事です。
+        generate_submit: 記事を生成する
+        generate_started: 記事の生成を開始しました。進行状況はダッシュボードで確認できます。
+        generate_done: 最初の記事ができました。
+        generating: 記事を作成しています。このままお待ちください。
       common:
         edit: 編集
         delete: 削除
@@ -745,6 +801,62 @@ en:
         usage_unlimited: "/ Unlimited"
         usage_articles: "/ %{count} articles"
         usage_zero: "/ 0 articles"
+      onboarding:
+        page_title: First article
+        eyebrow: Getting started
+        title: Create your first article in 3 steps
+        lead: Add your company and service, pick a title, then generate. Advanced settings can wait.
+        steps:
+          service: Register your service
+          title: Choose a title
+          generate: Generate the article
+        service_heading: Register your company and service
+        service_help: The company name appears on the management list. The service name becomes the topic of your articles.
+        company: Company name
+        service_name: Service name
+        strong_points: Strengths (optional)
+        strong_hint: You can add this later. It is fine to leave it blank.
+        ph_company: Acme Inc.
+        ph_service: Online English lessons
+        ph_strong: Easy for beginners, native coaches, etc.
+        service_submit: Continue
+        service_required: Enter your company name and service name.
+        service_failed: Could not save the service.
+        service_saved: Service saved.
+        need_service: Register your service first.
+        title_heading: Choose your first article title
+        title_help: This title is for %{service}. Get a suggestion from keywords, or type your own.
+        keyword1: Keyword 1
+        keyword2: Keyword 2
+        ph_keyword1: e.g. getting started
+        ph_keyword2: e.g. beginners
+        suggest: Suggest a title
+        suggesting: Creating a suggestion…
+        suggest_pick: Pick a title or edit the field below.
+        suggest_failed: Could not suggest a title. Type one yourself to continue.
+        keywords_required: Enter two keywords.
+        article_title: Article title
+        ph_title: How to get started
+        title_submit: Use this title
+        title_required: Enter an article title.
+        title_saved: Title saved.
+        need_title: Choose a title first.
+        generate_heading: Generate the article
+        generate_help: Choose one writing style to start the article and open the dashboard.
+        your_title: Title to generate
+        mode_heading: Article style
+        mode_hint: Choose one.
+        mode_required: Choose an article style.
+        mode_default: Standard
+        mode_default_help: A regular explainer or how-to article.
+        mode_comparison: Comparison
+        mode_comparison_help: An article that compares options.
+        mode_recommendation: Our pick
+        mode_recommendation_help: An article that highlights your strengths.
+        generate_submit: Generate article
+        generate_started: Article generation has started. Follow progress on the dashboard.
+        generate_done: Your first article is ready.
+        generating: Writing your article. Please wait.
       common:
         edit: Edit
         delete: Delete

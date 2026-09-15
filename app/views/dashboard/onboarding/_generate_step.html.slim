@@ -1,0 +1,21 @@
+- pillar = @pillar || current_client.first_run_pillar
+- selected_mode = params.dig(:onboarding, :generation_mode).to_s.presence
+h2.onboarding-card__title = t("drafity.dashboard.onboarding.generate_heading")
+p.onboarding-card__help = t("drafity.dashboard.onboarding.generate_help")
+
+- if pillar
+  .onboarding-article
+    p.onboarding-article__label = t("drafity.dashboard.onboarding.your_title")
+    p.onboarding-article__title = pillar.title
+
+= form_with url: dashboard_start_generate_path, method: :post, local: true, html: { class: "onboarding-form", data: { turbolinks: false, turbo: false } } do
+  fieldset.onboarding-modes
+    legend.onboarding-modes__legend = t("drafity.dashboard.onboarding.mode_heading")
+    p.onboarding-modes__hint = t("drafity.dashboard.onboarding.mode_hint")
+    .onboarding-modes__list
+      - %w[default comparison recommendation].each do |mode|
+        label.onboarding-mode class=("is-selected" if selected_mode == mode)
+          input type="radio" name="onboarding[generation_mode]" value=mode required="required" checked=("checked" if selected_mode == mode)
+          span.onboarding-mode__name = t("drafity.dashboard.onboarding.mode_#{mode}")
+          span.onboarding-mode__help = t("drafity.dashboard.onboarding.mode_#{mode}_help")
+  button.onboarding-submit type="submit" = t("drafity.dashboard.onboarding.generate_submit")

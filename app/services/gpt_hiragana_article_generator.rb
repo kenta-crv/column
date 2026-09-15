@@ -3,7 +3,7 @@
 # ひらがな記事は通常の日本語ピラー生成を使わない。
 # 長い日本語プロンプトをラップすると漢字と冗長文が残るため、専用の一括生成にする。
 class GptHiraganaArticleGenerator
-  MAX_ATTEMPTS = 3
+  MAX_ATTEMPTS = 5
 
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
@@ -16,7 +16,8 @@ class GptHiraganaArticleGenerator
       GptPillarGenerator.ensure_not_cancelled!(column)
       payload = request_article_json(column)
       payload = strip_kanji_from_payload(payload)
-      last_error = validate_payload(payload)
+      payload = strip_leading_h1(payload, column)
+      last_error = validate_payload(payload, column: column)
       break if last_error.nil?
 
       Rails.logger.warn("[GptHiraganaArticleGenerator] retry #{i + 1}/#{MAX_ATTEMPTS} column_id=#{column.id} #{last_error}")
@@ -51,19 +52,11 @@ class GptHiraganaArticleGenerator
   end
 
   def self.source_facts_for(column)
-    client = column.client
-    genre = column.genre.presence || "other"
-    genre_data = GenreRegistry.genre_entry(genre, client: client) || {}
-    sub_key = GenreRegistry.resolve_sub_category_key(column, genre, client: client)
-    sub_data = sub_key.present? ? genre_data.dig(:sub_categories, sub_key.to_sym) : nil
-
-    [
-      "ジャンル: #{genre}",
-      ("中分類キー: #{sub_key}" if sub_key.present?),
-      ("中分類: #{sub_data[:name]}" if sub_data.is_a?(Hash) && sub_data[:name].present?),
-      column.keyword.presence,
-      column.description.presence
-    ].compact.join("\n").truncate(500)
+    hints = []
+    hints << column.keyword.presence
+    hints << column.description.presence
+    text = hints.compact.join("\n").truncate(500)
+    text.presence || "なし"
   end
   private_class_method :source_facts_for
 
@@ -78,6 +71,19 @@ class GptHiraganaArticleGenerator
     nil
   end
   private_class_method :request_article_json
+
+  def self.strip_leading_h1(payload, column)
+    return payload unless payload.is_a?(Hash)
+
+    body = payload["body"].to_s
+    first = body[/\A#(?!#)[[:space:]]+([^\n]+)/, 1].to_s.gsub(/[[:space:]]/, "")
+    title = column.title.to_s.gsub(/[[:space:]]/, "")
+    if first.present? && (first == title || title.include?(first) || first.include?(title))
+      payload["body"] = body.sub(/\A#(?!#)[[:space:]]+[^\n]+\n+/, "")
+    end
+    payload
+  end
+  private_class_method :strip_leading_h1
 
   def self.strip_kanji_from_payload(payload)
     return payload unless payload.is_a?(Hash)
@@ -98,20 +104,41 @@ class GptHiraganaArticleGenerator
   end
   private_class_method :strip_kanji_from_payload
 
-  def self.validate_payload(payload)
+  def self.validate_payload(payload, column: nil)
     return "empty json" unless payload.is_a?(Hash)
 
     body = GptGenerationLocale.normalize_hiragana_markdown(payload["body"].to_s)
+    return "empty body" if body.blank?
+    %w[description keyword].each do |key|
+      payload[key] = "" if GptGenerationLocale.contains_kanji?(payload[key].to_s)
+    end
     description = payload["description"].to_s
     keyword = payload["keyword"].to_s
     combined = "#{description}\n#{keyword}\n#{body}"
-
-    return "empty body" if body.blank?
-    return "kanji remaining" if GptGenerationLocale.contains_kanji?(combined)
+    return "kanji remaining" if GptGenerationLocale.contains_kanji?(body)
     return "inline toc" if body.match?(/^##[[:space:]]*(もくじ|目次)[[:space:]]*$/)
     return "missing heading" unless body.scan(/^##[[:space:]]+/).size >= 4
     return "too long" if body.length > 2200
     return "too short" if body.length < 500
+    return "latin leak" if body.match?(/[A-Za-z]{3,}/)
+    return "title as h1" if body.match?(/\A#(?!#)[[:space:]]+/)
+    prose = body.lines.reject { |line| line.match?(/\A#+[[:space:]]/) }.join
+    return "wakachigaki" if prose.scan(/[\p{Hiragana}\p{Katakana}][[:space:]]+[\p{Hiragana}\p{Katakana}]/).size >= 3
+
+    %w[
+      さいかい せいけい にゅうりょくまえ のどちから おｋ ほーむぺえじ ドライばー
+      しんにゅうかん くらいふる ひがいこじん すじみち ざっちょう よこくべつ
+      みぎうえ うんび ちゅうみつ はいにる にゅうるか つうちょう せいどめい
+      りくるーと たおい どうきます さいしんのいかい まいごする てづつ
+      うるすぎる だんだんする せいけつ きじょう りゅうい あわさせ ほーむぺえじ
+    ].each do |token|
+      return "garbled #{token}" if combined.include?(token)
+    end
+
+    title = column&.title.to_s
+    unless title.match?(/どらいばー|うんてん|はいそう|うんゆ/)
+      return "off-topic driver" if body.match?(/どらいばー|かーご|うんゆ/)
+    end
 
     nil
   end

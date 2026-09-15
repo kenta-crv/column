@@ -44,7 +44,7 @@ class PlansController < ApplicationController
 
       current_client.initialize_trial_subscription!
       mark_yahoo_trial_conversion!
-      redirect_to dashboard_root_path, notice: t("drafity.auth.trial_started", days: Subscription::TRIAL_DAYS, default: "無料トライアルを開始しました。")
+      redirect_to signed_in_home_path_for(current_client), notice: t("drafity.auth.trial_started", days: Subscription::TRIAL_DAYS, default: "無料トライアルを開始しました。")
       return
     end
 
