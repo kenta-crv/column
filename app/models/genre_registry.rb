@@ -651,7 +651,11 @@ module GenreRegistry
 
     def genres(client: nil)
       cache_key = client&.id || :global
-      runtime_cache[cache_key] ||= load_genres(client)
+      cached = runtime_cache[cache_key]
+      return cached if cached.present?
+      return cached if cached && client.nil?
+
+      runtime_cache[cache_key] = load_genres(client)
     end
 
     def reset!
@@ -792,10 +796,10 @@ module GenreRegistry
     fallback = key.to_s
     return fallback if entry.blank?
 
-    if locale.to_s == "en"
-      entry[:en].presence || to_en(key) || entry[:ja].presence || fallback
+    if locale.to_s.start_with?("en")
+      entry[:en].presence || to_en(key) || entry[:ja].presence || entry[:service_name].presence || fallback
     else
-      entry[:ja].presence || entry[:en].presence || fallback
+      entry[:ja].presence || entry[:service_name].presence || entry[:en].presence || fallback
     end
   end
 
@@ -809,7 +813,24 @@ module GenreRegistry
       return entry if entry.present?
     end
 
-    genres[canon]
+    entry = genres[canon]
+    return entry if entry.present?
+
+    record = service_genre_record_for(key, client: client)
+    record&.to_registry_hash
+  end
+
+  def self.service_genre_record_for(key, client: nil)
+    return nil if key.blank?
+
+    k = key.to_s
+    if client
+      record = ServiceGenre.find_by(client_id: client.id, key: k)
+      return record if record
+    end
+    ServiceGenre.order(:id).find_by(key: k)
+  rescue ActiveRecord::StatementInvalid, ActiveRecord::ConnectionNotEstablished
+    nil
   end
 
   def self.sub_category_label(genre_key, sub_key, client: nil, locale: I18n.locale)

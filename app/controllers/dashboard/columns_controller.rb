@@ -31,6 +31,7 @@ class Dashboard::ColumnsController < ApplicationController
     end
 
     assign_dashboard_summary_metrics(base_scope, filtered_base)
+    ensure_dashboard_genre_option_labels!
 
     @total_count = params[:genre].present? ? (@filtered_total_count || filtered_base.count) : @tab_count_all
 
@@ -477,6 +478,25 @@ class Dashboard::ColumnsController < ApplicationController
     @dashboard_sub_categories_json = dashboard_sub_categories_json
     @sub_category_config = sub_category_ui_config
     @needs_genre_setup = client_signed_in? && !acting_as_admin? && @dashboard_genre_options.blank?
+  end
+
+  def ensure_dashboard_genre_option_labels!
+    @dashboard_genre_options = Array(@dashboard_genre_options)
+    existing = @dashboard_genre_options.map { |_label, value| value.to_s }
+    client = current_client if client_signed_in?
+    keys = (
+      (@genre_pillar_counts&.keys || []) +
+      (@genre_child_counts&.keys || []) +
+      [params[:genre]]
+    ).compact.map(&:to_s).uniq
+
+    keys.each do |key|
+      next if existing.include?(key)
+
+      label = GenreRegistry.label_for(key, client: client)
+      @dashboard_genre_options << [label, key]
+      existing << key
+    end
   end
 
   def sanitize_sub_genre_param(genre, sub_genre, client: nil)

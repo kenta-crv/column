@@ -206,4 +206,29 @@ class GenreRegistryTest < ActiveSupport::TestCase
     assert_equal "Cleaning", g[:ja]
     assert_includes Array(g[:keywords]), "日常清掃"
   end
+
+  test "label_for uses the service name when client registry cache is stale" do
+    client = Client.create!(
+      email: "genre-cache-#{SecureRandom.hex(4)}@example.com",
+      password: "password123",
+      name: "Genre Cache Client",
+      subscription_plan: "trial",
+      subscription_status: "trialing",
+      trial_ends_at: 14.days.from_now
+    )
+    key = "svc#{SecureRandom.hex(5)}"
+    ServiceGenre.create!(
+      client: client,
+      key: key,
+      ja: "オンライン英会話",
+      service_name: "オンライン英会話",
+      sub_categories: {},
+      column_cta: {}
+    )
+
+    Rails.application.instance_variable_set(:@genre_registry_cache, { client.id => {} })
+
+    assert_equal "オンライン英会話", GenreRegistry.label_for(key, client: client)
+    assert_equal "オンライン英会話", GenreRegistry.label_for(key)
+  end
 end

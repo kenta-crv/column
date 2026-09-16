@@ -68,7 +68,7 @@
                 tr
                   td
                     = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
-                  td = column.genre.presence || "—"
+                  td = column.genre_label.presence || column.genre.presence || "—"
                   - if params[:article_type] == "pillar"
                     td = t("drafity.columns.index.child_count", count: (@child_counts&.[](column.id) || 0))
                   - else
@@ -105,12 +105,12 @@
             select name="selected_genre" onchange="this.form.submit()" class="form-select d-inline-block" style="width: auto; max-width: 200px;"
               option value="" = t("drafity.columns.index.filter_all")
               - @all_genres&.each do |g|
-                option value=g selected=(params[:selected_genre] == g) = g.upcase
+                option value=g selected=(params[:selected_genre] == g) = GenreRegistry.label_for(g)
 
       - if params[:article_type] == 'pillar' && @grouped_columns.present?
         - @grouped_columns.each do |genre, columns|
           .genre-group style="margin-top: 30px;"
-            h2.genre-name = genre.upcase
+            h2.genre-name = GenreRegistry.label_for(genre)
             .columns-list
               - columns.each do |column|
                 .row.pillar-article-item

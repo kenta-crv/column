@@ -40,7 +40,7 @@
                   td
                     strong.knowhow-article-title = column.title
                   td
-                    span.knowhow-badge-genre = column.genre.presence || "—"
+                    span.knowhow-badge-genre = column.genre_label.presence || column.genre.presence || "—"
                   td
                     - if column.status == "draft"
                       span.knowhow-status-badge.knowhow-status-badge--pending = t("drafity.columns.draft.status_pending")

@@ -104,14 +104,15 @@ module ApplicationHelper
     key = genre_key.to_s
     return key if key.blank?
 
-    from_options = Array(@dashboard_genre_options).find { |_label, value| value.to_s == key }&.first
-    return from_options if from_options.present?
-
     client = current_client if client_signed_in?
-    label = GenreRegistry.label_for(key, client: client).presence
+    label = GenreRegistry.label_for(key, client: client).to_s
     return label if label.present? && label != key
 
+    from_options = Array(@dashboard_genre_options).find { |_name, value| value.to_s == key }&.first
+    return from_options if from_options.present? && from_options.to_s != key
+
     genre = client&.service_genres&.find_by(key: key)
+    genre ||= ServiceGenre.order(:id).find_by(key: key)
     genre&.display_name.presence || genre&.service_name.presence || genre&.ja.presence || key
   end
 

@@ -40,7 +40,7 @@
                     - link_target = column.code.presence || column.id
                     = link_to column.title, column_path(link_target), class: "article-link"
                   td
-                    span.img-gen-badge-genre = column.genre.presence || "—"
+                    span.img-gen-badge-genre = column.genre_label.presence || column.genre.presence || "—"
                   td
                     - if column.article_type == "pillar"
                       span.img-gen-badge-type.img-gen-badge-type--pillar = t("drafity.dashboard.labels.pillar")
