@@ -69,7 +69,9 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
     assert_includes prompt, "タイトルにないしょくしゅ"
     assert_includes prompt, "わるい本文の例4"
     assert_includes prompt, "わるい本文の例5"
-    assert_includes prompt, "タイトルを # でくり返さない"
+    assert_includes prompt, "タイトルを # でも ## でもくり返さない"
+    assert_includes prompt, "追加指示の空白も写さない"
+    assert_includes prompt, "わるい本文の例6"
     assert_includes prompt, "漢字を1字ずつよもうとして"
     assert_includes prompt, "driver_recruitment"
     refute_includes prompt, "つぎに独立した行で ## もくじ"
@@ -97,6 +99,54 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
     assert_equal GptHiraganaArticleGenerator, ColumnBodyGenerator.service_class_for(hiragana_column)
   end
 
+  test "local generate accepts ryugaku payload that starts with a hash title" do
+    column = Column.new(
+      id: 5139,
+      title: "りゅうがくせいがアルバイトできるじょうけん｜きょかがあるかと、1しゅうかん28じかんまで",
+      language: "hiragana",
+      article_type: "child",
+      code: "ryugaku-arubaito-kyoka-28hours-hiragana",
+      prompt: "よみては、にほんでくらすがいこくじんです。かんじはつかいません。"
+    )
+    saved = {}
+    column.define_singleton_method(:update!) do |attrs|
+      saved.merge!(attrs)
+      true
+    end
+
+    payload = {
+      "code" => "ryugaku-arubaito-kyoka-28hours-hiragana",
+      "description" => "りゅうがくせいのアルバイトは、ざいりゅうかーどのきょかでわかります。",
+      "keyword" => "りゅうがくせい アルバイト きょか",
+      "body" => "# りゅうがくせいがアルバイトできるじょうけん\n\n#{valid_ryugaku_body}"
+    }
+
+    original = GptHiraganaArticleGenerator.method(:request_article_json)
+    GptHiraganaArticleGenerator.define_singleton_method(:request_article_json) { |_column| payload }
+    begin
+      GptGenerationLocale.with_language(column) do
+        GptHiraganaArticleGenerator.generate_full_from_existing_column!(column)
+      end
+    ensure
+      GptHiraganaArticleGenerator.define_singleton_method(:request_article_json, original)
+      GptHiraganaArticleGenerator.singleton_class.send(:private, :request_article_json)
+    end
+
+    body = saved[:body].to_s
+    refute_match(/\A#(?!#)/, body)
+    assert_operator body.length, :>=, 500
+    assert_nil GptHiraganaArticleGenerator.send(:validate_payload, { "body" => body, "description" => "", "keyword" => "" }, column: column)
+  end
+
+  test "strip_leading_h1 removes a shortened hash title" do
+    column = Column.new(title: "りゅうがくせいがアルバイトできるじょうけん｜きょかがあるかと、1しゅうかん28じかんまで")
+    payload = { "body" => "# りゅうがくせいがアルバイトできるじょうけん\n\nざいりゅうかーどをみます。" }
+    stripped = GptHiraganaArticleGenerator.send(:strip_leading_h1, payload, column)
+
+    refute_match(/\A#/, stripped["body"])
+    assert_includes stripped["body"], "ざいりゅうかーどをみます。"
+  end
+
   test "pillar generator actually sends hiragana system and user payloads" do
     payloads = capture_gpt_payloads do
       GptGenerationLocale.with_language(hiragana_column) do
@@ -114,7 +164,21 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
     assert_includes user, "漢字は禁止"
   end
 
-  private
+  def valid_ryugaku_body
+    intro = "りゅうがくせいがアルバイトできるかは、ざいりゅうかーどのきょかでわかります。きょかがあるなら、1しゅうかん28じかんまでです。"
+    block = "ざいりゅうかーどをじぶんでみます。きょかのめもりがあるかをたしかめます。きょかがないなら、はたらきません。さいしんはにゅうかんのホームページでかくにんします。" * 3
+    [
+      intro,
+      "## ざいりゅうかーどでみること",
+      block,
+      "## きょかがあるかのたしかめかた",
+      block,
+      "## 1しゅうかん28じかんまで",
+      block,
+      "## まとめ",
+      "ざいりゅうかーどでアルバイトのきょかがあるかをみます。きょかがあるなら、1しゅうかん28じかんまでにおさえます。さいしんはにゅうかんのホームページでたしかめます。"
+    ].join("\n\n")
+  end
 
   def capture_gpt_payloads
     payloads = []

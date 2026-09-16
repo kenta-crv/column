@@ -75,12 +75,7 @@ class GptHiraganaArticleGenerator
   def self.strip_leading_h1(payload, column)
     return payload unless payload.is_a?(Hash)
 
-    body = payload["body"].to_s
-    first = body[/\A#(?!#)[[:space:]]+([^\n]+)/, 1].to_s.gsub(/[[:space:]]/, "")
-    title = column.title.to_s.gsub(/[[:space:]]/, "")
-    if first.present? && (first == title || title.include?(first) || first.include?(title))
-      payload["body"] = body.sub(/\A#(?!#)[[:space:]]+[^\n]+\n+/, "")
-    end
+    payload["body"] = payload["body"].to_s.sub(/\A#(?!#)[[:space:]]+[^\n]+\n+/, "")
     payload
   end
   private_class_method :strip_leading_h1
