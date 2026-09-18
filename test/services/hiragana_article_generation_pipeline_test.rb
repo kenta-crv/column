@@ -59,19 +59,16 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
 
     assert_includes prompt, "LANGUAGE: ひらがなのみ"
     assert_includes prompt, "漢字ゼロ"
-    assert_includes prompt, "空白で単語を区切らない"
+    assert_includes prompt, "単語を空白で区切らない"
     assert_includes prompt, "1200〜1800字"
     assert_includes prompt, "じゅうみんひょうのとうろく"
     assert_includes prompt, "本文に ## もくじ は書かない"
     assert_includes prompt, "pillar のとき"
-    assert_includes prompt, "わるいまとめの例"
-    assert_includes prompt, "よめない当て字"
-    assert_includes prompt, "タイトルにないしょくしゅ"
-    assert_includes prompt, "わるい本文の例4"
-    assert_includes prompt, "わるい本文の例5"
-    assert_includes prompt, "タイトルを # でくり返さない"
-    assert_includes prompt, "漢字を1字ずつよもうとして"
-    assert_includes prompt, "driver_recruitment"
+    assert_includes prompt, "タイトルを # や ## でくり返さない"
+    assert_includes prompt, "見出しの末尾に「。」をつけない"
+    assert_includes prompt, "えいごのキー"
+    assert_includes prompt, "いきなり ## では始めない"
+    refute_includes prompt, "キーワードを空白区切り"
     refute_includes prompt, "つぎに独立した行で ## もくじ"
     refute_includes prompt, "700〜1100文字"
     refute_includes prompt, "下のタスクは通常の日本語記事向け"
@@ -90,7 +87,51 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
 
     refute_includes prompt, "ジャンル: cargo"
     refute_includes prompt, "中分類キー"
-    assert_includes prompt, "ビザ しごと"
+    refute_includes prompt, "ビザ しごと"
+    assert_includes prompt, "ビザ、しごと"
+  end
+
+  test "normalize strips h1 without space and kana gaps" do
+    payload = {
+      "body" => "#たいとる\n\nりゅうがくせい は アルバイトができます。\n"
+    }
+    normalized = GptHiraganaArticleGenerator.send(:normalize_payload, payload)
+
+    refute_match(/\A#/, normalized["body"])
+    assert_includes normalized["body"], "りゅうがくせいはアルバイトができます。"
+  end
+
+  test "normalize prepends title lead when body starts with heading" do
+    payload = { "body" => "## きょかをみる\n\nざいりゅうかーどをみます。\n" }
+    column = Column.new(title: "りゅうがくせいがアルバイトできるのは、きょかがあるとき｜1しゅうかんは28じかんまで")
+    normalized = GptHiraganaArticleGenerator.send(:normalize_payload, payload, column: column)
+
+    assert_match(/\Aりゅうがくせいがアルバイトできるのは、きょかがあるとき。/, normalized["body"])
+    assert_includes normalized["body"], "## きょかをみる"
+  end
+
+  test "summary restating a section is not treated as duplication" do
+    body = <<~MD
+      ## きょかをみる
+      ざいりゅうかーどをみます。きょかがあるとかきます。こうしきのページでもみます。
+      ## まとめ
+      ざいりゅうかーどをみます。きょかがあるとかきます。こうしきのページでもみます。
+    MD
+
+    assert_nil GptHiraganaArticleGenerator.send(:duplicated_section, body)
+  end
+
+  test "source facts omit extra prompt and squeeze keyword spaces" do
+    column = Column.new(
+      title: "テスト",
+      language: "hiragana",
+      keyword: "りゅうがくせい アルバイト",
+      prompt: "にほんで はたらきたい"
+    )
+    facts = GptHiraganaArticleGenerator.send(:source_facts_for, column)
+
+    assert_includes facts, "りゅうがくせい、アルバイト"
+    refute_includes facts, "にほんで はたらきたい"
   end
 
   test "column body generator routes hiragana to the dedicated generator" do
@@ -112,6 +153,51 @@ class HiraganaArticleGenerationPipelineTest < ActiveSupport::TestCase
     assert_includes system, "漢字は一文字も使わない"
     assert_includes user, "LANGUAGE: ひらがなのみ"
     assert_includes user, "漢字は禁止"
+  end
+
+  test "mecab converts 入管 and okurigana without asking GPT" do
+    skip "MeCab is not installed" unless GptHiraganaArticleGenerator::MecabReadingConverter.available?
+
+    converted = GptHiraganaArticleGenerator::MecabReadingConverter.convert(
+      "入管に行きます。決まった。在留カードを見る。"
+    )
+
+    assert_equal "にゅうかんにいきます。きまった。ざいりゅうカードをみる。", converted
+
+    heading = GptHiraganaArticleGenerator::MecabReadingConverter.convert("## 在留資格について")
+    assert_equal "## ざいりゅうしかくについて", heading
+
+    japan = GptHiraganaArticleGenerator::MecabReadingConverter.convert("日本で入国管理局へ行く。")
+    assert_equal "にほんでにゅうかんへいく。", japan
+    refute_includes japan, "にっぽん"
+    refute_includes japan, "にゅうこくかんり"
+  end
+
+  test "article prompt no longer asks GPT for readings" do
+    pack = GptPromptPack.for("hiragana")
+
+    refute pack.exist?("readings_request")
+    article = pack.render("article", title: "t", article_type: "pillar", source_facts: "なし", extra_prompt: "なし")
+    assert_includes article, "読みはあとで辞書が付けます"
+    refute_includes article, "在留カード → 1週間の時間 → 入管のページ"
+    assert_includes pack.render("proofread", text: "あ", source_facts: "なし"), "よみは辞書で変換済み"
+  end
+
+  test "validate rejects banned readings and missing h3" do
+    column = Column.new(title: "ビザのしゅるい", keyword: "ビザ、しごと")
+    body = <<~MD
+      これはべつのはなしです。これはべつのはなしです。これはべつのはなしです。これはべつのはなしです。
+      ## ひとつ
+      ないようです。ないようです。ないようです。ないようです。
+      ## ふたつ
+      ないようです。ないようです。ないようです。ないようです。
+      ## みっつ
+      ないようです。ないようです。ないようです。ないようです。
+      ## まとめ
+      ないようです。ないようです。ないようです。ないようです。
+    MD
+    nipppon = { "body" => "にっぽんではたらきます。" + body, "description" => "あ", "keyword" => "ビザ" }
+    assert_equal "banned reading にっぽん", GptHiraganaArticleGenerator.send(:validate_payload, nipppon, column: column)
   end
 
   private
