@@ -650,7 +650,7 @@ class ColumnsController < ApplicationController
     end
 
     if permitted.key?(:language)
-      permitted[:language] = Column.normalize_language(permitted[:language])
+      permitted[:language] = Column.language_for_save(permitted[:language], @column)
     end
 
     permitted

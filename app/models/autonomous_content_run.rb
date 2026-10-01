@@ -49,7 +49,7 @@ class AutonomousContentRun < ApplicationRecord
     limit = cluster_limit.to_i
     limit = DEFAULT_CLUSTER_LIMIT if limit <= 0
     limit = [[limit, MIN_CLUSTER_LIMIT].max, MAX_CLUSTER_LIMIT].min
-    article_language = Column.normalize_language(language)
+    article_language = Column.normalize_selectable_language(language)
 
     run = create!(
       client: client,

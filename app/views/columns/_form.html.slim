@@ -91,9 +91,13 @@
             = t("drafity.columns.form.own_service_url_hint")
 
       - parent_for_language = @column.parent.presence || (@column.parent_id.present? ? Column.find_by(id: @column.parent_id) : nil)
+      - keep_hiragana = @column.hiragana_article? || parent_for_language&.hiragana_article?
       .form-group
         = f.label :language, t("drafity.columns.form.language")
-        - if parent_for_language
+        - if keep_hiragana
+          = f.hidden_field :language, value: "hiragana"
+          p.form-control-plaintext = article_language_label("hiragana")
+        - elsif parent_for_language
           = f.hidden_field :language, value: Column.normalize_language(parent_for_language.language)
           = f.select :language,
             article_language_options_for_select,

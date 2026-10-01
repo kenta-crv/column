@@ -8,9 +8,9 @@ class GptPromptPackTest < ActiveSupport::TestCase
     assert_includes error.message, "config/gpt_prompts/ja.yml#article"
   end
 
-  test "there are exactly three language prompt files" do
+  test "there are exactly two language prompt files" do
     files = GptPromptPack::ROOT.glob("*.yml").map { |path| path.basename.to_s }.sort
-    assert_equal %w[en.yml hiragana.yml ja.yml], files
+    assert_equal %w[en.yml ja.yml], files
   end
 
   test "english wrap injects the neutralized task" do

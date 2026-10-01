@@ -375,7 +375,7 @@ class Dashboard::ColumnsController < ApplicationController
       genre: params[:genre],
       sub_genre: sanitize_sub_genre_param(params[:genre], params[:sub_genre], client: client),
       status: "draft",
-      language: Column.normalize_language(params[:language])
+      language: Column.normalize_selectable_language(params[:language])
     )
     assign_column_client!(@column)
 
@@ -417,7 +417,7 @@ class Dashboard::ColumnsController < ApplicationController
         genre: genre,
         sub_genre: sub_genre,
         status: "draft",
-        language: Column.normalize_language(params[:language])
+        language: Column.normalize_selectable_language(params[:language])
       )
       assign_column_client!(column)
 

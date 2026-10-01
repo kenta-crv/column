@@ -13,6 +13,7 @@ class PillarTitleSuggestionService
   # キーワードとターゲット層から親記事（Pillar）タイトルを生成
   # ==========================================================
   def self.call(keyword1:, keyword2:, target_layer:, genre:, sub_genre: nil, custom_prompt: nil, suggestion_count: nil, client: nil, max_suggestion_count: nil, language: nil)
+    language = Column.normalize_selectable_language(language)
     if keyword1.blank? || keyword2.blank? || genre.blank?
       Rails.logger.error("PillarTitleSuggestionService: 必須パラメータが不足しています")
       return { success: false, error: "必須パラメータが不足しています", titles: [] }
@@ -56,45 +57,17 @@ class PillarTitleSuggestionService
   end
 
   def self.build_prompt(language:, keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
-    if Column.hiragana_language?(language)
-      build_prompt_hiragana(
-        keyword1: keyword1,
-        keyword2: keyword2,
-        target_layer: target_layer,
-        genre_label: genre_label,
-        sub_genre_label: sub_genre_label,
-        service_info: service_info,
-        custom_prompt: custom_prompt,
-        title_count: title_count
-      )
-    else
-      build_prompt_ja(
-        keyword1: keyword1,
-        keyword2: keyword2,
-        target_layer: target_layer,
-        genre_label: genre_label,
-        sub_genre_label: sub_genre_label,
-        service_info: service_info,
-        custom_prompt: custom_prompt,
-        title_count: title_count
-      )
-    end
-  end
-
-  def self.build_prompt_hiragana(keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
-    GptPromptPack.for("hiragana").render(
-      "parent_titles",
+    build_prompt_ja(
       keyword1: keyword1,
       keyword2: keyword2,
       target_layer: target_layer,
       genre_label: genre_label,
-      sub_genre_label: sub_genre_label.to_s,
+      sub_genre_label: sub_genre_label,
       service_info: service_info,
-      extra_prompt: custom_prompt.to_s.strip.presence || "なし",
+      custom_prompt: custom_prompt,
       title_count: title_count
     )
   end
-  private_class_method :build_prompt_hiragana
 
   def self.build_prompt_ja(keyword1:, keyword2:, target_layer:, genre_label:, sub_genre_label:, service_info:, custom_prompt:, title_count:)
     target_layer_description = case target_layer
@@ -193,8 +166,8 @@ class PillarTitleSuggestionService
   private
 
   def self.call_gpt_api(prompt)
-    # ひらがなは専用プロンプトを使うため、日本語本文用ラップは不要。英語は従来どおり wrap する。
-    prompt = GptGenerationLocale.prepare_user_prompt(prompt) unless GptGenerationLocale.hiragana?
+    # 英語は wrap する。日本語はそのまま渡す。
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt)
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"

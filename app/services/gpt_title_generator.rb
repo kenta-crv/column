@@ -14,6 +14,10 @@ class GptTitleGenerator
 
   def self.generate_titles(pillar_column, limit: nil)
     remember_error!(nil)
+    if Column.hiragana_language?(pillar_column.try(:language))
+      remember_error!("ひらがなの生成は停止しています")
+      return []
+    end
     unless pillar_column&.title.present?
       Rails.logger.error("GptTitleGenerator: 親記事のタイトルが空です")
       remember_error!("親記事のタイトルが空です")
@@ -28,18 +32,6 @@ class GptTitleGenerator
     begin
       json_content = JSON.parse(res.dig("choices", 0, "message", "content"))
       plans = Array(json_content["cluster_titles"])
-      if hiragana_prompt?(pillar_column)
-        2.times do
-          break if hiragana_cluster_searchable?(plans, pillar_column)
-
-          retry_res = GptGenerationLocale.with_language(pillar_column) do
-            call_gpt_api(build_titles_prompt(pillar_column))
-          end
-          break if retry_res.nil?
-
-          plans = Array(JSON.parse(retry_res.dig("choices", 0, "message", "content"))["cluster_titles"])
-        end
-      end
       cap = limit.nil? ? plans.size : [[limit.to_i, 0].max, plans.size].min
       plans.first(cap)
     rescue => e
@@ -52,8 +44,6 @@ class GptTitleGenerator
   def self.build_titles_prompt(pillar_column)
     if english_prompt?(pillar_column)
       build_titles_prompt_en(pillar_column)
-    elsif hiragana_prompt?(pillar_column)
-      build_titles_prompt_hiragana(pillar_column)
     else
       build_titles_prompt_ja(pillar_column)
     end
@@ -61,10 +51,6 @@ class GptTitleGenerator
 
   def self.english_prompt?(pillar_column)
     Column.english_language?(pillar_column.try(:language)) || GptGenerationLocale.english?
-  end
-
-  def self.hiragana_prompt?(pillar_column)
-    Column.hiragana_language?(pillar_column.try(:language)) || GptGenerationLocale.hiragana?
   end
 
   def self.build_titles_prompt_ja(pillar_column)
@@ -180,39 +166,6 @@ class GptTitleGenerator
       }
     PROMPT
   end
-
-  def self.build_titles_prompt_hiragana(pillar_column)
-    category_key = detect_category_key(pillar_column)
-    existing_titles = existing_child_titles(pillar_column)
-    GptPromptPack.for("hiragana").render(
-      "child_titles",
-      title: pillar_column.title,
-      category: category_label(category_key, locale: :ja),
-      service_info: GenreRegistry.service_profile(
-        category_key,
-        pillar_column.try(:sub_genre),
-        client: pillar_column.try(:client),
-        locale: :ja
-      ),
-      extracted_elements: extract_title_elements(pillar_column.title).join("、"),
-      existing_titles_text: existing_titles.present? ? existing_titles.join("\n") : "（なし）",
-      parent_core: hiragana_parent_core(pillar_column.title)
-    )
-  end
-
-  def self.hiragana_parent_core(title)
-    title.to_s.sub(/[とは？?！!。]+$/, "").strip
-  end
-  private_class_method :hiragana_parent_core
-
-  def self.hiragana_cluster_searchable?(plans, pillar_column)
-    core = hiragana_parent_core(pillar_column.title)
-    titles = Array(plans).map { |plan| plan.is_a?(Hash) ? plan["title"].to_s : "" }
-    return false if core.blank? || titles.size < 8
-
-    titles.all? { |title| title.include?(core) && !GptGenerationLocale.contains_kanji?(title) }
-  end
-  private_class_method :hiragana_cluster_searchable?
 
   def self.build_titles_prompt_en(pillar_column)
     category_key = detect_category_key(pillar_column)
@@ -375,8 +328,8 @@ class GptTitleGenerator
   end
 
   def self.call_gpt_api(prompt)
-    # 英語・ひらがなは専用プロンプトを使うため、日本語本文用ラップは不要
-    prompt = GptGenerationLocale.prepare_user_prompt(prompt) unless GptGenerationLocale.english? || GptGenerationLocale.hiragana?
+    # 英語は専用プロンプトを使うため、日本語本文用ラップは不要
+    prompt = GptGenerationLocale.prepare_user_prompt(prompt) unless GptGenerationLocale.english?
     uri = URI(GPT_API_URL)
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"

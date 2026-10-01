@@ -78,7 +78,7 @@ module GptGenerationLocale
 
   def prepare_user_prompt(prompt)
     text = prompt.to_s
-    return text if language_locked_prompt?(text)
+    return text if hiragana? || language_locked_prompt?(text)
 
     pack = GptPromptPack.for(current)
     return text unless pack.exist?("wrap")
@@ -91,33 +91,9 @@ module GptGenerationLocale
   end
 
   def neutralize_task(text)
-    case current
-    when "en"
-      neutralize_japanese_output_instructions(text)
-    when "hiragana"
-      neutralize_japanese_output_instructions_for_hiragana(text)
-    else
-      text
-    end
-  end
+    return neutralize_japanese_output_instructions(text) if english?
 
-  def neutralize_japanese_output_instructions_for_hiragana(text)
-    text.to_s
-      .gsub("全て日本語", "ひらがなのみ")
-      .gsub("すべて日本語", "ひらがなのみ")
-      .gsub("日本語のみで出力", "ひらがなのみで出力")
-      .gsub("日本語のみ", "ひらがなのみ")
-      .gsub("日本語で出力", "ひらがなで出力")
-      .gsub("日本語で書く", "ひらがなで書く")
-      .gsub("日本語で書け", "ひらがなで書け")
-      .gsub("日本語説明", "ひらがなのせつめい")
-      .gsub("## 目次", "## もくじ")
-      .gsub("## Contents", "## もくじ")
-      .gsub("## Conclusion", "## まとめ")
-      .gsub("700〜1100文字", "200字前後")
-      .gsub("900〜1400文字", "250字前後")
-      .gsub(/H2は4〜7個[^。\n]*/, "H2は3〜4個")
-      .gsub(/(^|\n)(\s*[-*]\s*)日本語(\s*)(?=\n|$)/, '\1\2ひらがなのみ\3')
+    text
   end
 
   KANJI_PATTERN = /[\u4e00-\u9fff]/
@@ -130,14 +106,8 @@ module GptGenerationLocale
     hiragana? && contains_kanji?(text)
   end
 
-  def kanji_rewrite_user_prompt(text)
-    tokens = text.to_s.scan(/[\u4e00-\u9fff]+/).uniq
-    token_lines = tokens.map { |token| "- #{token}" }.join("\n")
-    GptPromptPack.for("hiragana").render(
-      "kanji_rewrite",
-      text: text,
-      token_lines: token_lines.presence || "- （検出分をすべて置換）"
-    )
+  def kanji_rewrite_user_prompt(_text)
+    raise ArgumentError, "ひらがなプロンプトはありません"
   end
 
   def strip_code_fences(content)
@@ -182,12 +152,8 @@ module GptGenerationLocale
 
   HIRAGANA_ARTICLE_MAX_CHARS = 1800
 
-  def compact_hiragana_user_prompt(text)
-    GptPromptPack.for("hiragana").render(
-      "compact",
-      text: text,
-      max_chars: HIRAGANA_ARTICLE_MAX_CHARS
-    )
+  def compact_hiragana_user_prompt(_text)
+    raise ArgumentError, "ひらがなプロンプトはありません"
   end
 
   def compact_hiragana_article(body)
@@ -233,14 +199,18 @@ module GptGenerationLocale
   end
 
   def resolve_system_prompt(japanese_system, json_mode:)
-    pack = GptPromptPack.for(current)
     # 日本語はジェネレータごとの system（Qiita / Zenn など）を維持する。
-    return japanese_system if current == "ja" || !pack.exist?("system")
+    return japanese_system if current == "ja" || hiragana?
+
+    pack = GptPromptPack.for(current)
+    return japanese_system unless pack.exist?("system")
 
     pack.system_prompt(json_mode: json_mode)
   end
 
   def resolve_title_system_prompt(japanese_system)
+    return japanese_system if hiragana?
+
     pack = GptPromptPack.for(current)
     return japanese_system unless pack.exist?("title_system")
 

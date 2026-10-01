@@ -37,18 +37,13 @@ class PillarTitleSuggestionServiceTest < ActiveSupport::TestCase
     refute_includes prompt, "LANGUAGE: ひらがなのみ"
   end
 
-  test "hiragana uses a dedicated parent-title prompt instead of wrapping Japanese" do
+  test "hiragana parent-title prompt is the Japanese prompt" do
     prompt = PillarTitleSuggestionService.build_prompt(**prompt_locals(language: "hiragana"))
 
-    assert_includes prompt, "LANGUAGE: ひらがなのみ"
-    assert_includes prompt, "漢字ゼロ"
+    assert_includes prompt, "あなたの役割"
     assert_includes prompt, "住民票"
-    assert_includes prompt, "2本"
-    refute_includes prompt, "あなたの役割"
-    refute_includes prompt, "魅力的な日本語として成立させる"
-    refute_includes prompt, "下のタスクは通常の日本語記事向け"
-    refute_includes prompt, "本文に「## もくじ」"
-    refute_includes prompt, "Your role"
+    refute_includes prompt, "LANGUAGE: ひらがなのみ"
+    refute_includes prompt, "漢字ゼロ"
   end
 
   test "hiragana parent-title request sends dedicated system and user payloads" do
@@ -88,11 +83,10 @@ class PillarTitleSuggestionServiceTest < ActiveSupport::TestCase
     assert result[:success]
     assert_equal ["じゅうみんひょうのとうろく"], result[:titles]
     assert_equal 1, payloads.size
-    assert_includes system, "漢字は一文字も使わず"
-    assert_includes user, "LANGUAGE: ひらがなのみ"
+    assert_includes user, "あなたの役割"
     assert_includes user, "住民票"
-    refute_includes user, "あなたの役割"
-    refute_includes user, "下のタスクは通常の日本語記事向け"
+    refute_includes system, "漢字は一文字も使わず"
+    refute_includes user, "LANGUAGE: ひらがなのみ"
   ensure
     Net::HTTP.define_singleton_method(:start, original)
   end

@@ -117,7 +117,7 @@ module ApplicationHelper
   end
 
   def article_language_options_for_select
-    Column::LANGUAGES.map do |key|
+    Column::SELECTABLE_LANGUAGES.map do |key|
       [t("drafity.columns.form.language_#{key}"), key]
     end
   end

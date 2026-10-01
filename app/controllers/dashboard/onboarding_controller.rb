@@ -97,7 +97,7 @@ class Dashboard::OnboardingController < ApplicationController
   def create_title
     genre = current_client.first_service_genre
     title = params.dig(:onboarding, :title).to_s.strip
-    language = Column.normalize_language(params.dig(:onboarding, :language).presence || I18n.locale.to_s)
+    language = Column.normalize_selectable_language(params.dig(:onboarding, :language).presence || I18n.locale.to_s)
 
     if genre.blank?
       return redirect_to dashboard_start_path, alert: t("drafity.dashboard.onboarding.need_service")
@@ -113,7 +113,8 @@ class Dashboard::OnboardingController < ApplicationController
 
     pillar = current_client.columns.pillars.merge(Column.without_generated_body).order(:id).first
     if pillar
-      pillar.assign_attributes(title: title, genre: genre.key, language: language, article_type: "pillar")
+      pillar.assign_attributes(title: title, genre: genre.key, article_type: "pillar")
+      pillar.language = language unless pillar.hiragana_article?
       assign_column_client!(pillar)
       unless pillar.save
         @service_genre = genre

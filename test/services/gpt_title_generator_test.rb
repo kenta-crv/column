@@ -42,72 +42,16 @@ class GptTitleGeneratorTest < ActiveSupport::TestCase
     refute_includes prompt, "合計15〜25本"
   end
 
-  test "hiragana uses a dedicated child-title prompt instead of wrapping Japanese" do
+  test "hiragana child titles are not generated" do
     pillar = Column.new(
       title: "じゅうみんひょうのとうろく",
       genre: "cargo",
       article_type: "pillar",
       language: "hiragana"
     )
-    prompt = GptTitleGenerator.build_titles_prompt(pillar)
 
-    assert_includes prompt, "LANGUAGE: ひらがなのみ"
-    assert_includes prompt, "漢字ゼロ"
-    assert_includes prompt, "じゅうみんひょうのとうろく"
-    assert_includes prompt, "12本"
-    assert_includes prompt, '"cluster_titles"'
-    assert_includes prompt, "主題（必ずタイトルに入れることば）"
-    assert_includes prompt, "でんわやネットでどうやってそうだんするか"
-    refute_includes prompt, "最大3本"
-    refute_includes prompt, "12〜18本"
-    refute_includes prompt, "15〜25本"
-    refute_includes prompt, "あなたの役割"
-    refute_includes prompt, "魅力的な日本語として成立させる"
-    refute_includes prompt, "下のタスクは通常の日本語記事向け"
-    refute_includes prompt, "本文に「## もくじ」"
-    refute_includes prompt, "Your role"
-  end
-
-  test "hiragana title request sends dedicated system and user payloads" do
-    pillar = Column.new(
-      title: "じゅうみんひょうのとうろく",
-      genre: "cargo",
-      article_type: "pillar",
-      language: "hiragana"
-    )
-    payloads = []
-    original = Net::HTTP.method(:start)
-    Net::HTTP.define_singleton_method(:start) do |*_args, **_kwargs, &block|
-      http = Object.new
-      http.define_singleton_method(:request) do |req|
-        payloads << JSON.parse(req.body)
-        response = Net::HTTPOK.new("1.1", "200", "OK")
-        response.instance_variable_set(:@read, true)
-        response.define_singleton_method(:body) do
-          cluster = 8.times.map do |i|
-            { title: "じゅうみんひょうのとうろくのてじゅん#{i}", angle: "てじゅん" }
-          end
-          { choices: [{ message: { content: { cluster_titles: cluster }.to_json } }] }.to_json
-        end
-        response
-      end
-      block.call(http)
-    end
-
-    titles = GptTitleGenerator.generate_titles(pillar)
-    system = payloads.first.dig("messages", 0, "content")
-    user = payloads.first.dig("messages", 1, "content")
-
-    assert_equal 1, payloads.size
-    assert_equal 8, titles.size
-    assert titles.all? { |plan| plan["title"].include?("じゅうみんひょうのとうろく") }
-    assert_includes system, "漢字は一文字も使わず"
-    assert_includes user, "LANGUAGE: ひらがなのみ"
-    assert_includes user, "じゅうみんひょうのとうろく"
-    refute_includes user, "あなたの役割"
-    refute_includes user, "下のタスクは通常の日本語記事向け"
-  ensure
-    Net::HTTP.define_singleton_method(:start, original)
+    assert_equal [], GptTitleGenerator.generate_titles(pillar)
+    assert_equal "ひらがなの生成は停止しています", GptTitleGenerator.last_error
   end
 
   test "maps exhausted OpenAI credits to a billing message" do

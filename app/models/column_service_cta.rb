@@ -181,14 +181,14 @@ class ColumnServiceCta
       enabled: true,
       theme: "vender",
       badge: "自販機ねっと",
-      title: "自動販売機の設置・購入を無料相談",
-      lead: "無料設置から本体購入まで。立地や運営方針に合わせた最適なプランをご提案します。",
-      cta_label: "設置・購入について相談する",
+      title: "自動販売機の設置・運用を相談",
+      lead: "初期費用とサブスク利用で、設置から仕入れ・投函・運用までまとめてサポートします。",
+      cta_label: "設置・運用について相談する",
       path: "/",
       en: {
-        title: "Free consult for vending machine placement or purchase",
-        lead: "From free placement to buying your own machine. We propose a plan that fits the site and how you want to operate.",
-        cta_label: "Talk about placement or purchase"
+        title: "Talk about installing and running a vending machine",
+        lead: "Initial fee plus subscription: installation, stocking, restocking, and operations in one service.",
+        cta_label: "Talk about setup and operations"
       }
     },
     cleaning: {

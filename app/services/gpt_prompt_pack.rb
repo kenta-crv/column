@@ -3,7 +3,6 @@
 # 親記事プロンプト。言語ごとに1ファイル。
 #   config/gpt_prompts/ja.yml
 #   config/gpt_prompts/en.yml
-#   config/gpt_prompts/hiragana.yml
 #
 # 追加言語は Column::LANGUAGES にコードを足し、同名の yml を置く。
 class GptPromptPack

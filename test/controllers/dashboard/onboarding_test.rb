@@ -143,6 +143,12 @@ class Dashboard::OnboardingTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "親記事の作成開始"
     assert_includes response.body, "記事の生成を開始しました"
+    assert_includes response.body, "次にやること"
+    assert_includes response.body, "最初の記事を作成しています"
+    assert_includes response.body, "関連記事を広げます"
+    assert_select "a.dashboard-flow__cta", text: "この記事を開く"
+    assert_not_includes response.body, "ジャンル・サービス"
+    assert_not_includes response.body, "一覧で実行"
 
     get dashboard_start_path
     assert_redirected_to dashboard_root_path

@@ -148,6 +148,7 @@ class Column < ApplicationRecord
   ALL_GENERATION_MODES = %w[default comparison recommendation note qiita zenn].freeze
   INTERNAL_GENERATION_MODES = %w[note qiita zenn].freeze
   LANGUAGES = %w[ja en hiragana].freeze
+  SELECTABLE_LANGUAGES = %w[ja en].freeze
   DEFAULT_LANGUAGE = "ja"
 
   scope :for_language, ->(lang) { where(language: normalize_language(lang)) }
@@ -168,6 +169,19 @@ class Column < ApplicationRecord
   def self.normalize_language(value)
     language = value.to_s
     LANGUAGES.include?(language) ? language : DEFAULT_LANGUAGE
+  end
+
+  def self.normalize_selectable_language(value)
+    language = value.to_s
+    SELECTABLE_LANGUAGES.include?(language) ? language : DEFAULT_LANGUAGE
+  end
+
+  def self.language_for_save(value, record)
+    language = normalize_language(value)
+    return language unless language == "hiragana"
+    return "hiragana" if record&.persisted? && record.attribute_in_database(:language).to_s == "hiragana"
+
+    DEFAULT_LANGUAGE
   end
 
   def self.english_language?(value)

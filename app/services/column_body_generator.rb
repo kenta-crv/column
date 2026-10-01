@@ -21,12 +21,9 @@ class ColumnBodyGenerator
   # :managed = サービス側で column を更新済み
   # String  = 子記事通常生成の本文（呼び出し側で保存）
   def self.generate!(column)
-    GptGenerationLocale.with_language(column) do
-      if column.hiragana_article?
-        GptHiraganaArticleGenerator.generate_full_from_existing_column!(column)
-        return :managed
-      end
+    raise StandardError, "ひらがなの生成は停止しています" if column.hiragana_article?
 
+    GptGenerationLocale.with_language(column) do
       mode = Column.normalize_generation_mode_for(column.generation_mode, language: column.language)
 
       if mode == "default"
@@ -44,7 +41,7 @@ class ColumnBodyGenerator
   end
 
   def self.service_class_for(column)
-    return GptHiraganaArticleGenerator if column.hiragana_article?
+    raise StandardError, "ひらがなの生成は停止しています" if column.hiragana_article?
 
     mode = Column.normalize_generation_mode_for(column.generation_mode, language: column.language)
 
