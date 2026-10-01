@@ -142,11 +142,12 @@ class Clients::RegistrationsLocaleTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_includes response.body, "PI10CNNARJJWSR9XZS1366128"
-    assert_includes response.body, "yjad_conversion"
+    assert_includes response.body, "1001407956"
+    assert_includes response.body, "Ll59CO6S5YwdEIu2l7NE"
+    assert_includes response.body, "yss_conversion"
 
     get dashboard_start_path
     assert_response :success
-    assert_not_includes response.body, "PI10CNNARJJWSR9XZS1366128"
+    assert_not_includes response.body, "1001407956"
   end
 end
