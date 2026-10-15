@@ -64,15 +64,22 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     )
     generation_ja_column.update_column(:genre, generation_ja.presence || "自社記事")
 
+    overseas = create_published!(
+      title: "Overseas SEO",
+      genre: CrawlPolicy::OVERSEAS_SEO_GENRE_KEY,
+      code: "sm-overseas-#{token}"
+    )
+
     ids = CrawlPolicy.crawlable_columns.pluck(:id)
     assert_includes ids, included.id
+    assert_includes ids, overseas.id
     refute_includes ids, ja_labeled.id
     refute_includes ids, excluded.id
     refute_includes ids, unpublished.id
     refute_includes ids, no_code.id
     refute_includes ids, generation.id
     refute_includes ids, generation_ja_column.id
-    assert_equal [CrawlPolicy::GENRE_KEY], CrawlPolicy.crawlable_genre_values
+    assert_equal CrawlPolicy::CRAWLABLE_GENRE_KEYS, CrawlPolicy.crawlable_genre_values
   end
 
   test "column_path prefixes English articles and stays Japanese without language" do
@@ -80,7 +87,14 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     en = create_published!(code: "sm-en-path-#{SecureRandom.hex(3)}", language: "en")
     without_language = Column.select(:id, :code).find(ja.id)
 
+    overseas = create_published!(
+      code: "sm-os-path-#{SecureRandom.hex(3)}",
+      genre: CrawlPolicy::OVERSEAS_SEO_GENRE_KEY,
+      language: "ja"
+    )
+
     assert_equal "/#{CrawlPolicy::GENRE_KEY}/columns/#{ja.code}", CrawlPolicy.column_path(ja)
+    assert_equal "/#{CrawlPolicy::OVERSEAS_SEO_GENRE_KEY}/columns/#{overseas.code}", CrawlPolicy.column_path(overseas)
     assert_equal "/en/#{CrawlPolicy::GENRE_KEY}/columns/#{en.code}", CrawlPolicy.column_path(en)
     assert_equal "/#{CrawlPolicy::GENRE_KEY}/columns/#{ja.code}", CrawlPolicy.column_path(without_language)
   end
@@ -95,6 +109,7 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     xml = CrawlableSitemap::SITEMAP_PATH.read
 
     assert_includes xml, "https://drafity.pro/#{CrawlPolicy::GENRE_KEY}/columns</loc>"
+    assert_includes xml, "https://drafity.pro#{CrawlPolicy::OVERSEAS_SEO_PATH}</loc>"
     assert_includes xml, "https://drafity.pro#{CrawlPolicy.column_path(column)}</loc>"
     refute_includes xml, "This XML file does not appear to have any style information"
 

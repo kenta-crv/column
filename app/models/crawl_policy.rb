@@ -1,26 +1,35 @@
 module CrawlPolicy
   GENRE_KEY = "ai_article"
+  OVERSEAS_SEO_GENRE_KEY = "overseas_seo"
+  CRAWLABLE_GENRE_KEYS = [GENRE_KEY, OVERSEAS_SEO_GENRE_KEY].freeze
   TOPS_PATH = "/tops"
   SEO_CHECKER_PATH = "/tools/seo-checker"
+  OVERSEAS_SEO_PATH = "/overseas-seo"
   SITEMAP_HOST = ENV.fetch("SITEMAP_DEFAULT_HOST", "https://drafity.pro")
 
   module_function
 
   def crawlable_genre?(genre)
-    GenreRegistry.resolve_key(genre).to_s == GENRE_KEY
+    CRAWLABLE_GENRE_KEYS.include?(GenreRegistry.resolve_key(genre).to_s)
   end
 
   def crawlable_genre_values
-    GenreRegistry.equivalent_keys(GENRE_KEY).map(&:to_s).uniq.reject(&:blank?).select { |value| crawlable_genre?(value) }
+    CRAWLABLE_GENRE_KEYS.flat_map { |key| GenreRegistry.equivalent_keys(key) }
+                        .map(&:to_s)
+                        .uniq
+                        .reject(&:blank?)
+                        .select { |value| crawlable_genre?(value) }
   end
 
   STATIC_PATHS = [
     "/",
     SEO_CHECKER_PATH,
+    OVERSEAS_SEO_PATH,
     "/en",
     "/en#{SEO_CHECKER_PATH}",
     "/#{GENRE_KEY}/columns",
-    "/en/#{GENRE_KEY}/columns"
+    "/en/#{GENRE_KEY}/columns",
+    "/#{OVERSEAS_SEO_GENRE_KEY}/columns"
   ].freeze
 
   def crawlable_columns
@@ -44,7 +53,10 @@ module CrawlPolicy
   end
 
   def column_path(column)
-    path = "/#{GENRE_KEY}/columns/#{column.code}"
+    raw_genre = column.respond_to?(:attributes) && column.attributes.key?("genre") ? column[:genre] : nil
+    genre = GenreRegistry.resolve_key(raw_genre).to_s
+    genre = GENRE_KEY unless crawlable_genre?(genre)
+    path = "/#{genre}/columns/#{column.code}"
     column.try(:english_article?) ? "/en#{path}" : path
   end
 
@@ -65,6 +77,10 @@ module CrawlPolicy
       Allow: /en#{TOPS_PATH}/
       Allow: /en#{SEO_CHECKER_PATH}$
       Allow: /en#{SEO_CHECKER_PATH}/
+      Allow: #{OVERSEAS_SEO_PATH}$
+      Allow: #{OVERSEAS_SEO_PATH}/
+      Allow: /#{OVERSEAS_SEO_GENRE_KEY}/columns
+      Allow: /#{OVERSEAS_SEO_GENRE_KEY}/columns/
       Allow: /#{GENRE_KEY}/columns
       Allow: /#{GENRE_KEY}/columns/
       Allow: /en/#{GENRE_KEY}/columns

@@ -24,10 +24,12 @@ class CrawlableSitemap
     SitemapGenerator::Sitemap.create(filename: "sitemap") do
       add "/", changefreq: "weekly", priority: 1.0
       add CrawlPolicy::SEO_CHECKER_PATH, changefreq: "weekly", priority: 0.8
+      add CrawlPolicy::OVERSEAS_SEO_PATH, changefreq: "weekly", priority: 0.9
       add "/en", changefreq: "weekly", priority: 0.9
       add "/en#{CrawlPolicy::SEO_CHECKER_PATH}", changefreq: "weekly", priority: 0.7
       add "/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.9
       add "/en/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.8
+      add "/#{CrawlPolicy::OVERSEAS_SEO_GENRE_KEY}/columns", changefreq: "daily", priority: 0.9
 
       CrawlPolicy.crawlable_columns.find_each do |column|
         add CrawlPolicy.column_path(column),
