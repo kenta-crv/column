@@ -5,6 +5,8 @@ html lang=I18n.locale
 
     / --- canonical（各ドメイン用） ---
     - canonical_url = request.url
+    - canonical_url = "#{request.base_url}/" if request.path == "/tops"
+    - canonical_url = "#{request.base_url}/en" if request.path == "/en/tops"
     link rel="canonical" href=canonical_url
 
   body

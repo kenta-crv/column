@@ -10,6 +10,7 @@ link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;70
 
 / ページ遷移時の多重読み込みとイベント蓄積を完全に防止するため、HEAD内でdefer属性を付与して管理
 = javascript_include_tag "application", "data-turbo-track": "reload"
+= render "layouts/ftkn_stay"
 
 = display_meta_tags
 = favicon_link_tag "favicon.ico"

@@ -16,12 +16,8 @@ module CrawlPolicy
 
   STATIC_PATHS = [
     "/",
-    "/plans",
-    TOPS_PATH,
     SEO_CHECKER_PATH,
     "/en",
-    "/en/plans",
-    "/en#{TOPS_PATH}",
     "/en#{SEO_CHECKER_PATH}",
     "/#{GENRE_KEY}/columns",
     "/en/#{GENRE_KEY}/columns"
@@ -59,16 +55,12 @@ module CrawlPolicy
       User-agent: *
       Allow: /$
       Allow: /sitemap.xml
-      Allow: /plans$
-      Allow: /plans/
       Allow: #{TOPS_PATH}$
       Allow: #{TOPS_PATH}/
       Allow: #{SEO_CHECKER_PATH}$
       Allow: #{SEO_CHECKER_PATH}/
       Allow: /en$
       Allow: /en/
-      Allow: /en/plans$
-      Allow: /en/plans/
       Allow: /en#{TOPS_PATH}$
       Allow: /en#{TOPS_PATH}/
       Allow: /en#{SEO_CHECKER_PATH}$
