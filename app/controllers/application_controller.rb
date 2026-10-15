@@ -782,6 +782,7 @@ class ApplicationController < ActionController::Base
     return true if is_a?(PlansController)
     return true if is_a?(CheckoutController)
     return true if is_a?(TopsController)
+    return true if is_a?(OverseasSeoController)
     return true if is_a?(SeoCheckersController)
     return true if is_a?(SitemapsController)
     return true if is_a?(RobotsController)

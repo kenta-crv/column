@@ -1,0 +1,49 @@
+.drafify-lp.overseas-seo-lp {
+  .problem-grid,
+  .features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fc-mockup {
+    display: none;
+  }
+
+  .pricing-scroll-wrap {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .pricing-grid {
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .plan-card {
+    width: min(440px, 100%);
+    display: flex;
+    flex-direction: column;
+    grid-row: auto;
+    grid-template-rows: none;
+  }
+
+  .plan-name,
+  .plan-desc,
+  .plan-price-orig,
+  .plan-price-main,
+  .plan-price-note,
+  .plan-features,
+  .plan-cta,
+  .plan-divider {
+    grid-row: auto;
+  }
+
+  .plan-price {
+    display: block;
+  }
+
+  .faq-layout {
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+  }
+}

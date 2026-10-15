@@ -510,6 +510,29 @@ module GenreRegistry
           industry_weakness_en: "Human first rounds stall on scheduling. High-volume hiring drops candidates before a screen. Automated screening interviews keep the pipeline moving."
         }
       }
+    },
+    overseas_seo: {
+      ja: "海外SEO",
+      en: "Overseas SEO",
+      host: ["drafity.pro"],
+      service_name: "Drafity",
+      columns_index_description: "海外の検索から問い合わせを取りたい会社向けの解説です。キーワード調査、記事作成、公開、公開後の分析の進め方をまとめています。",
+      strong_points: "キーワード調査、記事作成、サイトへの公開、公開後の分析までを、Drafityが月額98,000円で継続して行います。対象の国や言語、月の記事本数、契約期間は開始前の相談で決めます。",
+      keywords: ["海外SEO", "海外向け記事", "キーワード調査", "記事作成", "多言語SEO"],
+      sub_categories: {
+        consulting: {
+          name: "海外SEO",
+          name_en: "Overseas SEO",
+          target: "海外の検索から問い合わせを取りたい日本の会社",
+          description: "対象とする国や言語の検索需要を調べ、記事を作成し、サイトへ公開します。公開後は順位や流入を確認し、次の記事に反映します。",
+          features: ["キーワード調査", "記事作成", "サイトへの公開", "公開後の分析", "次のテーマへの反映"],
+          keywords: ["海外SEO", "キーワード調査", "記事公開", "検索流入"],
+          price_hint: "月額98,000円。調査から公開まで含む。税込か税抜かは開始前に案内する。",
+          area: "対象の国や言語は開始前の相談で決める",
+          strengths: "管理画面を渡して終わりではありません。調査、作成、公開、分析をDrafityが続けます。掲載先のサイトと更新に必要な権限は開始時に確認します。",
+          industry_weakness: "都度の発注や翻訳だけ、ツールの導入だけでは、現地の検索需要と公開後の数字が次の記事に残りにくい。"
+        }
+      }
     }
   }.freeze
 

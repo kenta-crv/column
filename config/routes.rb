@@ -163,6 +163,8 @@ Rails.application.routes.draw do
 
   root to: 'tops#index'
 
+  get "/overseas-seo", to: "overseas_seo#show", as: :overseas_seo
+
   resources :problems
 
   get '/tops',    to: 'tops#index'
