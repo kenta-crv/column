@@ -109,6 +109,7 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     xml = CrawlableSitemap::SITEMAP_PATH.read
 
     assert_includes xml, "https://drafity.pro/#{CrawlPolicy::GENRE_KEY}/columns</loc>"
+    assert_includes xml, "https://drafity.pro/#{CrawlPolicy::OVERSEAS_SEO_GENRE_KEY}/columns</loc>"
     assert_includes xml, "https://drafity.pro#{CrawlPolicy::OVERSEAS_SEO_PATH}</loc>"
     assert_includes xml, "https://drafity.pro#{CrawlPolicy.column_path(column)}</loc>"
     refute_includes xml, "This XML file does not appear to have any style information"
