@@ -1,5 +1,5 @@
-- set_meta_tags title: "海外SEOを調査から公開まで支援「Drafity」"
-- set_meta_tags description: "キーワード調査、記事作成、公開、公開後の分析までを、Drafityが月額98,000円で継続して行います。"
+- set_meta_tags title: "海外SEOの記事生成代行「Drafity」"
+- set_meta_tags description: "ご希望の国・言語に合わせ、現地検索エンジンのアルゴリズム・構造化データに最適化した記事制作を代行。海外でのSEO上位表示を実現します。"
 
 .drafify-lp.overseas-seo-lp
   nav.nav
@@ -7,34 +7,35 @@
       = link_to overseas_seo_path
         = image_tag drafity_logo_image, width: "150px", alt: "Drafity"
       .nav-links
-        a href="#service" サービス
-        a href="#flow" 進め方
-        a.active href="#pricing" 料金
+        a href="#service" サービスの特徴
+        a href="#flow" 制作の流れ
+        a.active href="#pricing" 料金プラン
         a href="#faq" よくある質問
-        a href="#about" 会社概要
+        a href="#about" 運営会社
       .nav-cta
-        = mail_to "info@j-work.jp", "相談する", subject: "Drafityのご相談", class: "btn-primary"
+        = mail_to "info@j-work.jp", "無料相談する", subject: "Drafityのご相談", class: "btn-primary"
 
   section.hero
     .hero-inner
       .hero-copy
         .hero-eyebrow
-          span.eyebrow-badge 月額98,000円
-          span.eyebrow-text キーワード調査から公開まで
+          span.eyebrow-badge 海外展開・グローバルSEO支援
+          span.eyebrow-text 海外進出・集客をお考えの企業様へ
         h1.hero-title
-          | 海外SEOを、
+          | 海外展開を成功を
           br.pc-only
-          span.num 調査から公開まで
-          | 支援します。
+          | 最適化SEO記事で加速する
+          br
+          span.num 『Drafity』
         p.hero-desc
-          | キーワード調査、記事作成、サイトへの公開、公開後の分析までを、Drafityが月額で継続して行います。
+          | ターゲット国の検索エンジン構造に完全最適化。現地ユーザーに刺さる高精度な記事を生成代行し、検索上位表示へと導きます。
 
       .hero-visual
-        = image_tag "hero-bg.webp", alt: "記事運用の画面イメージ", class: "hero-img"
+        = image_tag "overseas-hero-bg.webp", alt: "海外SEO記事生成のイメージ", class: "hero-img"
 
       .hero-cards
         .hero-checks
-          - ["キーワード調査", "記事作成・公開", "公開後の分析"].each do |check|
+          - ["検索エンジン最適化", "高品質記事作成", "SEO上位表示"].each do |check|
             span.check-pill
               svg viewBox="0 0 14 14" fill="none"
                 path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
@@ -42,32 +43,39 @@
 
       .hero-cta-block
         .hero-actions
-          = mail_to "info@j-work.jp", "相談する", subject: "Drafityのご相談", class: "btn-primary-lg"
-          a.btn-ghost.btn-purple href="#pricing" 料金を見る
+          = mail_to "info@j-work.jp", "まずは無料で相談する", subject: "Drafityのご相談", class: "btn-primary-lg"
+          a.btn-ghost.btn-purple href="#pricing" 料金プランを見る
         p.hero-trial-note style="margin-left:16px"
           span.hero-trial-note__icon aria-hidden="true"
             svg viewBox="0 0 14 14" fill="none" focusable="false"
               path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
-          span 月額 98,000円 · 調査から公開まで
+          span 英語圏・中国・韓国・ドイツなど、世界各国の言語・市場に対応
+
+  .lang-marquee aria-label="対応言語一覧"
+    .lang-marquee-track
+      - langs = [{ flag: "🇰🇷", name: "한국어" }, { flag: "🇨🇳", name: "中文" }, { flag: "🇬🇧", name: "English" }, { flag: "🇩🇪", name: "Deutsch" }, { flag: "🇫🇷", name: "Français" }, { flag: "🇪🇸", name: "Español" }, { flag: "🇵🇹", name: "Português" }, { flag: "🇮🇹", name: "Italiano" }, { flag: "🇳🇱", name: "Nederlands" }, { flag: "🇵🇱", name: "Polski" }, { flag: "🇸🇪", name: "Svenska" }, { flag: "🇹🇷", name: "Türkçe" }, { flag: "🇷🇺", name: "Русский" }, { flag: "🇸🇦", name: "العربية" }, { flag: "🇮🇳", name: "हिन्दी" }, { flag: "🇹🇭", name: "ภาษาไทย" }, { flag: "🇻🇳", name: "Tiếng Việt" }, { flag: "🇮🇩", name: "Bahasa Indonesia" }]
+      - 2.times do |copy|
+        ul.lang-marquee-group aria-hidden=(copy.positive? || nil)
+          - langs.each do |lang|
+            li.lang-pill
+              span.lang-pill-flag aria-hidden="true" = lang[:flag]
+              span.lang-pill-name = lang[:name]
 
   section.whats-section#service
     .whats-inner
       .section-header
-        span.overline サービス内容
+        span.overline SERVICE
         h2.section-title
-          | 調査から公開までを、
+          | WebサイトをグローバルSEO仕様へ
           br
-          | 一貫して支援します。
+          | 海外自然検索トラフィックを最大化
+        p.whats-lead-text
+          | 対象国や言語の特性、ガイドラインや検索アルゴリズムに合わせて最適な記事を生成・運用代行。ターゲット市場の検索結果で確実な上位表示を目指します。
 
       .whats-intro-block
         .whats-intro-left
-          p.whats-lead-text
-            | 対象とする国や言語の検索需要を調べ、記事を作成し、サイトへ公開します。
-            br.pc-only
-            | 公開後は順位や流入を確認し、次の記事に反映します。
-
           .whats-features-row
-            - features = [{ class: "icon-lightning", title: "市場調査", desc: "対象国のキーワードと競合を調べ、作成する記事を決めます。" }, { class: "icon-shield", title: "記事作成", desc: "決めたキーワードに沿って、記事を作成します。" }, { class: "icon-growth", title: "分析と公開", desc: "サイトへ公開し、順位や流入を見ながら改善します。" }]
+            - features = [{ class: "icon-lightning", title: "多国籍・多言語対応", desc: "ターゲット国の文化や検索トレンドに合わせた最適な言語で展開します。" }, { class: "icon-shield", title: "構造化SEO最適化", desc: "各検索エンジンの評価基準に沿った高度なサイト・記事構造を構築します。" }, { class: "icon-growth", title: "圧倒的なSEO成果", desc: "単なる翻訳ではなく、現地で「検索される」質の高い記事で上位表示を実現します。" }]
             - features.each do |wf|
               .whats-feature-pill
                 .wfp-icon class=wf[:class]
@@ -87,16 +95,16 @@
         .whats-intro-right
           .whats-mockup-container
             .whats-laptop-img
-              = image_tag "whats.png", alt: "記事制作のイメージ"
+              = image_tag "whats.png", alt: "記事制作・管理画面イメージ"
 
   section.problem-section
     .problem-inner
       .section-header
-        span.overline こんなお悩みありませんか？
+        span.overline PAIN POINTS
         h2.section-title
-          | 海外の検索で、こんな
-          span.text-highlight-blue 壁
-          | にぶつかっていませんか？
+          | 海外向けのマーケティングで、こんな
+          span.text-highlight-blue 課題
+          | を抱えていませんか？
         .section-dots
           span
           span
@@ -107,7 +115,7 @@
           svg viewBox="0 0 24 24" fill="none"
             path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .problem-grid
-          - problems = [{ icon: "search", text: "現地の検索需要が分からない", desc: "どの国の、どの言葉で、何を書けば見つかるのかが決まらず、テーマ出しで止まります。" }, { icon: "clock", text: "公開まで手が回らない", desc: "原稿は作れても、掲載や体裁の確認まで社内の手が回らず、下書きのまま残ります。" }, { icon: "chart", text: "出して終わりになる", desc: "公開後の順位や流入を見ながら直せないため、次の記事に学びが残りません。" }, { icon: "bell", text: "外注のたびに品質がぶれる", desc: "都度の発注だと、トーンも根拠もバラバラになり、メディアとして積み上がりません。" }]
+          - problems = [{ icon: "search", text: "現地ユーザーの検索ニーズが掴めない", desc: "国ごとに異なる検索習慣やキーワードの需要が分からず、施策に踏み切れない。" }, { icon: "clock", text: "各国検索エンジンの攻略法が不明", desc: "Google、Baidu、Naverなど、プラットフォームごとのアルゴリズムの違いに対応しきれない。" }, { icon: "chart", text: "現地語での高品質な記事作成が困難", desc: "単なる翻訳ではなく、検索上位を狙えるレベルの現地語コンテンツを社内で作れない。" }, { icon: "bell", text: "外注しても品質が安定しない", desc: "翻訳会社やクラウドソーシングへの都度発注では、トンマナや専門性がバラバラになってしまう。" }]
           - problems.each do |p|
             .problem-card-item
               .pci-meta
@@ -142,8 +150,8 @@
       .solution-banner-box
         .sb-content-left
           .sb-headline-row
-            span.sb-lead-text そのお悩み、
-            span.sb-badge-tag 調査から公開
+            span.sb-lead-text 海外マーケティングの失敗を防ぐ！
+            span.sb-badge-tag 海外SEO上位表示の決定版
           .sb-brand-row
             .sb-logo-mark
               svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -154,9 +162,11 @@
                 polyline points="10 9 9 9 8 9"
             h3.sb-brand-name Drafity
             span.sb-suffix-text が
-            span.sb-gradient-action 続けて解決
-            span.sb-suffix-text します。
+            span.sb-gradient-action すべて解決
+            span.sb-suffix-text いたします。
         .sb-mockup-right
+          .sb-dashboard-wrapper
+            /img.sb-dashboard-img src=image_path('dashboard-preview.png') alt="Drafity Dashboard"
           .sb-deco-icon.deco-sparkle
             svg viewBox="0 0 24 24" fill="currentColor"
               path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"
@@ -172,19 +182,13 @@
   section.features-strip#features
     .features-inner
       .section-header
-        span.overline サービス内容
-        h2.section-title
-          | 調査、作成、分析、公開を
-          span.text-brand ひと続き
-          | で。
-        p.section-sub 月の途中で役割を分けず、同じ相手が次の記事まで見ます。
+        span.overline FEATURES
+        h2.section-title 国が違えば、評価されるSEO基準も大きく異なります
+        p.section-sub 日本語記事の機械翻訳だけでは、現地の検索上位には決して入りません。各国の検索エンジンが正しく評価する構造設計と、洗練された現地語表現でコンテンツを形にします。
 
       .features-scroll-wrap
-        button.features-scroll-btn.features-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.features-grid', -1)"
-          svg viewBox="0 0 24 24" fill="none"
-            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         .features-grid
-          - cards = [{ num: "01", title: "市場調査", desc: "対象とする国や言語の検索需要を見て、いま書くテーマを決めます。" }, { num: "02", title: "記事作成", desc: "決めたテーマで、検索と読者の両方に届く原稿を作ります。" }, { num: "03", title: "分析", desc: "公開後の順位や流入を見て、次に直すところと次に書くテーマを決めます。" }, { num: "04", title: "公開", desc: "サイトへ載せ、検索に届く状態まで持っていきます。" }]
+          - cards = [{ num: "01", title: "国ごとの主流検索エンジンに完全最適化", desc: "Googleをはじめ、Baidu（中国）やNaver（韓国）など、各国の主要プラットフォームの特徴やアルゴリズムに合わせた最適な記事構造を設計します。" }, { num: "02", title: "現地の検索意図を踏まえた構成案の策定", desc: "見出し構成・網羅すべき論点・情報の密度まで、現地ユーザーの生の検索ニーズを分析して構築。単なる「直訳」ではない実用的な構成を作成します。" }, { num: "03", title: "自然で高品質な現地語原稿を生成", desc: "一般的な翻訳サービスとは一線を画し、最初から「SEOでの集客」を目的とした原稿を生成。広告依存脱却に向けた、持続可能な自然流入を獲得します。" }]
           - cards.each do |fc|
             .feature-card
               .fc-top
@@ -198,27 +202,20 @@
                       - elsif fc[:num] == "02"
                         path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
                         polyline points="14 2 14 8 20 8"
-                      - elsif fc[:num] == "03"
+                      - else
                         line x1="18" y1="20" x2="18" y2="10"
                         line x1="12" y1="20" x2="12" y2="4"
                         line x1="6" y1="20" x2="6" y2="14"
-                      - else
-                        path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                        polyline points="17 8 12 3 7 8"
-                        line x1="12" y1="3" x2="12" y2="15"
                   h3.fc-title = fc[:title]
                 p.fc-desc = fc[:desc]
-        button.features-scroll-btn.features-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.features-grid', 1)"
-          svg viewBox="0 0 24 24" fill="none"
-            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 
       .features-summary-banner
         .fsb-left
           p.fsb-lead
             span.text-brand Drafity
-            |  が、調査から公開まで続けます。
+            |  なら、海外の検索アルゴリズムを味方につけたコンテンツ展開が可能です。
         .fsb-right
-          - points = [{ icon: "clock", text: "毎月、同じ流れで続けます" }, { icon: "trend", text: "数字を見て次の記事を決めます" }, { icon: "shield", text: "公開までDrafityが行います" }]
+          - points = [{ icon: "clock", text: "Google / Baidu / Naverなど各国エンジンに対応" }, { icon: "trend", text: "直訳に頼らない、現地の検索意図に沿った構造化" }, { icon: "shield", text: "自然検索での確実な上位表示を狙える原稿制作" }]
           - points.each do |pt|
             .fsb-point-item
               .fsb-point-icon
@@ -236,14 +233,14 @@
 
   section.enterprise-agent-section#flow
     .ea-inner
-      .ea-badge 進め方
+      .ea-badge WORK FLOW
       h3.ea-title
-        | 一度きりの納品ではなく、
+        | 単なる翻訳ではなく、
         br
-        | 調査して、出して、見て、また書く。
-      p.ea-desc 市場調査、記事作成、公開、分析をひと回りとして、次の記事へつなぎます。記事の本数、対象の国や言語、契約期間は、開始前にご相談のうえで決めます。
+        | 「現地で検索される」コンテンツへ。
+      p.ea-desc 韓国のNaver、中国のBaidu、英語圏のGoogleなど、国や地域によってアプローチすべきプラットフォームは全く異なります。ターゲット市場に合わせた最適な記事骨格の策定から現地語原稿の仕上げまで、トータルでサポートいたします。（※制作本数や施策範囲は事前に丁寧なヒアリングのうえ策定します）
       .ea-flow
-        - steps = [{ num: "01", icon: "target", title: "市場を見る", desc: "狙う国や言語の検索需要から、書くテーマを決めます。" }, { num: "02", icon: "pen", title: "記事を書く", desc: "決めたテーマで原稿を作り、公開できる形に整えます。" }, { num: "03", icon: "layers", title: "サイトへ出す", desc: "掲載先へ載せ、検索に届く状態まで持っていきます。" }, { num: "04", icon: "bell", title: "数字を見る", desc: "順位や流入を見て、次に直すところと次のテーマを決めます。" }]
+        - steps = [{ num: "01", icon: "target", title: "ターゲット市場・言語の明確化", desc: "まずは進出を狙う国・地域および言語を特定。検索市場の特性や競合環境を分析し、最も効果的な戦略の軸を固めます。" }, { num: "02", icon: "pen", title: "検索エンジン別 記事骨格の設計", desc: "見出し構成、取り扱うトピック、情報の網羅性まで、現地の検索アルゴリズムが最も好む形にコンテンツの設計図を組み上げます。" }, { num: "03", icon: "layers", title: "即公開可能な現地語原稿の生成", desc: "現地ユーザーが違和感なく読み進められる自然な文章表現で、Webサイトにそのまま掲載できる高品質な原稿へ仕上げます。" }]
         - steps.each do |step|
           .ea-step
             .ea-step-top
@@ -256,85 +253,94 @@
                   - elsif step[:icon] == "pen"
                     path d="M12 20h9"
                     path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-                  - elsif step[:icon] == "layers"
+                  - else
                     polygon points="12 2 2 7 12 12 22 7 12 2"
                     polyline points="2 17 12 22 22 17"
                     polyline points="2 12 12 17 22 12"
-                  - else
-                    path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-                    path d="M13.73 21a2 2 0 0 1-3.46 0"
               .ea-step-num = step[:num]
             h4.ea-step-title = step[:title]
             p.ea-step-desc = step[:desc]
-      p.ea-note 月額 98,000円で、この一連を継続します。
 
   section.pricing-section#pricing
     .pricing-inner
       .section-header
-        span.overline 料金
-        h2.section-title 調査から公開まで、月額ひとつ。
-        p.section-sub
-          | 市場調査、記事作成、分析、公開までを、この料金で継続します。
-          br
-          | 記事の本数、対象の国や言語、契約期間は、開始前にご相談のうえで決めます。
-      .pricing-grid
-        .plan-card.popular
-          .popular-badge 継続支援
-          .plan-name.accent Drafity
-          .plan-desc 海外向けの記事を、調査から公開までDrafityが続けます。
-          .plan-price
-            .plan-price-orig.is-empty aria-hidden="true"
-            .plan-price-main
-              span.price-yen ¥
-              span.price-num 98,000
-              span.price-unit
-                | / 月
-            p.plan-price-note 調査から公開まで含む
-          hr.plan-divider
+        span.overline PRICING
+        h2.section-title 海外向けSEO記事生成を、わかりやすい月額定額で。
+        p.section-sub 国別の検索エンジン構造にアジャストした現地語コンテンツを、そのまま公開・活用できるクオリティでご提供します。
+      .pricing-solo
+        .plan-card.popular.plan-card--solo
+          .popular-badge 海外SEO支援
+          .plan-solo-main
+            .plan-name.accent Drafity
+            .plan-desc 単なる翻訳にとどまらない、現地の検索エンジンに高く評価される構造化記事をスピーディーに生成・運用。
+            .plan-price
+              .plan-price-main
+                span.price-yen ¥
+                span.price-num 98,000
+                span.price-unit
+                  | / 月（税込）
+              p.plan-price-note 記事の生成からWebサイトへの公開サポートまで一括対応
+            = mail_to "info@j-work.jp", "このプランについて相談する", subject: "Drafityのご相談", class: "plan-cta filled"
           ul.plan-features
-            - ["対象市場の調査", "記事の作成", "サイトへの公開", "公開後の分析", "次のテーマへの反映"].each do |feature|
+            - ["Google / Baidu / Naver等、主要検索エンジンに対応", "現地ユーザーの検索意図に即した記事構造の設計", "機械翻訳感のない、高品質な現地語原稿の生成", "そのままWebサイトに掲載できる状態までの仕上げ", "自然検索トラフィック（オーガニック流入）の獲得に特化"].each do |feature|
               li
                 svg viewBox="0 0 16 16" fill="none"
                   path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                 = feature
-          = mail_to "info@j-work.jp", "この内容で相談する", subject: "Drafityのご相談", class: "plan-cta filled"
 
   section.faq-section#faq
     .faq-inner
       .section-header
         span.overline FAQ
         h2.section-title よくあるご質問
-        p.section-sub Drafityのコンサルティングについて、よくある点をまとめました。
-      .faq-layout
+        p.section-sub 海外向けSEO記事生成・運用に関して、お客様から多く寄せられる質問にお答えします。
+      .faq-search
+        input.faq-search__input type="search" placeholder="キーワードで検索（例：料金、公開、契約など）" data-faq-search=""
+        svg.faq-search__icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+          circle cx="11" cy="11" r="8"
+          line x1="21" y1="21" x2="16.65" y2="16.65"
+      .faq-layout data-faq-root=""
+        nav.faq-categories aria-label="FAQカテゴリ"
+          h3 カテゴリ
+          - faq_categories = [["service", "サービス・施策内容", "comments"], ["pricing", "料金・コスト", "yen"], ["usage", "運用・契約について", "chart"]]
+          - faq_categories.each_with_index do |(key, label, icon_type), idx|
+            button.faq-categories__btn type="button" class=("is-active" if idx.zero?) data-faq-category=key
+              span.faq-cat-icon
+                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  - if icon_type == "comments"
+                    path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                  - elsif icon_type == "yen"
+                    line x1="12" y1="2" x2="12" y2="22"
+                    path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                  - else
+                    line x1="18" y1="20" x2="18" y2="10"
+                    line x1="12" y1="20" x2="12" y2="4"
+                    line x1="6" y1="20" x2="6" y2="14"
+              span = label
+              svg.faq-cat-chevron viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                polyline points="9 18 15 12 9 6"
         .faq-panel
-          - faqs = [{ q: "ツールの契約ですか？", a: "いいえ。管理画面を渡して終わりではありません。海外向けの記事を、市場調査から作成、分析、公開までDrafityが続けます。" }, { q: "料金はいくらですか？", a: "月額98,000円です。市場調査、記事作成、分析、公開までを、この料金で続けます。" }, { q: "対応する国や言語は決まっていますか？", a: "開始前にご相談のうえで決めます。まずは狙う市場を伺い、調査から始めます。" }, { q: "記事は月に何本ですか？", a: "本数は開始前にご相談のうえで決めます。記事の難しさや対象の市場に合わせて調整します。" }, { q: "公開は誰が行いますか？", a: "公開までDrafityが行います。掲載先のサイトや、更新に必要な権限は開始時に確認します。" }, { q: "途中で止められますか？", a: "契約期間の細目は開始前にご案内します。ご不明点は info@j-work.jp までお問い合わせください。" }]
+          - faqs = [{ category: "service", q: "単なるアドバイスやコンサルティングのみのサービスですか？", a: "いいえ、分析やアドバイスにとどまらず、実際の原稿制作まで一貫して対応いたします。韓国のNaver、中国のBaidu、英語圏のGoogleなど、対象国の主要検索エンジンに最適化した現地語記事を生成し、そのままWebサイトに公開できる状態でお納めします。" }, { category: "service", q: "対応可能な国や言語に制限はありますか？", a: "特別な制限はございません。英語圏・中国・韓国・ドイツなどをはじめ、貴社の海外進出戦略に合わせた柔軟な対応が可能です。施策をスタートする対象国や言語は事前ヒアリングにて決定いたします。" }, { category: "pricing", q: "利用料金はいくらですか？", a: "月額98,000円（税込）となります。検索エンジン構造に合わせた現地語記事の生成代行から、Webサイトへの公開サポートまでが含まれます。（※広告運用費や、別個の特注制作費は含まれません）" }, { category: "pricing", q: "毎月作成できる記事の本数は決まっていますか？", a: "一律で固定本数を指定するプランではございません。進出市場の規模やキーワードの難易度、推奨される更新頻度を踏まえ、事前のお打ち合わせにて最適な年間・月間の公開ペースを策定いたします。" }, { category: "usage", q: "自社WebサイトやCMSへの直接入稿・公開作業も依頼できますか？", a: "はい、対応可能です。対象WebサイトのCMS（WordPress等）や更新権限を事前に共有いただくことで、入稿作業まで代行いたします。もちろん、テキスト・HTML原稿での納品にも対応しております。" }, { category: "usage", q: "途中で契約を解除することは可能ですか？", a: "契約期間および解約に関する規定につきましては、ご契約前に書面にて明瞭にご案内いたします。案件ごとの状況に応じて柔軟に対応しておりますので、お気軽にご相談ください。" }]
           - faqs.each_with_index do |item, idx|
-            details.faq-panel__item class=("is-open-default" if idx.zero?) open=(idx.zero? || nil)
+            details.faq-panel__item class=("is-open-default" if idx.zero?) data-faq-item=item[:category] open=(idx.zero? || nil)
               summary.faq-panel__q = item[:q]
               p.faq-panel__a = item[:a]
-      .faq-contact
-        p ここにない内容は、お気軽にお問い合わせください。
-        = mail_to "info@j-work.jp", class: "btn-primary", subject: "Drafityのご相談" do
-          svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
-            path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-            polyline points="22,6 12,13 2,6"
-          span お問い合わせ
 
   section.about-section#about
     .about-deco-circle
     .about-inner
       .section-header
         span.overline ABOUT US
-        h2.section-title 会社概要
-        p.section-sub AIでオウンドメディアの可能性を広げ、ビジネスの成長を支援します。
+        h2.section-title 運営会社
+        p.section-sub 最先端のAIテクノロジーでオウンドメディアの可能性を拡張し、企業の持続的な成長を支援します。
       .about-grid
         .about-left-content
           h3.about-catch
-            | AIの力で、
+            | AIテクノロジーで、
             br
-            | 情報とビジネスの
-            span.text-accent 未来を創る。
-          p.about-text Drafityは、AI技術を活用して記事作成を自動化し、オウンドメディア運用やコンテンツマーケティングの効率化を実現するプロダクトです。海外向けの記事は、調査から公開までDrafityが続けて行います。
+            | 国境を越えるコンテンツマーケティングの
+            span.text-accent 未来を拓く。
+          p.about-text 「Drafity」は、先進的なAI技術を活用して高品質な記事作成を自動化・効率化し、企業のコンテンツマーケティングや海外SEO展開を飛躍的に加速させるプロダクトです。ターゲット市場の検索アルゴリズムに最適化したコンテンツ生成を強力にサポートします。
           .about-stats-row
             - lp_about_stats.each do |stat|
               .stat-box
@@ -370,28 +376,32 @@
 
   section.enterprise-agent-section
     .ea-inner
-      span.ea-badge 月額 98,000円
+      span.ea-badge グローバルSEO戦略
       h2.ea-title
-        | 海外向けの記事を、
+        | 機械翻訳では届かないターゲット層へ、
         br
-        | 調査から公開まで続けませんか。
-      .cta-actions style="margin-top: 32px"
-        = mail_to "info@j-work.jp", "相談する", subject: "Drafityのご相談", class: "btn-white"
+        | 現地検索で勝ち抜く真のSEOコンテンツを。
+      p.ea-desc
+        | 国・地域ごとの検索エンジン評価基準に準拠した高品質な現地語コンテンツを生成。
+        br.pc-only
+        | 進出を希望される国や言語、展開ペースに合わせて最適な施策をご提案します。
+      .cta-actions
+        = mail_to "info@j-work.jp", "まずは無料で相談する", subject: "Drafityのご相談", class: "btn-white"
+        a.btn-ghost-on-dark href="#pricing" 料金プランを見る
 
   footer.lp-footer
     .lp-footer-inner
-      = link_to overseas_seo_path, class: "lp-footer-brand" do
+      = link_to locale_root_href, class: "lp-footer-brand" do
         = image_tag drafity_logo_image, width: "120", alt: "Drafity"
-      nav.lp-footer-nav aria-label="フッターナビ"
-        a href="#service" サービス
-        a href="#flow" 進め方
-        a href="#pricing" 料金
+      nav.lp-footer-nav aria-label="フッターナビゲーション"
+        a href="#service" サービスの特徴
+        a href="#flow" 制作の流れ
+        a href="#pricing" 料金プラン
         a href="#faq" よくある質問
-        = link_to "Drafityトップ", locale_root_href
       p.lp-footer-copy = "© #{Time.current.year} Drafity / 株式会社J Work"
 
 script type="application/ld+json"
-  = raw({ "@context" => "https://schema.org", "@type" => "Service", "name" => "Drafity", "provider" => { "@type" => "Organization", "name" => "株式会社J Work" }, "offers" => { "@type" => "Offer", "price" => "98000", "priceCurrency" => "JPY", "description" => "キーワード調査、記事作成、公開、公開後の分析までを月額で継続して行う海外SEO支援" } }.to_json)
+  = raw({ "@context" => "https://schema.org", "@type" => "Service", "name" => "Drafity", "provider" => { "@type" => "Organization", "name" => "株式会社J Work" }, "offers" => { "@type" => "Offer", "price" => "98000", "priceCurrency" => "JPY", "description" => "ご希望の国・言語に合わせ、検索エンジンの構造化に基づき記事を生成代行。海外でのSEO上位表示を目指すグローバルマーケティング支援サービス" } }.to_json)
 
 script
   | function scrollLpCards(selector, direction) {
@@ -402,3 +412,53 @@ script
   |   const step = card ? card.offsetWidth + gap : 280;
   |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
   | }
+  | (function initFaqSearch() {
+  |   var root = document.querySelector('[data-faq-root]');
+  |   var searchInput = document.querySelector('[data-faq-search]');
+  |   var items = document.querySelectorAll('.faq-panel__item');
+  |   if (!searchInput || !items.length) return;
+  |   var categoryBtns = root ? root.querySelectorAll('[data-faq-category]') : [];
+  |   var activeCategory = '';
+  |   function applyFilters() {
+  |     var q = searchInput.value.trim().toLowerCase();
+  |     items.forEach(function(item) {
+  |       var category = item.getAttribute('data-faq-item') || '';
+  |       var text = item.textContent.toLowerCase();
+  |       var matchCategory = !activeCategory || category === activeCategory;
+  |       var matchSearch = !q || text.indexOf(q) !== -1;
+  |       item.classList.toggle('is-hidden', !(matchCategory && matchSearch));
+  |       item.style.display = (matchCategory && matchSearch) ? '' : 'none';
+  |     });
+  |   }
+  |   function setCategory(category) {
+  |     activeCategory = category;
+  |     categoryBtns.forEach(function(btn) {
+  |       btn.classList.toggle('is-active', btn.getAttribute('data-faq-category') === category);
+  |     });
+  |     items.forEach(function(item) {
+  |       if (item.open && item.getAttribute('data-faq-item') !== category) {
+  |         item.open = false;
+  |       }
+  |     });
+  |     applyFilters();
+  |   }
+  |   categoryBtns.forEach(function(btn) {
+  |     btn.addEventListener('click', function() {
+  |       setCategory(btn.getAttribute('data-faq-category'));
+  |     });
+  |   });
+  |   searchInput.addEventListener('input', applyFilters);
+  |   items.forEach(function(item) {
+  |     item.addEventListener('toggle', function() {
+  |       if (!item.open) return;
+  |       items.forEach(function(other) {
+  |         if (other !== item) other.open = false;
+  |       });
+  |     });
+  |   });
+  |   if (categoryBtns.length) {
+  |     setCategory(categoryBtns[0].getAttribute('data-faq-category'));
+  |   } else {
+  |     applyFilters();
+  |   }
+  | })();

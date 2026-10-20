@@ -4,7 +4,7 @@ module CrawlPolicy
   CRAWLABLE_GENRE_KEYS = [GENRE_KEY, OVERSEAS_SEO_GENRE_KEY].freeze
   TOPS_PATH = "/tops"
   SEO_CHECKER_PATH = "/tools/seo-checker"
-  OVERSEAS_SEO_PATH = "/overseas-seo"
+  OVERSEAS_SEO_PATH = "/overseas"
   SITEMAP_HOST = ENV.fetch("SITEMAP_DEFAULT_HOST", "https://drafity.pro")
 
   module_function

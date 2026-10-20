@@ -163,7 +163,8 @@ Rails.application.routes.draw do
 
   root to: 'tops#index'
 
-  get "/overseas-seo", to: "tops#overseas_seo", as: :overseas_seo
+  get "/overseas", to: "tops#overseas_seo", as: :overseas_seo
+  get "/overseas-seo", to: redirect("/overseas", status: 301)
 
   resources :problems
 

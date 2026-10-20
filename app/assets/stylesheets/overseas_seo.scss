@@ -1,49 +1,610 @@
 .drafify-lp.overseas-seo-lp {
-  .problem-grid,
-  .features-grid {
+  font-family: "Noto Sans JP", sans-serif;
+
+  .hero {
+    padding-bottom: 24px;
+  }
+
+  .hero-inner {
+    @media (min-width: 901px) {
+      min-height: 460px;
+    }
+  }
+
+  .hero-cta-block {
+    margin-top: 24px;
+  }
+
+  .hero-eyebrow {
+    flex-wrap: wrap;
+    white-space: normal;
+    max-width: 100%;
+    height: auto;
+    row-gap: 8px;
+
+    .eyebrow-text {
+      white-space: normal;
+    }
+  }
+
+  .hero-title {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+    line-height: 1.35;
+  }
+
+  .hero-desc,
+  .hero-trial-note,
+  .check-pill {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+  }
+
+  .section-title {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+    line-height: 1.45;
+  }
+
+  .section-title .text-highlight-blue {
+    letter-spacing: 0;
+    margin: 0 0.06em;
+  }
+
+  .section-sub {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+  }
+
+  .whats-section .section-header .whats-lead-text {
+    max-width: 720px;
+    margin: 16px auto 0;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.85;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--ink-mid);
+  }
+
+  .whats-section .whats-intro-block {
+    margin-top: 40px;
+  }
+
+  .whats-section .whats-intro-left .whats-features-row {
+    margin-top: 0;
+  }
+
+  .wfp-title,
+  .wfp-desc,
+  .pci-check-text,
+  .pci-description,
+  .sb-lead-text,
+  .sb-suffix-text,
+  .sb-gradient-action,
+  .fc-title,
+  .fc-desc,
+  .fsb-lead,
+  .ea-title,
+  .ea-desc,
+  .ea-step-title,
+  .ea-step-desc,
+  .plan-desc,
+  .plan-price-note,
+  .faq-panel__q,
+  .faq-panel__a,
+  .about-catch,
+  .about-text {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+  }
+
+  .nav-links a {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .sb-headline-row {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+  }
+
+  .sb-brand-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .sb-gradient-action {
+    line-height: 1.3;
+  }
+
+  .problem-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .problem-card-item {
+    min-width: 0;
+  }
+
+  .pci-check-text {
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pci-description {
+    line-height: 1.7;
+  }
+
+  .features-scroll-wrap {
+    margin: 0;
+    padding: 0;
+  }
+
+  .features-scroll-btn {
+    display: none;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    overflow: visible;
+  }
+
+  .feature-card {
+    min-width: 0;
+    max-width: none;
+    flex: none;
+  }
+
+  .fc-head-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .feature-card .fc-title {
+    letter-spacing: 0;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .fc-desc {
+    line-height: 1.75;
+  }
+
+  @media (max-width: 900px) {
+    .features-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .fc-mockup {
     display: none;
   }
 
-  .pricing-scroll-wrap {
-    padding-left: 0;
-    padding-right: 0;
+  .features-strip .section-header .section-title .text-brand {
+    display: inline;
+    margin: 0 0.12em;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    white-space: nowrap;
+    font-family: "Noto Sans JP", sans-serif;
   }
 
-  .pricing-grid {
-    display: flex;
-    justify-content: center;
-    overflow: visible;
+  .features-strip .features-summary-banner {
+    .fsb-left,
+    .fsb-lead {
+      min-width: 0;
+    }
+
+    .fsb-lead {
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .fsb-right {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+      justify-content: stretch;
+      gap: 16px;
+    }
+
+    .fsb-point-item {
+      display: flex;
+      flex: none;
+      max-width: none;
+      width: 100%;
+      min-width: 0;
+      align-items: flex-start;
+      padding: 14px 16px;
+      box-sizing: border-box;
+    }
+
+    .fsb-point-text {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.55;
+      font-size: 13.5px;
+    }
+
+    @media (max-width: 900px) {
+      .fsb-right {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
   }
 
-  .plan-card {
-    width: min(440px, 100%);
-    display: flex;
-    flex-direction: column;
+  .enterprise-agent-section#flow .ea-title {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+    line-height: 1.45;
+  }
+
+  .enterprise-agent-section#flow .ea-desc {
+    max-width: 760px;
+    line-height: 1.85;
+  }
+
+  .enterprise-agent-section#flow .ea-step-title {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .enterprise-agent-section#flow .ea-step-desc {
+    line-height: 1.7;
+  }
+
+  .faq-section .faq-panel__q {
+    line-height: 1.55;
+    padding-right: 36px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .faq-section .faq-panel__a {
+    line-height: 1.8;
+  }
+
+  @media (max-width: 1100px) {
+    .nav-links {
+      gap: 14px;
+    }
+
+    .nav-links a {
+      font-size: 13px;
+    }
+  }
+
+  .pricing-section {
+    background: #F8FAFC;
+    padding: 96px 0 112px;
+  }
+
+  .pricing-section .pricing-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .pricing-section .section-header {
+    max-width: 780px;
+    margin: 0 auto 40px;
+  }
+
+  .pricing-section .section-title {
+    font-family: "Noto Sans JP", sans-serif;
+    letter-spacing: 0;
+    line-height: 1.45;
+  }
+
+  .pricing-section .section-sub {
+    line-height: 1.8;
+  }
+
+  .pricing-section .plan-card--solo .plan-features li {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pricing-solo {
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .pricing-section .plan-card.plan-card--solo {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 28px 48px;
+    align-items: center;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 44px 48px 40px;
+    border-radius: 24px;
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    background: #fff;
+    box-shadow: 0 18px 48px -24px rgba(37, 99, 235, 0.28);
     grid-row: auto;
     grid-template-rows: none;
+    scroll-snap-align: unset;
+
+    &:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 22px 52px -20px rgba(37, 99, 235, 0.32);
+    }
   }
 
-  .plan-name,
-  .plan-desc,
-  .plan-price-orig,
-  .plan-price-main,
-  .plan-price-note,
-  .plan-features,
-  .plan-cta,
-  .plan-divider {
+  .pricing-section .plan-card--solo .popular-badge {
+    top: -13px;
+    left: 40px;
+    transform: none;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 6px 16px;
+  }
+
+  .pricing-section .plan-solo-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .pricing-section .plan-card--solo .plan-name,
+  .pricing-section .plan-card--solo .plan-desc,
+  .pricing-section .plan-card--solo .plan-price,
+  .pricing-section .plan-card--solo .plan-price-main,
+  .pricing-section .plan-card--solo .plan-price-note,
+  .pricing-section .plan-card--solo .plan-features,
+  .pricing-section .plan-card--solo .plan-cta {
     grid-row: auto;
   }
 
-  .plan-price {
-    display: block;
+  .pricing-section .plan-card--solo .plan-name {
+    font-size: 30px;
+    min-height: 0;
+    align-items: flex-start;
+    margin: 0;
   }
 
-  .faq-layout {
-    grid-template-columns: minmax(0, 760px);
-    justify-content: center;
+  .pricing-section .plan-card--solo .plan-desc {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #475569;
   }
+
+  .pricing-section .plan-card--solo .plan-price {
+    display: flex;
+    flex-direction: column;
+    margin: 28px 0 0;
+  }
+
+  .pricing-section .plan-card--solo .plan-price-main {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 0;
+  }
+
+  .pricing-section .plan-card--solo .price-yen {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .pricing-section .plan-card--solo .price-num {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1;
+  }
+
+  .pricing-section .plan-card--solo .price-unit {
+    margin-left: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .pricing-section .plan-card--solo .plan-price-note {
+    margin: 10px 0 0;
+    min-height: 0;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .pricing-section .plan-card--solo .plan-features {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 8px 0 0;
+    list-style: none;
+    border-left: 1px solid #e2e8f0;
+    padding-left: 40px;
+  }
+
+  .pricing-section .plan-card--solo .plan-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: #0f172a;
+  }
+
+  .pricing-section .plan-card--solo .plan-features li + li {
+    border-top: 1px solid #eef2f7;
+    margin-top: 0;
+    padding-top: 12px;
+  }
+
+  .pricing-section .plan-card--solo .plan-features svg {
+    width: 16px;
+    height: 16px;
+    margin-top: 3px;
+    flex-shrink: 0;
+    color: #2563eb;
+  }
+
+  .pricing-section .plan-card--solo .plan-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    margin-top: 28px;
+    margin-bottom: 0;
+    padding: 14px 18px;
+    font-size: 15px;
+    border-radius: 14px;
+    grid-row: auto;
+  }
+
+  @media (max-width: 860px) {
+    .pricing-section {
+      padding: 72px 0 88px;
+    }
+
+    .pricing-section .plan-card.plan-card--solo {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 36px 24px 28px;
+      border-radius: 18px;
+    }
+
+    .pricing-section .plan-card--solo .popular-badge {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .pricing-section .plan-card--solo .plan-features {
+      border-left: none;
+      border-top: 1px solid #e2e8f0;
+      padding-left: 0;
+      padding-top: 20px;
+      margin-top: 12px;
+    }
+
+    .pricing-section .plan-card--solo .plan-cta {
+      max-width: none;
+    }
+
+    .pricing-section .plan-card--solo .price-num {
+      font-size: 44px;
+    }
+  }
+
+  .enterprise-agent-section#flow .ea-flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .enterprise-agent-section#flow .ea-note {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .enterprise-agent-section#flow .ea-flow {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .enterprise-agent-section .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .enterprise-agent-section .btn-ghost-on-dark {
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    padding: 16px 28px;
+    border-radius: 99px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+  }
+
+  .lang-marquee {
+    overflow: hidden;
+    width: 100%;
+    padding: 0 0 12px;
+    margin-top: -8px;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .lang-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: lang-marquee-left 42s linear infinite;
+  }
+
+  .lang-marquee-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 0 12px 0 0;
+    list-style: none;
+  }
+
+  .lang-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    height: 44px;
+    padding: 0 16px 0 12px;
+    border: 1px solid rgba(99, 102, 241, 0.16);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .lang-pill-flag {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lang-marquee-track {
+      animation: none;
+    }
+  }
+}
+
+@keyframes lang-marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
