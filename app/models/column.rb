@@ -275,7 +275,14 @@ class Column < ApplicationRecord
   after_commit :notify_webhook_on_destroy, on: :destroy
 
   UUID_LIKE_CODE = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+  TRAILING_UUID_CODE = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
   FALLBACK_ARTICLE_CODE = /\Aarticle-\d+\z/i
+  # 連番スラッグは内容が伝わらないため、公開URLだけ内容が分かる語に差し替える。
+  # 保存済みの code は旧URLのまま残し、旧URLは canonical へ 301 する。
+  DESCRIPTIVE_PUBLIC_CODES = {
+    "ai-interview-operations-2" => "ai-interview-rollout-schedule",
+    "ai-interview-operations-3" => "ai-interview-selection-criteria-rules"
+  }.freeze
   JA_SEO_TERMS = {
     "自動販売機" => "vending-machine",
     "自販機" => "vending-machine",
@@ -367,6 +374,7 @@ class Column < ApplicationRecord
   def self.code_taken?(value, excluding_id: nil)
     token = value.to_s
     return false if token.blank?
+    return true if DESCRIPTIVE_PUBLIC_CODES.value?(token)
 
     scope = where(code: token)
     scope = scope.where.not(id: excluding_id) if excluding_id.present?
@@ -392,13 +400,45 @@ class Column < ApplicationRecord
     "#{candidate}-#{SecureRandom.hex(3)}"
   end
 
+  def self.trailing_uuid_code?(value)
+    value.to_s.match?(TRAILING_UUID_CODE)
+  end
+
+  def self.strip_trailing_uuid(value)
+    value.to_s.sub(TRAILING_UUID_CODE, "")
+  end
+
+  def public_code
+    mapped = self.class::DESCRIPTIVE_PUBLIC_CODES[code.to_s]
+    return mapped if mapped.present?
+
+    stripped = self.class.strip_trailing_uuid(code)
+    stripped.presence || code
+  end
+
   def self.find_by_param(id)
     token = id.to_s
     return if token.blank?
 
-    find_by(code: token) ||
-      (token.match?(/\A\d+\z/) ? find_by(id: token) : nil) ||
-      find_by_historic_code(token)
+    found = find_by(code: token)
+    return found if found
+
+    source_code = DESCRIPTIVE_PUBLIC_CODES.key(token)
+    found = find_by(code: source_code) if source_code.present?
+    return found if found
+
+    (token.match?(/\A\d+\z/) ? find_by(id: token) : nil) ||
+      find_by_historic_code(token) ||
+      find_by_code_with_trailing_uuid(token)
+  end
+
+  def self.find_by_code_with_trailing_uuid(token)
+    return if token.blank? || trailing_uuid_code?(token)
+
+    where("code LIKE ?", "#{sanitize_sql_like(token)}-%").find_each do |column|
+      return column if strip_trailing_uuid(column.code) == token
+    end
+    nil
   end
 
   def self.find_by_historic_code(token)

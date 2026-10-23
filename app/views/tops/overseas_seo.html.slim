@@ -341,29 +341,6 @@
             | 国境を越えるコンテンツマーケティングの
             span.text-accent 未来を拓く。
           p.about-text 「Drafity」は、先進的なAI技術を活用して高品質な記事作成を自動化・効率化し、企業のコンテンツマーケティングや海外SEO展開を飛躍的に加速させるプロダクトです。ターゲット市場の検索アルゴリズムに最適化したコンテンツ生成を強力にサポートします。
-          .about-stats-row
-            - lp_about_stats.each do |stat|
-              .stat-box
-                .stat-icon-wrap
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    - if stat[:type] == "shop"
-                      path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
-                      line x1="3" y1="6" x2="21" y2="6"
-                      path d="M16 10a4 4 0 0 1-8 0"
-                    - elsif stat[:type] == "team"
-                      path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                      circle cx="9" cy="7" r="4"
-                      path d="M23 21v-2a4 4 0 0 0-3-3.87"
-                      path d="M16 3.13a4 4 0 0 1 0 7.75"
-                    - else
-                      path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                      polyline points="14 2 14 8 20 8"
-                      line x1="16" y1="13" x2="8" y2="13"
-                      line x1="16" y1="17" x2="8" y2="17"
-                span.stat-label = stat[:label]
-                .stat-number-wrap
-                  span.stat-num = stat[:num]
-                  span.stat-unit = stat[:unit]
         .about-right-table
           .profile-table
             - lp_about_rows.each do |row|
@@ -398,6 +375,9 @@
         a href="#flow" 制作の流れ
         a href="#pricing" 料金プラン
         a href="#faq" よくある質問
+        = link_to "プライバシーポリシー", "/privacy"
+        = link_to "利用規約", "/tos"
+        = link_to "特定商取引法に基づく表記", "/specific"
       p.lp-footer-copy = "© #{Time.current.year} Drafity / 株式会社J Work"
 
 script type="application/ld+json"

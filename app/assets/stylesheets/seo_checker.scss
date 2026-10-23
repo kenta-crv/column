@@ -47,8 +47,28 @@
     font-size: 1rem;
     line-height: 1.7;
     color: var(--ink-lt);
+    margin-bottom: 16px;
+    max-width: 40em;
+  }
+
+  .seo-about {
+    max-width: 40em;
     margin-bottom: 28px;
-    max-width: 36em;
+    color: var(--ink-mid);
+    font-size: 0.95rem;
+    line-height: 1.75;
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .seo-section-title {
+      margin-top: 4px;
+    }
+
+    .seo-method-list {
+      margin-bottom: 12px;
+    }
   }
 
   .seo-form {

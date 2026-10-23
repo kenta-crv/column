@@ -108,7 +108,7 @@ class Dashboard::ColumnsController < ApplicationController
                                title: c.title,
                                generated_body: c.generated_body?,
                                published: c.published?,
-                               path: "/columns/#{c.code.presence || c.id}",
+                               path: "/columns/#{c.public_code.presence || c.id}",
                                file_url: c[:file].present? ? c.file.to_s : nil
                              }
                            }

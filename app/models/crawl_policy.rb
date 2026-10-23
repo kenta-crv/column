@@ -56,7 +56,9 @@ module CrawlPolicy
     raw_genre = column.respond_to?(:attributes) && column.attributes.key?("genre") ? column[:genre] : nil
     genre = GenreRegistry.resolve_key(raw_genre).to_s
     genre = GENRE_KEY unless crawlable_genre?(genre)
-    path = "/#{genre}/columns/#{column.code}"
+    slug = column.respond_to?(:public_code) ? column.public_code.presence : nil
+    slug = column.code if slug.blank?
+    path = "/#{genre}/columns/#{slug}"
     column.try(:english_article?) ? "/en#{path}" : path
   end
 

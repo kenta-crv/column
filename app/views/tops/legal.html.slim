@@ -1,0 +1,169 @@
+- en = lp_english?
+- service_name = "Drafity"
+- page_title = { privacy: (en ? "Privacy Policy" : "プライバシーポリシー"), tos: (en ? "Terms of Service" : "利用規約"), specific: (en ? "Specified Commercial Transactions" : "特定商取引法に基づく表記") }.fetch(@legal_page)
+- set_meta_tags title: "#{page_title} | #{service_name}", description: page_title
+
+.drafify-lp
+  nav.nav
+    .nav-inner
+      = link_to locale_root_href do
+        = image_tag drafity_logo_image, width: "150px", alt: service_name
+      .nav-cta
+        = render "shared/lang_switch"
+        = link_to (en ? "Home" : "トップ"), locale_root_href, class: "btn-login"
+
+  main.meetia-legal
+    h1 = page_title
+    - if @legal_page == :specific
+      - if en
+        p This page describes the seller of the paid monthly service #{service_name}, operated by J Work Inc.
+        table
+          tbody
+            tr
+              th Seller
+              td J Work Inc.
+            tr
+              th Operations manager
+              td Kenta Okuyama
+            tr
+              th Address
+              td 2F, 2-2-15 Hamamatsucho, Minato-ku, Tokyo
+            tr
+              th Email
+              td info@j-work.jp
+            tr
+              th Price
+              td The monthly price of each plan is shown on the pricing section and the sign-up screen. Prices are shown before tax. Tax may be added at payment.
+            tr
+              th Extra charges
+              td None
+            tr
+              th Payment method
+              td Credit card
+            tr
+              th When you are charged
+              td The first charge is taken when you subscribe. Later charges are taken on each renewal date.
+            tr
+              th Delivery
+              td The service is available immediately after payment.
+            tr
+              th Returns and cancellation
+              td Returns are not accepted after the service has been provided. You can cancel from the subscription screen after signing in. You can keep using the service until the end of the period already paid. We do not charge for renewals after that date.
+      - else
+        p このページは、株式会社J Workが提供する有料の月額サービス「#{service_name}」の販売条件です。
+        table
+          tbody
+            tr
+              th 販売事業者
+              td 株式会社J Work
+            tr
+              th 運営統括責任者
+              td 奥山　健太
+            tr
+              th 所在地
+              td 東京都港区浜松町２丁目２番１５号２Ｆ
+            tr
+              th メールアドレス
+              td info@j-work.jp
+            tr
+              th 販売価格
+              td 各プランの月額は、当サイトの料金表示とお申し込み画面に記載しています。表示価格は税抜です。決済時に税が加算される場合があります。
+            tr
+              th 商品代金以外の必要料金
+              td なし
+            tr
+              th お支払い方法
+              td クレジットカード
+            tr
+              th 代金の支払い時期
+              td お申し込み時に初回分を決済します。その後は、契約の更新日ごとに月額を決済します。
+            tr
+              th 役務の提供時期
+              td 決済後、すぐにご利用いただけます。
+            tr
+              th 返品・解約
+              td 提供開始後の返品はお受けできません。解約はログイン後の契約画面から行えます。解約後は、すでにお支払いいただいた期間の終了日までご利用いただけます。その日より後の更新料金は請求しません。
+    - elsif @legal_page == :tos
+      - if en
+        h2 1. Scope
+        p These terms govern the use of #{service_name}, provided by J Work Inc. ("we").
+        h2 2. Contract
+        p A contract is formed when you agree to these terms and complete the signup we specify.
+        h2 3. Fees
+        p Paid plans are monthly. The price, what is included, and the trial terms are shown on the pricing section and the sign-up screen. The trial does not charge a card, and it does not turn into a paid plan by itself.
+        h2 4. Prohibited use
+        ul
+          li Do not infringe our intellectual property or anyone else's.
+          li Do not use the service for an unlawful purpose.
+          li Do not disrupt the service or other customers.
+        h2 5. Changes and suspension
+        p We may change or suspend the service. When a change materially affects a paid plan, we will tell account holders in advance where practical.
+        h2 6. Liability
+        p Except in cases of willful misconduct or gross negligence, we are not liable for damages arising from use of the service.
+        h2 7. Court
+        p The Tokyo District Court is the court of first instance for disputes about these terms.
+      - else
+        h2 1. 適用
+        p 本規約は、株式会社J Work（以下「当社」）が提供する「#{service_name}」の利用条件です。
+        h2 2. 契約の成立
+        p お客様が本規約に同意し、当社の定める方法で申し込みを完了したときに、利用契約が成立します。
+        h2 3. 料金
+        p 有料プランは月額です。料金、提供内容、無料トライアルの条件は、当サイトの料金表示とお申し込み画面に記載します。トライアルはカード登録なしで開始でき、終了しても自動では有料プランになりません。
+        h2 4. 禁止事項
+        ul
+          li 当社または第三者の知的財産権を侵害する行為
+          li 法令または公序良俗に反する行為
+          li 本サービスまたは他のお客様の利用を妨げる行為
+        h2 5. 変更・停止
+        p 当社は、本サービスの内容を変更または停止できます。有料プランの内容を大きく変えるときは、実務上可能な範囲で、契約中のお客様にあらかじめ知らせます。
+        h2 6. 責任
+        p 当社の故意または重過失がある場合を除き、本サービスの利用により生じた損害について当社は責任を負いません。
+        h2 7. 管轄
+        p 本規約に関する紛争は、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+    - else
+      - if en
+        h2 1. What we collect
+        p J Work Inc. collects name, company, email, phone number, and access logs as needed to provide #{service_name}.
+        h2 2. Why we use it
+        p We use this information to provide and maintain the service, answer inquiries, confirm identity, improve the service, and send necessary notices.
+        h2 3. Sharing
+        p We do not provide personal information to third parties without consent, except when the law requires it or when it is needed to protect life, body, or property.
+        h2 4. Security
+        p We use encrypted communication and continue to review our safeguards against leakage, loss, and damage.
+        h2 5. Contact
+        p J Work Inc., privacy contact
+        p Email: info@j-work.jp
+      - else
+        h2 1. 取得する情報
+        p 株式会社J Work（以下「当社」）は、「#{service_name}」の提供にあたり、氏名、会社名、メールアドレス、電話番号、アクセスログなどを、必要な範囲で取得します。
+        h2 2. 利用目的
+        p 取得した情報は、サービスの提供・維持、お問い合わせへの回答、本人確認、サービスの改善、必要なご連絡に使います。
+        h2 3. 第三者への提供
+        p 法令に基づく場合、または人の生命・身体・財産を守るために必要な場合を除き、同意なく個人情報を第三者に提供しません。
+        h2 4. 安全管理
+        p 漏えい、滅失、毀損を防ぐため、通信の暗号化を行い、安全管理を続けます。
+        h2 5. お問い合わせ
+        p 株式会社J Work 個人情報お問い合わせ窓口
+        p メールアドレス: info@j-work.jp
+    p
+      = link_to (en ? "Back to home" : "トップへ戻る"), locale_root_href
+
+  footer.lp-footer
+    .lp-footer-inner
+      = link_to locale_root_href, class: "lp-footer-brand" do
+        = image_tag drafity_logo_image, width: "120", alt: service_name
+      nav.lp-footer-nav aria-label=t("drafity.lp.footer_nav")
+        = link_to (en ? "Privacy Policy" : "プライバシーポリシー"), public_legal_href("privacy")
+        = link_to (en ? "Terms of Service" : "利用規約"), public_legal_href("tos")
+        = link_to (en ? "Legal notice" : "特定商取引法に基づく表記"), public_legal_href("specific")
+      p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)
+
+style
+  |
+    .meetia-legal{max-width:860px;margin:0 auto;padding:120px 24px 72px;color:#0f172a;background:#fff}
+    .meetia-legal h1{font-size:1.8rem;margin:0 0 20px}
+    .meetia-legal h2{font-size:1.05rem;margin:28px 0 8px}
+    .meetia-legal p,.meetia-legal li{line-height:1.8}
+    .meetia-legal table{width:100%;border-collapse:collapse}
+    .meetia-legal th,.meetia-legal td{border-bottom:1px solid #e2e8f0;padding:12px 8px;text-align:left;vertical-align:top}
+    .meetia-legal th{width:34%}

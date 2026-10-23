@@ -66,6 +66,51 @@ class ColumnTest < ActiveSupport::TestCase
     refute Column.weak_seo_code?(slug)
   end
 
+  test "numbered operations slugs publish under a descriptive path and stay reachable" do
+    rollout = Column.create!(
+      title: "AI面接導入のロードマップ",
+      article_type: "cluster",
+      genre: "other",
+      status: "draft",
+      code: "ai-interview-operations-2"
+    )
+    rules = Column.create!(
+      title: "AI面接データを選考基準に反映する運用ルール",
+      article_type: "cluster",
+      genre: "other",
+      status: "draft",
+      code: "ai-interview-operations-3"
+    )
+
+    assert_equal "ai-interview-rollout-schedule", rollout.public_code
+    assert_equal "ai-interview-selection-criteria-rules", rules.public_code
+    assert_equal rollout.id, Column.find_by_param("ai-interview-rollout-schedule").id
+    assert_equal rules.id, Column.find_by_param("ai-interview-selection-criteria-rules").id
+    assert_equal rollout.id, Column.find_by_param("ai-interview-operations-2").id
+    assert Column.code_taken?("ai-interview-rollout-schedule")
+  end
+
+  test "trailing UUID suffix is stripped from the public code and still finds the article" do
+    suffix = "29e6707c-b832-4c3a-8f44-5f8de8f26f9f"
+    column = Column.create!(
+      title: "Inquiry form sales",
+      article_type: "pillar",
+      genre: "other",
+      status: "draft",
+      code: "inquiry-form-sales-effectiveness-#{suffix}"
+    )
+
+    assert Column.trailing_uuid_code?(column.code)
+    assert_equal "inquiry-form-sales-effectiveness", column.public_code
+    assert_equal column.id, Column.find_by_param("inquiry-form-sales-effectiveness").id
+
+    column.persist_seo_code!(column.public_code)
+
+    assert_equal "inquiry-form-sales-effectiveness", column.reload.code
+    assert_equal column.id, Column.find_by_param(column.code).id
+    assert_equal column.id, Column.find_by_param("inquiry-form-sales-effectiveness-#{suffix}").id
+  end
+
   test "persist_seo_code! keeps the old UUID findable and uses a unique slug" do
     uuid = "596b52d3-7d5f-46c8-8abb-92d3612d94ab"
     taken = Column.create!(title: "Taken slug", article_type: "pillar", genre: "other", status: "draft", code: "ai-interview-care")

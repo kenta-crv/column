@@ -174,7 +174,12 @@ class ApplicationController < ActionController::Base
       path.start_with?("/clients/password") ||
       path.start_with?("/clients/auth") ||
       (path == "/clients" && !client_signed_in?) ||
+      legal_public_path?(path) ||
       public_genre_columns_path?(path)
+  end
+
+  def legal_public_path?(path)
+    %w[/privacy /tos /specific].include?(path.to_s.split("?", 2).first)
   end
 
   # /ai_article/columns など公開記事一覧・詳細。
@@ -320,9 +325,12 @@ class ApplicationController < ActionController::Base
     return column_path(column) if columns_manage_view?
 
     genre_key = (GenreRegistry.resolve_key(column.genre, client: column.client) || column.genre).to_s
-    return column_path(column) unless routable_public_genre_key?(genre_key)
+    unless routable_public_genre_key?(genre_key)
+      slug = column.public_code.presence || column.code.presence || column.id
+      return "/columns/#{slug}"
+    end
 
-    id = column.code.presence || column.id
+    id = column.public_code.presence || column.code.presence || column.id
     locale = (locale.presence || Column.normalize_language(column.language)).to_s
     if locale == "en"
       localized_columns_show_path(locale: :en, genre: genre_key, id: id)

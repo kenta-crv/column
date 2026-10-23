@@ -14,7 +14,7 @@
         <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
           <h2 style="font-size: 1.25rem; margin: 0 0 12px 0; font-weight: bold; line-height: 1.4;">
             <% # 💡 codeを最優先、なければidを使用するリンク先端口 %>
-            <% link_target = column.code.presence || column.id %>
+            <% link_target = column.public_code.presence || column.code.presence || column.id %>
             <a href="?column=<%= link_target %>" style="color: #007bff; text-decoration: none;"><%= column.title %></a>
           </h2>
           

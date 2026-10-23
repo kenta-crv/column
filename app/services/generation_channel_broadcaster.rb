@@ -15,7 +15,7 @@ module GenerationChannelBroadcaster
       title: column.title,
       generated_body: column.generated_body?,
       published: column.published?,
-      path: "/columns/#{column.code.presence || column.id}",
+      path: "/columns/#{column.public_code.presence || column.id}",
       file_url: column[:file].present? ? column.file.to_s : nil
     }
   end

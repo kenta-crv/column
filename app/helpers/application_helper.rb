@@ -301,6 +301,19 @@ module ApplicationHelper
     english_ui? ? localized_plans_path(locale: :en) : plans_path
   end
 
+  def public_legal_href(page)
+    case page.to_s
+    when "privacy"
+      english_ui? ? localized_privacy_path(locale: :en) : privacy_path
+    when "tos"
+      english_ui? ? localized_tos_path(locale: :en) : tos_path
+    when "specific"
+      english_ui? ? localized_specific_path(locale: :en) : specific_path
+    else
+      locale_root_href
+    end
+  end
+
   def select_plan_path_for_locale
     english_ui? ? localized_select_plan_path(locale: :en) : select_plan_path
   end

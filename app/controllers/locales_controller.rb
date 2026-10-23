@@ -66,6 +66,7 @@ class LocalesController < ApplicationController
       clean.start_with?("/clients/sign_in") ||
       clean.start_with?("/clients/sign_up") ||
       clean.start_with?("/clients/password") ||
+      legal_public_path?(clean) ||
       public_genre_columns_path?(clean)
   end
 end

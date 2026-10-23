@@ -118,7 +118,8 @@ module ColumnsHelper
   def public_related_column_path(column)
     return "#" unless column&.code.present?
 
-    platform_host? ? public_column_show_path(column) : "/columns/#{column.code}"
+    slug = column.public_code.presence || column.code
+    platform_host? ? public_column_show_path(column) : "/columns/#{slug}"
   end
 
   def column_image_src(column)

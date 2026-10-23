@@ -225,6 +225,27 @@ class ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to columns_show_path(genre: CrawlPolicy::GENRE_KEY, id: column.code)
   end
 
+  test "brand host public show 301s a slug with a trailing UUID to the slug without it" do
+    suffix = "fb994e66-4617-4210-8561-ec6f07ba0dfa"
+    column = Column.create!(
+      title: "BtoB PDCA",
+      article_type: "pillar",
+      genre: "ai_interview",
+      status: "completed",
+      code: "btob-eigyou-kaizen-pdca-#{suffix}",
+      body: "# Hello\n\nPublished body for trailing UUID redirect.",
+      published_at: Time.current,
+      language: "ja"
+    )
+
+    host! "recrivo.pro"
+    get "/columns/#{column.code}"
+
+    assert_response :moved_permanently
+    assert_equal "/columns/btob-eigyou-kaizen-pdca", response.redirect_url.sub(%r{\Ahttps?://[^/]+}, "")
+    assert_equal "btob-eigyou-kaizen-pdca", column.reload.code
+  end
+
   test "brand host public show 301s historic UUID to /columns/slug" do
     old_code = "3b6f5603-315f-49ef-a1f3-d50385a65a76"
     column = Column.create!(

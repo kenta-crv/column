@@ -103,6 +103,9 @@ Rails.application.routes.draw do
     get "plans", to: "plans#index", as: :localized_plans
     post "plans/select", to: "plans#select", as: :localized_select_plan
     get "tops", to: "tops#index", as: :localized_tops
+    get "privacy", to: "tops#privacy", as: :localized_privacy
+    get "tos", to: "tops#tos", as: :localized_tos
+    get "specific", to: "tops#specific", as: :localized_specific
     get "tools/seo-checker", to: "seo_checkers#show", as: :localized_seo_checker
     post "tools/seo-checker", to: "seo_checkers#create"
 
@@ -163,6 +166,9 @@ Rails.application.routes.draw do
 
   root to: 'tops#index'
 
+  get "privacy", to: "tops#privacy"
+  get "tos", to: "tops#tos"
+  get "specific", to: "tops#specific"
   get "/overseas", to: "tops#overseas_seo", as: :overseas_seo
   get "/overseas-seo", to: redirect("/overseas", status: 301)
 

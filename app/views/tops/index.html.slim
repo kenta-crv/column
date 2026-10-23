@@ -8,7 +8,7 @@
       = link_to locale_root_href
         = image_tag drafity_logo_image, width: "150px", alt: "Drafity"
       .nav-links
-        a href="#features" = t("drafity.lp.nav_features")
+        a href="#whats" = t("drafity.lp.nav_features")
         a href="#features" = t("drafity.lp.nav_functions")
         a.active href="#pricing" = t("drafity.lp.nav_pricing")
         a href="#cases" = t("drafity.lp.nav_cases")
@@ -65,7 +65,7 @@
           span.trust-logo = logo
 
 
-  section.whats-section
+  section.whats-section#whats
    .whats-inner
     .section-header
       span.overline = t("drafity.lp.whats_overline")
@@ -524,7 +524,10 @@
                     svg viewBox="0 0 16 16" fill="none"
                       path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                     = feature
-              = link_to plan[:cta_text], client_sign_up_path_for_locale, class: "plan-cta #{cta_class}"
+              - if plan[:key] == :enterprise
+                = mail_to "info@j-work.jp", plan[:cta_text], subject: (lp_english? ? "Drafity Enterprise inquiry" : "Drafity エンタープライズのご相談"), class: "plan-cta #{cta_class}"
+              - else
+                = link_to plan[:cta_text], client_sign_up_path_for_locale, class: "plan-cta #{cta_class}"
         button.pricing-scroll-btn.pricing-scroll-next type="button" aria-label=t("drafity.lp.pricing_next") onclick="scrollPricing(1)"
           svg viewBox="0 0 24 24" fill="none"
             path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -598,12 +601,6 @@
                 .vc-footer-note = v[:footer]
 
       .voices-summary-banner
-        .vsb-satisfaction
-          .vsb-sat-title = t("drafity.lp.voices_sat_title")
-          .vsb-sat-num 98%
-          .vsb-sat-stars ★★★★★
-          .vsb-sat-note = t("drafity.lp.voices_sat_note")
-        .vsb-divider
         .vsb-industries
           h3.vsb-ind-title = t("drafity.lp.voices_ind_title")
           .vsb-ind-grid
@@ -720,29 +717,6 @@
             = t("drafity.lp.about_catch_2")
             span.text-accent = t("drafity.lp.about_catch_3")
           p.about-text = t("drafity.lp.about_text")
-          .about-stats-row
-            - lp_about_stats.each do |stat|
-              .stat-box
-                .stat-icon-wrap
-                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    - if stat[:type] == "shop"
-                      path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
-                      line x1="3" y1="6" x2="21" y2="6"
-                      path d="M16 10a4 4 0 0 1-8 0"
-                    - elsif stat[:type] == "team"
-                      path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                      circle cx="9" cy="7" r="4"
-                      path d="M23 21v-2a4 4 0 0 0-3-3.87"
-                      path d="M16 3.13a4 4 0 0 1 0 7.75"
-                    - elsif stat[:type] == "doc"
-                      path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                      polyline points="14 2 14 8 20 8"
-                      line x1="16" y1="13" x2="8" y2="13"
-                      line x1="16" y1="17" x2="8" y2="17"
-                span.stat-label = stat[:label]
-                .stat-number-wrap
-                  span.stat-num = stat[:num]
-                  span.stat-unit = stat[:unit]
         .about-right-table
           .profile-table
             - lp_about_rows.each do |row|
@@ -773,6 +747,9 @@
         a href="#pricing" = t("drafity.lp.footer_pricing")
         a href="#faq" = t("drafity.lp.footer_faq")
         = link_to t("drafity.lp.footer_start"), client_sign_up_path_for_locale
+        = link_to (lp_english? ? "Privacy Policy" : "プライバシーポリシー"), public_legal_href("privacy")
+        = link_to (lp_english? ? "Terms of Service" : "利用規約"), public_legal_href("tos")
+        = link_to (lp_english? ? "Legal notice" : "特定商取引法に基づく表記"), public_legal_href("specific")
       p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)
 
 

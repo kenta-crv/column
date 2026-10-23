@@ -16,6 +16,11 @@ module TopsHelper
     I18n.locale.to_s == "en"
   end
 
+  def public_legal_href(page)
+    prefix = lp_english? ? "/en" : ""
+    "#{prefix}/#{page}"
+  end
+
   def ai_article_columns_index_path
     lp_english? ? "/en#{AI_ARTICLE_COLUMNS_INDEX}" : AI_ARTICLE_COLUMNS_INDEX
   end
@@ -54,13 +59,13 @@ module TopsHelper
     if lp_english?
       [
         { class: "icon-lightning", title: "Ship faster", desc: "Articles in minutes" },
-        { class: "icon-shield", title: "SEO-strong", desc: "Built around Google intent" },
-        { class: "icon-growth", title: "SEO content at scale", desc: "Grow content marketing equity" }
+        { class: "icon-shield", title: "SEO-strong", desc: "Built around Google's quality guidelines" },
+        { class: "icon-growth", title: "Steady publishing", desc: "Grow content marketing equity" }
       ]
     else
       [
         { class: "icon-lightning", title: "制作スピード向上", desc: "最短数分で記事完成" },
-        { class: "icon-shield", title: "SEOに強い", desc: "Googleに準ずる設計" },
+        { class: "icon-shield", title: "SEOに強い", desc: "Googleの評価基準を踏まえた設計" },
         { class: "icon-growth", title: "企業のWeb資産化", desc: "オウンドメディアを増量" }
       ]
     end
@@ -92,13 +97,13 @@ module TopsHelper
     if lp_english?
       [
         { num: "01", title: "Pillar–cluster structure", desc: "A parent pillar plus child clusters that comprehensively cover the topic.", img: "icon1.png" },
-        { num: "02", title: "E-E-A-T ready", desc: "High-precision content that meets experience, expertise, authority, and trust.", img: "icon2.png" },
+        { num: "02", title: "E-E-A-T aware", desc: "Experience comes from human review. AI drafts help show expertise, authority, and trust.", img: "icon2.png" },
         { num: "03", title: "User first", desc: "Not just promotion — articles that solve real reader problems for your theme.", img: "icon3.png" }
       ]
     else
       [
         { num: "01", title: "ピラー・クラスター構造", desc: "ピラー記事（親）とそれを網羅するクラスター記事（子）の網羅的な記事構成。", img: "icon1.png" },
-        { num: "02", title: "E-E-A-Tへの適応", desc: "経験・専門性・権威性・信頼性を満たした高精度なコンテンツ。", img: "icon2.png" },
+        { num: "02", title: "E-E-A-Tを意識した構成", desc: "経験は人の監修で補います。専門性・権威性・信頼性が伝わる下地を、AIの構成で整えます。", img: "icon2.png" },
         { num: "03", title: "ユーザーファースト", desc: "単なる宣伝ではなく、サイトテーマに準じた読者の課題を解決する役立つ記事。", img: "icon3.png" }
       ]
     end
@@ -163,8 +168,8 @@ module TopsHelper
           ]
         },
         {
-          num: "03", title: "Auto body writing", desc: "Natural prose from AI — SEO-ready articles for marketing teams, at volume.",
-          editor_p1: "An AI SEO content agent cuts production time while helping teams ship higher-quality pillar and cluster content at scale.",
+          num: "03", title: "Auto body writing", desc: "AI drafts natural prose. People review it so marketing sites can keep a steady quality.",
+          editor_p1: "An AI SEO content agent cuts drafting time. People still review the copy before a marketing site publishes it.",
           editor_p2: "This guide covers planning, writing, quality scoring, and publishing workflows for SEO content operations."
         },
         {
@@ -202,7 +207,7 @@ module TopsHelper
           headings: %w[AI記事生成ツールとは？ AI記事生成ツールを使うメリット おすすめのAI記事生成ツール 選び方のポイント まとめ]
         },
         {
-          num: "03", title: "本文の自動生成", desc: "自然な文章をAIが生成。法人サイト向けの高品質な記事を短時間で量産。",
+          num: "03", title: "本文の自動生成", desc: "自然な文章をAIが下書きします。人が監修し、法人サイトの品質を保ったまま継続発信できます。",
           editor_p1: "AI記事生成ツールは、記事制作の工数を大幅に削減し、高品質なコンテンツを効率的に作成できるツールです。",
           editor_p2: "本記事では、AI記事生成ツールの特徴やメリット、選び方のポイントを詳しく解説します。"
         },
@@ -276,7 +281,7 @@ module TopsHelper
           avatar_class: "avatar-editor", badge_class: "badge-cyan", badge_text: "Editorial studio",
           name: "Agency director", stars: "★★★★★", rating: "5.0",
           quote: "“Writer QC became dramatically smoother.”",
-          body: "Quality varied by writer. Drafity’s outlines and five-axis quality scores help us ship consistent content at volume.",
+          body: "Quality varied by writer. Drafity’s outlines and five-axis quality scores help us publish consistent content on a steady cadence.",
           metrics: [
             { type: "shield", label: "Edit / proof time", val_class: "val-down", val: "-45%" },
             { type: "chart", label: "Monthly deliveries", val_class: "val-up", val: "+180%" }
@@ -323,7 +328,7 @@ module TopsHelper
           avatar_class: "avatar-editor", badge_class: "badge-cyan", badge_text: "編集プロダクション",
           name: "受託制作 ディレクター", stars: "★★★★★", rating: "5.0",
           quote: "「外注ライターの品質管理が極めてスムーズに。」",
-          body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と品質スコア（5軸）により、均一で高品質なコンテンツを安定量産できています。",
+          body: "ライターごとに品質のばらつきがあるのが大きな課題でしたが、Drafityの構成案と品質スコア（5軸）により、均一で高品質なコンテンツを安定して公開できています。",
           metrics: [
             { type: "shield", label: "編集・校正時間", val_class: "val-down", val: "-45%" },
             { type: "chart", label: "月間納品本数", val_class: "val-up", val: "+180%" }
@@ -435,7 +440,7 @@ module TopsHelper
 
   FAQ_ITEMS_EN = [
     # service
-    { category: "service", q: "What is Drafity?", a: "An AI SEO Content Platform for marketing and SEO teams—pillar/cluster planning, article and image generation, quality scoring, and publishing via embed/API/Webhooks in one place. Think of it as an AI SEO Content Agent that runs your SEO content engine at scale." },
+    { category: "service", q: "What is Drafity?", a: "An AI SEO Content Platform for marketing and SEO teams—pillar/cluster planning, article and image generation, quality scoring, and publishing via embed/API/Webhooks in one place. People review drafts before publish." },
     { category: "service", q: "How is the quality score calculated?", a: "AI scores structure, SEO, readability, usefulness, and originality. Review scores in the list and edit in the editor after generation." },
     { category: "service", q: "Can I close the browser while generating?", a: "Yes. Generation continues server-side. On Business+, autonomous runs also email you when complete." },
     { category: "service", q: "How do I publish to my site?", a: "Use embed.js (one script tag), JSON API sync, or Webhooks. HTML/text export is also available. API requires Standard+. There is no WordPress-only one-click publisher." },
@@ -466,28 +471,12 @@ module TopsHelper
     lp_english? ? FAQ_ITEMS_EN : FAQ_ITEMS
   end
 
-  def lp_about_stats
-    if lp_english?
-      [
-        { type: "shop", label: "Customer satisfaction", num: "97.5", unit: "%" },
-        { type: "team", label: "Adopting companies", num: "500", unit: "+" },
-        { type: "doc", label: "Articles generated", num: "10k", unit: "+" }
-      ]
-    else
-      [
-        { type: "shop", label: "顧客満足度", num: "97.5", unit: "%" },
-        { type: "team", label: "累計導入社数", num: "500", unit: "+社" },
-        { type: "doc", label: "累計生成記事数", num: "1", unit: "万記事+" }
-      ]
-    end
-  end
-
   def lp_about_rows
     if lp_english?
       [
         { th: "Company", td: "J Work Inc.", html: false },
         { th: "CEO", td: "Kenta Okuyama", html: false },
-        { th: "Founded", td: "August 22, 2023", html: false },
+        { th: "Founded", td: "August 18, 2023", html: false },
         { th: "Capital", td: "JPY 5,000,000", html: false },
         { th: "Address", td: "2F, 2-2-15 Hamamatsucho, Minato-ku, Tokyo", html: true },
         { th: "Business", td: "Development and delivery of Drafity, an AI SEO Content Platform<br>Media & content marketing support", html: true }
@@ -496,7 +485,7 @@ module TopsHelper
       [
         { th: "会社名", td: "株式会社J Work", html: false },
         { th: "代表取締役", td: "奥山　健太", html: false },
-        { th: "設立", td: "2023年8月22日", html: false },
+        { th: "設立", td: "2023年8月18日", html: false },
         { th: "資本金", td: "5,000,000円", html: false },
         { th: "所在地", td: "東京都港区浜松町２丁目２番１５号２Ｆ", html: true },
         { th: "事業内容", td: "AI記事生成SaaS「Drafity」の開発・提供<br>メディア支援・コンテンツマーケティング支援", html: true }

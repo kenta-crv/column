@@ -568,12 +568,17 @@ class ColumnsController < ApplicationController
     return unless @column&.publicly_visible?
     return if @column.code.blank?
 
+    if Column.trailing_uuid_code?(@column.code)
+      clean = Column.strip_trailing_uuid(@column.code)
+      @column.persist_seo_code!(clean) if clean.present?
+    end
+
     wanted = Column.normalize_language(@column.language)
     canonical =
       if platform_host?
         public_column_show_path(@column, locale: wanted)
       else
-        "/columns/#{@column.code}"
+        "/columns/#{@column.public_code}"
       end
     return if request.path == canonical
 
@@ -633,7 +638,8 @@ class ColumnsController < ApplicationController
   end
 
   def consumer_column_show_path(column)
-    return "/columns/#{column.code}" if !platform_host? && column.code.present?
+    slug = column.public_code.presence || column.code
+    return "/columns/#{slug}" if !platform_host? && slug.present?
 
     public_column_show_path(column)
   end

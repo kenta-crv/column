@@ -33,9 +33,12 @@ javascript:
   = yahoo_ads_conversion_tags
 
 - if respond_to?(:href_for_locale) && !public_column_article_page?
-  link rel="alternate" hreflang="ja" href="#{request.base_url}#{href_for_locale(:ja)}"
-  link rel="alternate" hreflang="en" href="#{request.base_url}#{href_for_locale(:en)}"
-  link rel="alternate" hreflang="x-default" href="#{request.base_url}#{href_for_locale(:ja)}"
+  - ja_alt = href_for_locale(:ja).to_s
+  - en_alt = href_for_locale(:en).to_s
+  - if !ja_alt.include?("/locale/") && !en_alt.include?("/locale/")
+    link rel="alternate" hreflang="ja" href="#{request.base_url}#{ja_alt}"
+    link rel="alternate" hreflang="en" href="#{request.base_url}#{en_alt}"
+    link rel="alternate" hreflang="x-default" href="#{request.base_url}#{ja_alt}"
 
 - if defined?(breadcrumbs) && breadcrumbs.respond_to?(:any?) && breadcrumbs.any?
   script type="application/ld+json"

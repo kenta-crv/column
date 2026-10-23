@@ -180,7 +180,7 @@ class Api::V1::ArticlesController < ApplicationController
       description: column.description,
       genre: column.genre,
       sub_genre: column.sub_genre,
-      code: column.code,
+      code: column.public_code.presence || column.code,
       keyword: column.keyword,
       language: column.language,
       status: column.status,

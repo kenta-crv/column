@@ -7,7 +7,7 @@
       = link_to locale_root_href
         = image_tag drafity_logo_image, width: "150px", alt: "Drafity"
       .nav-links
-        = link_to t("drafity.lp.nav_features"), "#{locale_root_href}#features"
+        = link_to t("drafity.lp.nav_features"), "#{locale_root_href}#whats"
         = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale, class: "active"
         = link_to t("drafity.lp.nav_columns"), ai_article_columns_index_path
         = link_to t("drafity.lp.nav_pricing"), "#{locale_root_href}#pricing"
@@ -21,6 +21,16 @@
       p.seo-brand Drafity
       h1.seo-title = t("drafity.seo_checker.title")
       p.seo-lead = t("drafity.seo_checker.lead")
+      .seo-about
+        p = t("drafity.seo_checker.about_body")
+        h2.seo-section-title = t("drafity.seo_checker.about_checks_title")
+        ul.seo-method-list
+          li = t("drafity.seo_checker.about_check_content")
+          li = t("drafity.seo_checker.about_check_basic")
+          li = t("drafity.seo_checker.about_check_specificity")
+          li = t("drafity.seo_checker.about_check_cluster")
+        p = t("drafity.seo_checker.about_not")
+        p = t("drafity.seo_checker.about_when")
 
       = form_with url: seo_checker_submit_path_for_locale, method: :post, local: true, html: { class: "seo-form" } do
         label.seo-label for="seo-url" = t("drafity.seo_checker.url_label")
@@ -238,4 +248,7 @@
         = link_to t("drafity.seo_checker.nav_label"), seo_checker_path_for_locale
         = link_to t("drafity.lp.footer_articles"), ai_article_columns_index_path
         = link_to t("drafity.lp.footer_start"), client_sign_up_path_for_locale
+        = link_to (lp_english? ? "Privacy Policy" : "プライバシーポリシー"), public_legal_href("privacy")
+        = link_to (lp_english? ? "Terms of Service" : "利用規約"), public_legal_href("tos")
+        = link_to (lp_english? ? "Legal notice" : "特定商取引法に基づく表記"), public_legal_href("specific")
       p.lp-footer-copy = t("drafity.lp.footer_copy", year: Time.current.year)
