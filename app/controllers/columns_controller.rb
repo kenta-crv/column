@@ -573,14 +573,22 @@ class ColumnsController < ApplicationController
       @column.persist_seo_code!(clean) if clean.present?
     end
 
+    slug = @column.public_code.to_s
+    return if slug.blank?
+
     wanted = Column.normalize_language(@column.language)
     canonical =
       if platform_host?
         public_column_show_path(@column, locale: wanted)
       else
-        "/columns/#{@column.public_code}"
+        "/columns/#{slug}"
       end
-    return if request.path == canonical
+    path = request.path.to_s.sub(%r{/+\z}, "")
+    canonical_path = canonical.to_s.sub(%r{\Ahttps?://[^/]+}, "").sub(%r{/+\z}, "")
+    return if path == canonical_path
+    # ブランド側の nginx は /genre/columns/:slug をブラウザの /columns/:slug に揃える。
+    # アプリが見ている path がジャンル付きでも、末尾が公開スラッグなら再転送しない。
+    return if !platform_host? && path.split("/").reject(&:blank?).last == slug
 
     redirect_to canonical, status: :moved_permanently
   end

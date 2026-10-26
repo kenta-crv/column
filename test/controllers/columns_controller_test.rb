@@ -265,4 +265,45 @@ class ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_response :moved_permanently
     assert_equal "/columns/#{column.code}", response.redirect_url.sub(%r{\Ahttps?://[^/]+}, "")
   end
+
+  test "brand host does not redirect when nginx already shows the public slug" do
+    column = Column.create!(
+      title: "Canonical interview article",
+      article_type: "pillar",
+      genre: "ai_interview",
+      status: "completed",
+      code: "already-canonical-interview-slug",
+      body: "# Hello\n\nPublished body.",
+      published_at: Time.current,
+      language: "ja"
+    )
+
+    host! "recrivo.pro"
+    get "/ai_interview/columns/#{column.code}"
+    assert_response :ok
+
+    get "/columns/#{column.code}"
+    assert_response :ok
+  end
+
+  test "brand host sends the numbered operations slug to the descriptive path once" do
+    column = Column.create!(
+      title: "AI面接導入のロードマップ",
+      article_type: "cluster",
+      genre: "ai_interview",
+      status: "completed",
+      code: "ai-interview-operations-2",
+      body: "# Hello\n\nPublished roadmap.",
+      published_at: Time.current,
+      language: "ja"
+    )
+
+    host! "recrivo.pro"
+    get "/ai_interview/columns/ai-interview-operations-2"
+    assert_response :moved_permanently
+    assert_equal "/columns/ai-interview-rollout-schedule", response.redirect_url.sub(%r{\Ahttps?://[^/]+}, "")
+
+    get "/ai_interview/columns/ai-interview-rollout-schedule"
+    assert_response :ok
+  end
 end
