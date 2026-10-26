@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   get "/robots.txt", to: "robots#show"
   get "/sitemap.xml", to: "sitemaps#show"
+  # 各ブランドの nginx は /remote-assets/ を drafity の /assets_ok/ へ渡す。
+  # コンパイル済みファイルの実体は public/assets にある。
+  get "/assets_ok/*path", to: "public_asset_fallbacks#show", format: false
 
   devise_for :admins, skip: [:registrations], controllers: {
     sessions: "admins/sessions",

@@ -17,7 +17,12 @@ Rails.application.configure do
   # and those relying on copy on write to perform better.
   # Rake tasks automatically ignore this option for performance.
   config.eager_load = true
-  config.assets.prefix = '/assets_ok'
+  config.assets.prefix = "/assets_ok"
+  # 配信先は /assets_ok だが、既存のダイジェスト一覧は public/assets に残っている。
+  # マニフェストを読まないと stylesheet_link_tag が本番で落ちる。
+  assets_ok_manifest = Dir[Rails.root.join("public/assets_ok/.sprockets-manifest-*.json")].max_by { |path| File.mtime(path) }
+  legacy_manifest = Dir[Rails.root.join("public/assets/.sprockets-manifest-*.json")].max_by { |path| File.mtime(path) }
+  config.assets.manifest = assets_ok_manifest || legacy_manifest if assets_ok_manifest || legacy_manifest
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
