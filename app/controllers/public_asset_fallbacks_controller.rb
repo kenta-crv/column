@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class PublicAssetFallbacksController < ActionController::Base
+  # ブランドサイト経由の .js は別オリジン扱いになり、CSRF 検証が 422 を返す。
+  skip_forgery_protection
+
   def show
     relative = relative_asset_path
     file = locate_asset(relative)

@@ -9,12 +9,15 @@ class PublicAssetFallbacksControllerTest < ActionDispatch::IntegrationTest
     FileUtils.mkdir_p(@assets_dir)
     FileUtils.mkdir_p(@assets_ok_dir)
     @legacy_css = @assets_dir.join("fallback-test-asset.css")
+    @legacy_js = @assets_dir.join("fallback-test-asset.js")
     @prefixed_css = @assets_ok_dir.join("fallback-test-asset.css")
     File.write(@legacy_css, "body{color:#123456}")
+    File.write(@legacy_js, "console.log('ok')")
   end
 
   teardown do
     FileUtils.rm_f(@legacy_css)
+    FileUtils.rm_f(@legacy_js)
     FileUtils.rm_f(@prefixed_css)
   end
 
@@ -33,6 +36,14 @@ class PublicAssetFallbacksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "body{color:#abcdef}", response.body
+  end
+
+  test "serves javascript from another site origin" do
+    get "/assets_ok/fallback-test-asset.js", headers: { "Origin" => "https://j-work.jp" }
+
+    assert_response :success
+    assert_equal "text/javascript", response.media_type
+    assert_equal "console.log('ok')", response.body
   end
 
   test "missing asset is not found" do
