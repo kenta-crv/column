@@ -7,6 +7,8 @@ class TopsControllerTest < ActionDispatch::IntegrationTest
     get overseas_seo_path
 
     assert_response :success
+    assert_match "/images/overseas-hero-bg.webp", response.body
+    assert_match "/overseas-seo.css", response.body
     assert_match "98,000", response.body
     assert_match "海外SEO", response.body
     assert_match "検索エンジン最適化", response.body

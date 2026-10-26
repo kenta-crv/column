@@ -1,11 +1,14 @@
 require "sitemap_generator"
 
 class CrawlableSitemap
-  SITEMAP_PATH = Rails.root.join("public", "sitemap.xml")
+  # nginx は public/ の同名ファイルを Rails より先に返す。
+  # 生成物を public に置くと、古い2URLのまま更新されなくなる。
+  SITEMAP_DIR = Rails.root.join("tmp", "sitemaps")
+  SITEMAP_PATH = SITEMAP_DIR.join("sitemap.xml")
 
   def self.refresh!
     if Rails.env.development?
-      raise "public/sitemap.xml は RAILS_ENV=production で生成してください。development の SQLite で上書きすると件数がずれます。"
+      raise "サイトマップは RAILS_ENV=production で生成してください。development の SQLite で作ると件数がずれます。"
     end
 
     composition = CrawlPolicy.composition
@@ -13,9 +16,11 @@ class CrawlableSitemap
     puts message
     Rails.logger.info(message)
 
+    FileUtils.mkdir_p(SITEMAP_DIR)
+
     SitemapGenerator::Sitemap.default_host = CrawlPolicy::SITEMAP_HOST
     SitemapGenerator::Sitemap.compress = false
-    SitemapGenerator::Sitemap.public_path = Rails.public_path.to_s
+    SitemapGenerator::Sitemap.public_path = SITEMAP_DIR.to_s
     SitemapGenerator::Sitemap.sitemaps_path = ""
     SitemapGenerator::Sitemap.include_root = false
     SitemapGenerator::Sitemap.include_index = false

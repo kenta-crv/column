@@ -113,6 +113,7 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     assert_includes xml, "https://drafity.pro#{CrawlPolicy::OVERSEAS_SEO_PATH}</loc>"
     assert_includes xml, "https://drafity.pro#{CrawlPolicy.column_path(column)}</loc>"
     refute_includes xml, "This XML file does not appear to have any style information"
+    refute CrawlableSitemap::SITEMAP_PATH.to_s.start_with?(Rails.public_path.to_s)
 
     loc_count = xml.scan("<loc>").size
     assert_equal CrawlPolicy::STATIC_PATHS.size + CrawlPolicy.crawlable_columns.count, loc_count
