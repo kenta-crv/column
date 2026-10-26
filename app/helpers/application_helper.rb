@@ -322,6 +322,107 @@ module ApplicationHelper
     english_ui? ? "logo2-en.png" : "logo2.png"
   end
 
+  # ブランドの /columns は nginx が Host を drafity.pro にしてプロキシする。
+  # ブラウザ側のホストは X-Forwarded-Host に入る。
+  GOOGLE_ANALYTICS_MEASUREMENT_IDS = {
+    "drafity.pro" => "G-T2EEN55SZ1",
+    "localhost" => "G-T2EEN55SZ1",
+    "127.0.0.1" => "G-T2EEN55SZ1",
+    "j-work.jp" => "G-1PSQHCJF86",
+    "kurasera.life" => "G-CCZ47DWBCY",
+    "meetia.pro" => "G-YCZ141VD12",
+    "okey.work" => "G-SZLWY1TPZF",
+    "okurite.pro" => "G-E4V9G3H3D5",
+    "recrivo.pro" => "G-YZVT6M6CNF",
+    "xn--new351c2sh.net" => "G-8TH2BJHDNP",
+    "自販機.net" => "G-8TH2BJHDNP"
+  }.freeze
+
+  def google_analytics_measurement_id
+    return if google_analytics_excluded_request?
+
+    GOOGLE_ANALYTICS_MEASUREMENT_IDS[google_analytics_request_host]
+  end
+
+  def google_analytics_enabled?
+    google_analytics_measurement_id.present?
+  end
+
+  def google_analytics_request_host
+    forwarded = request.headers["X-Forwarded-Host"].to_s.split(",").first.to_s.strip
+    host = forwarded.presence || request.host.to_s
+    host.downcase.sub(/\Awww\./, "").sub(/:\d+\z/, "")
+  end
+
+  def google_analytics_excluded_request?
+    return true if google_analytics_management_path?
+
+    google_analytics_admin_callback?
+  end
+
+  def google_analytics_management_path?
+    segments = request.path.to_s.split("/").reject(&:blank?)
+    return false if segments.empty?
+
+    root = segments[0]
+    child = segments[1].to_s
+    return false if google_analytics_public_auth_path?(root, child)
+    return false if root == "users" && child == "thanks"
+
+    google_analytics_excluded_roots.include?(root)
+  end
+
+  def google_analytics_public_auth_path?(root, child)
+    return false unless %w[admins clients users workers].include?(root)
+
+    %w[sign_in sign_up password cancel confirmation unlock].include?(child)
+  end
+
+  def google_analytics_excluded_roots
+    %w[
+      dashboard admin admins call_batches customers calls
+      dial_scripts dial_utterances dial_faqs dial_unknown_utterances
+      sidekiq submissions form_submissions clients users
+    ]
+  end
+
+  def google_analytics_admin_callback?
+    filters = %i[
+      authenticate_admin!
+      check_admin
+      authenticate_admin_or_client!
+      authenticate_any!
+      require_admin!
+      authorize_client_record!
+    ]
+    controller.class._process_action_callbacks.any? do |callback|
+      next false unless callback.kind == :before
+      next false unless filters.include?(callback.filter)
+
+      google_analytics_callback_applies?(callback)
+    end
+  rescue StandardError
+    false
+  end
+
+  def google_analytics_callback_applies?(callback)
+    ifs = Array(callback.instance_variable_get(:@if))
+    unlesses = Array(callback.instance_variable_get(:@unless))
+    ifs.all? { |condition| google_analytics_condition_met?(condition) } &&
+      unlesses.none? { |condition| google_analytics_condition_met?(condition) }
+  end
+
+  def google_analytics_condition_met?(condition)
+    case condition
+    when Symbol, String
+      controller.__send__(condition)
+    when Proc
+      condition.arity.zero? ? controller.instance_exec(&condition) : condition.call(controller)
+    else
+      true
+    end
+  end
+
   def yahoo_ads_conversion_tags
     <<~HTML.html_safe
       <script async>

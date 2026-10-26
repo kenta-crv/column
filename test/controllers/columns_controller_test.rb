@@ -306,4 +306,75 @@ class ColumnsControllerTest < ActionDispatch::IntegrationTest
     get "/ai_interview/columns/ai-interview-rollout-schedule"
     assert_response :ok
   end
+
+  test "public article pages use the analytics id of the requesting site" do
+    host! "drafity.pro"
+    get root_path
+    assert_response :success
+    assert_includes response.body, "gtag/js?id=G-T2EEN55SZ1"
+    assert_includes response.body, "gtag('config', 'G-T2EEN55SZ1')"
+
+    {
+      "j-work.jp" => "G-1PSQHCJF86",
+      "kurasera.life" => "G-CCZ47DWBCY",
+      "meetia.pro" => "G-YCZ141VD12",
+      "okey.work" => "G-SZLWY1TPZF",
+      "okurite.pro" => "G-E4V9G3H3D5",
+      "recrivo.pro" => "G-YZVT6M6CNF",
+      "www.recrivo.pro" => "G-YZVT6M6CNF",
+      "xn--new351c2sh.net" => "G-8TH2BJHDNP",
+      "自販機.net" => "G-8TH2BJHDNP"
+    }.each do |forwarded_host, measurement_id|
+      get root_path, headers: { "X-Forwarded-Host" => forwarded_host }
+      assert_response :success
+      assert_includes response.body, "gtag/js?id=#{measurement_id}"
+      assert_includes response.body, "gtag('config', '#{measurement_id}')"
+      assert_not_includes response.body, "G-T2EEN55SZ1"
+    end
+
+    column = Column.create!(
+      title: "Okurite analytics article",
+      article_type: "pillar",
+      genre: "app",
+      status: "completed",
+      code: "okurite-analytics-#{SecureRandom.hex(3)}",
+      body: "# Hello\n\nPublished body for analytics.",
+      published_at: Time.current,
+      language: "ja"
+    )
+    get "/app/columns/#{column.code}", headers: { "X-Forwarded-Host" => "okurite.pro" }
+    assert_response :success
+    assert_includes response.body, "gtag('config', 'G-E4V9G3H3D5')"
+    assert_not_includes response.body, "G-T2EEN55SZ1"
+
+    recrivo_column = Column.create!(
+      title: "Recrivo analytics article",
+      article_type: "pillar",
+      genre: "ai_interview",
+      status: "completed",
+      code: "recrivo-analytics-#{SecureRandom.hex(3)}",
+      body: "# Hello\n\nPublished body for analytics.",
+      published_at: Time.current,
+      language: "ja"
+    )
+    get "/ai_interview/columns/#{recrivo_column.code}", headers: { "X-Forwarded-Host" => "recrivo.pro" }
+    assert_response :success
+    assert_includes response.body, "gtag('config', 'G-YZVT6M6CNF')"
+    assert_not_includes response.body, "G-T2EEN55SZ1"
+  end
+
+  test "signed-in admin screens do not load analytics" do
+    admin = create_admin!
+    host! "drafity.pro"
+    sign_in admin
+
+    get contracts_path
+    assert_response :success
+    assert_not_includes response.body, "googletagmanager.com/gtag/js"
+    assert_not_includes response.body, "G-T2EEN55SZ1"
+
+    get new_contract_path
+    assert_response :success
+    assert_includes response.body, "gtag('config', 'G-T2EEN55SZ1')"
+  end
 end
