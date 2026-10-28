@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_10_101833) do
+ActiveRecord::Schema.define(version: 2026_10_27_120000) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -129,6 +129,7 @@ ActiveRecord::Schema.define(version: 2026_09_10_101833) do
     t.json "evaluation_metrics", default: "\"\\\"\\\\\\\"{}\\\\\\\"\\\"\""
     t.integer "client_id"
     t.datetime "published_at"
+    t.datetime "content_updated_at"
     t.string "generation_mode", default: "default", null: false
     t.string "own_service_key"
     t.string "language", default: "ja", null: false
@@ -141,6 +142,7 @@ ActiveRecord::Schema.define(version: 2026_09_10_101833) do
     t.index ["language"], name: "index_columns_on_language"
     t.index ["own_service_key"], name: "index_columns_on_own_service_key"
     t.index ["parent_id"], name: "index_columns_on_parent_id"
+    t.index ["content_updated_at"], name: "index_columns_on_content_updated_at"
     t.index ["published_at"], name: "index_columns_on_published_at"
     t.index ["service_type"], name: "index_columns_on_service_type"
   end

@@ -28,7 +28,7 @@ module ColumnsHelper
       },
       article: {
         published_time: column.published_at&.iso8601,
-        modified_time: column.updated_at&.iso8601,
+        modified_time: column.content_updated_at&.iso8601,
         section: column.genre_label.presence
       }
     }
@@ -82,7 +82,7 @@ module ColumnsHelper
       "description" => column_seo_description(column),
       "inLanguage" => column_json_ld_language(column),
       "datePublished" => column.published_at&.iso8601,
-      "dateModified" => column.updated_at&.iso8601,
+      "dateModified" => column.content_updated_at&.iso8601,
       "mainEntityOfPage" => {
         "@type" => "WebPage",
         "@id" => page_url

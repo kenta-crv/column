@@ -126,7 +126,7 @@ class Column < ApplicationRecord
   # 一覧用: body 全文を転送せず、有無フラグだけ付与する
   LIST_SELECT_COLUMNS = %w[
     id title description file code genre sub_genre article_type parent_id
-    published_at created_at updated_at quality_score evaluation_metrics
+    published_at created_at updated_at content_updated_at quality_score evaluation_metrics
     generation_mode generation_status status client_id keyword language
   ].freeze
 
@@ -269,6 +269,9 @@ class Column < ApplicationRecord
   after_create :record_client_article_creation!
 
   WEBHOOK_RELEVANT_ATTRIBUTES = %w[title body description genre sub_genre code keyword status article_type].freeze
+  # 見出しは本文（Markdown）の中にある。品質採点や生成状態の保存では動かさない。
+  CONTENT_TIMESTAMP_ATTRIBUTES = %w[title body].freeze
+  before_save :stamp_content_updated_at
 
   after_commit :notify_webhook_on_create, on: :create
   after_commit :notify_webhook_on_update, on: :update
@@ -696,7 +699,29 @@ class Column < ApplicationRecord
     }
   end
 
+  def update_columns(attributes)
+    attrs = attributes.stringify_keys
+    if content_timestamp_attributes_changed?(attrs)
+      attrs["content_updated_at"] = Time.current
+    end
+    super(attrs)
+  end
+
   private
+
+  def stamp_content_updated_at
+    return unless CONTENT_TIMESTAMP_ATTRIBUTES.any? { |name| will_save_change_to_attribute?(name) }
+
+    self.content_updated_at = Time.current
+  end
+
+  def content_timestamp_attributes_changed?(attrs)
+    CONTENT_TIMESTAMP_ATTRIBUTES.any? do |name|
+      next false unless attrs.key?(name)
+
+      attrs[name].to_s != self[name].to_s
+    end
+  end
 
   def notify_webhook_on_create
     return if client_id.blank?

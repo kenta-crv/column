@@ -118,4 +118,43 @@ class CrawlableSitemapTest < ActiveSupport::TestCase
     loc_count = xml.scan("<loc>").size
     assert_equal CrawlPolicy::STATIC_PATHS.size + CrawlPolicy.crawlable_columns.count, loc_count
   end
+
+  test "article lastmod uses content_updated_at and static pages omit lastmod" do
+    older = create_published!(
+      title: "古い記事",
+      body: "# 古い見出し\n\n本文",
+      code: "sm-old-#{SecureRandom.hex(3)}"
+    )
+    newer = create_published!(
+      title: "新しい記事",
+      body: "# 新しい見出し\n\n本文",
+      code: "sm-new-#{SecureRandom.hex(3)}"
+    )
+    older.update_columns(content_updated_at: Time.zone.parse("2020-01-15 09:00:00"))
+    newer.update_columns(content_updated_at: Time.zone.parse("2024-06-02 08:00:00"))
+
+    CrawlableSitemap.refresh!
+    urls = sitemap_url_lastmods(CrawlableSitemap::SITEMAP_PATH.read)
+    host = CrawlPolicy::SITEMAP_HOST
+
+    assert_includes urls.fetch("#{host}#{CrawlPolicy.column_path(older)}"), "2020-01-15"
+    assert_includes urls.fetch("#{host}#{CrawlPolicy.column_path(newer)}"), "2024-06-02"
+    refute_equal urls["#{host}#{CrawlPolicy.column_path(older)}"], urls["#{host}#{CrawlPolicy.column_path(newer)}"]
+
+    assert urls.key?(host)
+    assert_nil urls[host]
+    assert_nil urls["#{host}#{CrawlPolicy::SEO_CHECKER_PATH}"]
+
+    expected = CrawlableSitemap.listing_lastmod(CrawlPolicy::GENRE_KEY, "ja")
+    index_lastmod = urls.fetch("#{host}/#{CrawlPolicy::GENRE_KEY}/columns")
+    assert_includes index_lastmod, expected.in_time_zone.strftime("%Y-%m-%d")
+  end
+
+  def sitemap_url_lastmods(xml)
+    document = Nokogiri::XML(xml)
+    document.remove_namespaces!
+    document.css("url").each_with_object({}) do |node, result|
+      result[node.at_css("loc").text] = node.at_css("lastmod")&.text
+    end
+  end
 end

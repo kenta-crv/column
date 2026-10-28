@@ -1,6 +1,7 @@
 require "test_helper"
 
 class ColumnTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::TimeHelpers
   def create_trial_client
     Client.create!(
       email: "trial-#{SecureRandom.hex(4)}@example.com",
@@ -233,5 +234,43 @@ class ColumnTest < ActiveSupport::TestCase
     refute column.generated_body?
     refute_includes Column.publicly_listed.pluck(:id), column.id
     refute_includes Column.pending_review.pluck(:id), column.id
+  end
+
+  test "content_updated_at moves only when title or body changes" do
+    column = nil
+    travel_to Time.zone.parse("2026-01-01 00:00:00") do
+      column = Column.create!(
+        title: "元タイトル",
+        body: "# 最初の見出し\n\n本文",
+        genre: "other",
+        code: "content-stamp-#{SecureRandom.hex(4)}",
+        article_type: "cluster",
+        status: "completed",
+        published_at: Time.zone.parse("2024-03-01 09:00:00")
+      )
+    end
+
+    assert_equal Time.zone.parse("2026-01-01 00:00:00").to_i, column.reload.content_updated_at.to_i
+
+    travel_to Time.zone.parse("2026-02-01 00:00:00") do
+      column.update!(quality_score: 18.0, generation_status: "completed", status: "completed")
+      column.update_columns(generation_status: "idle")
+    end
+    assert_equal Time.zone.parse("2026-01-01 00:00:00").to_i, column.reload.content_updated_at.to_i
+
+    travel_to Time.zone.parse("2026-03-01 00:00:00") do
+      column.update!(title: "新しいタイトル")
+    end
+    assert_equal Time.zone.parse("2026-03-01 00:00:00").to_i, column.reload.content_updated_at.to_i
+
+    travel_to Time.zone.parse("2026-04-01 00:00:00") do
+      column.update!(body: "# 直した見出し\n\n本文")
+    end
+    assert_equal Time.zone.parse("2026-04-01 00:00:00").to_i, column.reload.content_updated_at.to_i
+
+    travel_to Time.zone.parse("2026-05-01 00:00:00") do
+      column.update_columns(body: "# さらに直した見出し\n\n本文")
+    end
+    assert_equal Time.zone.parse("2026-05-01 00:00:00").to_i, column.reload.content_updated_at.to_i
   end
 end

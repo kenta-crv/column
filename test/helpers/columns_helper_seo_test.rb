@@ -58,7 +58,8 @@ class ColumnsHelperSeoTest < ActionView::TestCase
       description: "説明文",
       genre: "AI商談代行",
       published_at: Time.zone.parse("2026-07-20 10:00:00"),
-      updated_at: Time.zone.parse("2026-07-21 11:00:00")
+      updated_at: Time.zone.parse("2026-07-21 11:00:00"),
+      content_updated_at: Time.zone.parse("2024-02-02 12:00:00")
     )
     column.define_singleton_method(:file) { FakeFile.new("/uploads/column/file/1.jpg") }
 
@@ -69,6 +70,7 @@ class ColumnsHelperSeoTest < ActionView::TestCase
     assert_equal "Meetia", data["author"]["name"]
     assert_equal "Meetia", data["publisher"]["name"]
     assert data["datePublished"].present?
+    assert_equal Time.zone.parse("2024-02-02 12:00:00").iso8601, data["dateModified"]
     assert_equal ["https://meetia.pro/uploads/column/file/1.jpg"], data["image"]
   end
 end

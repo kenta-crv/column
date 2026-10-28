@@ -67,7 +67,7 @@
               - @columns.each do |column|
                 tr
                   td
-                    = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false }
+                    = link_to column.title, public_column_show_path(column), class: "article-link", data: { turbo: false, content_updated_at: column.content_updated_at&.iso8601 }
                   td = column.genre_label.presence || column.genre.presence || "—"
                   - if params[:article_type] == "pillar"
                     td = t("drafity.columns.index.child_count", count: (@child_counts&.[](column.id) || 0))
@@ -116,7 +116,7 @@
                 .row.pillar-article-item
                   .col-12.col-md-9.info-container
                     h3.column-title
-                      = link_to column.title, public_column_show_path(column), data: { turbo: false }
+                      = link_to column.title, public_column_show_path(column), data: { turbo: false, content_updated_at: column.content_updated_at&.iso8601 }
 
       - elsif @columns.present?
         .columns-grid
@@ -129,7 +129,7 @@
                   .no-image style="background:#eee; aspect-ratio:16/9; border-radius:8px 8px 0 0; display:flex; align-items:center; justify-content:center; color:#999;" No Image
               .column-content
                 h2.column-title
-                  = link_to column.title, public_column_show_path(column), data: { turbo: false }
+                  = link_to column.title, public_column_show_path(column), data: { turbo: false, content_updated_at: column.content_updated_at&.iso8601 }
                 - if column.description.present?
                   .column-description
                     = truncate(strip_tags(column.description), length: 120)
