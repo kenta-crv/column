@@ -13,6 +13,8 @@ Rails.application.configure do
   config.hosts << "meetia.pro"
   config.hosts << "www.meetia.pro"
   config.hosts << "xn--new351c2sh.net" # 自販機.net
+  config.hosts << "secruri-camera.pro"
+  config.hosts << "www.secruri-camera.pro"
   config.hosts << "127.0.0.1" if ENV["RAILS_ALLOWED_HOST"] == "localhost"
   config.hosts << "localhost" if ENV["RAILS_ALLOWED_HOST"] == "localhost"  # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
