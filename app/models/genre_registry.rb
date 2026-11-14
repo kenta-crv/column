@@ -511,6 +511,29 @@ module GenreRegistry
         }
       }
     },
+    security_camera: {
+      ja: "防犯カメラ",
+      en: "Security cameras",
+      host: ["secruri-camera.pro"],
+      service_name: "防犯カメラ一括見積",
+      columns_index_description: "企業・施設向け防犯カメラの選定、見積、施工、保守に関する解説記事一覧。機種の選び方、導入の流れ、料金の考え方をまとめています。",
+      strong_points: "選定から施工まで窓口ひとつ。複数機種を比較し、機器費・工事費・保守費に分けた見積を無料でご提示します。",
+      keywords: ["防犯カメラ", "防犯カメラ 見積", "防犯カメラ 施工", "企業 防犯カメラ", "施設 防犯カメラ"],
+      sub_categories: {
+        quote_install: {
+          name: "一括見積・施工",
+          name_en: "Bulk quote and installation",
+          target: "オフィス、工場、店舗、駐車場、病院、学校などへ防犯カメラを導入したい企業・施設の担当者",
+          description: "設置場所と目的に合うカメラを選定し、現地調査から施工・設定・保守まで一括で代行する。",
+          features: ["見積無料", "複数機種の比較提案", "現地調査", "施工・設定", "導入後の保守相談"],
+          keywords: ["防犯カメラ 一括見積", "防犯カメラ 施工", "ドーム型カメラ", "バレット型カメラ", "PTZカメラ"],
+          price_hint: "カメラ1台 20,000円〜／工事費 1台あたり 30,000円〜（税別の目安）",
+          area: "全国対応",
+          strengths: "機器の手配と工事を別々に頼む必要がなく、窓口ひとつで比較しやすい見積を受け取れる。",
+          industry_weakness: "機種が多く選びにくく、業者ごとに見積の取り方も違うため比較に手間がかかりやすい。"
+        }
+      }
+    },
     overseas_seo: {
       ja: "海外SEO",
       en: "Overseas SEO",
