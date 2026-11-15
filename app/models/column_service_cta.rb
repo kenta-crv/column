@@ -39,7 +39,7 @@ class ColumnServiceCta
       title: "選定から施工まで、無料で見積を依頼",
       lead: "複数のカメラを比較し、機器費・工事費・保守費に分けてご提示します。企業・施設の導入に対応します。",
       cta_label: "無料で見積を依頼する",
-      path: "/#contact",
+      path: "/",
       en: {
         title: "Get a free quote from selection to installation",
         lead: "Compare camera types and see equipment, installation, and maintenance costs separately.",
