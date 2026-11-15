@@ -514,7 +514,7 @@ module GenreRegistry
     security_camera: {
       ja: "防犯カメラ",
       en: "Security cameras",
-      host: ["secruri-camera.pro"],
+      host: ["security-camera.pro"],
       service_name: "防犯カメラ一括見積",
       columns_index_description: "企業・施設向け防犯カメラの選定、見積、施工、保守に関する解説記事一覧。機種の選び方、導入の流れ、料金の考え方をまとめています。",
       strong_points: "選定から施工まで窓口ひとつ。複数機種を比較し、機器費・工事費・保守費に分けた見積を無料でご提示します。",

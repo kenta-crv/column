@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# 防犯カメラ一括見積（secruri-camera.pro）向けジャンルを追加する。
+# 防犯カメラ一括見積（security-camera.pro）向けジャンルを追加する。
 class AddSecurityCameraGenre < ActiveRecord::Migration[6.1]
   def up
     return unless table_exists?(:service_genres)
