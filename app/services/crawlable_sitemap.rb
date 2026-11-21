@@ -35,6 +35,7 @@ class CrawlableSitemap
       add "/", changefreq: "weekly", priority: 1.0, lastmod: nil
       add CrawlPolicy::SEO_CHECKER_PATH, changefreq: "weekly", priority: 0.8, lastmod: nil
       add CrawlPolicy::OVERSEAS_SEO_PATH, changefreq: "weekly", priority: 0.9, lastmod: nil
+      add CrawlPolicy::DEVELOPMENT_PATH, changefreq: "weekly", priority: 0.9, lastmod: nil
       add "/en", changefreq: "weekly", priority: 0.9, lastmod: nil
       add "/en#{CrawlPolicy::SEO_CHECKER_PATH}", changefreq: "weekly", priority: 0.7, lastmod: nil
       add "/#{CrawlPolicy::GENRE_KEY}/columns", changefreq: "daily", priority: 0.9, lastmod: ja_article_lastmod

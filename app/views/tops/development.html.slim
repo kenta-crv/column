@@ -1,0 +1,485 @@
+- set_meta_tags title: "初期費用0円の受託開発 | Drafity"
+- set_meta_tags description: "初期費用0円で始めるDrafityの受託開発。Webサービスや社内業務システムをオーダーメイドで開発し、保守・運用込みの月額制で貴社のシステムとしてご利用いただけます。"
+
+.drafify-lp.overseas-seo-lp.development-lp
+  nav.nav
+    .nav-inner
+      = link_to development_path do
+        = image_tag drafity_logo_image, width: "150px", alt: "Drafity"
+      .nav-links
+        a href="#service" サービス内容
+        a href="#scope" 対応範囲
+        a href="#flow" 導入の流れ
+        a href="#pricing" 料金
+        a href="#faq" よくある質問
+      .nav-cta
+        = link_to "相談する", "#consult", class: "btn-primary"
+
+  section.hero
+    .hero-inner
+      .hero-copy
+        .hero-eyebrow
+          span.eyebrow-badge 受託開発
+          span.eyebrow-text システムの導入ご検討中の企業様へ
+        h1.hero-title
+          | 初期費用
+          span.num 0円
+          br
+          | オーダーメイドシステムを
+          br
+          | 御社専用で開発
+        p.hero-desc
+          | Webサービスや社内業務システムを、御社専門に開発します。御社の事業に適したシステムを導入できます。
+
+      .hero-visual
+        = image_tag "hero-bg.webp", alt: "Drafityの管理画面", class: "hero-img"
+
+      .hero-cards
+        .hero-checks
+          - ["初期費用0円", "月額制システム提供", "保守・メンテナンス込み"].each do |check|
+            span.check-pill
+              svg viewBox="0 0 14 14" fill="none"
+                path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+              = check
+
+      .hero-cta-block
+        .hero-actions
+          = link_to "開発の相談をする", "#consult", class: "btn-primary-lg"
+          a.btn-ghost.btn-purple href="#pricing" 料金の仕組みを見る
+
+  section.whats-section#service
+    .whats-inner
+      .section-header
+        span.overline SERVICE
+        h2.section-title
+          | システム開発に初期費用はもう不要
+          br
+          | オーダーメイドシステムを月額導入
+        p.whats-lead-text
+          | 高額な着手金や一括払いは不要です。Drafityが貴社専用のシステムを開発し、公開後は貴社ブランドや社内システムとしてそのまま運用いただけます。
+
+      .whats-intro-block
+        .whats-intro-left
+          .whats-features-row
+            - features = [{ class: "icon-lightning", title: "初期費用0円", desc: "開発スタート時のまとまった一時金はかかりません。" }, { class: "icon-growth", title: "月額で自社運用", desc: "完成したシステムを、貴社のサービスや業務基盤として利用できます。" }, { class: "icon-shield", title: "保守・運用込み", desc: "公開後の稼働維持や不具合対応も、毎月の利用料に含まれています。" }]
+            - features.each do |wf|
+              .whats-feature-pill
+                .wfp-icon class=wf[:class]
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    - if wf[:class] == "icon-lightning"
+                      polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+                    - elsif wf[:class] == "icon-shield"
+                      path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                    - else
+                      line x1="18" y1="20" x2="18" y2="10"
+                      line x1="12" y1="20" x2="12" y2="4"
+                      line x1="6" y1="20" x2="6" y2="14"
+                .wfp-body
+                  h4.wfp-title = wf[:title]
+                  p.wfp-desc = wf[:desc]
+
+        .whats-intro-right
+          .whats-mockup-container
+            .whats-laptop-img
+              = image_tag "whats.png", alt: "Drafityの管理画面"
+
+  section.features-strip#scope
+    .features-inner
+      .section-header
+        span.overline SCOPE
+        h2.section-title
+          | 業務やサービスにフィットする
+          br
+          | Webシステムを柔軟に開発
+        p.section-sub 顧客向けのWebサービスから社内の業務システムまで、ブラウザで動くシステム全般に対応します。なお、ネイティブのスマホアプリや工場・機器制御、大規模基幹システムの全面刷新は標準対象外ですが、ご要望に応じて対応可否を個別にご案内します。
+
+      .features-scroll-wrap
+        button.features-scroll-btn.features-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('#scope .features-grid', -1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .features-grid
+          - scopes = [{ num: "01", icon: "monitor", title: "顧客向けWebサービス", desc: "会員登録、予約・申し込み、情報掲載、問い合わせなど、顧客とつながるWeb機能を一貫して構築します。" }, { num: "02", icon: "calendar", title: "予約・受付システム", desc: "空き状況の確認から予約受付、自動返信・通知までを一つの画面にまとめ、手作業を減らします。" }, { num: "03", icon: "users", title: "顧客管理システム（CRM）", desc: "顧客データや案件の進捗、対応履歴を一元管理し、チーム全員が同じ最新情報を共有できるようにします。" }, { num: "04", icon: "layout", title: "社内業務・管理画面", desc: "日々の入力・確認・承認といったExcelやメール中心の業務を、使いやすいWeb画面へ一本化します。" }, { num: "05", icon: "pen", title: "既存システムの改修", desc: "運用中のWebシステムに対する「あと少し機能が欲しい」「画面が使いづらい」といった改善にも対応します。" }, { num: "06", icon: "shield", title: "公開後の保守・運用", desc: "システム公開後の安定稼働を支えるメンテナンスや、万が一の不具合対応も月額内で継続サポートします。" }]
+          - scopes.each do |item|
+            article.feature-card
+              .fc-top
+                .fc-head-row
+                  .fc-num = item[:num]
+                  .fc-icon
+                    svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      - if item[:icon] == "monitor"
+                        rect x="3" y="4" width="18" height="12" rx="2"
+                        line x1="8" y1="20" x2="16" y2="20"
+                        line x1="12" y1="16" x2="12" y2="20"
+                      - elsif item[:icon] == "calendar"
+                        rect x="3" y="5" width="18" height="16" rx="2"
+                        line x1="3" y1="10" x2="21" y2="10"
+                        line x1="8" y1="3" x2="8" y2="7"
+                        line x1="16" y1="3" x2="16" y2="7"
+                      - elsif item[:icon] == "users"
+                        path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"
+                        circle cx="9" cy="7" r="3"
+                        path d="M23 21v-2a4 4 0 0 0-3-3.87"
+                        path d="M16 3.13a4 4 0 0 1 0 7.75"
+                      - elsif item[:icon] == "layout"
+                        rect x="3" y="3" width="18" height="18" rx="2"
+                        line x1="3" y1="9" x2="21" y2="9"
+                        line x1="9" y1="21" x2="9" y2="9"
+                      - elsif item[:icon] == "pen"
+                        path d="M12 20h9"
+                        path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                      - else
+                        path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                  h3.fc-title = item[:title]
+                p.fc-desc = item[:desc]
+        button.features-scroll-btn.features-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('#scope .features-grid', 1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+
+  section.problem-section
+    .problem-inner
+      .section-header
+        span.overline SITUATION
+        h2.section-title
+          | システム開発で、こんな
+          span.text-highlight-blue 課題
+          | を抱えていませんか？
+        .section-dots
+          span
+          span
+          span
+
+      .problem-scroll-wrap
+        button.problem-scroll-btn.problem-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('.problem-grid', -1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .problem-grid
+          - problems = [{ icon: "calc", text: "見積書を開いた時点で、開発が止まる", desc: "着手金が先に並ぶと、必要なシステムほど後回しになる。" }, { icon: "bell", text: "公開した月から、保守が見積もりになる", desc: "不具合や画面の微調整のたびに、開発費とは別の請求が届く。" }, { icon: "search", text: "頼む会社が増えるほど、現場がつなぐ", desc: "サイト、予約、管理画面が別々だと、データの受け渡しも社内の仕事になる。" }, { icon: "chart", text: "ツールは入ったのに、手順は残る", desc: "自社の流れやブランドに合わない画面は、結局使われない。" }, { icon: "clock", text: "「ついでに」が、追加開発になる", desc: "作る範囲を先に切らないと、契約のあとに機能と費用が膨らむ。" }, { icon: "shield", text: "納品の日に、直し先がなくなる", desc: "公開後の不具合を、また別の会社へ一から頼むことになる。" }]
+          - problems.each do |p|
+            .problem-card-item
+              .pci-meta
+                .pci-visual-icon class="icon-#{p[:icon]}"
+                  svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    - if p[:icon] == "calc"
+                      rect x="5" y="2" width="14" height="20" rx="2" ry="2"
+                      line x1="8" y1="6" x2="16" y2="6"
+                      line x1="16" y1="10" x2="16" y2="18"
+                    - elsif p[:icon] == "search"
+                      circle cx="11" cy="11" r="8"
+                      line x1="21" y1="21" x2="16.65" y2="16.65"
+                    - elsif p[:icon] == "chart"
+                      line x1="18" y1="20" x2="18" y2="10"
+                      line x1="12" y1="20" x2="12" y2="4"
+                      line x1="6" y1="20" x2="6" y2="14"
+                    - elsif p[:icon] == "clock"
+                      circle cx="12" cy="12" r="10"
+                      polyline points="12 6 12 12 16 14"
+                    - elsif p[:icon] == "shield"
+                      path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                    - else
+                      path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                      path d="M13.73 21a2 2 0 0 1-3.46 0"
+              .pci-content
+                .pci-check-line
+                  span.pci-check-box
+                  p.pci-check-text = p[:text]
+                p.pci-description = p[:desc]
+        button.problem-scroll-btn.problem-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('.problem-grid', 1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+
+      .solution-arrow
+        svg viewBox="0 0 24 24" fill="currentColor"
+          path d="M12 21l-12-18h24z"
+
+      .solution-banner-box
+        .sb-content-left
+          .sb-headline-row
+            span.sb-lead-text 初期費用0円だから安心発注
+            span.sb-badge-tag 月額制・保守込み
+          .sb-brand-row
+            .sb-logo-mark
+              svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                polyline points="14 2 14 8 20 8"
+                line x1="16" y1="13" x2="8" y2="13"
+                line x1="16" y1="17" x2="8" y2="17"
+                polyline points="10 9 9 9 8 9"
+            h3.sb-brand-name Drafity
+            span.sb-suffix-text が
+            span.sb-gradient-action 開発から保守まで
+            span.sb-suffix-text 一貫して伴走します。
+        .sb-mockup-right
+          .sb-dashboard-wrapper
+          .sb-deco-icon.deco-sparkle
+            svg viewBox="0 0 24 24" fill="currentColor"
+              path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"
+          .sb-deco-icon.deco-chat
+            svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          .sb-deco-icon.deco-chart
+            svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              line x1="18" y1="20" x2="18" y2="10"
+              line x1="12" y1="20" x2="12" y2="4"
+              line x1="6" y1="20" x2="6" y2="14"
+
+  section.pricing-section#pricing
+    .pricing-inner
+      .section-header
+        span.overline PRICING
+        h2.section-title
+          | 初期費用０円。
+          br
+          | 月額費用は開発範囲に合わせてご提案します
+        p.section-sub 必要な機能や保守の規模は案件によって異なるため、一律の定価は設けていません。消費税の扱いも含め、お見積書にて明確にご案内します。
+      .pricing-solo
+        .plan-card.popular.plan-card--solo
+          .popular-badge 初期費用なし
+          .plan-solo-main
+            .plan-name.accent 月額制 受託開発
+            .plan-desc 開発開始時の一時金は不要です。完成したシステムを、毎月の利用料で貴社のシステムとしてお使いいただけます。
+            .plan-price
+              .plan-price-main
+                span.price-yen 初期費用
+                span.price-num 0
+                span.price-unit 円
+              p.plan-price-note 月額利用料は、開発範囲のお打ち合わせ後にご提示します。
+            = link_to "開発の相談をする", "#consult", class: "plan-cta filled"
+          ul.plan-features
+            - ["着手時の初期費用は0円", "Webサービス・管理画面・業務システムに対応", "貴社名義のサービス・社内基盤として運用可能", "公開後の保守・メンテナンス費用も月額に込み", "別途費用が発生する作業は着手前に明確化"].each do |feature|
+              li
+                svg viewBox="0 0 16 16" fill="none"
+                  path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                = feature
+
+  section.faq-section#faq
+    .faq-inner
+      .section-header
+        span.overline FAQ
+        h2.section-title よくある質問
+        p.section-sub 料金体系や対応範囲、契約・保守について、よくいただくご質問をまとめました。
+      .faq-search
+        input.faq-search__input type="search" placeholder="キーワードで検索（例：初期費用、保守、月額）" data-faq-search=""
+        svg.faq-search__icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+          circle cx="11" cy="11" r="8"
+          line x1="21" y1="21" x2="16.65" y2="16.65"
+      .faq-layout data-faq-root=""
+        nav.faq-categories aria-label="質問の分類"
+          h3 分類
+          - faq_categories = [["service", "サービス内容", "comments"], ["pricing", "料金", "yen"], ["usage", "契約と保守", "chart"]]
+          - faq_categories.each_with_index do |(key, label, icon_type), idx|
+            button.faq-categories__btn type="button" class=("is-active" if idx.zero?) data-faq-category=key
+              span.faq-cat-icon
+                svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  - if icon_type == "comments"
+                    path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                  - elsif icon_type == "yen"
+                    line x1="12" y1="2" x2="12" y2="22"
+                    path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                  - else
+                    line x1="18" y1="20" x2="18" y2="10"
+                    line x1="12" y1="20" x2="12" y2="4"
+                    line x1="6" y1="20" x2="6" y2="14"
+              span = label
+              svg.faq-cat-chevron viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                polyline points="9 18 15 12 9 6"
+        .faq-panel
+          - faqs = [{ category: "service", q: "どのようなシステムを開発できますか？", a: "ブラウザ上で動作するWebシステムが中心です。顧客向けのWebサービスや予約・受付システム、顧客・案件管理、社内の業務管理画面、既存Webシステムの改修など幅広く対応しています。なお、アプリストア向けのネイティブアプリや工場・機器の制御、基幹システムの全面刷新は標準対象外ですが、内容によっては対応可能な場合もございますのでお気軽にご相談ください。" }, { category: "service", q: "完成したシステムは自社のものとして使えますか？", a: "はい。月額の利用料で、貴社のサービスや社内業務システムとしてそのまま運用いただけます。お客様や社員の方々には、貴社名義のシステムとしてご利用いただく形です。契約終了時のシステムやデータの取り扱いについては、ご契約前に個別の条件として詳しくご案内いたします。" }, { category: "service", q: "画面のデザインも開発に含まれますか？", a: "はい、業務やサービスで使いやすい画面設計・デザインも含まれています。すでにお持ちのロゴやブランドカラーがあれば、ご相談時にお知らせください。" }, { category: "service", q: "社内にエンジニアがいなくても依頼できますか？", a: "はい、もちろん可能です。設計から開発・運用までDrafityが一貫して担当しますので、貴社には「誰がどう使うか」「業務の流れに合っているか」といった点をご確認いただくだけで進められます。" }, { category: "service", q: "スマートフォンからも使えますか？", a: "はい。スマートフォンのブラウザからも快適に操作できるレスポンシブデザインで制作します。ただし、App StoreやGoogle Playで配信するネイティブアプリの開発は標準の範囲に含まれません。" }, { category: "service", q: "他社が作ったシステムの改修や引き継ぎも頼めますか？", a: "公開中のWebシステムへの機能追加や、使いにくい画面の改善などに対応しています。現在のシステム構成を確認させていただいたうえで、対応可能な範囲をご回答します。" }, { category: "service", q: "Excelやメールで行っている業務をシステム化できますか？", a: "はい、得意としている領域です。日々の入力・確認・承認などをExcelやメールで回している場合、それらをWeb上の管理画面へ一本化し、業務負担を減らす開発を行います。" }, { category: "pricing", q: "初期費用は本当に0円ですか？", a: "はい、開発開始時の初期費用は一切いただきません。お支払いいただくのは、完成したシステムを貴社のシステムとしてご利用いただくための月額利用料のみです。" }, { category: "pricing", q: "月額利用料はいくらになりますか？", a: "開発する機能の規模によって異なるため、一律の固定額は設けておりません。ヒアリング後に、月額料金とそこにどこまでの作業が含まれるかを明確にご案内します。ドメイン・サーバー・外部API利用料など、第三者への実費が発生する場合は月額とは分けてご説明します。" }, { category: "pricing", q: "相談や要件の整理に費用はかかりますか？", a: "いいえ、本ページからのご相談および開発範囲のご提案は無料です。内容にご納得いただいて契約するまで費用は発生しません。" }, { category: "pricing", q: "運用開始後に機能を追加すると月額は変わりますか？", a: "当初の合意範囲を超える新機能の追加は、内容を確認したうえで別途お見積もりいたします。月額に含まれる保守作業と、追加費用となる開発の線引きは着手前に書面で明確にします。" }, { category: "pricing", q: "月額の支払いはいつから始まりますか？", a: "お支払い開始のタイミングは案件の進め方によって異なります。開発着手前の書面にて、課金開始時期と月額に含まれる内容を明記してご案内します。" }, { category: "usage", q: "保守・メンテナンスはどこまで月額に含まれますか？", a: "公開後のシステムの安定稼働に向けた維持管理や、不具合発生時の修正対応が含まれます。新機能の追加や大幅な仕様変更など別途対応となる作業については、着手前の書面にてあらかじめ基準をご案内します。" }, { category: "usage", q: "契約期間の縛りはありますか？", a: "一律の最低契約期間は設けておりません。契約期間や途中解約の条件については、案件の内容に合わせてご契約前に書面で確認いたします。" }, { category: "usage", q: "開発の途中で仕様を変更することはできますか？", a: "実際の画面をご確認いただきながら進めますので、当初の合意範囲内での細かな調整はその場で柔軟に対応します。範囲を大きく超える変更が必要な場合は、別途ご相談のうえご案内します。" }, { category: "usage", q: "導入時の操作説明はしてもらえますか？", a: "はい。公開のタイミングで、現場の担当者様やご利用者が迷わず使い始められるよう操作説明を行います。" }, { category: "usage", q: "不具合が起きたときはどこへ連絡すればよいですか？", a: "公開後のサポート窓口は、着手前の書面にてあらかじめ取り決めます。不具合への対応は月額の保守範囲内で速やかに行います。" }, { category: "usage", q: "解約したあと、蓄積されたデータは受け取れますか？", a: "契約終了後のデータ引き渡しやシステムの取り扱いについては、ご契約前に個別の条件として明記し、事前にご説明いたします。" }, { category: "usage", q: "サーバーやドメインはどちらが契約しますか？", a: "第三者へ支払うサーバー・ドメイン等の実費は月額利用料とは分けてご案内します。どの契約を貴社名義で持つかについても、開発開始前に確認・調整いたします。" }]
+          - faqs.each_with_index do |item, idx|
+            details.faq-panel__item class=("is-open-default" if idx.zero?) data-faq-item=item[:category] open=(idx.zero? || nil)
+              summary.faq-panel__q = item[:q]
+              p.faq-panel__a = item[:a]
+
+  section.enterprise-agent-section
+    .ea-inner
+      h2.ea-title 仕様と月額にご納得いただいてから、開発を始めます。
+      p.ea-desc 開発する機能と月額費用を事前に書面で明確にし、双方で合意したうえで着手します。進行のステップは以下の通りです。
+
+  section.features-strip#flow
+    .features-inner
+      .section-header
+        span.overline FLOW
+        h2.section-title 導入の流れ
+        p.section-sub ご相談から公開、その後の保守まで同じチームが一貫して担当します。月額費用は開発範囲を確認したうえでご提示します。
+      .features-scroll-wrap
+        button.features-scroll-btn.features-scroll-prev type="button" aria-label="前へ" onclick="scrollLpCards('#flow .features-grid', -1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        .features-grid
+          - flows = [{ num: "01", icon: "pen", title: "フォームから相談を送る", desc: "作りたいシステムの概要や利用シーン、現在の課題などを本ページのフォームからお送りください。" }, { num: "02", icon: "target", title: "要件と月額費用をご案内", desc: "開発する機能、月額料金、保守の範囲を書面でご提示します。月額外となる作業もこの段階で明確に切り分けます。" }, { num: "03", icon: "layout", title: "合意のうえ開発スタート", desc: "内容にご納得いただいてから着手します。実際の画面をご確認いただきながら、細部を仕上げていきます。" }, { num: "04", icon: "monitor", title: "貴社システムとして公開", desc: "完成したシステムを、貴社のサービスまたは社内システムとして本番環境へ公開します。" }, { num: "05", icon: "users", title: "現場での運用開始", desc: "お客様や社内メンバーがスムーズに使い始められるよう、公開時に必要な操作説明も行います。" }, { num: "06", icon: "shield", title: "月額内で保守・運用を継続", desc: "公開後の稼働維持や不具合への対応など、安心して使い続けるための保守を月額内で継続します。" }]
+          - flows.each do |item|
+            article.feature-card
+              .fc-top
+                .fc-head-row
+                  .fc-num = item[:num]
+                  .fc-icon
+                    svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      - if item[:icon] == "monitor"
+                        rect x="3" y="4" width="18" height="12" rx="2"
+                        line x1="8" y1="20" x2="16" y2="20"
+                        line x1="12" y1="16" x2="12" y2="20"
+                      - elsif item[:icon] == "target"
+                        circle cx="12" cy="12" r="10"
+                        circle cx="12" cy="12" r="6"
+                        circle cx="12" cy="12" r="2"
+                      - elsif item[:icon] == "users"
+                        path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"
+                        circle cx="9" cy="7" r="3"
+                        path d="M23 21v-2a4 4 0 0 0-3-3.87"
+                        path d="M16 3.13a4 4 0 0 1 0 7.75"
+                      - elsif item[:icon] == "layout"
+                        rect x="3" y="3" width="18" height="18" rx="2"
+                        line x1="3" y1="9" x2="21" y2="9"
+                        line x1="9" y1="21" x2="9" y2="9"
+                      - elsif item[:icon] == "pen"
+                        path d="M12 20h9"
+                        path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                      - else
+                        path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                  h3.fc-title = item[:title]
+                p.fc-desc = item[:desc]
+        button.features-scroll-btn.features-scroll-next type="button" aria-label="次へ" onclick="scrollLpCards('#flow .features-grid', 1)"
+          svg viewBox="0 0 24 24" fill="none"
+            path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+
+  section.about-section#about
+    .about-deco-circle
+    .about-inner
+      .section-header
+        span.overline COMPANY
+        h2.section-title 運営会社
+        p.section-sub 本サービスは、株式会社J Workが企画・開発・運営を行っています。
+      .about-grid
+        .about-left-content
+          p.about-text 株式会社J Workは、AI記事生成SaaS「Drafity」を自社で開発・提供しています。日々自社サービスを改善し続けている開発チームが、そのノウハウを活かして貴社のWebサービスや業務システムを構築します。
+        .about-right-table
+          .profile-table
+            - rows = [{ th: "会社名", td: "株式会社J Work" }, { th: "代表取締役", td: "奥山 健太" }, { th: "設立", td: "2023年8月18日" }, { th: "資本金", td: "5,000,000円" }, { th: "所在地", td: "東京都港区浜松町２丁目２番１５号２Ｆ" }]
+            - rows.each do |row|
+              .pt-row
+                .pt-th = row[:th]
+                .pt-td = row[:td]
+
+  section.consult-section#consult
+    .consult-inner
+      .section-header
+        span.overline CONSULT
+        h2.section-title 開発のご相談・お問い合わせ
+        p.section-sub 最適な開発範囲と月額費用をご案内するため、作りたいものや現在の状況をお聞かせください。ご入力いただいたメールアドレス宛に返信いたします。
+      - if params[:sent] == "1"
+        p.consult-success role="status" お問い合わせを受け付けました。内容を確認のうえ、ご入力いただいたメールアドレス宛にご連絡いたします。
+      = form_with model: @inquiry, url: development_inquiry_path, scope: :inquiry, method: :post, local: true, class: "consult-form" do |f|
+        - if @inquiry.errors.any?
+          .consult-errors role="alert"
+            p 入力内容に不備があります。ご確認のうえ再度お試しください。
+            ul
+              - @inquiry.errors.full_messages.each do |msg|
+                li = msg
+        .consult-honeypot aria-hidden="true"
+          = label_tag :company_website, "会社サイト"
+          = text_field_tag :company_website, nil, tabindex: -1, autocomplete: "off"
+        .consult-grid
+          .consult-field
+            = f.label :company, "会社名"
+            = f.text_field :company, class: "consult-input", required: true, autocomplete: "organization"
+          .consult-field
+            = f.label :name, "担当者名"
+            = f.text_field :name, class: "consult-input", required: true, autocomplete: "name"
+          .consult-field
+            = f.label :email, "メールアドレス"
+            = f.email_field :email, class: "consult-input", required: true, autocomplete: "email"
+          .consult-field
+            = f.label :tel, "電話番号"
+            = f.telephone_field :tel, class: "consult-input", autocomplete: "tel"
+          .consult-field
+            = f.label :system_type, "作りたいシステム"
+            = f.select :system_type, DevelopmentInquiry::SYSTEM_TYPES, { include_blank: "選択してください" }, class: "consult-input", required: true
+          .consult-field
+            = f.label :audience, "主な利用者"
+            = f.select :audience, DevelopmentInquiry::AUDIENCES, { include_blank: "選択してください" }, class: "consult-input", required: true
+          .consult-field.consult-field--full
+            = f.label :situation, "今の状態"
+            = f.select :situation, DevelopmentInquiry::SITUATIONS, { include_blank: "選択してください" }, class: "consult-input", required: true
+          .consult-field.consult-field--full
+            = f.label :message, "開発してほしい内容"
+            = f.text_area :message, class: "consult-input", rows: 6, required: true, placeholder: "例：営業が顧客ごとの対応状況を同じ画面で見る。顧客一覧、対応履歴、通知が必要"
+        = f.submit "相談内容を送信する", class: "btn-primary-lg consult-submit"
+      - if @inquiry.errors.any?
+        script
+          | document.getElementById("consult").scrollIntoView();
+
+  footer.lp-footer
+    .lp-footer-inner
+      = link_to development_path, class: "lp-footer-brand" do
+        = image_tag drafity_logo_image, width: "120", alt: "Drafity"
+      nav.lp-footer-nav aria-label="フッター"
+        a href="#service" サービス内容
+        a href="#scope" 対応範囲
+        a href="#flow" 導入の流れ
+        a href="#pricing" 料金
+        a href="#faq" よくある質問
+        a href="#consult" 相談
+        a href="#about" 運営会社
+      p.lp-footer-copy = "© #{Time.current.year} Drafity / 株式会社J Work"
+
+script type="application/ld+json"
+  = raw({ "@context" => "https://schema.org", "@type" => "Service", "name" => "Drafity 受託開発", "serviceType" => "Webシステムの受託開発", "provider" => { "@type" => "Organization", "name" => "株式会社J Work", "email" => "info@j-work.jp" }, "areaServed" => "JP", "description" => "初期費用0円で始めるWebサービス・業務システムの受託開発。保守・メンテナンス込みの月額制で貴社のシステムとしてご利用いただけます。" }.to_json)
+
+script
+  | function scrollLpCards(selector, direction) {
+  |   const grid = document.querySelector(selector);
+  |   if (!grid) return;
+  |   const card = grid.querySelector('.problem-card-item, .feature-card');
+  |   const gap = parseFloat(getComputedStyle(grid).gap) || 20;
+  |   const step = card ? card.offsetWidth + gap : 280;
+  |   grid.scrollBy({ left: direction * step, behavior: 'smooth' });
+  | }
+  | (function initFaqSearch() {
+  |   var root = document.querySelector('[data-faq-root]');
+  |   var searchInput = document.querySelector('[data-faq-search]');
+  |   var items = document.querySelectorAll('.faq-panel__item');
+  |   if (!searchInput || !items.length) return;
+  |   var categoryBtns = root ? root.querySelectorAll('[data-faq-category]') : [];
+  |   var activeCategory = '';
+  |   function applyFilters() {
+  |     var q = searchInput.value.trim().toLowerCase();
+  |     items.forEach(function(item) {
+  |       var category = item.getAttribute('data-faq-item') || '';
+  |       var text = item.textContent.toLowerCase();
+  |       var matchCategory = !activeCategory || category === activeCategory;
+  |       var matchSearch = !q || text.indexOf(q) !== -1;
+  |       item.classList.toggle('is-hidden', !(matchCategory && matchSearch));
+  |       item.style.display = (matchCategory && matchSearch) ? '' : 'none';
+  |     });
+  |   }
+  |   function setCategory(category) {
+  |     activeCategory = category;
+  |     categoryBtns.forEach(function(btn) {
+  |       btn.classList.toggle('is-active', btn.getAttribute('data-faq-category') === category);
+  |     });
+  |     items.forEach(function(item) {
+  |       if (item.open && item.getAttribute('data-faq-item') !== category) {
+  |         item.open = false;
+  |       }
+  |     });
+  |     applyFilters();
+  |   }
+  |   categoryBtns.forEach(function(btn) {
+  |     btn.addEventListener('click', function() {
+  |       setCategory(btn.getAttribute('data-faq-category'));
+  |     });
+  |   });
+  |   searchInput.addEventListener('input', applyFilters);
+  |   items.forEach(function(item) {
+  |     item.addEventListener('toggle', function() {
+  |       if (!item.open) return;
+  |       items.forEach(function(other) {
+  |         if (other !== item) other.open = false;
+  |       });
+  |     });
+  |   });
+  |   if (categoryBtns.length) {
+  |     setCategory(categoryBtns[0].getAttribute('data-faq-category'));
+  |   } else {
+  |     applyFilters();
+  |   }
+  | })();

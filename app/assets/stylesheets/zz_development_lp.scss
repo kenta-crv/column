@@ -1,0 +1,342 @@
+.drafify-lp.development-lp {
+  @media (min-width: 901px) {
+    .hero-copy,
+    .hero-cta-block {
+      max-width: calc(100vw - min(58vw, 820px) - max(40px, (100vw - 1200px) / 2 + 40px) - 24px);
+    }
+
+
+    .hero-cards {
+      max-width: none;
+    }
+
+    .hero-checks {
+      flex-wrap: nowrap;
+      width: max-content;
+      max-width: none;
+      gap: 8px;
+
+      .check-pill {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 6px 8px;
+      }
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 2.5vw, 48px);
+      line-height: 1.25;
+    }
+
+    .hero-desc,
+    .hero-trial-note {
+      text-wrap: balance;
+    }
+  }
+
+  .hero-title .num {
+    font-size: 1.85em;
+    line-height: 1;
+  }
+
+  .pricing-section .plan-card--solo {
+    .price-yen {
+      flex-basis: 100%;
+      font-size: 18px;
+    }
+
+    .plan-price-main {
+      align-items: baseline;
+    }
+
+    .price-num,
+    .price-unit {
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--blue) 20%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    .price-num {
+      font-size: 72px;
+    }
+
+    .price-unit {
+      font-size: 40px;
+      margin-left: 4px;
+    }
+  }
+
+  .enterprise-agent-section {
+    padding: 72px 28px;
+
+    .ea-title {
+      margin-top: 0;
+    }
+
+    .ea-desc {
+      margin-bottom: 0;
+    }
+  }
+
+  .whats-feature-pill {
+    align-items: flex-start;
+    max-width: none;
+    border-radius: 16px;
+    padding: 16px 18px;
+
+    .wfp-body {
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .wfp-title,
+    .wfp-desc {
+      margin: 0;
+    }
+
+    .wfp-desc {
+      line-height: 1.7;
+    }
+  }
+
+  .solution-banner-box .sb-mockup-right {
+    display: none;
+  }
+
+  .about-section .about-text {
+    margin-bottom: 0;
+  }
+
+  .problem-card-item {
+    flex-direction: row;
+    align-items: center;
+
+    .pci-content {
+      order: 2;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .pci-check-line {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .pci-check-text,
+    .pci-description {
+      text-align: left;
+    }
+
+    .pci-meta {
+      order: 1;
+      width: auto;
+      margin-top: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &::before {
+        display: none;
+      }
+    }
+
+    .pci-visual-icon {
+      width: 88px;
+      height: 88px;
+
+      svg {
+        width: 40px;
+        height: 40px;
+      }
+
+      &.icon-shield {
+        background-color: #EEF2FF;
+        color: #4F46E5;
+      }
+    }
+  }
+
+  #flow {
+    .section-header,
+    .section-title,
+    .section-sub,
+    .fc-title,
+    .fc-desc {
+      text-align: center;
+    }
+
+    .fc-num {
+      align-self: center;
+    }
+  }
+
+  .feature-card .fc-top {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-items: stretch;
+  }
+
+  .feature-card .fc-head-row {
+    display: contents;
+  }
+
+  .feature-card .fc-num { order: 1; }
+  .feature-card .fc-title { order: 2; }
+  .feature-card .fc-desc {
+    order: 3;
+    margin-bottom: 20px;
+  }
+
+  .feature-card .fc-icon {
+    order: 4;
+    align-self: center;
+    width: 64px;
+    height: 64px;
+    margin-top: auto;
+    border-radius: 50%;
+    background: #eef2ff;
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .consult-section {
+    background: #f8fafc;
+    padding: 96px 0 112px;
+  }
+
+  .consult-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .consult-form {
+    margin-top: 8px;
+    padding: 32px 28px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 18px 48px -24px rgba(37, 99, 235, 0.28);
+  }
+
+  .consult-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 20px;
+  }
+
+  .consult-field--full {
+    grid-column: 1 / -1;
+  }
+
+  .consult-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .consult-field .field_with_errors {
+    width: 100%;
+  }
+
+  .consult-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    line-height: 1.6;
+  }
+
+  .consult-input:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.35);
+    border-color: #93c5fd;
+  }
+
+  textarea.consult-input {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .consult-hint {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-lt);
+  }
+
+  .consult-submit {
+    margin-top: 22px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .consult-success,
+  .consult-errors {
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    line-height: 1.7;
+  }
+
+  .consult-success {
+    background: #ecfdf5;
+    color: #065f46;
+  }
+
+  .consult-errors {
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  .consult-errors p,
+  .consult-errors ul {
+    margin: 0;
+  }
+
+  .consult-errors ul {
+    padding-left: 1.2em;
+  }
+
+  .consult-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 700px) {
+    .consult-section {
+      padding: 72px 0 88px;
+    }
+
+    .consult-form {
+      padding: 24px 16px;
+    }
+
+    .consult-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .consult-submit {
+      width: 100%;
+    }
+  }
+}

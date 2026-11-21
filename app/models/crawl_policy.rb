@@ -5,6 +5,7 @@ module CrawlPolicy
   TOPS_PATH = "/tops"
   SEO_CHECKER_PATH = "/tools/seo-checker"
   OVERSEAS_SEO_PATH = "/overseas"
+  DEVELOPMENT_PATH = "/development"
   SITEMAP_HOST = ENV.fetch("SITEMAP_DEFAULT_HOST", "https://drafity.pro")
 
   module_function
@@ -25,6 +26,7 @@ module CrawlPolicy
     "/",
     SEO_CHECKER_PATH,
     OVERSEAS_SEO_PATH,
+    DEVELOPMENT_PATH,
     "/en",
     "/en#{SEO_CHECKER_PATH}",
     "/#{GENRE_KEY}/columns",
@@ -81,6 +83,8 @@ module CrawlPolicy
       Allow: /en#{SEO_CHECKER_PATH}/
       Allow: #{OVERSEAS_SEO_PATH}$
       Allow: #{OVERSEAS_SEO_PATH}/
+      Allow: #{DEVELOPMENT_PATH}$
+      Allow: #{DEVELOPMENT_PATH}/
       Allow: /#{OVERSEAS_SEO_GENRE_KEY}/columns
       Allow: /#{OVERSEAS_SEO_GENRE_KEY}/columns/
       Allow: /#{GENRE_KEY}/columns

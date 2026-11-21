@@ -174,6 +174,8 @@ Rails.application.routes.draw do
   get "specific", to: "tops#specific"
   get "/overseas", to: "tops#overseas_seo", as: :overseas_seo
   get "/overseas-seo", to: redirect("/overseas", status: 301)
+  get "/development", to: "tops#development", as: :development
+  post "/development", to: "tops#create_development_inquiry", as: :development_inquiry
 
   resources :problems
 
