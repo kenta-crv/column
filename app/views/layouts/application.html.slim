@@ -17,6 +17,18 @@ html lang=I18n.locale
       .flash-message.alert.alert-success role="alert"
         | 送信完了しました
 
+      - if controller_name == "tops" && action_name == "development"
+        script async=true
+          |
+            ytag({
+              "type": "yss_conversion",
+              "config": {
+                "yahoo_conversion_id": "1001407956",
+                "yahoo_conversion_label": "yrUNCIea1r0dEIu2l7NE",
+                "yahoo_conversion_value": "0"
+              }
+            });
+
       script
         |
           gtag('event', 'conversion', {
